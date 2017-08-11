@@ -1,0 +1,16 @@
+*.oa
+*~
+*.pyc
+*.root
+*.o
+*.so
+*.exe
+*.swp
+core.*
+*.Dict.cxx
+*.Dict.h
+*.BranchInit.cxx
+*.BranchInit.h
+*.BranchDefs.h
+*.LinkDef.h
+*.analysis_config.txt
