@@ -3,6 +3,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 import os
 import re
 import math
+import selection_defs as defs
 from SampleManager import SampleManager
 from argparse import ArgumentParser
 
@@ -12,6 +13,8 @@ parser.add_argument( '--baseDirMu'  ,  dest='baseDirMu'  , default=None, help='P
 parser.add_argument( '--baseDirEl'  ,  dest='baseDirEl'  , default=None, help='Path to single Electron ntuples')
 parser.add_argument( '--baseDirMuG' ,  dest='baseDirMuG' , default=None, help='Path to Muon + Photon ntuples')
 parser.add_argument( '--baseDirElG' ,  dest='baseDirElG' , default=None, help='Path to Electron + Photon ntuples')
+parser.add_argument( '--baseDirMuGNoId' ,  dest='baseDirMuGNoId' , default=None, help='Path to Muon + Photon ntuples with no photon ID')
+parser.add_argument( '--baseDirElGNoId' ,  dest='baseDirElGNoId' , default=None, help='Path to Electron + Photon ntuples with no photon ID')
 parser.add_argument( '--baseDirMuMu',  dest='baseDirMuMu', default=None, help='Path to DiMuon ntuples')
 parser.add_argument( '--baseDirElEl',  dest='baseDirElEl', default=None, help='Path to DiElectron ntuples')
 parser.add_argument( '--baseDirMuEl',  dest='baseDirMuEl', default=None, help='Path to Muon + Electron ntuples')
@@ -30,10 +33,8 @@ _TREENAME = 'tupel/EventTree'
 _FILENAME = 'tree.root'
 _XSFILE   = 'cross_sections/photon15.py'
 _LUMI     = 36000
-_BASEPATH = '/afs/cern.ch/user/a/abelloni/work/analysis/WG_EXO/usercode/Plotting/'
+_BASEPATH = '/home/jkunkle/usercode/Plotting/'
 _MODULE   = 'Modules/Resonance.py'
-
-
 
 def main() :
 
@@ -47,6 +48,8 @@ def main() :
     sampManMuMu = SampleManager( options.baseDirMuMu, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
     sampManElEl = SampleManager( options.baseDirElEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
     sampManMuEl = SampleManager( options.baseDirMuEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManMuGNoId = SampleManager( options.baseDirMuGNoId, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManElGNoId = SampleManager( options.baseDirElGNoId, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
 
     sampManReco.ReadSamples( _MODULE )
     sampManNoFilt.ReadSamples( _MODULE )
@@ -57,18 +60,85 @@ def main() :
     sampManMuMu.ReadSamples( _MODULE )
     sampManElEl.ReadSamples( _MODULE )
     sampManMuEl.ReadSamples( _MODULE )
+    sampManMuGNoId.ReadSamples( _MODULE )
+    sampManElGNoId.ReadSamples( _MODULE )
 
     #Make2DSignalPlot( sampManMuG, sampManElG )
 
-    MakeSignalRegionPlots( sampManMuG, sampManElG )
+    #MakeSignalRegionPlots( sampManMuG, sampManElG )
 
     #MakeBkgTruthPlots( sampManReco )
 
     #MakeSignalTruthPlots( sampManNoFilt )
 
-    #MakeWJetsPlots( sampManMuGNoId, sampManElGNoId )
+    MakeWJetsPlots( sampManMuGNoId, sampManElGNoId )
 
-#def MakeWJetsPlots( sampMan
+def MakeWJetsPlots( sampManMu, SampManEl ) :
+
+    name = 'WJetsPlots'
+    outdir = '%s/%s' %(options.outputDir, name )
+
+    #ph_id_cats = ['chIso', 'sigmaIEIE']
+    ph_id_cats = [ 'chIso']
+    ph_eta_cats = ['EB', 'EE']
+    ph_pt_cats = [(15, 50), (50, 1e9 )]
+
+    binning = {
+               'chIso' : { 
+                          'EB' : ( 50, 0, 25 ), 
+                          'EE' : ( 50, 0, 25 ), 
+                         },
+               'sigmaIEIE' : { 
+                          'EB' : ( 50, 0, 0.05 ), 
+                          'EE' : ( 50, 0, 0.1 ), 
+                         },
+    }
+
+    xlabels = {'chIso' : 'Charged hadron isolation', 'sigmaIEIE' : '#sigma i#eta i#eta' }
+    yranges = {'chIso' : ( 10, 1e7), 'sigmaIEIE' : ( 1, 1e6 ) }
+
+    extra_tags = {'EB' : 'Barrel Photons', 'EE' :  'Endcap Photons' }
+
+    selection_mu = defs.get_base_selection( 'mu' )
+    selection_el = defs.get_base_selection( 'el' )
+
+    weight_str = defs.get_weight_str()
+
+    for iid in ph_id_cats :
+
+        phid_selection = defs.get_phid_selection( iid )
+
+        phid_idx = defs.get_phid_idx( iid )
+
+        plot_var = '%s[%s]' %( defs.get_phid_cut_var( iid ), phid_idx )
+
+        for ipt in ph_pt_cats :
+
+            ph_pt_sel  = 'ph_pt[%s] > %d && ph_pt[%s] < %d' %( phid_idx, ipt[0], phid_idx, ipt[1] )
+
+            for ieta in ph_eta_cats :
+
+                ph_eta_sel = 'ph_Is%s[%s]' %( ieta, phid_idx )
+
+                all_selections_mu = [selection_mu, phid_selection, ph_pt_sel, ph_eta_sel]
+
+                full_sel_str_mu = ' && '.join( all_selections_mu )
+
+                ymin = yranges[iid][0]
+                ymax = yranges[iid][1]
+
+                ylabel = 'Events / %.03f ' %( (binning[iid][ieta][2] - binning[iid][ieta][1]) / float( binning[iid][ieta][0] ) )
+
+                sampManMu.Draw( plot_var, full_sel_str_mu, binning[iid][ieta], 
+                               hist_config={'logy' : True, 'xlabel' : xlabels[iid], 'ylabel' : ylabel, 'ymin' : ymin, 'ymax' : ymax}, 
+                               label_config={'labelStyle' : 'fancy13', 'extra_label': extra_tags[ieta], 'extra_label_loc':(0.2, 0.87)},
+                              )
+
+                if options.outputDir is not None :
+                    sampManMu.SaveStack( 'ph_%s_mu_%s_phpt_%d_%d.pdf' %(iid, ieta, ipt[0], ipt[1]) ,outdir, 'base' )
+                else :
+                    raw_input('cont')
+
 
 def MakeBkgTruthPlots( sampManReco ) :
 
@@ -152,7 +222,7 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG ) :
     label_loc_conf = (0.2, 0.87)
 
     weight_str = 'NLOWeight * PUWeight '
-    sel_base_mu = ' mu_pt30_n==1 && mu_n==1 && ph_n==1 '
+    sel_base_mu = 'mu_pt30_n==1 && mu_n==1 && ph_n==1 '
     sel_base_el = 'el_pt30_n==1 && el_n==1 && ph_n==1 '
     sel_mu_nominal = '%s * (%s)'%( weight_str, sel_base_mu ) 
     sel_el_nominal = '%s * (%s)'%( weight_str, sel_base_el ) 
