@@ -328,6 +328,10 @@ def config_samples(samples) :
                            input_samples = ['Wjets', 'TTbar_SingleLep'],
                            isActive=False,
                           )
+    samples.AddSampleGroup( 'EleFakeBackground', 
+                           input_samples = ['Z+jets', 'Zgamma', 'TTbar_DiLep'],
+                           isActive=False,
+                          )
 
 def print_examples() :
     pass

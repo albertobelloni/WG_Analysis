@@ -19,8 +19,8 @@ else :
 
 options.local = ( not options.batch )
 
-#base = '/data/users/jkunkle/Resonances/'
-base = '/afs/cern.ch/user/a/abelloni/work/analysis/WG_EXO/usercode/test/'
+base = '/data/users/jkunkle/Resonances/'
+#base = '/afs/cern.ch/user/a/abelloni/work/analysis/WG_EXO/usercode/test/'
 
 jobs = [
         ##JobConf(base, 'DoubleMuon'),
@@ -161,7 +161,7 @@ jobs = [
 ]
 
 
-options.nFilesPerJob = 0
+options.nFilesPerJob = 1
 
 options.nproc = 4
 options.treename='tupel/EventTree'
@@ -219,34 +219,18 @@ configs = [
     #},
     {
         'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 50 ', 'ph_eta' : 'EB' },
+        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ' },
         'input'  : input_base,
-        'output' : base+'LepGammaSigOnly_mugEB_2017_07_27',
-        'tag'    : 'mugEB',
+        'output' : base+'LepGamma_mug_2017_09_05',
+        'tag'    : 'mug',
         'dataset': 'SingleMuon',
     },
     {
         'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 50 ', 'ph_eta' : 'EE' },
+        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None'},
         'input'  : input_base,
-        'output' : base+'LepGammaSigOnly_mugEE_2017_07_27',
-        'tag'    : 'mugEB',
-        'dataset': 'SingleMuon',
-    },
-    {
-        'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'ph_eta' : 'EB' },
-        'input'  : input_base,
-        'output' : base+'LepGammaSigOnly_elgEB_2017_07_27',
-        'tag'    : 'elgEB',
-        'dataset': 'SingleElectron',
-    },
-    {
-        'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'ph_eta' : 'EE' },
-        'input'  : input_base,
-        'output' : base+'LepGammaSigOnly_elgEE_2017_07_27',
-        'tag'    : 'elgEE',
+        'output' : base+'LepGamma_elg_2017_09_05',
+        'tag'    : 'elg',
         'dataset': 'SingleElectron',
     },
     #{
