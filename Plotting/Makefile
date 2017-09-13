@@ -11,12 +11,14 @@ DIR_ELEL=/data/users/jkunkle/Resonances/LepLep_elel_2017_04_12/
 DIR_SIGTruth=/data/users/jkunkle/Resonances/SigNoFilt_2017_07_03
 
 
-all : plots fits
+all : plots workspaces limits
 
 plots :
-	python MakeResonancePlots.py --baseDirMu ${DIR_MU} --baseDirEl ${DIR_EL} --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG}  --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --baseDirNoFilt ${DIR_SIGTruth} --makeZCR --makeWCR --makeSR --makeJetBkg --makeJetBkg --makeEleBkg --outputDir ${OUTPUTMAIN}/Plots
+	python MakePlots.py --baseDirMu ${DIR_MU} --baseDirEl ${DIR_EL} --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG}  --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --baseDirNoFilt ${DIR_SIGTruth} --makeZCR --makeWCR --makeSR --makeJetBkg --makeJetBkg --makeEleBkg --outputDir ${OUTPUTMAIN}/Plots
+
+workspaces :
+	python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --doWGamma --doWJets --doEleFake --doClosure --outputDir ${OUTPUTMAIN}/Workspaces
 
 fits :
-	#python MakeResWJetsBkg.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --doWGamma --doWJets --doEleFake --doClosure --outputDir ${OUTPUTMAIN}/Workspaces
-	python MakeResWJetsBkg.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doWGamma  --outputDir ${OUTPUTMAIN}/Workspaces
+	python MakeFits.py
 
