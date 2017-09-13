@@ -144,14 +144,13 @@ def main() :
 
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
-        for key, can in sampManMu.outputs.iteritems() :
-            print key
+        for key, can in sampManMuGNoId.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-        for key, can in sampManEl.outputs.iteritems() :
+        for key, can in sampManElGNoId.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-        for key, can in sampManSigMu.outputs.iteritems() :
+        for key, can in sampManMuG.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-        for key, can in sampManSigEl.outputs.iteritems() :
+        for key, can in sampManElG.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
 
 #def make_toy_data( out_workspace, in_workspace, in_pdf, suffix='' ) :
