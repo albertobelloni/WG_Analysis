@@ -118,8 +118,13 @@ def main() :
     #Make2DSignalPlot( sampManMuG, sampManElG )
 
 
+    print '^.^ Finished ^.^'
 
 def MakeWCRPlots( sampManMu, sampManEl ) :
+
+    name = 'WCRPlots'
+    outdir = '%s/%s' %(options.outputDir, name )
+
 
     selection_mu = defs.get_base_selection( 'mu' )
     selection_el = defs.get_base_selection( 'el' )
@@ -137,7 +142,7 @@ def MakeWCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManMu.SaveStack( 'mt_lep_met_mu.pdf' %(outdir, 'base' ) )
+        sampManMu.SaveStack( 'mt_lep_met_mu.pdf' ,outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -147,7 +152,7 @@ def MakeWCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManEl.SaveStack( 'mt_lep_met_el.pdf' %(outdir, 'base' ) )
+        sampManEl.SaveStack( 'mt_lep_met_el.pdf' ,outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -157,7 +162,7 @@ def MakeWCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManMu.SaveStack( 'met_pt_mu.pdf' %(outdir, 'base' ) )
+        sampManMu.SaveStack( 'met_pt_mu.pdf' ,outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -167,7 +172,7 @@ def MakeWCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManEl.SaveStack( 'met_pt_el.pdf' %(outdir, 'base' ) )
+        sampManEl.SaveStack( 'met_pt_el.pdf' , outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -176,6 +181,9 @@ def MakeWCRPlots( sampManMu, sampManEl ) :
 
 
 def MakeZCRPlots( sampManMu, sampManEl ) :
+
+    name = 'ZCRPlots'
+    outdir = '%s/%s' %(options.outputDir, name )
 
     selection_mu = defs.get_base_selection( 'mumu' )
     selection_el = defs.get_base_selection( 'elel' )
@@ -194,7 +202,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManMu.SaveStack( 'm_ll_mumu.pdf' %(outdir, 'base' ) )
+        sampManMu.SaveStack( 'm_ll_mumu.pdf' ,outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -204,7 +212,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManEl.SaveStack( 'm_ll_elel.pdf' %(outdir, 'base' ) )
+        sampManEl.SaveStack( 'm_ll_elel.pdf' , outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -219,7 +227,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManMu.SaveStack( 'm_ll_mumug.pdf' %(outdir, 'base' ) )
+        sampManMu.SaveStack( 'm_ll_mumug.pdf' ,outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -229,7 +237,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManEl.SaveStack( 'm_ll_elelg.pdf' %(outdir, 'base' ) )
+        sampManEl.SaveStack( 'm_ll_elelg.pdf' , outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -240,7 +248,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManMu.SaveStack( 'dr_lep_ph_mumug.pdf' %(outdir, 'base' ) )
+        sampManMu.SaveStack( 'dr_lep_ph_mumug.pdf', outdir, 'base' ) 
     else :
         raw_input('cont')
 
@@ -250,7 +258,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
                   )
 
     if options.outputDir is not None :
-        sampManEl.SaveStack( 'dr_lep_ph_elelg.pdf' %(outdir, 'base' ) )
+        sampManEl.SaveStack( 'dr_lep_ph_elelg.pdf' , outdir, 'base' )
     else :
         raw_input('cont')
 
@@ -258,6 +266,9 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
 
 
 def MakeEFakePlots( sampManEl ) :
+
+    name = 'EFakePlots'
+    outdir = '%s/%s' %(options.outputDir, name )
 
     binning = ( 100, 0, 1000 )
     plot_var = 'ph_pt[0]'
@@ -271,7 +282,10 @@ def MakeEFakePlots( sampManEl ) :
 
     sampManEl.Draw( plot_var, full_sel_str_el, binning  )
 
-    raw_input('cont')
+    if options.outputDir is not None :
+        sampManEl.SaveStack( 'ph_pt_elg_failVeto.pdf' , outdir, 'base' )
+    else :
+        raw_input('cont')
 
     selection_ph = 'ph_n==1 && ph_eleVeto[0] == 1 && !isBlinded'
 
@@ -279,7 +293,10 @@ def MakeEFakePlots( sampManEl ) :
 
     sampManEl.Draw( plot_var, full_sel_str_el, binning  )
 
-    raw_input('cont')
+    if options.outputDir is not None :
+        sampManEl.SaveStack( 'ph_pt_elg_passVeto.pdf' , outdir, 'base' )
+    else :
+        raw_input('cont')
 
 
 def MakeWJetsPlots( sampManMu, sampManEl ) :
