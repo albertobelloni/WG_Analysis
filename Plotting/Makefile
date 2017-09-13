@@ -1,61 +1,21 @@
-OUTPUTMAIN=~/Plots/ZggPlotsOneBin_2015_12_01
-SYSTFILE=$(OUTPUTMAIN)/JetFakeTemplatePlots/systematics.pickle
-PLOTDIR=PlotsUnblind
+OUTPUTMAIN=~/Plots/Resonance/Plots_2017_09_13
 
-JETFITVARS=sigmaIEIE chIsoCorr
-JETFFCORRINPUTS=veryloose
-MODULE=Modules/JetFakeFit.py
-all : plots syst jet ele background evetosf
-	@echo "^_^ FINISHED ^_^"
+DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2017_09_05/
+DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2017_09_05/ 
+DIR_MUGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_mug_2017_07_20/
+DIR_ELGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_elg_2017_07_20/
+DIR_MU=/data/users/jkunkle/Resonances/SingleLepNoPhID_mu_2017_07_18/
+DIR_EL=/data/users/jkunkle/Resonances/SingleLepNoPhID_el_2017_07_18/  
+DIR_MUMU=/data/users/jkunkle/Resonances/LepLep_mumu_2017_04_12/
+DIR_ELEL=/data/users/jkunkle/Resonances/LepLep_elel_2017_04_12/
+DIR_SIGTruth=/data/users/jkunkle/Resonances/SigNoFilt_2017_07_03
 
-#-----------------------------
-# Single photon binning
-SINGLEPTBINS = 15,25,40,70,1000000
 
-jet :
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels muhighmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels mulowmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels ellooselowmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels ellooseinvpixleadlowmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels ellooseinvpixsubllowmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels elfullhighmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels elfullinvpixleadhighmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels elfullinvpixsublhighmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels elfulllowmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels elfullinvpixleadlowmt --ptbins $(PTBINSJET) $(SUBLSTR)
-	python RunMatrixFit.py --samplesConf Modules/JetFakeFit.py --fileName tree.root --samplesConfGG Modules/JetFakeFit.py --treeName ggNtuplizer/EventTree --xsFile cross_sections/wgamgam.py --lumi 19400 --outputDir $(OUTPUTMAIN) --syst_file   $(SYSTFILE) --channels elfullinvpixsubllowmt --ptbins $(PTBINSJET) $(SUBLSTR)
-
-ele :
-	python FitElectronFakes.py --baseDir /afs/cern.ch/work/j/jkunkle/public/CMS/Wgamgam/Output/ --dirNom LepGammaNoPhID_2015_11_09 --dirInv  LepGammaMediumPhIDNoTrigElOlapRmDupInvPSV_2016_03_10 --treeName ggNtuplizer/EventTree --fileName tree.root --lumi 19400 --samplesConf Modules/ElectronFake.py --outputDir $(OUTPUTMAIN) --ndkeys_cms_fine 
-
-backupele :
-	python MakeBackupEleBkgEstimate.py --baseDir $(OUTPUTMAIN)
-tandp :
-	#python FitTagAndProbe.py  --photon --outputDir ~/Plots/WggPlots_2015_01_10
-
-evetosf :
-	python DoPhotonEvetoEfficiency.py  --outputDir $(OUTPUTMAIN)
-
-syst :
-	python CollectSystUncertanities.py --baseDir $(OUTPUTMAIN) --save
+all : plots fits
 
 plots :
-	python MakeWggHists.py --xsFile cross_sections/wgamgam.py --makeEvent --makeEleFake --makeJetFakeTemplate --makeJetFakeSyst --makeLepGamma --makeLepLepGamma --lumi 19400 --outputDir $(OUTPUTMAIN)  --save
+	python MakeResonancePlots --baseDirMu ${DIR_MU} --baseDirEl ${DIR_EL} --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG}  --baseDirMuGNoId ${DIR_MUGNoId} --baseDirELGNoId ${DIR_ElGNoId} --baseDirMuMu ${DIR_MUMU} --baseDirELEL ${DIR_ELEL} --baseDirNoFilt ${DIR_SIGTruth} --makeZCR --makeWCR --makeSR --makeJetBkg --makeJetBkg --makeEleBkg --outputDir ${OUTPUTMAIN}/Plots
 
-background :
-	python MakeBackgroundEstimates.py --baseDir $(OUTPUTMAIN) --ptbins 15,1000000 --plotDir $(PLOTDIR) --zgg
+fits :
+	python MakeResWJetsBkg.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --doWGamma --doWJets --doEleFake --doClosure --outputDir ${OUTPUTMAIN}/Workspaces
 
-singlebackground :
-	python MakeSingleBackgroundEstimates.py --baseDir $(OUTPUTMAIN) --plotDir PlotsNom --ptbins 15,25,40,70,150 --wcr
-
-finalplots :
-	python MakeFinalHists.py  --baseDir $(OUTPUTMAIN)/BackgroundEstimates/$(PLOTDIR)  --outputDir $(OUTPUTMAIN)/FinalPlotsOneBin --zgg
-	python MakeFinalHists.py  --baseDir $(OUTPUTMAIN)/BackgroundEstimates/$(PLOTDIR)/Summed  --outputDir $(OUTPUTMAIN)/MoneyPlots --money --zgg
-
-finalplotssingle :
-	python MakeFinalSingleHists.py  --baseDir $(OUTPUTMAIN)/SinglePhotonWCRBackgroundEstimates/SigmaIEIEFits/PlotsMCNDCoarse     --outputDir $(OUTPUTMAIN)/FinalPlotsEValid --doRatio  --evalid
-
-singlephjet : 
-	for var in $(JETFITVARS) ; do \
-	    #python RunSinglePhotonFit.py --fitPath /afs/cern.ch/work/j/jkunkle/public/CMS/Wgamgam/Output/LepLepGammaNoPhID_2015_10_01/ --samplesConf Modules/JetFakeFit.py --fileName tree.root --treeName ggNtuplizer/EventTree   --xsFile cross_sections/wgamgam.py  --lumi 19400 --channel muzpeak_eff_medium --ptbins $(SINGLEPTBINS) --outputDir $(OUTPUTMAIN) --fitvar $$var; \
-	done

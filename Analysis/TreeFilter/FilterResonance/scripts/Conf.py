@@ -150,16 +150,18 @@ def make_final_elg( alg_list, args) :
     mu_pt = args.get( 'mu_pt', ' > 10 ' )
     el_pt = args.get( 'el_pt', ' > 10 ' )
     ph_pt = args.get( 'ph_pt', ' > 15 ' )
-    phot_vars = args.get( 'phot_vars', ' False ' )
+    phot_vars = args.get( 'phot_vars', 'False' )
     phot_id = args.get( 'phot_id', 'medium' )
     ph_eta = args.get( 'ph_eta', None )
     sec_lep_veto = args.get( 'sec_lep_veto', 'True' )
     unblind = args.get( 'unblind', 'False' )
+    eleVeto = args.get('eleVeto', 'None' )
+
 
     # order should be muon, electron, photon, jet
     alg_list.append( filter_muon(mu_pt ) )
     alg_list.append( filter_electron(el_pt ) )
-    alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta ) )
+    alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta,ele_veto=eleVeto  ) )
     alg_list.append( filter_jet( ) )
 
     filter_event = Filter('FilterEvent')
@@ -180,7 +182,7 @@ def make_final_elg( alg_list, args) :
 
     if unblind is not 'True' :
         filter_blind = Filter( 'FilterBlind' )
-        filter_blind.cut_ph_pt_lead = ' < 50 ' 
+        filter_blind.cut_mt_lep_met_ph = ' < 100 ' 
 
         filter_blind.add_var( 'isData', args.get('isData', ' == False' ) )
         alg_list.append( filter_blind )
@@ -226,7 +228,7 @@ def make_final_mug( alg_list, args) :
 
     if unblind is not 'True' :
         filter_blind = Filter( 'FilterBlind' )
-        filter_blind.cut_ph_pt_lead = ' < 50 ' 
+        filter_blind.cut_mt_lep_met_ph = ' < 100 ' 
 
         filter_blind.add_var( 'isData', args.get('isData', ' == False' ) )
         alg_list.append( filter_blind )
@@ -326,7 +328,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False ) :
 
     return filt
 
-def filter_photon( ph_pt = ' > 15 ', id_cut='medium', ieta_cut=None, do_cutflow=False, do_hists=False ) :
+def filter_photon( ph_pt = ' > 15 ', id_cut='medium', ieta_cut=None, ele_veto='None', do_cutflow=False, do_hists=False ) :
 
     filt = Filter('FilterPhoton')
 
@@ -341,6 +343,12 @@ def filter_photon( ph_pt = ' > 15 ', id_cut='medium', ieta_cut=None, do_cutflow=
         if ieta_cut == 'EE' :
             filt.cut_ee = ' == True '
 
+    if ele_veto is not 'None' :
+        if ele_veto == 'True' :
+            filt.cut_CSEV = ' == True '
+        elif ele_veto == 'False'  :
+            filt.cut_CSEV = ' == False '
+    
     if( id_cut is not 'None' ) :
         setattr( filt, 'cut_%s' %id_cut, ' == True ' )
     return filt

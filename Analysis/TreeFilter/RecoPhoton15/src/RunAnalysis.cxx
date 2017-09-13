@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "BranchDefs.h"
 #include "BranchInit.h"
@@ -41,6 +42,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                             const CmdOptions & options, std::vector<ModuleConfig> &configs ) {
 
 
+    std::cout << "FIX PU weighting" << std::endl;
+    assert( false );
 
     // *************************
     // initialize trees

@@ -5,7 +5,7 @@ import os
 import uuid
 import math
 import pickle
-from AsymErrs import AsymErrs
+import selection_defs as defs
 from uncertainties import ufloat
 #ROOT.TVirtualFitter.SetMaxIterations( 100000 )
 
@@ -13,16 +13,16 @@ from SampleManager import SampleManager
 from argparse import ArgumentParser
 parser = ArgumentParser()
 
-parser.add_argument('--baseDirMu',      default=None,           dest='baseDirMu',         required=False, help='Path to muon base directory')
-parser.add_argument('--baseDirEl',      default=None,           dest='baseDirEl',         required=False, help='Path to electron base directory')
-parser.add_argument('--baseDirSigMu',      default=None,           dest='baseDirSigMu',         required=False, help='Path to signal samples in muon channel')
-parser.add_argument('--baseDirSigEl',      default=None,           dest='baseDirSigEl',         required=False, help='Path to signal samples in muon channel')
+parser.add_argument('--baseDirMuGNoId',      default=None,           dest='baseDirMuGNoId',         required=False, help='Path to muon base directory')
+parser.add_argument('--baseDirElGNoId',      default=None,           dest='baseDirElGNoId',         required=False, help='Path to electron base directory')
+parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to signal samples in muon channel')
+parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--outputDir',      default=None,           dest='outputDir',         required=False, help='Output directory to write histograms')
 parser.add_argument('--doSignal',       default=False,    action='store_true',      dest='doSignal', required=False, help='make signal fits' )
 parser.add_argument('--doWGamma',       default=False,    action='store_true',      dest='doWGamma', required=False, help='make wgamma fits' )
 parser.add_argument('--doWJets',       default=False,     action='store_true',     dest='doWJets', required=False, help='make w+jets fits' )
+parser.add_argument('--doEleFake',       default=False,     action='store_true',     dest='doEleFake', required=False, help='make electron fake fits' )
 parser.add_argument('--doClosure',       default=False,   action='store_true',       dest='doClosure', required=False, help='make closure tests' )
-#parser.add_argument('--doToyData',       default=False,   action='store_true',       dest='doToyData', required=False, help='make toy data' )
 
 options = parser.parse_args()
 
@@ -37,52 +37,6 @@ _SAMPCONF = 'Modules/Resonance.py'
 
 #_binning = (100, 0, 2000)
 
-def get_ph_selection( sel1, sel2='' ) :
-
-    if sel1 == 'all' :
-        return 'ph_n'
-    if sel1 == 'medium' :
-        return 'ph_medium_n' 
-    if sel1 == 'chIso' :
-        if sel2 == 'sigmaIEIE' :
-            return 'ph_mediumNoSIEIENoChIso_n'
-        else :
-            return 'ph_mediumNoChIso_n'
-    if sel1 == 'sigmaIEIE' :
-        if sel2 == 'chIso' :
-            return 'ph_mediumNoSIEIENoChIso_n'
-        else :
-            return 'ph_mediumNoSIEIE_n'
-
-    assert( 'get_ph_selection -- Could not parse selection vars!' )
-
-def get_ph_idx( sel1, sel2='' ) :
-
-    if sel1 == 'all' :
-        return '0'
-    if sel1 == 'medium' :
-        return 'ptSorted_ph_medium_idx[0]' 
-    if sel1 == 'chIso' :
-        if sel2 == 'sigmaIEIE' :
-            return 'ptSorted_ph_mediumNoSIEIENoChIso_idx[0]'
-        else :
-            return 'ptSorted_ph_mediumNoChIso_idx[0]'
-    if sel1 == 'sigmaIEIE' :
-        if sel2 == 'chIso' :
-            return 'ptSorted_ph_mediumNoSIEIENoChIso_idx[0]'
-        else :
-            return 'ptSorted_ph_mediumNoSIEIE_idx[0]'
-
-    assert( 'get_ph_idx -- Could not parse selection vars!' )
-
-def get_cut_var( ivar ) :
-
-    if ivar == 'chIso' :
-        return 'ph_chIsoCorr'
-    if ivar == 'sigmaIEIE' :
-        return 'ph_sigmaIEIE'
-
-    assert( 'get_cut_var -- Could not parse selection vars!' )
 
 def get_cut_defaults( shape_var, ieta ) :
 
@@ -104,20 +58,20 @@ if options.outputDir is not None :
 
 def main() :
 
-    sampManMu = SampleManager( options.baseDirMu, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManEl = SampleManager( options.baseDirEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManSigMu = SampleManager( options.baseDirSigMu, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManSigEl = SampleManager( options.baseDirSigEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManMuGNoId = SampleManager( options.baseDirMuGNoId, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManElGNoId = SampleManager( options.baseDirElGNoId, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
 
-    sampManMu.ReadSamples( _SAMPCONF )
-    sampManEl.ReadSamples( _SAMPCONF )
-    sampManSigMu.ReadSamples( _SAMPCONF )
-    sampManSigEl.ReadSamples( _SAMPCONF )
+    sampManMuGNoId.ReadSamples( _SAMPCONF )
+    sampManElGNoId.ReadSamples( _SAMPCONF )
+    sampManMuG.ReadSamples( _SAMPCONF )
+    sampManElG.ReadSamples( _SAMPCONF )
 
-    sampManMu.outputs = {}
-    sampManEl.outputs = {}
-    sampManSigMu.outputs = {}
-    sampManSigEl.outputs = {}
+    sampManMuGNoId.outputs = {}
+    sampManElGNoId.outputs = {}
+    sampManMuG.outputs = {}
+    sampManElG.outputs = {}
 
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
     sel_base_el = 'el_pt30_n==1 && el_n==1'
@@ -136,8 +90,8 @@ def main() :
 
         workspace_signal = ROOT.RooWorkspace( 'workspace_signal' )
 
-        make_signal_fits( sampManSigMu, sel_base_mu, eta_cuts, 'mt_lep_met_ph', workspace_signal, suffix='mu' )
-        make_signal_fits( sampManSigEl, sel_base_el, eta_cuts, 'mt_lep_met_ph', workspace_signal, suffix='el' )
+        make_signal_fits( sampManMuG, sel_base_mu, eta_cuts, 'mt_lep_met_ph', workspace_signal, suffix='mu' )
+        make_signal_fits( sampManMuG, sel_base_el, eta_cuts, 'mt_lep_met_ph', workspace_signal, suffix='el' )
 
         workspaces_to_save['signal'] = []
         workspaces_to_save['signal'].append(workspace_signal )
@@ -146,8 +100,8 @@ def main() :
 
         workspace_wgamma = ROOT.RooWorkspace( 'workspace_wgamma' )
 
-        wgamma_res_mu = get_wgamma_fit( sampManMu, sel_base_mu, eta_cuts, xvar, 'mt_lep_met_ph', binning, workspace_wgamma, suffix='mu' )
-        wgamma_res_el = get_wgamma_fit( sampManEl, sel_base_el, eta_cuts, xvar, 'mt_lep_met_ph', binning, workspace_wgamma, suffix='el' )
+        wgamma_res_mu = get_wgamma_fit( sampManMuG, sel_base_mu, eta_cuts, xvar, 'mt_lep_met_ph', binning, workspace_wgamma, suffix='mu' )
+        wgamma_res_el = get_wgamma_fit( sampManElG, sel_base_el, eta_cuts, xvar, 'mt_lep_met_ph', binning, workspace_wgamma, suffix='el' )
 
         workspaces_to_save['wgamma'] = []
         workspaces_to_save['wgamma'].append(workspace_wgamma)
@@ -160,18 +114,24 @@ def main() :
         #wjets_mu_EE  = ROOT.RooWorkspace( 'wjets_mu_EE' )
         #wjets_el_EE  = ROOT.RooWorkspace( 'wjets_el_EE' )
 
-        wjets_res_mu = make_wjets_fit( sampManMu, 'Data', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu_EB', closure=False, workspace=wjets)
-        wjets_res_el = make_wjets_fit( sampManEl, 'Data', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el_EB', closure=False, workspace=wjets)
-        #wjets_res_mu = make_wjets_fit( sampManMu, 'Data', sel_base_mu, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu', closure=False, workspace=wjets_mu_EE )
-        #wjets_res_el = make_wjets_fit( sampManEl, 'Data', sel_base_el, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el', closure=False, workspace=wjets_el_EE )
+        wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu_EB', closure=False, workspace=wjets)
+        #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el_EB', closure=False, workspace=wjets)
+        #wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu', closure=False, workspace=wjets_mu_EE )
+        #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el', closure=False, workspace=wjets_el_EE )
 
         workspaces_to_save['wjets'] = []
         workspaces_to_save['wjets'].append( wjets )
 
+    if options.doEleFake : 
+
+        elefake = ROOT.RooWorkspace( 'elefake' )
+
+        elefake_res = make_elefake_fit( sampManElGNoId, 'EleFakeBackground', sel_base_el, 'EB', 'mt_lep_met_ph',  (100, 0, 1000), xvar, workspace=elefake )
+
     if options.doClosure :
 
-        closure_res_mu = make_wjets_fit( sampManMu, 'Wjets', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu_EB', closure=True )
-        closure_res_el = make_wjets_fit( sampManEl, 'Wjets', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el_EB', closure=True )
+        closure_res_mu = make_wjets_fit( sampManMuGNoId, 'Wjets', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu_EB', closure=True )
+        closure_res_el = make_wjets_fit( sampManElGNoId, 'Wjets', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el_EB', closure=True )
 
     if options.outputDir is not None :
 
@@ -223,8 +183,8 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, workspace, suffix )
             mass = res.group(2)
             width = res.group(3)
 
-        ph_selection_sr = '%s==1' %get_ph_selection('all')
-        ph_idx_sr =  get_ph_idx( 'all' )
+        ph_selection_sr = '%s==1' %defs.get_phid_selection('all')
+        ph_idx_sr =  defs.get_phid_idx( 'all' )
         addtl_cuts_sr = 'ph_pt[%s] > 50 ' %ph_idx_sr
 
         xmin = 0
@@ -261,8 +221,8 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, workspace, suffix )
 
 def get_wgamma_fit( sampMan, sel_base, eta_cuts, xvar, plot_var, binning, workspace, suffix='' ) :
 
-    ph_selection_sr = '%s==1' %get_ph_selection('medium')
-    ph_idx_sr =  get_ph_idx( 'medium' )
+    ph_selection_sr = '%s==1' %defs.get_phid_selection('medium')
+    ph_idx_sr =  defs.get_phid_idx( 'medium' )
     xmin = xvar.getMin()
     xmax = xvar.getMax()
     addtl_cuts_sr = 'ph_pt[%s] > 50 && %s > %d && %s < %d  ' %(ph_idx_sr, plot_var, xmin, plot_var , xmax )
@@ -281,18 +241,39 @@ def get_wgamma_fit( sampMan, sel_base, eta_cuts, xvar, plot_var, binning, worksp
 
     return results
 
+def make_elefake_fit( sampMan, sample, sel_base, eta_cut, plot_var, binning, xvar, suffix='', closure=False, workspace=None) :
+
+    ph_selection = 'ph_n==1 && ph_eleVeto[0] == 0 && ph_pt[0] > 50 ' 
+
+    eta_selection = 'ph_Is%s[0]' %eta_cut
+
+    weight_str = defs.get_weight_str()
+
+    full_selection = ' %s * ( %s ) ' %( weight_str, ' && '.join( [sel_base, ph_selection, eta_selection] ) )
+
+    hist_mc = clone_sample_and_draw( sampMan, sample, plot_var, full_selection, binning )
+    result = fit_dijet( hist_mc, xvar, 'EleFake', sampMan, workspace  )
+
+    sampMan.outputs['EleFake'].Draw()
+
+    raw_input('cont')
+
+
+    
+
+
 def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num_var, binning, xvar, suffix='', closure=False, workspace=None) :
 
-    ph_selection_sr = '%s==1' %get_ph_selection('medium')
-    ph_selection_den = '%s==1'%get_ph_selection( num_var, shape_var )
+    ph_selection_sr = '%s==1' %defs.get_phid_selection('medium')
+    ph_selection_den = '%s==1'%defs.get_phid_selection( num_var, shape_var )
 
-    ph_selection_num = '%s==1' %get_ph_selection( num_var )
-    ph_selection_shape = '%s==1' %get_ph_selection( shape_var )
+    ph_selection_num = '%s==1' %defs.get_phid_selection( num_var )
+    ph_selection_shape = '%s==1' %defs.get_phid_selection( shape_var )
 
-    ph_idx_sr =  get_ph_idx( 'medium' )
-    ph_idx_den = get_ph_idx( num_var, shape_var )
-    ph_idx_num = get_ph_idx( num_var )
-    ph_idx_shape = get_ph_idx( shape_var )
+    ph_idx_sr =  defs.get_phid_idx( 'medium' )
+    ph_idx_den = defs.get_phid_idx( num_var, shape_var )
+    ph_idx_num = defs.get_phid_idx( num_var )
+    ph_idx_shape = defs.get_phid_idx( shape_var )
 
     xmin = xvar.getMin()
     xmax = xvar.getMax()
@@ -302,8 +283,8 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     addtl_cuts_num = 'ph_pt[%s] > 50 && %s > %d && %s < %d  '   %( ph_idx_num, plot_var, xmin, plot_var, xmax )
     addtl_cuts_shape = 'ph_pt[%s] > 50 && %s > %d && %s < %d  ' %( ph_idx_shape, plot_var, xmin, plot_var, xmax )
 
-    cut_var_shape = get_cut_var( shape_var )
-    cut_var_num = get_cut_var( num_var )
+    cut_var_shape = defs.get_phid_cut_var( shape_var )
+    cut_var_num = defs.get_phid_cut_var( num_var )
 
     eta_str_shape = 'ph_Is%s[%s]' %( eta_cut, ph_idx_shape )
     eta_str_den = 'ph_Is%s[%s]' %( eta_cut, ph_idx_den)
@@ -349,10 +330,6 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     hist_den   = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_den  , binning )
     result_den = fit_dijet( hist_den, xvar, label_den , sampMan, ws )
 
-    if closure :
-        hist_sr    = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_sr   , binning )
-        result_sr  = fit_dijet( hist_sr, xvar, label_sr, sampMan, ws )
-
     _integral_num =  ws.pdf( 'dijet_%s' %label_num ).getNormIntegral(ROOT.RooArgSet( xvar ) )
     func_integral_num  = _integral_num.getValV()
     _integral_den =  ws.pdf( 'dijet_%s' %label_den).getNormIntegral(ROOT.RooArgSet( xvar ) )
@@ -380,8 +357,6 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     print 'hist integral Shape = ', hist_integral_shape
     print 'normalization Shape = ', norm_shape
 
-    if closure :
-        print 'hist integral SR = ', hist_sr.Integral()
 
     power_pred_name    = 'power_pred_%s' %suffix
     logcoef_pred_name  = 'logcoef_pred_%s' %suffix
@@ -401,15 +376,16 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     #power_ratio   = ROOT.RooRealVar( power_ratio_name  , 'power'  , val_power_num - val_power_den , -100, 100)
     #logcoef_ratio = ROOT.RooRealVar( logcoef_ratio_name, 'logcoef', val_logcoef_num - val_logcoef_den, -10, 10 )
 
-    func = 'pow(@0/13000, @1+@2*log(@0/13000))' 
+    can_ratio = ROOT.TCanvas( str(uuid.uuid4()), '' )
+
+    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))'  
     prediction = ROOT.RooGenericPdf('dijet_prediction' , 'dijet', func, ROOT.RooArgList(xvar,power_pred, logcoef_pred))
-    ratio_func = ROOT.TF1( 'ratio_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log(x/13000) ) ) ', xmin, xmax )
+    ratio_func = ROOT.TF1( 'ratio_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
 
     ratio_func.SetParameter(0, result_num['power'].n - result_den['power'].n)
     ratio_func.SetParameter(1, result_num['logcoef'].n  - result_den['logcoef'].n )
     ratio_func.SetParameter(2, norm_num / norm_den )
 
-    can_ratio = ROOT.TCanvas( str(uuid.uuid4()), '' )
     ratiohist = hist_num.Clone( 'closure_ratio_%s' %(suffix) )
     ratiohist.Divide( hist_den )
     ratiohist.SetMarkerStyle(20)
@@ -447,22 +423,28 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     
     if closure :
 
+        hist_sr    = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_sr   , binning )
+        result_sr  = fit_dijet( hist_sr, xvar, label_sr, sampMan, ws )
+
         can_sr = ROOT.TCanvas( str(uuid.uuid4()), '' )
-        datahist = ROOT.RooDataHist( 'srhist', 'srhist', ROOT.RooArgList(xvar), hist_sr)
+
+        pred_val = (hist_integral_shape * hist_integral_num) / hist_integral_den 
 
         tot_sr = hist_sr.Integral( hist_sr.FindBin( xmin ), hist_sr.FindBin( xmax ) )
+        print 'SR integral = ', tot_sr
+        sr_func = ROOT.TF1( 'sr_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
+        sr_func.SetParameter(0, result_num['power'].n + result_shape['power'].n - result_den['power'].n )
+        sr_func.SetParameter(1, result_num['logcoef'].n + result_shape['logcoef'].n - result_den['logcoef'].n )
+        sr_func.SetParameter(2, 1 )
+        sr_int = sr_func.Integral( xmin, xmax )
+        print 'Normalization = ',(norm_shape*norm_num) / norm_den
+        print 'func Integral SR Before = ', sr_func.Integral( xmin, xmax )
+        sr_func.SetParameter(2, pred_val/sr_int )
 
-        frame = xvar.frame()
-        datahist.plotOn( frame )
-        #prediction.plotOn( frame, ROOT.RooCmdArg('Normalization', 0, 0, hist_integral_shape * hist_integral_num / ( hist_integral_den * tot_sr ) ) )
-        #prediction.plotOn( frame, ROOT.RooFit.Normalization( hist_integral_shape * hist_integral_num / ( hist_integral_den * tot_sr ), ROOT.RooAbsReal.NumEvent ) )
-        prediction.plotOn( frame )
-        frame.Draw()
+        hist_sr.Draw()
+        sr_func.Draw('same')
 
         sampMan.outputs['wjetsclosure_pred_%s' %suffix] = can_sr
-
-        raw_input('cont')
-
 
 
         tot_ratio = result_num['integral']/result_den['integral']
@@ -534,10 +516,7 @@ def fit_dijet( hist, xvar, label='', sampMan=None, workspace=None ) :
 
     power = ROOT.RooRealVar( 'power', 'power', -9.9, -100, 100)
     logcoef = ROOT.RooRealVar( 'logcoef', 'logcoef', -0.85, -10, 10 )
-    #func = 'pow(x/13000, %s+%s*log(x/13000))' %( power_name, logcoef_name )
-    func = 'pow(@0/13000, @1+@2*log(@0/13000))'  
-    #func = 'pow(x/13000, %s+%s*(0.372+0.124*%s)*log(x/13000))' %( power_name, logcoef_name, power_name )
-    #func = 'pow(x/13000, %s+(0.372+0.124*%s)*log(x/13000))' %( power_name, power_name )
+    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))'  
     dijet = ROOT.RooGenericPdf('dijet_%s' %label, 'dijet', func, ROOT.RooArgList(xvar,power, logcoef))
 
     #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )

@@ -599,6 +599,7 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         if( !config.PassBool( "cut_tight", IN::ph_passTight->at(idx) ) ) continue;
         if( !config.PassBool( "cut_eb", IN::ph_IsEB->at(idx) ) ) continue;
         if( !config.PassBool( "cut_ee", IN::ph_IsEE->at(idx) ) ) continue;
+        if( !config.PassBool( "cut_CSEV", IN::ph_eleVeto->at(idx) ) ) continue;
 
         TLorentzVector phlv;
         phlv.SetPtEtaPhiE( IN::ph_pt->at(idx), 
@@ -1562,8 +1563,6 @@ bool RunModule::FilterBlind( ModuleConfig & config ) const {
     if( OUT::jet_n > 1 ) {
         if( !config.PassFloat( "cut_abs_dijet_m_from_z", fabs(OUT::leaddijet_m-91.2)) ) pass_blind=false;
     }
-
-
 
     if( !pass_blind ) {
         OUT::isBlinded=true;
