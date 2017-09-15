@@ -6,6 +6,9 @@ parser = ArgumentParser()
 
 parser.add_argument( '--baseDir',  dest='baseDir', required=True, help='path to workspace directory' )
 parser.add_argument( '--outputCard',  dest='outputCard', required=False, help='name of output card' )
+parser.add_argument( '--doStatTests',  dest='doStatTests', default=False, action='store_true', help='run statistical tests of WGamma background' )
+parser.add_argument( '--doWJetsTests',  dest='doWJetsTests', default=False, action='store_true', help='run tests of Wjets background' )
+parser.add_argument( '--doFinalFit',  dest='doFinalFit', default=False, action='store_true', help='run fit to data and background' )
 
 options = parser.parse_args()
 
@@ -15,27 +18,113 @@ def main() :
 
     key_wgamma = 'workspace_wgamma'
     key_signal = 'workspace_signal'
-    key_wjets = 'workspace_wjets'
-
-    #make_fit_workspace( options.baseDir, key_wgamma )
+    key_wjets  = 'workspace_wjets'
+    key_data   = 'workspace_data'
 
     #workspace_toy = ROOT.RooWorkspace( 'workspace_toy' )
     #generate_toy_data( options.baseDir, key_wgamma, 'dijet_Wgamma_mu_EB', workspace_toy, suffix='mu_EB' )
     #workspace_toy.writeToFile( '%s/%s.root' %( options.baseDir, workspace_toy.GetName() ) )
 
-    #workspace_toysignal = ROOT.RooWorkspace( 'workspace_toysignal' )
-    #make_toy_signal( options.baseDir, workspace_toysignal )
-    #workspace_toysignal.writeToFile( '%s/%s.root' %( options.baseDir, workspace_toysignal.GetName() ) )
 
     signal_pred = 'srhistpdf_MadGraphResonanceMass300_width0p01_mu_EB'
     #signal_pred = 'signal'
 
     #generate_card( options.baseDir, 'workspace_toy', 'workspace_signal', signal_pred, options.outputCard )
+
+    if options.doStatTests :
+        run_statistical_tests( options.baseDir, key_wgamma, 'dijet_Wgamma_mu_EB', 100, options.baseDir, suffix='mu_EB' )
+
+    if options.doFinalFit :
+        generate_card( options.baseDir, key_data, etc )
+
+    if options.doWJetsTests :
+
+        run_bkg_scale_test( options.baseDir, key_wgamma, 'dijet_wgamma_mu_EB', key_wjets , 'dijet_prediction_wjets_mu_EB' )
+
+
+    #make_fit_workspace( options.baseDir, key_wgamma )
+    #workspace_toysignal = ROOT.RooWorkspace( 'workspace_toysignal' )
+    #make_gauss_signal( options.baseDir, workspace_toysignal )
+    #workspace_toysignal.writeToFile( '%s/%s.root' %( options.baseDir, workspace_toysignal.GetName() ) )
     #generate_card( options.baseDir, 'workspace_toy', 'workspace_toysignal', signal_pred, options.outputCard )
 
-    run_statistical_tests( options.baseDir, key_wgamma, 'dijet_Wgamma_mu_EB', 100, options.baseDir, suffix='mu_EB' )
+def run_bkg_scale_test( baseDir, const_ws, const_hist, var_ws, var_hist ) :
 
-def make_toy_signal( baseDir, workspace ) :
+    ofile_const = ROOT.TFile.Open( '%s/%s.root' %( baseDir, const_ws) )
+
+    ws_const = ofile_const.Get( const_ws )
+
+    ofile_var = ROOT.TFile.Open( '%s/%s.root' %( baseDir, var_ws) )
+
+    ws_var = ofile_var.Get( var_ws )
+
+    xvar = ws_const.var('x')
+
+    norm_const = ws_const.var( '%s_norm' %const_hist)
+    pdf_const = ws_const.pdf( const_hist)
+
+    norm_var = ws_var.var( '%s_norm' %var_hist)
+    pdf_var = ws_var.pdf( var_hist)
+
+    npoints = 100
+
+    power_res = ROOT.TGraph( npoints )
+    power_res.SetName( 'power_res' )
+    logcoef_res = ROOT.TGraph( npoints )
+    logcoef_res.SetName( 'logcoef_res' )
+    chi2_res = ROOT.TGraph( npoints )
+    chi2_res.SetName( 'chi2_res' )
+
+    power = ROOT.RooRealVar( 'power_fit', 'power', -9.9, -100, 100)
+    logcoef = ROOT.RooRealVar( 'logcoef_fit', 'logcoef', -0.85, -10, 10 )
+    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))'  
+    dijet_fit = ROOT.RooGenericPdf('dijet_fit', 'dijet', func, ROOT.RooArgList(xvar,power, logcoef))
+
+    for i in range( 10, npoints+10 ) :
+
+        var_frac = float(i) 
+
+        tot  = norm_const.getValV() + var_frac*norm_var.getValV()
+
+
+        vfrac = ROOT.RooRealVar( 'fraciton', 'fraciton', (var_frac*norm_var.getValV()/tot) )
+
+
+        summed = ROOT.RooAddPdf( 'summed' ,'summed', ROOT.RooArgList( pdf_const, pdf_var ) , ROOT.RooArgList( vfrac ) )
+
+        dataset_summed = summed.generate( ROOT.RooArgSet(xvar), int(tot), ROOT.RooCmdArg( 'Name', 0, 0, 0, 0, 'summed' ) )
+
+        print 'Nevent Wgamma = %f, nevent Wjets = %f, fraction = %f, total = %f, vfrac = %g, ngenerated = %d' %( norm_const.getValV() , norm_var.getValV(), var_frac, tot, vfrac.getValV(), dataset_summed.numEntries() )
+
+        #dijet_fit.fitTo( dataset_summed, ROOT.RooCmdArg('PrintLevel', -1 ) )
+        dijet_fit.fitTo( dataset_summed )
+
+        chi2 = dijet_fit.createChi2(dataset_summed.binnedClone(),ROOT.RooFit.Range(xvar.getMin(), xvar.getMax()) )
+        chi2_res.SetPoint( i, var_frac, chi2.getVal() )
+        power_res.SetPoint( i, var_frac, power.getValV() )
+        logcoef_res.SetPoint( i, var_frac, logcoef.getValV() )
+
+
+
+    chi2_res.Draw('AL')
+    raw_input('cont')
+    power_res.Draw('AL')
+    raw_input('cont')
+    logcoef_res.Draw('AL')
+    raw_input('cont')
+    
+    #frame = xvar.frame()
+
+    #dataset_summed.plotOn( frame )
+    #pdf_const.plotOn( frame )
+    #pdf_var.plotOn( frame )
+
+    #frame.Draw()
+    #raw_input('cont')
+
+
+
+def make_gauss_signal( baseDir, workspace ) :
 
 
     #x = ROOT.RooRealVar ('x','x',-10,10) ;
@@ -148,7 +237,7 @@ def generate_toy_data( basedir, ws_key, hist_key, out_ws, suffix='' ) :
 
     ws = ofile.Get( ws_key )
 
-    normalization = ws.var( 'norm_%s' %hist_key )
+    normalization = ws.var( '%s_norm' %hist_key )
     pdf = ws.pdf( hist_key )
     xvar = ws.var('x')
 
@@ -164,7 +253,7 @@ def run_statistical_tests( basedir, ws_key, hist_key, niter=100, outputDir=None,
 
     ws = ofile.Get( ws_key )
 
-    normalization = ws.var( 'norm_%s' %hist_key )
+    normalization = ws.var( '%s_norm' %hist_key )
     pdf = ws.pdf( hist_key )
     xvar = ws.var('x')
     power = ws.var( 'power_%s' %hist_key )
