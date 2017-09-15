@@ -108,14 +108,14 @@ def main() :
 
     if options.doWJets :
 
-        wjets  = ROOT.RooWorkspace( 'wjets' )
+        wjets  = ROOT.RooWorkspace( 'workspace_wjets' )
         #wjets_mu_EB  = ROOT.RooWorkspace( 'wjets_mu_EB' )
         #wjets_el_EB  = ROOT.RooWorkspace( 'wjets_el_EB' )
         #wjets_mu_EE  = ROOT.RooWorkspace( 'wjets_mu_EE' )
         #wjets_el_EE  = ROOT.RooWorkspace( 'wjets_el_EE' )
 
-        wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu_EB', closure=False, workspace=wjets)
-        #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el_EB', closure=False, workspace=wjets)
+        wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='wjets_mu_EB', closure=False, workspace=wjets)
+        #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='wjets_el_EB', closure=False, workspace=wjets)
         #wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu', closure=False, workspace=wjets_mu_EE )
         #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el', closure=False, workspace=wjets_el_EE )
 
@@ -130,8 +130,8 @@ def main() :
 
     if options.doClosure :
 
-        closure_res_mu = make_wjets_fit( sampManMuGNoId, 'Wjets', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu_EB', closure=True )
-        closure_res_el = make_wjets_fit( sampManElGNoId, 'Wjets', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el_EB', closure=True )
+        closure_res_mu = make_wjets_fit( sampManMuGNoId, 'Wjets', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='closure_mu_EB', closure=True )
+        closure_res_el = make_wjets_fit( sampManElGNoId, 'Wjets', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='closure_el_EB', closure=True )
 
     if options.outputDir is not None :
 
@@ -220,23 +220,22 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, workspace, suffix )
 
 def get_wgamma_fit( sampMan, sel_base, eta_cuts, xvar, plot_var, binning, workspace, suffix='' ) :
 
-    ph_selection_sr = '%s==1' %defs.get_phid_selection('medium')
-    ph_idx_sr =  defs.get_phid_idx( 'medium' )
+    ph_selection_sr = 'ph_n == 1'
     xmin = xvar.getMin()
     xmax = xvar.getMax()
-    addtl_cuts_sr = 'ph_pt[%s] > 50 && %s > %d && %s < %d  ' %(ph_idx_sr, plot_var, xmin, plot_var , xmax )
+    addtl_cuts_sr = 'ph_pt[0] > 50 && %s > %d && %s < %d  ' %(plot_var, xmin, plot_var , xmax )
 
     results = {}
 
     for ieta in eta_cuts :
 
-        eta_str_sr = 'ph_Is%s[%s]' %( ieta, ph_idx_sr )
+        eta_str_sr = 'ph_Is%s[0]' %( ieta )
 
         full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
 
         hist_sr    = clone_sample_and_draw( sampMan, 'Wgamma', plot_var, full_sel_sr   , binning )
 
-        results[ieta] = fit_dijet( hist_sr, xvar, 'Wgamma_%s_%s'%(suffix, ieta), sampMan, workspace )
+        results[ieta] = fit_dijet( hist_sr, xvar, 'wgamma_%s_%s'%(suffix, ieta), sampMan, workspace )
 
     return results
 
@@ -256,9 +255,6 @@ def make_elefake_fit( sampMan, sample, sel_base, eta_cut, plot_var, binning, xva
     sampMan.outputs['EleFake'].Draw()
 
     raw_input('cont')
-
-
-    
 
 
 def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num_var, binning, xvar, suffix='', closure=False, workspace=None) :
@@ -308,10 +304,6 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     full_sel_den   = ' && '.join( [sel_base, ph_selection_den, eta_str_den, addtl_cuts_den, cut_str_den] )
     full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
 
-    prefix = 'wjets'
-    if closure :
-        prefix = 'closure'
-
     label_shape = 'shape_%s' %suffix
     label_num   = 'num_%s' %suffix
     label_den   = 'den_%s' %suffix
@@ -356,11 +348,11 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     print 'hist integral Shape = ', hist_integral_shape
     print 'normalization Shape = ', norm_shape
 
-
     power_pred_name    = 'power_pred_%s' %suffix
     logcoef_pred_name  = 'logcoef_pred_%s' %suffix
     #power_ratio_name   = 'power_ratio_%s' %suffix
     #logcoef_ratio_name = 'logcoef_ratio_%s' %suffix
+
 
     val_power_num   = ws.var( 'power_dijet_%s' %label_num   )
     val_power_den   = ws.var( 'power_dijet_%s' %label_den   )
@@ -378,7 +370,11 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     can_ratio = ROOT.TCanvas( str(uuid.uuid4()), '' )
 
     func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))'  
-    prediction = ROOT.RooGenericPdf('dijet_prediction' , 'dijet', func, ROOT.RooArgList(xvar,power_pred, logcoef_pred))
+    prediction = ROOT.RooGenericPdf('dijet_prediction_%s' %suffix , 'prediction', func, ROOT.RooArgList(xvar,power_pred, logcoef_pred))
+    norm_pred = ROOT.RooRealVar( 'dijet_prediction_%s_norm' %(suffix), 'prediction normalization', (hist_integral_shape * hist_integral_num) / hist_integral_den )
+    getattr( ws , 'import' ) ( norm_pred )
+    getattr( ws , 'import' ) ( prediction )
+
     ratio_func = ROOT.TF1( 'ratio_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
 
     ratio_func.SetParameter(0, result_num['power'].n - result_den['power'].n)
@@ -548,7 +544,7 @@ def fit_dijet( hist, xvar, label='', sampMan=None, workspace=None ) :
     log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
     int_res   = ufloat( integral, math.sqrt( integral ) )
 
-    integral_var = ROOT.RooRealVar('norm_dijet_%s' %( label ), 'normalization', integral )
+    integral_var = ROOT.RooRealVar('dijet_%s_norm' %( label ), 'normalization', integral )
 
     power.SetName( power_name )
     logcoef.SetName( logcoef_name )
