@@ -46,7 +46,12 @@ def get_cut_defaults( shape_var, ieta ) :
 
     return cut_defaults[shape_var][ieta]
 
-
+kine_vars = [ ('mt_lep_met_ph', 'mt_incl_lepph_z'),
+              ('m_lep_met_ph', 'm_incl_lepph_z' ),
+              ('mt_res', 'mt_fulltrans' ),
+              ('recoM_lep_nu_ph', 'mt_constrwmass' ),
+              ('ph_pt[0]', 'ph_pt' ),
+            ]
 
 
 ROOT.gROOT.SetBatch(False)
@@ -76,12 +81,13 @@ def main() :
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
     sel_base_el = 'el_pt30_n==1 && el_n==1'
 
-    eta_cuts = ['EB', 'EE']
+    #eta_cuts = ['EB', 'EE']
+    eta_cuts = ['EB']
 
     workspaces_to_save = {}
 
-    xmin = 160
-    xmax = 1000
+    xmin = 140
+    xmax = 2000
 
     binning = ((xmax-xmin)/20, xmin, xmax)
     xvar = ROOT.RooRealVar( 'x', 'x',xmin , xmax)
@@ -90,8 +96,9 @@ def main() :
 
         workspace_signal = ROOT.RooWorkspace( 'workspace_signal' )
 
-        make_signal_fits( sampManMuG, sel_base_mu, eta_cuts, 'mt_lep_met_ph', workspace_signal, suffix='mu' )
-        make_signal_fits( sampManMuG, sel_base_el, eta_cuts, 'mt_lep_met_ph', workspace_signal, suffix='el' )
+        for var, name in kine_vars :
+            make_signal_fits( sampManMuG, sel_base_mu, eta_cuts, var, workspace_signal, suffix='mu_%s'%name )
+            #make_signal_fits( sampManMuG, sel_base_el, eta_cuts, var, workspace_signal, suffix='el_%s'%name )
 
         workspaces_to_save['signal'] = []
         workspaces_to_save['signal'].append(workspace_signal )
@@ -100,8 +107,10 @@ def main() :
 
         workspace_wgamma = ROOT.RooWorkspace( 'workspace_wgamma' )
 
-        wgamma_res_mu = get_wgamma_fit( sampManMuG, sel_base_mu, eta_cuts, xvar, 'mt_lep_met_ph', binning, workspace_wgamma, suffix='mu' )
-        wgamma_res_el = get_wgamma_fit( sampManElG, sel_base_el, eta_cuts, xvar, 'mt_lep_met_ph', binning, workspace_wgamma, suffix='el' )
+        for var, name in kine_vars :
+
+            wgamma_res_mu = get_wgamma_fit( sampManMuG, sel_base_mu, eta_cuts, xvar, var, binning, workspace_wgamma, suffix='mu_%s' %name )
+            wgamma_res_el = get_wgamma_fit( sampManElG, sel_base_el, eta_cuts, xvar, var, binning, workspace_wgamma, suffix='el_%s' %name )
 
         workspaces_to_save['wgamma'] = []
         workspaces_to_save['wgamma'].append(workspace_wgamma)
@@ -114,10 +123,11 @@ def main() :
         #wjets_mu_EE  = ROOT.RooWorkspace( 'wjets_mu_EE' )
         #wjets_el_EE  = ROOT.RooWorkspace( 'wjets_el_EE' )
 
-        wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='wjets_mu_EB', closure=False, workspace=wjets)
-        #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='wjets_el_EB', closure=False, workspace=wjets)
-        #wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu', closure=False, workspace=wjets_mu_EE )
-        #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el', closure=False, workspace=wjets_el_EE )
+        for var, name in kine_vars :
+            wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EB', var, 'chIso', 'sigmaIEIE', binning, xvar, suffix='wjets_mu_EB_%s' %name, closure=False, workspace=wjets)
+            #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='wjets_el_EB', closure=False, workspace=wjets)
+            #wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu', closure=False, workspace=wjets_mu_EE )
+            #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el', closure=False, workspace=wjets_el_EE )
 
         workspaces_to_save['wjets'] = []
         workspaces_to_save['wjets'].append( wjets )
