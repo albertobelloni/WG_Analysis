@@ -20,5 +20,5 @@ workspaces :
 	python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --doWGamma --doWJets --doEleFake --doClosure --outputDir ${OUTPUTMAIN}/Workspaces
 
 fits :
-	python MakeFits.py
+	python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN}/cards/ --doToyDataFit
 
