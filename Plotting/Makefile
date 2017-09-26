@@ -1,4 +1,4 @@
-OUTPUTMAIN=~/Plots/Resonance/Plots_2017_09_13
+OUTPUTMAIN=~/Plots/Resonance/Plots_2017_09_26
 
 DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2017_09_05/
 DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2017_09_05/ 

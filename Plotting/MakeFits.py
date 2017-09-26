@@ -1,6 +1,7 @@
 import ROOT
 import uuid
 import os
+import time
 import subprocess
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from argparse import ArgumentParser
@@ -64,14 +65,17 @@ def main() :
 
         workspace_toy.writeToFile( '%s/%s.root' %( options.baseDir, workspace_toy.GetName() ) )
 
+        #workspace_gauss_signal = ROOT.RooWorkspace('workspace_gauss_signal')
+        #make_gauss_signal( options.baseDir, workspace_toysignal )
+
         all_cards = {}
 
-        for var in kine_vars :
-            for sig_pt in signal_points :
+        for sig_pt in signal_points :
+            for var in kine_vars :
                 signal_dic = { 'name' : 'Resonance', 
                                'path' : '%s/%s.root' %( options.baseDir, key_signal ), 
                                'wsname' : key_signal, 
-                              'hist_base' : 'srhistpdf_MadGraphResonanceMass%d_width0p01' %sig_pt }
+                               'hist_base' : 'srhistpdf_MadGraphResonanceMass%d_width0p01' %sig_pt }
 
                 data_dic = { 'path' : '%s/workspace_toy.root' %( options.baseDir), 
                              'wsname' : 'workspace_toy', 
@@ -84,50 +88,69 @@ def main() :
 
                 generate_card( options.baseDir, data_dic, signal_dic, backgrounds, bins, var['name'], card_path  )
 
-                all_cards.setdefault(var['name'], {})
-                all_cards[var['name']][sig_pt] =  card_path 
+                all_cards.setdefault(sig_pt, {})
+                all_cards[sig_pt][var['name']] =  card_path 
 
         if options.combineDir is not None :
-            ofile = open( '%s/run_combine.sh' %(options.outputDir), 'w' )
-            ofile.write( '#!/bin/tcsh\n' )
-            ofile.write( 'cd %s \n' %options.combineDir ) 
-            ofile.write( 'eval `scramv1 runtime -csh` \n' ) 
+
+            jobs = []
             output_files = {}
-            for var, ptdic in all_cards.iteritems() :
-                for pt, card in ptdic.iteritems() :
+            for pt, vardic in all_cards.iteritems() :
+
+                output_files.setdefault( pt, {} )
+
+                fname = '%s/run_combine_%d.sh' %(options.outputDir, pt)
+
+                ofile = open( fname, 'w' )
+                ofile.write( '#!/bin/tcsh\n' )
+                ofile.write( 'cd %s \n' %options.combineDir ) 
+                ofile.write( 'eval `scramv1 runtime -csh` \n' ) 
+
+                for var, card in vardic.iteritems() :
+                    
                     log_file = '%s/results_%s_%d.txt'%( options.outputDir, var, pt )
                     ofile.write( 'combine -M Asymptotic -m 1000 -t 1 %s >> %s \n'  %( card, log_file ))
-                    output_files.setdefault(var, {} )
-                    output_files[var][pt] = log_file
+                    output_files[pt][var] = log_file
 
-            ofile.write( ' cd - \n' )
-            ofile.write( 'echo "^.^ FINISHED ^.^" \n' )
-            
-            os.system( 'chmod 777 %s/run_combine.sh' %(options.outputDir) )
+                    ofile.write( ' cd - \n' )
+                    ofile.write( 'echo "^.^ FINISHED ^.^" \n' )
+                
+                    os.system( 'chmod 777 %s/run_combine.sh' %(options.outputDir) )
 
-            ofile.close()
+                ofile.close()
 
-            #subprocess.Popen( '%s/run_combine.sh' %( options.outputDir ), shell=True  )
+                jobs.append(fname )
+
+            #jdl_name = '%s/job_desc.jdl'  %( options.outputDir )
+            #make_jdl( jobs, jdl_name )
+
+            #os.system( 'condor_submit %s' %jdl_name )
+
+            #wait_for_jobs( 'run_combine')
+
             #os.system( '%s/run_combine.sh' %( options.outputDir ) )
 
             combine_results = {}
             for var, ptdic in output_files.iteritems() :
                 for pt, f in ptdic.iteritems() :
                     result = process_combine_file( f )
-                    combine_results.setdefault(var, {})
-                    combine_results[var][pt] = float( result['Observed Limit'].split('<')[1] )
+                    combine_results.setdefault(pt, {})
+                    combine_results[pt][var] = float( result['Observed Limit'].split('<')[1] )
 
             limit_graphs = []
+            leg = ROOT.TLegend(0.6, 0.6, 0.9, 0.9)
             for var in kine_vars :
 
                 npoints = len( combine_results[var['name']] )
                 limit_graph = ROOT.TGraph( npoints )
                 limit_graph.SetName( 'graph_%s' %var['name'] )
                 limit_graph.SetLineColor( var['color'] )
+                limit_graph.SetLineWidth( 2 )
 
                 for idx, pt in enumerate(signal_points) :
                     limit_graph.SetPoint( idx, pt, combine_results[var['name']][pt])
 
+                leg.AddEntry(limit_graph,  var['name'], 'L' )
                 limit_graphs.append( limit_graph )
 
             can = ROOT.TCanvas( 'limit_result' ,'Limit result' )
@@ -136,6 +159,9 @@ def main() :
                     graph.Draw('AL')
                 else :
                     graph.Draw('Lsame')
+
+
+            leg.Draw()
 
         
             raw_input('cont')
@@ -465,6 +491,57 @@ def run_statistical_tests( basedir, ws_key, hist_key, niter=100, outputDir=None,
 
     if outputDir is not None :
         can_stat.SaveAs( '%s/wgamma_stat_%s.pdf' %( outputDir, suffix) )
+
+def make_jdl( exe_list, output_file ) :
+
+    base_dir = os.path.dirname( output_file )
+
+    file_entries = []
+    file_entries.append('#Use only the vanilla universe')
+    file_entries.append('universe = vanilla')
+    file_entries.append('# This is the executable to run.  If a script,')
+    file_entries.append('#   be sure to mark it "#!<path to interp>" on the first line.')
+    file_entries.append('# Filename for stdout, otherwise it is lost')
+    #file_entries.append('output = stdout.txt')
+    #file_entries.append('error = stderr.txt')
+    file_entries.append('# Copy the submittor environment variables.  Usually required.')
+    file_entries.append('getenv = True')
+    file_entries.append('# Copy output files when done.  REQUIRED to run in a protected directory')
+    file_entries.append('when_to_transfer_output = ON_EXIT_OR_EVICT')
+    file_entries.append('priority=0')
+    
+    for exe in exe_list :
+    
+        file_entries.append('Executable = %s' %exe)
+        file_entries.append('Initialdir = %s' %base_dir)
+        file_entries.append('# This is the argument line to the Executable')
+        file_entries.append('# Queue job')
+        file_entries.append('queue')
+
+    ofile = open( output_file, 'w' )
+
+    for line in file_entries :
+        ofile.write(  line + '\n' )
+
+    ofile.close()
+
+def wait_for_jobs( job_tag ) :
+
+    while 1 :
+        time.sleep(20)
+        status = subprocess.Popen( ['condor_q'], stdout=subprocess.PIPE).communicate()[0]
+
+        n_limits = 0
+
+        for line in status.split('\n') :
+            if line.count(job_tag ) :
+                n_limits += 1
+
+        if n_limits == 0 :
+            return
+        else :
+            print '%d Jobs still running' %n_limits
+
 
 
 main()

@@ -97,8 +97,8 @@ def main() :
         workspace_signal = ROOT.RooWorkspace( 'workspace_signal' )
 
         for var, name in kine_vars :
-            make_signal_fits( sampManMuG, sel_base_mu, eta_cuts, var, workspace_signal, suffix='mu_%s'%name )
-            #make_signal_fits( sampManMuG, sel_base_el, eta_cuts, var, workspace_signal, suffix='el_%s'%name )
+            make_signal_fits( sampManMuG, sel_base_mu, eta_cuts, var, xvar, binning, workspace_signal, suffix='mu_%s'%name )
+            #make_signal_fits( sampManMuG, sel_base_el, eta_cuts, var, xvar, binning, workspace_signal, suffix='el_%s'%name )
 
         workspaces_to_save['signal'] = []
         workspaces_to_save['signal'].append(workspace_signal )
@@ -180,7 +180,9 @@ def main() :
 
 
 
-def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, workspace, suffix ) : 
+def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspace, suffix ) : 
+
+    sampMan.clear_hists()
 
     for samp in sampMan.get_samples(isSignal=True ) :
 
@@ -194,12 +196,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, workspace, suffix )
 
         ph_selection_sr = '%s==1' %defs.get_phid_selection('all')
         ph_idx_sr =  defs.get_phid_idx( 'all' )
-        addtl_cuts_sr = 'ph_pt[%s] > 50 ' %ph_idx_sr
-
-        xmin = 0
-        xmax = int(mass)*2
-
-        binning = ( 50, xmin, xmax )
+        addtl_cuts_sr = 'ph_pt[%s] > 50  && %s > %f && %s < %f ' %(ph_idx_sr, plot_var, binning[1], plot_var, binning[2] )
 
         for ieta in eta_cuts :
 
@@ -209,9 +206,11 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, workspace, suffix )
 
             full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
 
-            hist_sr    = clone_sample_and_draw( sampMan, samp.name, plot_var, full_sel_sr, binning )
+            #hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr, binning )
+            sampMan.create_hist( samp, plot_var, full_sel_sr, binning )
 
-            xvar = ROOT.RooRealVar( 'x', 'x',xmin , xmax)
+            hist_sr = samp.hist
+
             datahist = ROOT.RooDataHist( 'srhist_%s' %full_suffix, 'srhist', ROOT.RooArgList(xvar), hist_sr)
 
             histpdf = ROOT.RooHistPdf( 'srhistpdf_%s' %(full_suffix), 'srhistpdf' , ROOT.RooArgSet( xvar), datahist, 3 )
@@ -263,8 +262,6 @@ def make_elefake_fit( sampMan, sample, sel_base, eta_cut, plot_var, binning, xva
     result = fit_dijet( hist_mc, xvar, 'EleFake', sampMan, workspace  )
 
     sampMan.outputs['EleFake'].Draw()
-
-    raw_input('cont')
 
 
 def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num_var, binning, xvar, suffix='', closure=False, workspace=None) :
@@ -455,18 +452,6 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
         tot_ratio = result_num['integral']/result_den['integral']
 
 
-        #hist_num.Draw()
-        #hist_den.Draw('same')
-        #raw_input('cont')
-        #hist_num.Divide(hist_den)
-        #fit_pol1( hist_num, 200, 1000 )
-        #hist_num.Draw()
-        #raw_input('cont')
-
-        #hist_sr.Draw()
-        #raw_input('cont')
-
-
 
 def fit_pol1( hist, xmin, xmax ) :
 
@@ -479,7 +464,6 @@ def fit_pol1( hist, xmin, xmax ) :
 
     hist.Draw()
     lin_func.Draw('same')
-    raw_input('cont')
 
 def fit_dijet( hist, xvar, label='', sampMan=None, workspace=None ) :
 
