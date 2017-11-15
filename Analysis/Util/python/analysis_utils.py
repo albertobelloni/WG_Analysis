@@ -56,6 +56,7 @@ def read_xsfile( file, lumi, print_values=False ) :
         weightMap[name] = {}  
         weightMap[name]['scale'] = lumi_scale
         weightMap[name]['cross_section'] = values['cross_section']
+        weightMap[name]['n_evt'] = values['n_evt']
 
     if print_values :
         xs_printer.Print()

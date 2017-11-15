@@ -225,14 +225,14 @@ configs = [
         'tag'    : 'mug',
         'dataset': 'SingleMuon',
     },
-    {
-        'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None'},
-        'input'  : input_base,
-        'output' : base+'LepGamma_elg_2017_09_05',
-        'tag'    : 'elg',
-        'dataset': 'SingleElectron',
-    },
+    #{
+    #    'module' : 'Conf.py',
+    #    'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None'},
+    #    'input'  : input_base,
+    #    'output' : base+'LepGamma_elg_2017_09_05',
+    #    'tag'    : 'elg',
+    #    'dataset': 'SingleElectron',
+    #},
     #{
     #    'module' : 'Conf.py',
     #    'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 30 ', 'muphtrig' : 'True' },

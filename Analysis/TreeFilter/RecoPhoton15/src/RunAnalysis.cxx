@@ -42,9 +42,6 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                             const CmdOptions & options, std::vector<ModuleConfig> &configs ) {
 
 
-    std::cout << "FIX PU weighting" << std::endl;
-    assert( false );
-
     // *************************
     // initialize trees
     // *************************
@@ -216,6 +213,18 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
     OUT::met_pt                                                 = 0;
     OUT::met_phi                                                = 0;
+    OUT::met_UnClusDn_pt                                        = 0;
+    OUT::met_UnClusDn_phi                                       = 0;
+    OUT::met_UnClusUp_pt                                        = 0;
+    OUT::met_UnClusUp_phi                                       = 0;
+    OUT::met_JECDn_pt                                           = 0;
+    OUT::met_JECDn_phi                                          = 0;
+    OUT::met_JECUp_pt                                           = 0;
+    OUT::met_JECUp_phi                                          = 0;
+    OUT::met_JERDn_pt                                           = 0;
+    OUT::met_JERDn_phi                                          = 0;
+    OUT::met_JERUp_pt                                           = 0;
+    OUT::met_JERUp_phi                                          = 0;
 
     OUT::PassQuality                                            = 0;
     OUT::trueph_pt                                              = 0;
@@ -524,8 +533,20 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("jetAK08_phi"              , &OUT::jetAK08_phi);
     outtree->Branch("jetAK08_e"                , &OUT::jetAK08_e);
 
-    outtree->Branch("met_pt"                    , &OUT::met_pt , "met_pt/F"                   );
-    outtree->Branch("met_phi"                   , &OUT::met_phi, "met_phi/F"                   );
+    outtree->Branch("met_pt"                    , &OUT::met_pt           , "met_pt/F"              );
+    outtree->Branch("met_phi"                   , &OUT::met_phi          , "met_phi/F"             );
+    outtree->Branch("met_UnClusDn_pt"           , &OUT::met_UnClusDn_pt  , "met_UnClusDn_pt/F"     );
+    outtree->Branch("met_UnClusDn_phi"          , &OUT::met_UnClusDn_phi , "met_UnClusDn_phi/F"    );
+    outtree->Branch("met_UnClusUp_pt"           , &OUT::met_UnClusUp_pt  , "met_UnClusUp_pt/F"     );
+    outtree->Branch("met_UnClusUp_phi"          , &OUT::met_UnClusUp_phi , "met_UnClusUp_phi/F"    );
+    outtree->Branch("met_JECDn_pt"              , &OUT::met_JECDn_pt     , "met_JECDn_pt/F"        );
+    outtree->Branch("met_JECDn_phi"             , &OUT::met_JECDn_phi    , "met_JECDn_phi/F"       );
+    outtree->Branch("met_JECUp_pt"              , &OUT::met_JECUp_pt     , "met_JECUp_pt/F"        );
+    outtree->Branch("met_JECUp_phi"             , &OUT::met_JECUp_phi    , "met_JECUp_phi/F"       );
+    outtree->Branch("met_JERDn_pt"              , &OUT::met_JERDn_pt     , "met_JERDn_pt/F"        );
+    outtree->Branch("met_JERDn_phi"             , &OUT::met_JERDn_phi    , "met_JERDn_phi/F"       );
+    outtree->Branch("met_JERUp_pt"              , &OUT::met_JERUp_pt     , "met_JERUp_pt/F"        );
+    outtree->Branch("met_JERUp_phi"             , &OUT::met_JERUp_phi    , "met_JERUp_phi/F"       );
 
     outtree->Branch("trueph_pt"           , &OUT::trueph_pt                        );
     outtree->Branch("trueph_eta"          , &OUT::trueph_eta                       );
@@ -1820,6 +1841,36 @@ void RunModule::BuildMET( ModuleConfig & config ) const {
     metlv.SetPxPyPzE( IN::METPx->at(0), IN::METPy->at(0), 0.0, IN::METPt->at(0) );
     OUT::met_pt = IN::METPt->at(0);
     OUT::met_phi = metlv.Phi();
+
+    TLorentzVector metlvUnClusDn;
+    metlvUnClusDn.SetPxPyPzE( IN::METPxUnClusDn, IN::METPyUnClusDn, 0.0, IN::METPtUnClusDn);
+    OUT::met_UnClusDn_pt = IN::METPtUnClusDn;
+    OUT::met_UnClusDn_phi = metlvUnClusDn.Phi();
+
+    TLorentzVector metlvUnClusUp;
+    metlvUnClusUp.SetPxPyPzE( IN::METPxUnClusUp, IN::METPyUnClusUp, 0.0, IN::METPtUnClusUp);
+    OUT::met_UnClusUp_pt = IN::METPtUnClusUp;
+    OUT::met_UnClusUp_phi = metlvUnClusUp.Phi();
+
+    TLorentzVector metlvJECDn;
+    metlvJECDn.SetPxPyPzE( IN::METPxJECDn, IN::METPyJECDn, 0.0, IN::METPtJECDn);
+    OUT::met_JECDn_pt = IN::METPtJECDn;
+    OUT::met_JECDn_phi = metlvJECDn.Phi();
+
+    TLorentzVector metlvJECUp;
+    metlvJECUp.SetPxPyPzE( IN::METPxJECUp, IN::METPyJECUp, 0.0, IN::METPtJECUp);
+    OUT::met_JECUp_pt = IN::METPtJECUp;
+    OUT::met_JECUp_phi = metlvJECUp.Phi();
+
+    TLorentzVector metlvJERDn;
+    metlvJERDn.SetPxPyPzE( IN::METPxJERDn, IN::METPyJERDn, 0.0, IN::METPtJERDn);
+    OUT::met_JERDn_pt = IN::METPtJERDn;
+    OUT::met_JERDn_phi = metlvJERDn.Phi();
+
+    TLorentzVector metlvJERUp;
+    metlvJERUp.SetPxPyPzE( IN::METPxJERUp, IN::METPyJERUp, 0.0, IN::METPtJERUp);
+    OUT::met_JERUp_pt = IN::METPtJERUp;
+    OUT::met_JERUp_phi = metlvJERUp.Phi();
 }
 
 
@@ -2599,6 +2650,7 @@ void RunModule::WeightEvent( ModuleConfig & config ) const {
     }
 
     if( !_puweight_data_hist || !_puweight_sample_hist ) {
+        OUT::PUWeight = 1.0;
         return;
     }
     float puval = -1;

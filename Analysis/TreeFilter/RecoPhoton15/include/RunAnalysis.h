@@ -292,6 +292,18 @@ namespace OUT {
 
     Float_t met_pt;
     Float_t met_phi;
+    Float_t met_UnClusDn_pt;
+    Float_t met_UnClusDn_phi;
+    Float_t met_UnClusUp_pt;
+    Float_t met_UnClusUp_phi;
+    Float_t met_JECDn_pt;
+    Float_t met_JECDn_phi;
+    Float_t met_JECUp_pt;
+    Float_t met_JECUp_phi;
+    Float_t met_JERDn_pt;
+    Float_t met_JERDn_phi;
+    Float_t met_JERUp_pt;
+    Float_t met_JERUp_phi;
 
     // Use scripts/write_trigger_code_from_ntuple.py
     // to help generate the code 
