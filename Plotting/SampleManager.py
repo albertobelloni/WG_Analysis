@@ -1,4 +1,3 @@
-
 import os
 import sys
 import math
@@ -82,6 +81,7 @@ class Sample :
 
         # hold the cross section info
         self.cross_section = kwargs.get('cross_section', 0.0)
+        self.total_events = kwargs.get('total_events', -1)
 
         self.averageSamples = kwargs.get('averageSamples', False )
 
@@ -2179,6 +2179,7 @@ class SampleManager :
                 thisscale *= scale
 
             thisxs = 0
+            totevt = -1
             if useXSFile :
                 xsname = name
                 if XSName is not None :
@@ -2186,9 +2187,10 @@ class SampleManager :
                 if xsname in self.weightMap  :
                     thisscale *= self.weightMap[xsname]['scale']
                     thisxs = self.weightMap[xsname]['cross_section']
+                    totevt = self.weightMap[xsname]['n_evt']
                     print 'Update scale for %s' %name
 
-            thisSample = Sample(name, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, legendName=legend_name)
+            thisSample = Sample(name, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, total_events=totevt, legendName=legend_name)
             thisSample.AddFiles( input_files, self.treeName, self.readHists )
 
             self.samples.append(thisSample)
