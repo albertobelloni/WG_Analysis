@@ -1,0 +1,37 @@
+-----------------------------------
+Setup for 2016 data analysis
+-------------------------
+
+Make a working directory,
+
+mkdir UMDNtuple
+
+Setup CMSSW_8_0_27 (minimum of CMSSW_8_0_26_patch1 is required )
+
+cmsrel CMSSW_8_0_27
+
+Get the UMDNTuple code
+
+Include VID and HEEP (https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2,https://twiki.cern.ch/twiki/bin/view/CMS/HEEPElectronIdentificationRun2)
+
+git cms-merge-topic Sam-Harper:HEEPV70VID_8010_ReducedCheckout  #brings in HEEP V70 into VID
+git cms-merge-topic ikrav:egm_id_80X_v3 #for other E/gamma IDs in VID if you wish to have them
+git cms-merge-topic Sam-Harper:PackedCandNoPuppi #only necessary to run HEEP V70 on AOD (it will crash if this is not present looking for puppi candidates
+mkdir -p ../external/slc6_amd64_gcc530/data/RecoEgamma/ElectronIdentification/ #we need this for the mva weights which runs in VID regardless if you need it or not
+git clone git@github.com:cms-data/RecoEgamma-ElectronIdentification ../external/slc6_amd64_gcc530/data/RecoEgamma/ElectronIdentification/data #we need this for the mva weights which runs in VID regardless if you need it or not
+scramv1 b -j 16 #more cores the better
+
+Include Photon VID 
+git cms-merge-topic ikrav:egm_id_80X_v3_photons
+
+
+Incude ECAL scale corrections(https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer)
+
+#add the repository with the updated Egamma package
+git cms-merge-topic cms-egamma:EGM_gain_v1
+cd EgammaAnalysis/ElectronTools/data
+# download the txt files with the corrections
+git clone https://github.com/ECALELFS/ScalesSmearings.git
+git checkout Moriond17_23Jan_v2
+
+This last step didn't work for me, it seems that the other git checkouts caused a problem.  If this doesn't work, just repeat the last two steps in a /tmp directory and then copy the files over
