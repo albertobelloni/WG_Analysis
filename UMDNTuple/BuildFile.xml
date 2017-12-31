@@ -1,0 +1,15 @@
+<flags CPPDEFINES="MYFILE_CHECKSUM=$$(shell git hash-object $$< | sed 's| .*||')"/>
+<use name="DataFormats/EgammaCandidates"/>
+<use name="DataFormats/Common"/>
+<use name="RecoEgamma/EgammaTools"/>
+<use name="RecoEgamma/ElectronIdentification"/>
+<use name="SimDataFormats/GeneratorProducts"/>
+<use name="EgammaAnalysis/ElectronTools"/>
+<use name="DataFormats/HepMCCandidate"/>
+<use name="root"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/Common"/>
+<use name="clhep"/>
+<flags EDM_PLUGIN="1"/>
