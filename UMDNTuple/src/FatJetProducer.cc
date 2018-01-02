@@ -19,11 +19,12 @@ FatJetProducer::FatJetProducer(  ) :
 }
 
 void FatJetProducer::initialize( const std::string &prefix,
-                                    const edm::EDGetTokenT<edm::View<pat::Jet> >&jetTok,
-                                    TTree *tree) {
+                                 const edm::EDGetTokenT<edm::View<pat::Jet> >&jetTok,
+                                 TTree *tree, float minPt) {
 
     _prefix = prefix;
     _jetToken = jetTok;
+    _minPt = minPt;
 
     tree->Branch( (prefix + "_ak08_prunedMass" ).c_str(), &jet_ak08_prunedMass );
     //tree->Branch( (prefix + "_ak08_FilteredMass" ).c_str(), &jet_ak08_FilteredMass );
@@ -65,7 +66,7 @@ void FatJetProducer::produce(const edm::Event &iEvent ) {
     for (unsigned int j=0; j < jets->size();++j){
         edm::Ptr<pat::Jet> jet = jets->ptrAt(j);
  
-        if( jet->pt() < 200 ) continue;
+        if( jet->pt() < _minPt ) continue;
 
         //jet_ak08_prunedMass -> push_back( jet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSPrunedMass") );
         jet_ak08_prunedMass -> push_back( jet->userFloat("ak8PFJetsCHSPrunedMass") );

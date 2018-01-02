@@ -23,7 +23,7 @@ class EventInfoProducer {
                         const edm::EDGetTokenT<GenEventInfoProduct> & ,
                         const edm::EDGetTokenT<LHEEventProduct> & , 
                         const edm::EDGetTokenT<LHERunInfoProduct> & , 
-                        const edm::EDGetTokenT<double> & , TTree *, TTree *);
+                        const edm::EDGetTokenT<double> & , TTree *, TTree *, bool);
 
         void produce(const edm::Event &iEvent );
 
@@ -57,5 +57,6 @@ class EventInfoProducer {
         edm::EDGetTokenT<double> _rhoToken;
 
         TTree * _infoTree;
+        bool _isMC;
 };
 #endif

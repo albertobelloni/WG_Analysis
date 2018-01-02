@@ -49,13 +49,14 @@ PhotonProducer::PhotonProducer(  ) :
 }
 
 void PhotonProducer::initialize( const std::string &prefix,
-                                    const edm::EDGetTokenT<edm::View<pat::Photon> >&photTok,
-                                    TTree *tree, int detail) {
+                                 const edm::EDGetTokenT<edm::View<pat::Photon> >&photTok,
+                                 TTree *tree, float minPt, int detail) {
 
     _prefix = prefix;
     _photToken = photTok;
     _detail = detail;
     _tree = tree;
+    _minPt = minPt;
 
     tree->Branch( (prefix + "_n" ).c_str(), &ph_n,(prefix + "_n/I" ).c_str()  );
 
@@ -279,7 +280,7 @@ void PhotonProducer::produce(const edm::Event &iEvent ) {
         // Need to implemnet calibrations
         //edm::Ptr<pat::Photon> calib_phptr = calibrated_photons->ptrAt(j);
  
-        if( ph->pt() < 5 ) continue;
+        if( ph->pt() < _minPt ) continue;
         // should be added with calibration
         //if( isnan(calib_phptr->pt() ) ) continue;
 

@@ -28,7 +28,7 @@ class ElectronProducer {
         //void initialize( const TTree *tree );
         void initialize( const std::string &prefix, 
                          const edm::EDGetTokenT<edm::View<pat::Electron> >&elecTok, 
-                         TTree *tree, int detail=99 );
+                         TTree *tree, float minPt=5, int detail=99 );
 
         void addUserBool ( ElectronUserVar , const edm::EDGetTokenT<edm::ValueMap<Bool_t> > & );
 
@@ -106,6 +106,7 @@ class ElectronProducer {
         edm::EDGetTokenT<double> _rhoToken;
 
         int _detail;
+        float _minPt;
 
 };
 #endif

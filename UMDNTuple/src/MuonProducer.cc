@@ -37,11 +37,12 @@ MuonProducer::MuonProducer(  ) :
 
 void MuonProducer::initialize( const std::string &prefix,
                                const edm::EDGetTokenT<edm::View<pat::Muon> >&muonTok,
-                               TTree *tree, int detail) {
+                               TTree *tree, float minPt, int detail) {
 
     _prefix = prefix;
     _muonToken = muonTok;
     _detail = detail;
+    _minPt = minPt;
 
     tree->Branch( (prefix + "_n" ).c_str() , &mu_n,(prefix + "_n/I" ).c_str()  );
     tree->Branch( (prefix + "_pt" ).c_str()           , &mu_pt );
@@ -133,7 +134,7 @@ void MuonProducer::produce(const edm::Event &iEvent ) {
     for (unsigned int j=0; j < muons->size();++j){
         edm::Ptr<pat::Muon> mu = muons->ptrAt(j);
  
-        if( mu->pt() < 5 ) continue;
+        if( mu->pt() < _minPt ) continue;
 
         mu_n += 1;
 

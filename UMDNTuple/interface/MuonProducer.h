@@ -15,7 +15,7 @@ class MuonProducer {
         //void initialize( const TTree *tree );
         void initialize( const std::string &prefix, 
                          const edm::EDGetTokenT<edm::View<pat::Muon> >&muonTok, 
-                         TTree *tree, int detail=99 );
+                         TTree *tree, float minPt = 5, int detail=99 );
 
         void addVertexToken( const edm::EDGetTokenT<std::vector<reco::Vertex> > & );
         void addRhoToken( const edm::EDGetTokenT<double> & );
@@ -61,6 +61,7 @@ class MuonProducer {
         edm::EDGetTokenT<double> _rhoToken;
          
         int _detail;
+        float _minPt;
 
 };
 #endif

@@ -16,7 +16,7 @@ class FatJetProducer {
         //void initialize( const TTree *tree );
         void initialize( const std::string &prefix, 
                          const edm::EDGetTokenT<edm::View<pat::Jet> >&jetTok, 
-                         TTree *tree );
+                         TTree *tree, float minPt = 200 );
 
         void produce(const edm::Event &iEvent );
 
@@ -40,6 +40,8 @@ class FatJetProducer {
         edm::EDGetTokenT<edm::View<pat::Jet> > _jetToken;
         edm::Handle<edm::View<pat::Jet> > jets;
         JetProducer _jetProducer;
+
+        float _minPt;
 
 };
 #endif

@@ -57,6 +57,18 @@ private :
   FatJetProducer   _fjetProducer;
   METProducer      _metProducer;
   TriggerProducer  _trigProducer;
+  
+  bool _produceEvent;
+  bool _produceElecs;
+  bool _produceMuons;
+  bool _producePhots;
+  bool _produceJets;
+  bool _produceFJets;
+  bool _produceMET;
+  bool _produceTrig;
+  bool _produceGen;
+
+  int _isMC;
 
 };
 #endif
