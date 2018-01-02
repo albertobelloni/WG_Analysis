@@ -49,11 +49,12 @@ ElectronProducer::ElectronProducer(  ) :
 
 void ElectronProducer::initialize( const std::string &prefix,
                                     const edm::EDGetTokenT<edm::View<pat::Electron> >&elecTok,
-                                    TTree *tree, int detail) {
+                                    TTree *tree, float minPt, int detail) {
 
     _prefix = prefix;
     _elecToken = elecTok;
     _detail = detail;
+    _minPt = minPt;
 
 
     tree->Branch( (prefix + "_n" ).c_str(), &el_n, (prefix + "_n/I" ).c_str() );
@@ -228,7 +229,7 @@ void ElectronProducer::produce(const edm::Event &iEvent ) {
         edm::Ptr<pat::Electron> el = electrons->ptrAt(j);
         //const pat::Electron & el = (*elptr);
  
-        if( el->pt() < 5 ) continue;
+        if( el->pt() < _minPt ) continue;
 
         el_n += 1;
 

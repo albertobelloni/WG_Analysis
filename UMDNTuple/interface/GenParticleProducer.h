@@ -15,7 +15,7 @@ class GenParticleProducer {
         //void initialize( const TTree *tree );
         void initialize( const std::string &prefix, 
                          const edm::EDGetTokenT<std::vector<reco::GenParticle> >&genTok, 
-                         TTree *tree );
+                         TTree *tree, float minPt =1);
 
         void produce(const edm::Event &iEvent );
 
@@ -38,6 +38,8 @@ class GenParticleProducer {
         std::vector<Bool_t> *gen_fromHardProcessBeforeFSR;
 
         edm::EDGetTokenT<std::vector<reco::GenParticle> > _genPartToken;
+
+        float _minPt;
 
 };
 #endif

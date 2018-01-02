@@ -35,7 +35,7 @@ class PhotonProducer {
         //void initialize( const TTree *tree );
         void initialize( const std::string &prefix, 
                          const edm::EDGetTokenT<edm::View<pat::Photon> >&photTok, 
-                         TTree *tree, int detail=99 );
+                         TTree *tree, float minPt=5, int detail=99 );
         //void addUserFloat( const std::string &, const edm::EDGetTokenT<edm::ValueMap<float> > & );
         void addUserBool ( PhotonUserVar , const edm::EDGetTokenT<edm::ValueMap<Bool_t> > & );
         void addUserFloat( PhotonUserVar , const edm::EDGetTokenT<edm::ValueMap<float> > & );
@@ -114,6 +114,7 @@ class PhotonProducer {
         //edm::EDGetTokenT<edm::ValueMap<float> > 
         int _detail;
         TTree * _tree;
+        float _minPt;
 
 };
 #endif

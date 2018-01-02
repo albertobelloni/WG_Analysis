@@ -35,11 +35,12 @@ JetProducer::JetProducer(  ) :
 
 void JetProducer::initialize( const std::string &prefix,
                                     const edm::EDGetTokenT<edm::View<pat::Jet> >&jetTok,
-                                    TTree *tree, int detail) {
+                                    TTree *tree, float minPt, int detail) {
 
     _prefix = prefix;
     _jetToken = jetTok;
     _detail = detail;
+    _minPt = minPt;
 
     tree->Branch( (prefix + "_n" ).c_str(), &jet_n, (prefix + "_n/I" ).c_str() );
 
@@ -119,7 +120,7 @@ void JetProducer::produce(const edm::Event &iEvent ) {
         edm::Ptr<pat::Jet> jet = jets->ptrAt(j);
         //const pat::Jet & jet = (*jetptr);
  
-        if( jet->pt() < 5 ) continue;
+        if( jet->pt() < _minPt ) continue;
 
         jet_n += 1;
 

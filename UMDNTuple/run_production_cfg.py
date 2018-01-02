@@ -7,27 +7,21 @@ process = cms.Process("UMDNTuple")
 
 # setup 'analysis'  options
 opt = VarParsing.VarParsing ('analysis')
-# Addition options.
-# Note: if you add an option, update the code which write the values 
-# in the configuration dump, you can find at the end of this file.
-opt.register('minRun', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, 'Gives an indication on the minimum run number included in the input samples.')
-opt.register('maxRun', 999999, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, 'Gives an indication on the maximum run number include in the input samples.')
-opt.register('prodEra', '', VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, 'Production run era. Label used to identify a run period whose data are processed together.')
-opt.register('recoTag', '', VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, 'Tag of the recontruction.')
-opt.register('dataTier', '', VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, 'Data tier of input dataset, typically AOD, AODSIM, MINIAOD or MINIAODSIM')
-opt.register('isMC',    -1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, 'Flag indicating if the input samples are from MC (1) or from the detector (0).')
-opt.register('makeEdm', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, 'Switch for EDM output production. Use 0 (default) to disable it, 1 to enable it.')
+
+opt.register('isMC', -1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, 'Flag indicating if the input samples are from MC (1) or from the detector (0).')
+opt.register('nEvents', 1000, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, 'Number of events to analyze')
 
 #input files. Can be changed on the command line with the option inputFiles=...
 opt.inputFiles = [
     #'file:/data/users/jkunkle/Samples/aQGC_WWW_SingleLepton_LO/Job_0000/MakeMINIAOD/aQGC_WWW_SingleLepton_LO_MINIAOD.root',
     #'file:/data/users/jkunkle/Samples/WGamma/02FE572F-88DA-E611-8CAB-001E67792884.root',
-    'file:/data/users/jkunkle/Samples/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAOD/08F5FD50-23BC-E611-A4C2-00259073E3DA.root',
+    #'file:/data/users/jkunkle/Samples/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAOD/08F5FD50-23BC-E611-A4C2-00259073E3DA.root',
+    'root://cms-xrd-global.cern.ch//store/data/Run2016G/SingleElectron/MINIAOD/03Feb2017-v1/50000/004A75AB-B2EA-E611-B000-24BE05CEFDF1.root',
 ]
 
 
-#max number of events. #input files. Can be changed on the command line with the option maxEvents=...
-opt.maxEvents = 1000
+#default number of exvents
+opt.nEvents = 1000
 
 opt.parseArguments()
 
@@ -47,20 +41,15 @@ process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.StandardSequences.GeometryDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
-#process.load("Geometry.CMSCommonData.cmsIdealGeometryXML_cfi");
-#process.load("Geometry.CaloEventSetup.CaloGeometry_cfi");
-#process.load("Geometry.CaloEventSetup.CaloTopology_cfi");
-# need the first one?
-process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 
 #------------------------------------
 #Condition DB tag
-dataGlobalTag = '80X_dataRun2_2016SeptRepro_v4'
-#mcGlobalTag = '80X_mcRun2_asymptotic_2016_miniAODv2_v3'
-mcGlobalTag = '80X_mcRun2_asymptotic_2016_TrancheIV_v6'
-triggerMenu = '2016'
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
+dataGlobalTag = '80X_dataRun2_2016SeptRepro_v7'
+#mcGlobalTag = '80X_mcRun2_asymptotic_2016_miniAODv2_v3'
+#mcGlobalTag = '80X_mcRun2_asymptotic_2016_TrancheIV_v6'
+mcGlobalTag= '80X_mcRun2_asymptotic_2016_TrancheIV_v8'
 
 if opt.isMC == 1:
   process.GlobalTag = GlobalTag(process.GlobalTag, mcGlobalTag, '')
@@ -72,7 +61,7 @@ process.source = cms.Source("PoolSource",
 
 #------------------------------------
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(opt.maxEvents))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(opt.nEvents))
 #process.source.skipEvents = cms.untracked.uint32(381000)
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck') 
 
@@ -80,6 +69,8 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('ntuple.root' )
 )
 
+# try to determine if its data or MC based on the name
+# otherwise request the user to provide isMC=
 if opt.isMC < 0 and len(process.source.fileNames) > 0:
   if re.match(r'.*/(MINI)?AODSIM/.*', process.source.fileNames[0]):
     print "MC dataset detected."
@@ -87,23 +78,9 @@ if opt.isMC < 0 and len(process.source.fileNames) > 0:
   elif re.match(r'.*/(MINI)?AOD/.*', process.source.fileNames[0]):
     print "Real data dataset detected."
     opt.isMC = 0
-  #endif
-#endif
 
 if opt.isMC < 0:
   raise Exception("Failed to detect data type. Data type need to be specify with the isMC cmsRun command line option")
-#endif
-
-
-reapply_jec = False
-eg_corr = True
-eg_corr_phot_file = "EgammaAnalysis/ElectronTools/data/ScalesSmearings/Moriond17_23Jan_ele"
-eg_corr_el_file   = "EgammaAnalysis/ElectronTools/data/ScalesSmearings/Moriond17_23Jan_ele"
-
-include_ak08 = False #switch to include anti-kt R=0.8 jets. ak(a) fatjet
-mcGlobalTag = '92X_upgrade2017_TSG_For90XSamples_V1'
-eg_corr = False
-
 
 # Photon and electron correction
 process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
@@ -137,12 +114,18 @@ process.calibratedPatPhotons = cms.EDProducer("CalibratedPatPhotonProducerRun2",
 process.calibratedPatElectrons = cms.EDProducer("CalibratedPatElectronProducerRun2", 
                                                 # input collections
                                                 electrons = cms.InputTag('slimmedElectrons'),
-                                        #gbrForestName = cms.vstring('electron_eb_ECALTRK_lowpt', 'electron_eb_ECALTRK',
-                                        #                            'electron_ee_ECALTRK_lowpt', 'electron_ee_ECALTRK',
-                                        #                            'electron_eb_ECALTRK_lowpt_var', 'electron_eb_ECALTRK_var',
-                                        #                            'electron_ee_ECALTRK_lowpt_var', 'electron_ee_ECALTRK_var'),
-                                                #gbrForestName = cms.vstring("gedelectron_p4combination_25ns"),
-                                                gbrForestName = cms.vstring("GEDelectron_EBCorrection_80X_EGM_v4"),
+                                                #gbrForestName = cms.vstring(#'electron_eb_ECALTRK_lowpt', 
+                                                #                    'electron_eb_ECALTRK',
+                                                #                    #'electron_ee_ECALTRK_lowpt', 
+                                                #                    #'electron_ee_ECALTRK',
+                                                #                    #'electron_eb_ECALTRK_lowpt_var', 
+                                                #                    #'electron_eb_ECALTRK_var',
+                                                #                    #'electron_ee_ECALTRK_lowpt_var', 
+                                                #                    #'electron_ee_ECALTRK_var'
+                                                #                   ),
+                                                gbrForestName = cms.vstring("gedelectron_p4combination_25ns"),
+                                                #gbrForestName = cms.vstring("GEDelectron_EBCorrection_80X_EGM_v4"),
+                                                #gbrForestName = cms.vstring(""),
                                                 # data or MC corrections
                                                 # if isMC is false, data corrections are applied
                                                 isMC = cms.bool(opt.isMC != 0),
@@ -152,16 +135,6 @@ process.calibratedPatElectrons = cms.EDProducer("CalibratedPatElectronProducerRu
                                                 recHitCollectionEB = cms.InputTag('reducedEgamma:reducedEBRecHits'),
                                                 recHitCollectionEE = cms.InputTag('reducedEgamma:reducedEERecHits'),
                                                 )
-#--------------------------------------------
-
-#from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-#process.load('Configuration.StandardSequences.MagneticField_38T_cff')
-
-##default configuration for miniAOD reprocessing, change the isData flag to run on data
-##for a full met computation, remove the pfCandColl input
-#runMetCorAndUncFromMiniAOD(process,
-#    isData = not opt.isMC,
-#)
 
 #--------------------------------------------
 # Electron and photon VID
@@ -222,8 +195,23 @@ process.UMDNTuple = cms.EDAnalyzer("UMDNTuple",
     photonDetailLevel = cms.untracked.int32( 1 ),
     muonDetailLevel = cms.untracked.int32( 1 ),
     jetDetailLevel = cms.untracked.int32( 1 ),
+    isMC = cms.untracked.int32( opt.isMC ),
 
+    prefix_el   = cms.untracked.string("el"),
+    prefix_mu   = cms.untracked.string("mu"),
+    prefix_ph   = cms.untracked.string("ph"),
+    prefix_jet  = cms.untracked.string("jet"),
+    prefix_fjet = cms.untracked.string("fjet"),
+    prefix_trig = cms.untracked.string("passTrig"),
+    prefix_gen  = cms.untracked.string("gen"),
+    prefix_met  = cms.untracked.string("met"),
                                    
+    electronMinPt = cms.untracked.double( 10 ),
+    muonMinPt = cms.untracked.double( 10 ),
+    photonMinPt = cms.untracked.double( 20 ),
+    jetMinPt = cms.untracked.double( 30 ),
+    fjetMinPt = cms.untracked.double( 200 ),
+    genMinPt = cms.untracked.double( 5 ),
 
 
 )
@@ -232,7 +220,8 @@ process.UMDNTuple = cms.EDAnalyzer("UMDNTuple",
 process.p = cms.Path()
 
 process.p += process.calibratedPatPhotons
-process.p += process.calibratedPatElectrons
+# electron calibration is not working
+#process.p += process.calibratedPatElectrons
 process.p += process.photonIDValueMapProducer
 process.p += process.egmGsfElectronIDSequence
 process.p += process.egmPhotonIDSequence
