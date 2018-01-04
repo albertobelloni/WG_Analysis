@@ -36,6 +36,8 @@ class ElectronProducer {
         void addBeamSpotToken( const edm::EDGetTokenT<reco::BeamSpot> & );
         void addVertexToken( const edm::EDGetTokenT<std::vector<reco::Vertex> > & );
         void addRhoToken( const edm::EDGetTokenT<double> & );
+        void addCalibratedToken( const edm::EDGetTokenT<edm::View<pat::Electron> > & );
+
         void produce(const edm::Event &iEvent );
 
 
@@ -49,11 +51,16 @@ class ElectronProducer {
         std::vector<float> *el_eta;
         std::vector<float> *el_phi;
         std::vector<float> *el_e;
+        std::vector<float> *el_ptOrig;
+        std::vector<float> *el_etaOrig;
+        std::vector<float> *el_phiOrig;
+        std::vector<float> *el_eOrig;
 
         std::vector<Bool_t> *el_passVIDVeryLoose;
         std::vector<Bool_t> *el_passVIDLoose;
         std::vector<Bool_t> *el_passVIDMedium;
         std::vector<Bool_t> *el_passVIDTight;
+        std::vector<Bool_t> *el_passVIDHEEP;
         std::vector<Bool_t> *el_passVIDHLT;
 
         std::vector<float> *el_hOverE;
@@ -71,7 +78,7 @@ class ElectronProducer {
 
         std::vector<float> *el_sc_eta;
         std::vector<float> *el_dEtaClusterTrack;
-        std::vector<float> *el_dPhiClusterRack;
+        std::vector<float> *el_dPhiClusterTrack;
         std::vector<float> *el_sc_rawE;
         std::vector<float> *el_ecalIso;
         std::vector<float> *el_ecalPfIso;
@@ -91,7 +98,7 @@ class ElectronProducer {
 
 
         edm::EDGetTokenT<edm::View<pat::Electron> > _elecToken;
-        edm::Handle<edm::View<pat::Electron> > electrons;
+        edm::EDGetTokenT<edm::View<pat::Electron> > _elecCalibToken;
 
         edm::EDGetTokenT<reco::BeamSpot> _beamSpotToken;
         edm::EDGetTokenT<reco::ConversionCollection> _conversionsToken;
@@ -100,6 +107,7 @@ class ElectronProducer {
         edm::EDGetTokenT<edm::ValueMap<Bool_t> > _IdLooseToken;
         edm::EDGetTokenT<edm::ValueMap<Bool_t> > _IdMediumToken;
         edm::EDGetTokenT<edm::ValueMap<Bool_t> > _IdTightToken;
+        edm::EDGetTokenT<edm::ValueMap<Bool_t> > _IdHEEPToken;
         edm::EDGetTokenT<edm::ValueMap<Bool_t> > _IdHLTToken;
 
         edm::EDGetTokenT<std::vector<reco::Vertex> > _vertexToken;

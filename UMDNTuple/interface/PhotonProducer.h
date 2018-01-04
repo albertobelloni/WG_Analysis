@@ -43,6 +43,7 @@ class PhotonProducer {
         void addElectronsToken( const edm::EDGetTokenT<edm::View<pat::Electron> > &);
         void addConversionsToken( const edm::EDGetTokenT<reco::ConversionCollection> &);
         void addBeamSpotToken( const edm::EDGetTokenT<reco::BeamSpot> &);
+        void addCalibratedToken( const edm::EDGetTokenT<edm::View<pat::Photon> > &);
         
         void produce(const edm::Event &iEvent );
 
@@ -54,6 +55,10 @@ class PhotonProducer {
         std::vector<float> *ph_eta;
         std::vector<float> *ph_phi;
         std::vector<float> *ph_e;
+        std::vector<float> *ph_ptOrig;
+        std::vector<float> *ph_etaOrig;
+        std::vector<float> *ph_phiOrig;
+        std::vector<float> *ph_eOrig;
         std::vector<Bool_t> *ph_passVIDLoose;
         std::vector<Bool_t> *ph_passVIDMedium;
         std::vector<Bool_t> *ph_passVIDTight;
@@ -91,7 +96,7 @@ class PhotonProducer {
         std::vector<float> *ph_E5x5Full5x5;
 
         edm::EDGetTokenT<edm::View<pat::Photon> > _photToken;
-        edm::Handle<edm::View<pat::Photon> > photons;
+        edm::EDGetTokenT<edm::View<pat::Photon> > _photCalibToken;
 
         //std::map<std::string, std::vector<float>* > ph_user_floats;
         //std::map<std::string, std::vector<Bool_t>* > ph_user_bools;
