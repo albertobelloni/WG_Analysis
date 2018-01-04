@@ -19,10 +19,6 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
 {
     edm::Service<TFileService> fs;
 
-    // Create tree to store event data
-    _myTree = fs->make<TTree>( "EventTree", "EventTree" );
-    // Create tree to store metadata
-    _infoTree = fs->make<TTree>( "InfoTree", "InfoTree" );
 
     // Get config flags
     if( !iConfig.exists( "isMC" ) ) {
@@ -31,6 +27,13 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
     }
 
     _isMC = iConfig.getUntrackedParameter<int>("isMC");
+
+    // Create tree to store event data
+    _myTree = fs->make<TTree>( "EventTree", "EventTree" );
+    // Create tree to store metadata
+    _weightInfoTree = fs->make<TTree>( "WeightInfoTree", "WeightInfoTree" );
+    // Create tree to store metadata
+    _trigInfoTree = fs->make<TTree>( "TrigInfoTree", "TrigInfoTree" );
 
     // get the detail levels from the configuration
     int elecDetail = 99;
@@ -173,8 +176,10 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
     edm::EDGetTokenT<edm::View<pat::Jet> >            jetToken;
     edm::EDGetTokenT<edm::View<pat::Jet> >            fjetToken;
     edm::EDGetTokenT<edm::View<pat::Electron> >       elecToken;
+    edm::EDGetTokenT<edm::View<pat::Electron> >       elecCalibToken;
     edm::EDGetTokenT<edm::View<pat::Muon> >           muonToken;
     edm::EDGetTokenT<edm::View<pat::Photon> >         photToken;
+    edm::EDGetTokenT<edm::View<pat::Photon> >         photCalibToken;
     edm::EDGetTokenT<edm::View<pat::MET> >            metToken;
     edm::EDGetTokenT<edm::TriggerResults>             trigToken;
     edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken;
@@ -183,12 +188,14 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
     // Event information
     _eventProducer.initialize( verticesToken, puToken, 
                                generatorToken, lheEventToken, lheRunToken,
-                               rhoToken, _myTree, _infoTree, _isMC );
+                               rhoToken, _myTree, _trigInfoTree, _isMC );
 
     // Electrons
     if( _produceElecs ) {
         elecToken =  consumes<edm::View<pat::Electron> >(
                      iConfig.getUntrackedParameter<edm::InputTag>("electronTag"));
+        elecCalibToken =  consumes<edm::View<pat::Electron> >(
+                     iConfig.getUntrackedParameter<edm::InputTag>("electronCalibTag"));
 
 
         edm::EDGetTokenT<edm::ValueMap<Bool_t> > elecIdVeryLooseToken = 
@@ -222,6 +229,7 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
         _elecProducer.addBeamSpotToken( beamSpotToken );
         _elecProducer.addVertexToken( verticesToken );
         _elecProducer.addRhoToken( rhoToken );
+        _elecProducer.addCalibratedToken( elecCalibToken );
     }
 
     if( _produceMuons ) { 
@@ -238,6 +246,8 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
 
         photToken = consumes<edm::View<pat::Photon> >(
                     iConfig.getUntrackedParameter<edm::InputTag>("photonTag"));
+        photCalibToken = consumes<edm::View<pat::Photon> >(
+                    iConfig.getUntrackedParameter<edm::InputTag>("photonCalibTag"));
         edm::EDGetTokenT<edm::ValueMap<float> > phoChIsoToken = 
                     consumes<edm::ValueMap<float> >(
                     iConfig.getUntrackedParameter<edm::InputTag>("phoChIsoTag"));
@@ -268,6 +278,7 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
         _photProducer.addElectronsToken( elecToken );
         _photProducer.addConversionsToken( conversionsToken );
         _photProducer.addBeamSpotToken( beamSpotToken );
+        _photProducer.addCalibratedToken( photCalibToken );
     }
 
     if( _produceJets ) {
@@ -294,7 +305,15 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
         trigToken = consumes<edm::TriggerResults>(
                     iConfig.getUntrackedParameter<edm::InputTag>("triggerTag"));
 
-        _trigProducer.initialize( prefix_trig    , trigToken, _myTree );
+        std::vector<std::string> trigger_map = 
+            iConfig.getUntrackedParameter<std::vector<std::string> >("triggerMap");
+
+        edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> trigObjToken = 
+                    consumes<pat::TriggerObjectStandAloneCollection> (
+                    iConfig.getUntrackedParameter<edm::InputTag>("triggerObjTag"));
+
+        _trigProducer.initialize( prefix_trig, trigToken, trigObjToken,
+                                  trigger_map, _myTree, _trigInfoTree );
 
     }
     if( _produceGen ) {
@@ -304,6 +323,11 @@ UMDNTuple::UMDNTuple( const edm::ParameterSet & iConfig ) :
         _genProducer.initialize( prefix_gen       , genToken, _myTree, genMinPt );
     }
 
+    //edm::Handle< edm::TriggerResults> HLTtriggers;
+    //edm::EDGetTokenT<edm::TriggerResults> HLTTagToken_;
+
+    //iEvent.getByToken(HLTTagToken_, HLTtriggers);          
+    //iEvent.getByToken(triggerObjsToken_, triggerObjects);
 
 }
 
@@ -322,7 +346,7 @@ void UMDNTuple::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetup)
     if( _produceFJets ) _fjetProducer.produce( iEvent );
     if( _produceMET   ) _metProducer .produce( iEvent );
     if( _produceTrig  ) _trigProducer.produce( iEvent );
-    if( _produceGen   ) _genProducer .produce( iEvent );
+    if( _produceGen && _isMC  ) _genProducer .produce( iEvent );
 
     _myTree->Fill();
 
@@ -337,6 +361,7 @@ void UMDNTuple::endJob() {
 void UMDNTuple::endRun( edm::Run const& iRun, edm::EventSetup const&) {
 
   _eventProducer.endRun( iRun );
+  _trigProducer.endRun();
 
 
 }

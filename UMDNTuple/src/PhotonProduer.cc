@@ -8,6 +8,10 @@ PhotonProducer::PhotonProducer(  ) :
     ph_eta(0),
     ph_phi(0),
     ph_e(0),
+    ph_ptOrig(0),
+    ph_etaOrig(0),
+    ph_phiOrig(0),
+    ph_eOrig(0),
     ph_passVIDLoose(0),
     ph_passVIDMedium(0),
     ph_passVIDTight(0),
@@ -64,12 +68,16 @@ void PhotonProducer::initialize( const std::string &prefix,
     tree->Branch( (prefix + "_eta").c_str(), &ph_eta );
     tree->Branch( (prefix + "_phi").c_str(), &ph_phi );
     tree->Branch( (prefix + "_e"  ).c_str(), &ph_e );
-
-    tree->Branch( (prefix + "_passVIDLoose").c_str(), &ph_passVIDLoose );
-    tree->Branch( (prefix + "_passVIDMedium").c_str(), &ph_passVIDMedium );
-    tree->Branch( (prefix + "_passVIDTight").c_str(), &ph_passVIDTight );
+    tree->Branch( (prefix + "_ptOrig" ).c_str(), &ph_ptOrig );
+    tree->Branch( (prefix + "_etaOrig").c_str(), &ph_etaOrig );
+    tree->Branch( (prefix + "_phiOrig").c_str(), &ph_phiOrig );
+    tree->Branch( (prefix + "_eOrig"  ).c_str(), &ph_eOrig );
 
     if( detail > 0 ) {
+
+        tree->Branch( (prefix + "_passVIDLoose").c_str(), &ph_passVIDLoose );
+        tree->Branch( (prefix + "_passVIDMedium").c_str(), &ph_passVIDMedium );
+        tree->Branch( (prefix + "_passVIDTight").c_str(), &ph_passVIDTight );
 
         tree->Branch( (prefix + "_chIso").c_str(), &ph_chIso );
         tree->Branch( (prefix + "_neuIso").c_str(), &ph_neuIso );
@@ -188,6 +196,9 @@ void PhotonProducer::addBeamSpotToken( const edm::EDGetTokenT<reco::BeamSpot> & 
 void PhotonProducer::addElectronsToken( const edm::EDGetTokenT<edm::View<pat::Electron> > & tok) {
     _ElectronsToken = tok;
 }
+void PhotonProducer::addCalibratedToken( const edm::EDGetTokenT<edm::View<pat::Photon> > & tok) {
+    _photCalibToken = tok;
+}
 
 void PhotonProducer::produce(const edm::Event &iEvent ) {
 
@@ -196,12 +207,16 @@ void PhotonProducer::produce(const edm::Event &iEvent ) {
     ph_eta->clear();
     ph_phi->clear();
     ph_e->clear();
-
-    ph_passVIDLoose->clear();
-    ph_passVIDMedium->clear();
-    ph_passVIDTight->clear();
+    ph_ptOrig->clear();
+    ph_etaOrig->clear();
+    ph_phiOrig->clear();
+    ph_eOrig->clear();
 
     if( _detail > 0 ) {
+
+        ph_passVIDLoose->clear();
+        ph_passVIDMedium->clear();
+        ph_passVIDTight->clear();
 
         ph_chIso->clear();
         ph_neuIso->clear();
@@ -244,7 +259,11 @@ void PhotonProducer::produce(const edm::Event &iEvent ) {
         }
     }
 
+    edm::Handle<edm::View<pat::Photon> > photons;
     iEvent.getByToken(_photToken,photons);
+
+    edm::Handle<edm::View<pat::Photon> > calibPhotons;
+    iEvent.getByToken(_photCalibToken,calibPhotons);
 
     edm::Handle<edm::ValueMap<Bool_t> > ph_passVIDLoose_h;
     edm::Handle<edm::ValueMap<Bool_t> > ph_passVIDMedium_h;
@@ -277,6 +296,7 @@ void PhotonProducer::produce(const edm::Event &iEvent ) {
 
     for (unsigned int j=0; j < photons->size();++j){
         edm::Ptr<pat::Photon> ph = photons->ptrAt(j);
+        edm::Ptr<pat::Photon> calibPh = calibPhotons->ptrAt(j);
         // Need to implemnet calibrations
         //edm::Ptr<pat::Photon> calib_phptr = calibrated_photons->ptrAt(j);
  
@@ -286,16 +306,20 @@ void PhotonProducer::produce(const edm::Event &iEvent ) {
 
         ph_n += 1;
 
-        ph_pt -> push_back( ph->pt() );
-        ph_eta -> push_back( ph->eta() );
-        ph_phi -> push_back( ph->phi() );
-        ph_e -> push_back( ph->energy() );
-
-        ph_passVIDLoose -> push_back( (*ph_passVIDLoose_h)[ph] );
-        ph_passVIDMedium -> push_back( (*ph_passVIDMedium_h)[ph] );
-        ph_passVIDTight -> push_back( (*ph_passVIDTight_h)[ph] );
+        ph_pt      -> push_back( calibPh->pt() );
+        ph_eta     -> push_back( calibPh->eta() );
+        ph_phi     -> push_back( calibPh->phi() );
+        ph_e       -> push_back( calibPh->energy() );
+        ph_ptOrig  -> push_back( ph->pt() );
+        ph_etaOrig -> push_back( ph->eta() );
+        ph_phiOrig -> push_back( ph->phi() );
+        ph_eOrig   -> push_back( ph->energy() );
 
         if( _detail > 0 ) {
+
+            ph_passVIDLoose -> push_back( (*ph_passVIDLoose_h)[ph] );
+            ph_passVIDMedium -> push_back( (*ph_passVIDMedium_h)[ph] );
+            ph_passVIDTight -> push_back( (*ph_passVIDTight_h)[ph] );
 
             ph_chIso -> push_back( (*ph_chIso_h)[ph] );
             ph_neuIso -> push_back( (*ph_neuIso_h)[ph] );

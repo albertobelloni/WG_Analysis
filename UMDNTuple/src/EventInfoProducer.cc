@@ -148,11 +148,11 @@ void EventInfoProducer::endRun( const edm::Run & iRun ) {
     edm::Handle<LHERunInfoProduct>   lherun_h;
     iRun.getByToken(_lheRunToken, lherun_h);
    
-    std::vector<char*> descriptions_;
-    descriptions_.push_back(new char[1024]);
-    strcpy( descriptions_.back(), "Null" );
+    std::vector<char*> descriptions;
+    descriptions.push_back(new char[1024]);
+    strcpy( descriptions.back(), "Null" );
 
-    _infoTree->Branch("weightInfo",descriptions_.back(), "weightInfo/C");
+    _infoTree->Branch("weightInfo",descriptions.back(), "weightInfo/C");
     for( std::vector<LHERunInfoProduct::Header>::const_iterator itr = lherun_h->headers_begin() ; itr != lherun_h->headers_end(); ++itr ) {
 
         std::string weight_group;
@@ -173,7 +173,7 @@ void EventInfoProducer::endRun( const edm::Run & iRun ) {
                     std::string idnum = it->substr( weightid_pos+11, idend-weightid_pos-12 );
                     std::string::size_type nameend = it->find( "</weight>" );
                     std::string weightname = it->substr( idend +1, nameend-idend-1 );
-                    strcpy(descriptions_.back(),(weight_group + ":" + weightname).c_str( ));
+                    strcpy(descriptions.back(),(weight_group + ":" + weightname).c_str( ));
                     _infoTree->Fill();
                 }
             }
