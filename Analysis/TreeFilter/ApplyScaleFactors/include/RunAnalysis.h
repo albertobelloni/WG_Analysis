@@ -64,7 +64,8 @@ class RunModule : public virtual RunModuleBase {
         void VaryMuonScale   ( ModuleConfig & config ) const;
 
         ValWithErr GetValsFromGraph( const TGraphAsymmErrors *, float pt, bool debug=true ) const;
-        ValWithErr GetValsRunRange2D( const std::vector<std::pair<float, TH2F*> >, float pt, float eta) const;
+        template<class HIST> ValWithErr GetVals2D( const HIST*, float pt, float eta) const;
+        template<class HIST> ValWithErr GetValsRunRange2D( const std::vector<std::pair<float, HIST*> >, float pt, float eta) const;
         float calc_pu_weight( float puval, float mod=1.0 ) const;
         float get_ele_cutid_syst( float pt, float eta) const;
 
@@ -100,13 +101,11 @@ class RunModule : public virtual RunModuleBase {
 
 
         TFile *_sffile_ph_id;
-        TFile *_sffile_ph_psv;
-        TFile *_sffile_ph_psv_highpt;
+        TFile *_sffile_ph_ev;
 
         TH2F *_sfhist_ph_id;
-        TH2F *_sfhist_ph_csev;
-        TH2F *_sfhist_ph_psv;
-        TH2F *_sfhist_ph_psv_highpt;
+        TH2D *_sfhist_ph_csev;
+        TH2D *_sfhist_ph_psv;
 
         TH1D *_sfhist_pileup_data;
         TH1F *_sfhist_pileup_mc;
@@ -125,9 +124,6 @@ namespace OUT {
     float el_trigSF;
     float el_trigSFUP;
     float el_trigSFDN;
-    float el_diTrigSF;
-    float el_diTrigSFUP;
-    float el_diTrigSFDN;
     float el_mvaIDSF;
     float el_mvaIDSFUP;
     float el_mvaIDSFDN;

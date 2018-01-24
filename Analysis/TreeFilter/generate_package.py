@@ -21,18 +21,18 @@ else :
 
 print 'Enter new package and run a small analysis to create' +\
     ' first generated c++ code '
-print ('cd %s ; echo "PACKAGE=%s">&Makefile ; echo "include ../Makefile.mk"'+
+print ('cd %s ; echo "PACKAGE=%s">&Makefile ; echo "include ../Makefile.mk"'%( options.packageName, options.packageName )+
        '>>Makefile ; python scripts/filter.py  --files test/tree.root'+
        ' --fileKey tree.root --outputDir /tmp --outputFile tree.root'+
        ' --treeName ggNtuplizer/EventTree --module scripts/ConfTemplate.py ;'+
        ' rm scripts/ConfTemplate.pyc ; cd .. '
-       %( options.packageName, options.packageName ) )
-os.system('cd %s ; echo "PACKAGE=%s">&Makefile ; '+
+        )
+os.system('cd %s ; echo "PACKAGE=%s">&Makefile ; '%( options.packageName, options.packageName ) +
           'echo "include ../Makefile.mk">>Makefile ; python scripts/filter.py'+
           ' --files test/tree.root --fileKey tree.root --outputDir /tmp'+
           ' --outputFile tree.root --treeName ggNtuplizer/EventTree'+
           ' --module scripts/ConfTemplate.py ; rm scripts/ConfTemplate.pyc ;'+
-          ' cd .. ' %( options.packageName, options.packageName ) )
+          ' cd .. ' )
 
 print 'If the above job compiled and ran successfully, you are good to go! ^.^'
 

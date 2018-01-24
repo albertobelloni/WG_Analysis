@@ -26,38 +26,46 @@ base = '/data/users/jkunkle/Resonances'
 # ----------------------------
 
 jobs_ht = [
-    JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', suffix='GenHTOlap', genht_cut=' < 100 ' ),
+    #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', suffix='GenHTOlap', genht_cut=' < 100 ' ),
 ]
 
 jobs_ph = [
-    JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'               , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8GenHTOlap'      , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
-    JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'            , suffix = 'PhOlap', pt_cut = ' > 10', nph_cut = ' == 0' ),
-    JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', suffix = 'PhOlap', pt_cut = ' > 10', nph_cut = ' == 0' ),
-    JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10', nph_cut = ' == 0' ),
-    JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'                , suffix = 'PhCutMax', pt_cut = ' > 160 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                 , suffix = 'PhCutMax', pt_cut = ' > 160 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'        , suffix = 'PhCutMax', pt_cut = ' > 530 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , suffix = 'PhCutMax', pt_cut = ' > 530 ', nph_cut = ' == 0' ),
-    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', suffix = 'PhCutMin', pt_cut = ' > 160 ', nph_cut = ' > 0' ),
-    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , suffix = 'PhCutMin', pt_cut = ' > 160 ', nph_cut = ' > 0' ),
-    JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'        , suffix = 'PhCutMin', pt_cut = ' > 530 ', nph_cut = ' > 0' ),
-    JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , suffix = 'PhCutMin', pt_cut = ' > 530 ', nph_cut = ' > 0' ),
+    #JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'               , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8GenHTOlap'      , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , suffix = 'PhOlap', pt_cut = ' > 10 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'            , suffix = 'PhOlap', pt_cut = ' > 10', nph_cut = ' == 0' ),
+    #JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', suffix = 'PhOlap', pt_cut = ' > 10', nph_cut = ' == 0' ),
+    #JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , suffix = 'PhOlap', pt_cut = ' > 10', nph_cut = ' == 0' ),
+    #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'                , suffix = 'PhCutMax', pt_cut = ' > 160 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                 , suffix = 'PhCutMax', pt_cut = ' > 160 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'        , suffix = 'PhCutMax', pt_cut = ' > 530 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , suffix = 'PhCutMax', pt_cut = ' > 530 ', nph_cut = ' == 0' ),
+    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', suffix = 'PhCutMin', pt_cut = ' > 160 ', nph_cut = ' > 0' ),
+    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , suffix = 'PhCutMin', pt_cut = ' > 160 ', nph_cut = ' > 0' ),
+    #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'        , suffix = 'PhCutMin', pt_cut = ' > 530 ', nph_cut = ' > 0' ),
+    #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , suffix = 'PhCutMin', pt_cut = ' > 530 ', nph_cut = ' > 0' ),
+
 ]
 
 jobs_mtres = [
-    JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax'                , suffix = 'MTResCut', mtres_cut = ' < 600 '),
-    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin', suffix = 'MTResCut', mtres_cut = ' < 1300 '),
-    JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax'                 , suffix = 'MTResCut', mtres_cut= ' < 500 '),
-    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin' , suffix = 'MTResCut', mtres_cut= ' < 1300 '),
+    #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax'                , suffix = 'MTResCut', mtres_cut = ' < 600 '),
+    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin', suffix = 'MTResCut', mtres_cut = ' < 1300 '),
+    #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax'                 , suffix = 'MTResCut', mtres_cut= ' < 500 '),
+    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin' , suffix = 'MTResCut', mtres_cut= ' < 1300 '),
+
+    JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'         , suffix = 'MTResCut', mtres_cut = ' < 400 '),
+    JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , suffix = 'MTResCut', mtres_cut = ' < 400 '),
+    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , suffix = 'MTResCut', mtres_cut = ' >= 400 && < 1200 '),
+    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , suffix = 'MTResCut', mtres_cut = ' >= 400 && < 1200 '),
+    JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , suffix = 'MTResCut', mtres_cut = ' >= 1200 '),
+    JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , suffix = 'MTResCut', mtres_cut = ' >= 1200 '),
 ]
 
 options.nFilesPerJob = 1
