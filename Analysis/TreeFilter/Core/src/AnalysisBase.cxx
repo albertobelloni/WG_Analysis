@@ -182,12 +182,12 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
 
             runmod.finalize();
 
-            bool has_any_cutflows=false;
+            //bool has_any_cutflows=false;
             BOOST_FOREACH( ModuleConfig & conf, getEntries() ) {
                 outfile->cd();
 
                 if( conf.hasCutFlows() ) {
-                    has_any_cutflows = true;
+                    //has_any_cutflows = true;
                     outfile->mkdir( conf.GetName().c_str() );
                     outfile->cd(conf.GetName().c_str() );
 
@@ -603,26 +603,46 @@ bool CutConfig::PassBool(const std::string &name, const bool cutval ) const {
 }
         
 
-bool ModuleConfig::PassFloat( const std::string & cutname, const float cutval )
-{
+bool CutConfig::PassAnyIntVector(const std::string &name, const std::vector<int> &cutval ) const {
 
-    if( HasCut( cutname ) ) {
-        const CutConfig & cut_conf = GetCut( cutname );
-        bool result = cut_conf.PassFloat( cutname, cutval );
+    int n_pass = 0;
+    int n_cuts = 0;
+    BOOST_FOREACH( const Cut & cut, GetCuts() ) {
+        n_cuts++;
 
-        if( cutflows.size() ) { // only assume 1 cutflow for now
-            cutflows[0].AddCutDecisionFloat( cutname, result, cutval );
+        if( cut.type != CutType::INT ) {
+          std::cout << "CutConfig::PassAnyIntVector - ERROR : Int cut requested for cut " << name << " but cut was not configured as an int" << std::endl;
+          continue;
         }
 
-        return result;
+        if( cut.op == CutType::EQUAL_TO ) {
+          if( std::find(cutval.begin(), cutval.end(), cut.val_int) != cutval.end() ) n_pass++;
+        }
+        else {
+            std::cout << "CutConfig::PassAnyIntVector - ERROR : Expect EQUAL_TO requirement for finding int in vector" << std::endl;
+            continue;
+        }
+    }
+
+    // Handle AND vs OR
+    bool pass_cuts = false;
+    if( comp == CutType::AND ) {
+        pass_cuts = ( n_cuts == n_pass );
+    }
+    else if( comp == CutType::OR ) {
+        pass_cuts =(  n_pass > 0 );
     }
     else {
-        //if the cut doesn't exist then pass
-        return true;
+        std::cout << "CutConfig::PassInt - ERROR : Did not understand Comparison type!" << std::endl;
     }
-      
 
+    if( GetIsInverted() ) {
+      pass_cuts = !pass_cuts;
+    }
+
+    return pass_cuts;
 }
+        
 
 bool ModuleConfig::PassInt( const std::string & cutname, const int cutval )
 {
@@ -663,6 +683,48 @@ bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval )
     }
 
 }
+
+bool ModuleConfig::PassFloat( const std::string & cutname, const float cutval )
+{
+
+    if( HasCut( cutname ) ) {
+        const CutConfig & cut_conf = GetCut( cutname );
+        bool result = cut_conf.PassFloat( cutname, cutval );
+
+        if( cutflows.size() ) { // only assume 1 cutflow for now
+            cutflows[0].AddCutDecisionFloat( cutname, result, cutval );
+        }
+
+        return result;
+    }
+    else {
+        //if the cut doesn't exist then pass
+        return true;
+    }
+      
+
+}
+
+bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vector<int> &cutval )
+{
+
+    if( HasCut( cutname ) ) {
+        const CutConfig & cut_conf = GetCut( cutname );
+        bool result = cut_conf.PassAnyIntVector( cutname, cutval );
+
+        if( cutflows.size() ) { 
+            std::cout << "No cutflows for PassAnyIntVector" << std::endl;
+        }
+
+        return result;
+    }
+    else {
+        //if the cut doesn't exist then pass
+        return true;
+    }
+
+}
+
 
 bool ModuleConfig::HasCut( const std::string &name ) const {
 

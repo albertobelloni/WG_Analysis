@@ -3,7 +3,7 @@
  # https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV [1]
  # TTBar total cros section is 815.96 pb, taken from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO
  # https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
- 'DYJetsToLL_M-50'               : { 'n_evt' : 47979876, 'cross_section' : 5765.4 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # NNLO cross section from [1]
+ 'DYJetsToLL_M-50'               : { 'n_evt' : 49144274, 'cross_section' : 5765.4 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # NNLO cross section from [1]
  'ZGTo2LG'                       : { 'n_evt' : 9321494, 'cross_section' : 117.864, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # NNLO cross section from [1], total events = 13626718
  'TTJets_DiLept'                 : { 'n_evt' : 6094476, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # TTbar cross section times dilepton branching fraction
  'TTJets_SingleLeptFromT'        : { 'n_evt' : 11957043, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # TTbar cross section times semileptonic branching fraction divided by 2 for charge

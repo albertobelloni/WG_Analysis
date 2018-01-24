@@ -114,9 +114,6 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch( "el_looseIDSF"      ,  &OUT::el_looseIDSF      , "el_looseIDSF/F"      );
     outtree->Branch( "el_looseIDSFUP"    ,  &OUT::el_looseIDSFUP    , "el_looseIDSFUP/F"    );
     outtree->Branch( "el_looseIDSFDN"    ,  &OUT::el_looseIDSFDN    , "el_looseIDSFDN/F"    );
-    outtree->Branch( "el_diTrigSF"  ,  &OUT::el_diTrigSF  , "el_diTrigSF/F"  );
-    outtree->Branch( "el_diTrigSFUP",  &OUT::el_diTrigSFUP, "el_diTrigSFUP/F");
-    outtree->Branch( "el_diTrigSFDN",  &OUT::el_diTrigSFDN, "el_diTrigSFDN/F");
 #endif
    
 #ifdef MODULE_AddPhotonSF
@@ -285,18 +282,28 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             itr = mod_conf.GetInitData().find( "FilePathId" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_ph_id = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_ph_id   = dynamic_cast<TH2F*>(_sffile_ph_id->Get( "PhotonIDSF_MediumWP_Jan22rereco_Full2012_S10_MC_V01" ) );
-                _sfhist_ph_csev = dynamic_cast<TH2F*>(_sffile_ph_id->Get( "PhotonCSEVSF_MediumWP_Jan22rereco_Full2012_S10_MC_V01" ) );
+                if( _sffile_ph_id->IsOpen() ) { 
+                    _sfhist_ph_id   = dynamic_cast<TH2F*>(_sffile_ph_id->Get( "EGamma_SF2D" ) );
+                    if( !_sfhist_ph_id ) {
+                        std::cout << "could not get hist from file " << _sffile_ph_id->GetName() << std::endl;
+                    }
+                }
+                else {
+                    std::cout << "Could not open file " << itr->second << std::endl;
+                }
             }
             itr = mod_conf.GetInitData().find( "FilePathEveto" );
             if( itr != mod_conf.GetInitData().end() ) {
-                _sffile_ph_psv = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_ph_psv = dynamic_cast<TH2F*>(_sffile_ph_psv->Get( "hist_sf_eveto_nom" ) );
-            }
-            itr = mod_conf.GetInitData().find( "FilePathEvetoHighPt" );
-            if( itr != mod_conf.GetInitData().end() ) {
-                _sffile_ph_psv_highpt = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_ph_psv_highpt = dynamic_cast<TH2F*>(_sffile_ph_psv_highpt->Get( "hist_sf_eveto_highpt" ) );
+                _sffile_ph_ev   = TFile::Open( (itr->second).c_str(), "READ" );
+                if( _sffile_ph_ev->IsOpen() ) { 
+                    _sfhist_ph_psv  = dynamic_cast<TH2D*>(_sffile_ph_ev->Get( "Scaling_Factors_HasPix_R9 Inclusive" ) );
+                    _sfhist_ph_csev = dynamic_cast<TH2D*>(_sffile_ph_ev->Get( "Scaling_Factors_CSEV_R9 Inclusive" ) );
+                    if( !_sfhist_ph_psv ) std::cout << "Could not get PSV hist from file " << _sffile_ph_ev->GetName() << std::endl;
+                    if( !_sfhist_ph_csev ) std::cout << "Could not get CSEV hist from file " << _sffile_ph_ev->GetName() << std::endl;
+                }
+                else {
+                    std::cout << "Could not open file " << itr->second << std::endl;
+                }
             }
         }
 	
@@ -342,21 +349,14 @@ bool RunModule::ApplyModule( ModuleConfig & config ) const {
 void RunModule::AddElectronSF( ModuleConfig & /*config*/ ) const {
 
 #ifdef MODULE_AddElectronSF
-    OUT::el_mvaIDSF   = 1.0;
-    OUT::el_mvaIDSFUP = 1.0;
-    OUT::el_mvaIDSFDN = 1.0;
 
-    OUT::el_looseIDSF   = 1.0;
-    OUT::el_looseIDSFUP = 1.0;
-    OUT::el_looseIDSFDN = 1.0;
+    OUT::el_mediumIDSF   = 1.0;
+    OUT::el_mediumIDSFUP = 1.0;
+    OUT::el_mediumIDSFDN = 1.0;
 
     OUT::el_trigSF   = 1.0;
     OUT::el_trigSFUP = 1.0;
     OUT::el_trigSFDN = 1.0;
-
-    OUT::el_diTrigSF   = 1.0;
-    OUT::el_diTrigSFUP = 1.0;
-    OUT::el_diTrigSFDN = 1.0;
 
     if( OUT::EvtIsRealData ) {
         return;
@@ -633,7 +633,6 @@ void RunModule::AddPhotonSF( ModuleConfig & /*config*/ ) const {
         return;
     }
     // to check if photon pt is above histogram
-    float max_pt_highpt = _sfhist_ph_psv_highpt->GetYaxis()->GetBinUpEdge( _sfhist_ph_psv_highpt->GetNbinsY() );
     
     std::vector<float> sfs_id;
     std::vector<float> errs_id;
@@ -643,77 +642,23 @@ void RunModule::AddPhotonSF( ModuleConfig & /*config*/ ) const {
     std::vector<float> errs_psv;
     for( int idx = 0; idx < OUT::ph_n; idx++ ) {
 
+        // in the ID histogram, the x axis is signed eta, y is pt
         float pt = OUT::ph_pt->at(idx);
-        float feta = fabs(OUT::ph_sceta->at(idx));
+        float eta = OUT::ph_sceta->at(idx);
 
-        // histogram ends at 1000, if pT is above
-        // 1000, get the value just below
-        if( pt < 1000 ) {
+        ValWithErr res_id   = GetVals2D( _sfhist_ph_id, eta, pt );
+        ValWithErr res_psv  = GetVals2D( _sfhist_ph_psv, fabs(eta), pt );
+        ValWithErr res_csev = GetVals2D( _sfhist_ph_csev, fabs(eta), pt );
 
-            sfs_id .push_back(_sfhist_ph_id->GetBinContent( _sfhist_ph_id->FindBin( pt, feta ) ) );
-            errs_id.push_back(_sfhist_ph_id->GetBinError  ( _sfhist_ph_id->FindBin( pt, feta ) ) );
+        sfs_id .push_back(res_id.val );
+        errs_id.push_back(res_id.err_up);
 
-            sfs_csev .push_back(_sfhist_ph_csev->GetBinContent( _sfhist_ph_csev->FindBin( pt, feta ) ) );
-            errs_csev.push_back(_sfhist_ph_csev->GetBinError  ( _sfhist_ph_csev->FindBin( pt, feta ) ) );
-        }
-        else {
-            sfs_id .push_back(_sfhist_ph_id->GetBinContent( _sfhist_ph_id->FindBin( 999., feta ) ) );
-            errs_id.push_back(_sfhist_ph_id->GetBinError  ( _sfhist_ph_id->FindBin( 999., feta ) ) );
+        sfs_csev .push_back(res_csev.val );
+        errs_csev.push_back(res_csev.err_up);
 
-            sfs_csev .push_back(_sfhist_ph_csev->GetBinContent( _sfhist_ph_csev->FindBin( 999., feta ) ) );
-            errs_csev.push_back(_sfhist_ph_csev->GetBinError  ( _sfhist_ph_csev->FindBin( 999., feta ) ) );
-        }
+        sfs_psv .push_back(res_psv.val );
+        errs_psv.push_back(res_psv.err_up);
 
-
-        if( OUT::ph_IsEB->at(idx) ) {
-            sfs_psv.push_back( 0.996 );
-            errs_psv.push_back( 0.013);
-        }
-        if( OUT::ph_IsEE->at(idx) ) {
-            sfs_psv.push_back( 0.971 );
-            errs_psv.push_back( 0.026 );
-        }
-        
-        // --------------------------------
-        // Use pT inclusive values
-        // switch between highpt and lowpt
-        //if( pt < 70 ) {
-        //    // FIX for hist only going to 2.4
-        //    if( feta > 2.4 && feta < 2.5 ) {
-        //        feta = 2.39;
-        //    }
-
-        //    if( _sfhist_ph_psv->GetBinContent( _sfhist_ph_psv->FindBin(feta, pt) ) == 0 ) {
-        //        if( pt > 15 ) std::cout << " zero value for pt, eta = " << pt << " " << feta << std::endl;
-        //    }
-        //    sfs_psv.push_back( _sfhist_ph_psv->GetBinContent( _sfhist_ph_psv->FindBin(feta, pt) ) );
-        //    errs_psv.push_back( _sfhist_ph_psv->GetBinError( _sfhist_ph_psv->FindBin(feta, pt) ) );
-        //}
-        //else {
-        //    
-        //    if( pt >= max_pt_highpt ) {
-        //        // FIX for hist only going to 2.4
-        //        if( feta > 2.4 && feta < 2.5 ) {
-        //            feta = 2.39;
-        //        }
-        //        if( _sfhist_ph_psv_highpt->GetBinContent( _sfhist_ph_psv_highpt->FindBin(feta, max_pt_highpt-1) ) == 0 ) {
-        //            if( pt > 15 ) std::cout << " zero value for pt, eta = " << pt << " " << feta << std::endl;
-        //        }
-        //        sfs_psv.push_back( _sfhist_ph_psv_highpt->GetBinContent( _sfhist_ph_psv_highpt->FindBin(feta, max_pt_highpt-1 )) );
-        //        errs_psv.push_back( _sfhist_ph_psv_highpt->GetBinError( _sfhist_ph_psv_highpt->FindBin(feta, max_pt_highpt-1 ) ));
-        //    }
-        //    else {
-        //        // FIX for hist only going to 2.4
-        //        if( feta > 2.4 && feta < 2.5 ) {
-        //            feta = 2.39;
-        //        }
-        //        if( _sfhist_ph_psv_highpt->GetBinContent( _sfhist_ph_psv_highpt->FindBin(feta, pt) ) == 0 ) {
-        //            if( pt > 15 ) std::cout << " zero value for pt, eta = " << pt << " " << feta << std::endl;
-        //        }
-        //        sfs_psv.push_back( _sfhist_ph_psv_highpt->GetBinContent( _sfhist_ph_psv_highpt->FindBin(feta, pt )) );
-        //        errs_psv.push_back( _sfhist_ph_psv_highpt->GetBinError( _sfhist_ph_psv_highpt->FindBin(feta, pt ) ));
-        //    }
-        //}
     }
 
     if( sfs_id.size() == 1 ) {
@@ -780,12 +725,15 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     std::vector<float> isoerrsup;
     std::vector<float> isoerrsdn;
 
-    if( OUT::mu_n != 1 ) return;
+    std::vector<float> trksfs;
+    std::vector<float> trkerrsup;
+    std::vector<float> trkerrsdn;
 
-    for( int idx = 0; idx < OUT::mu_n; ++idx ) {
-        float feta = fabs(OUT::mu_eta->at(idx));
-        float pt   =      OUT::mu_pt ->at(idx) ;
-        if( OUT::mu_pt->at(idx) > 26 && feta < 2.4 ) {
+
+    if( OUT::mu_n == 1 )  { // our trigger SFs are only available for single muon triggers
+        float feta = fabs(OUT::mu_eta->at(0));
+        float pt   =      OUT::mu_pt ->at(0) ;
+        if( pt > 26 && feta < 2.4 ) {
 
             ValWithErr entry;
             entry = GetValsRunRange2D( _sfhists_mu_trig, pt, feta );
@@ -797,36 +745,110 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         else {
             std::cout << "AddMuonSF -- WARNING : muon pt or eta out of range " << pt << " " << feta << std::endl;
         }
-        if( OUT::mu_pt->at(idx) > 20 && feta < 2.4 ) {
+    }
 
-            ValWithErr entry_id;
-            ValWithErr entry_iso;
-            entry_id  = GetValsRunRange2D( _sfhists_mu_id, pt, feta );
-            entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
+    for( int idx = 0; idx < OUT::mu_n; ++idx ) {
+        float feta = fabs(OUT::mu_eta->at(idx));
+        float pt   =      OUT::mu_pt ->at(idx) ;
 
-            OUT::mu_idSF = entry_id.val;
-            OUT::mu_idSFUP = entry_id.val + entry_id.err_up;
-            OUT::mu_idSFDN = entry_id.val - entry_id.err_dn;
+        ValWithErr entry_id;
+        ValWithErr entry_iso;
+        entry_id  = GetValsRunRange2D( _sfhists_mu_id, pt, feta );
+        entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
 
-            OUT::mu_isoSF = entry_iso.val;
-            OUT::mu_isoSFUP = entry_iso.val + entry_iso.err_up;
-            OUT::mu_isoSFDN = entry_iso.val - entry_iso.err_dn;
-        }
-        else {
-            std::cout << "AddMuonSF -- WARNING : muon pt or eta out of range "  << pt << " " << feta <<  std::endl;
-        }
+        idsfs.push_back( entry_id.val );
+        iderrsup.push_back( entry_id.err_up );
+        iderrsdn.push_back( entry_id.err_dn );
+
+        isosfs.push_back( entry_iso.val );
+        isoerrsup.push_back( entry_iso.err_up);
+        isoerrsdn.push_back( entry_iso.err_dn);
 
         ValWithErr entry_trk = GetValsFromGraph( _sfgraph_mu_trk, feta);
-        OUT::mu_trkSF = entry_trk.val;
-        OUT::mu_trkSFUP = entry_trk.val + entry_trk.err_up;
-        OUT::mu_trkSFDN = entry_trk.val - entry_trk.err_dn;
+
+        trksfs.push_back( entry_trk.val);
+        trkerrsup.push_back( entry_trk.err_up );
+        trkerrsdn.push_back( entry_trk.err_dn );
+
+    }
+
+    if( OUT::mu_n == 1 ) {
+
+        OUT::mu_idSF   = idsfs[0];
+        OUT::mu_idSFUP = idsfs[0] + iderrsup[0];
+        OUT::mu_idSFDN = idsfs[0] - iderrsdn[0];
+
+        OUT::mu_isoSF   = isosfs[0];
+        OUT::mu_isoSFUP = isosfs[0] + isoerrsup[0];
+        OUT::mu_isoSFDN = isosfs[0] - isoerrsdn[0];
+
+        OUT::mu_trkSF   = trksfs[0];
+        OUT::mu_trkSFUP = trksfs[0] + trkerrsup[0];
+        OUT::mu_trkSFDN = trksfs[0] - trkerrsdn[0];
+    }
+    else if( OUT::mu_n > 1 ) {
+
+        OUT::mu_idSF = idsfs[0]*idsfs[1];
+        OUT::mu_idSFUP = ( idsfs[0] + iderrsup[0] ) *  ( idsfs[1] + iderrsup[1] );
+        OUT::mu_idSFDN = ( idsfs[0] - iderrsdn[0] ) *  ( idsfs[1] - iderrsdn[1] );
+
+        OUT::mu_isoSF = isosfs[0]*isosfs[1];
+        OUT::mu_isoSFUP = ( isosfs[0] + isoerrsup[0] ) *  ( isosfs[1] + isoerrsup[1] );
+        OUT::mu_isoSFDN = ( isosfs[0] - isoerrsdn[0] ) *  ( isosfs[1] - isoerrsdn[1] );
+
+        OUT::mu_trkSF = isosfs[0]*isosfs[1];
+        OUT::mu_trkSFUP = ( isosfs[0] + isoerrsup[0] ) *  ( isosfs[1] + isoerrsup[1] );
+        OUT::mu_trkSFDN = ( isosfs[0] - isoerrsdn[0] ) *  ( isosfs[1] - isoerrsdn[1] );
 
     }
 
 #endif
 }
 
-ValWithErr RunModule::GetValsRunRange2D( const std::vector<std::pair<float, TH2F*> > range_hists, float pt, float eta) const {
+template<class HIST> ValWithErr RunModule::GetVals2D( const HIST* hist, float xvar, float yvar ) const {
+
+    ValWithErr result;
+
+    int nbinsX = hist->GetNbinsX();
+    int nbinsY = hist->GetNbinsY();
+
+    float min_x = hist->GetXaxis()->GetBinLowEdge(1);
+    float max_x = hist->GetXaxis()->GetBinUpEdge(nbinsX);
+
+    float min_y = hist->GetYaxis()->GetBinLowEdge(1);
+    float max_y = hist->GetYaxis()->GetBinUpEdge(nbinsY);
+
+    int bin_x = hist->GetXaxis()->FindBin( xvar );
+    int bin_y = hist->GetYaxis()->FindBin( yvar );
+
+    if( xvar < min_x ) {
+        std::cout << "GetVals -- WARNING : Particle xvar of " << xvar << " exceeds minimum histogram value of " << min_x << std::endl;
+        bin_x = 1;
+    }
+    if( xvar > max_x ) {
+        if( max_x < 100 ) std::cout << "GetVals -- WARNING : Particle xvar of " << xvar << " exceeds maximum histogram value of " << max_x << std::endl;
+        bin_x = nbinsX;
+    }
+    if( yvar < min_y ) {
+        std::cout << "GetVals -- WARNING : Particle yvar of " << yvar << " exceeds minimum histogram value of " << min_y << std::endl;
+        bin_y = 1;
+    }
+    if( yvar > max_y ) {
+        if( max_y < 100 ) std::cout << "GetVals -- WARNING : Particle yvar of " << yvar << " exceeds maximum histogram value of " << max_y << std::endl;
+        bin_y = nbinsY;
+    }
+
+    result.val    = hist->GetBinContent( bin_x, bin_y );
+    result.err_up = hist->GetBinError( bin_x, bin_y ) ;
+    result.err_dn = result.err_up;
+
+    return result;
+
+}
+
+
+
+template<class HIST> ValWithErr RunModule::GetValsRunRange2D( const std::vector<std::pair<float, HIST*> > range_hists, float xvar, float yvar) const {
 
     ValWithErr result;
 
@@ -840,42 +862,14 @@ ValWithErr RunModule::GetValsRunRange2D( const std::vector<std::pair<float, TH2F
             std::cout << "GetValsRunRange2D -- ERROR : hist does not exist " << std::endl;
         }
 
-        int nbinsX = itr->second->GetNbinsX();
-        int nbinsY = itr->second->GetNbinsY();
-
-        int min_pt = itr->second->GetXaxis()->GetBinLowEdge(1);
-        int max_pt = itr->second->GetXaxis()->GetBinUpEdge(nbinsX);
-
-        float min_eta = itr->second->GetYaxis()->GetBinLowEdge(1);
-        float max_eta = itr->second->GetYaxis()->GetBinUpEdge(nbinsY);
-
-        int bin_x = itr->second->GetXaxis()->FindBin( pt );
-        int bin_y = itr->second->GetYaxis()->FindBin( fabs(eta) );
-
-        if( pt < min_pt ) {
-            std::cout << "GetValsRunRange2D -- WARNING : Particle pT of " << pt << " exceeds minimum histogram value of " << min_pt << std::endl;
-            bin_x = 1;
-        }
-        if( fabs(eta) < min_eta ) {
-            std::cout << "GetValsRunRange2D -- WARNING : Particle eta of " << fabs(eta) << " exceeds minimum histogram value of " << min_eta << std::endl;
-            bin_y = 1;
-        }
-        if( fabs(eta) > max_eta ) {
-            std::cout << "GetValsRunRange2D -- WARNING : Particle eta of " << fabs(eta) << " exceeds maximum histogram value of " << max_eta << std::endl;
-            bin_y = nbinsY;
-        }
-
-        if( pt > max_pt ) bin_x = nbinsX;
-
-        float cv = itr->second->GetBinContent( bin_x, bin_y );
-        float err = itr->second->GetBinError( bin_x, bin_y ) ;
+        ValWithErr thisres = GetVals2D( itr->second, xvar, yvar );
 
         float this_lumi = itr->first;
 
         total_lumi += this_lumi;
 
-        sum_cv += this_lumi*cv;
-        sum_err += this_lumi*err;
+        sum_cv += this_lumi*thisres.val;
+        sum_err += this_lumi*thisres.err_up;
 
     }
 
@@ -886,7 +880,6 @@ ValWithErr RunModule::GetValsRunRange2D( const std::vector<std::pair<float, TH2F
     return result;
 
 }
-
 
 
 ValWithErr RunModule::GetValsFromGraph( const TGraphAsymmErrors *graph, float pt, bool debug ) const {

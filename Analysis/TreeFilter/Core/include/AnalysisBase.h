@@ -86,6 +86,7 @@ class CutConfig {
         bool PassBool ( const std::string & cutname, const bool  val ) const ;
         bool PassInt  ( const std::string & cutname, const int   val ) const ;
         bool PassFloat( const std::string & cutname, const float val ) const ;
+        bool PassAnyIntVector  ( const std::string & cutname, const std::vector<int>  & val ) const ;
 
     public :
 
@@ -142,6 +143,7 @@ class ModuleConfig {
         bool PassBool ( const std::string & cutname, const bool  val );
         bool PassInt  ( const std::string & cutname, const int   val );
         bool PassFloat( const std::string & cutname, const float val );
+        bool PassAnyIntVector( const std::string & cutname, const std::vector<int> &val );
 
         std::string GetName() const {return name;}
 

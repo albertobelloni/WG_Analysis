@@ -90,6 +90,10 @@ def ParseArgs() :
     
     parser.add_argument('--enableKeepFilter', dest='enableKeepFilter', default=False, action='store_true', help='Only write out branches in the remove filter in the analysis module.  Can specify branches to remove within the keep filter by enabling the remove filter')
 
+    parser.add_argument('--removeFilterSelection', dest='removeFilterSelection', default=None, help='Pass this tag to the analysis module to select branches to remove')
+
+    parser.add_argument('--keepFilterSelection', dest='keepFilterSelection', default=None, help='Pass this tag to the analysis module to select branches to keep')
+
     #-----------------------------
     # Control flags
     #-----------------------------
@@ -198,7 +202,9 @@ def config_and_run( options, package_name ) :
 
     branches_to_keep = get_keep_branches( ImportedModule, branches, 
                                                options.enableKeepFilter, 
-                                               options.enableRemoveFilter )
+                                               options.keepFilterSelection,
+                                               options.enableRemoveFilter,
+                                               options.removeFilterSelection)
 
     if options.enableKeepFilter :
         print 'Will keep %d branches from output file : ' %len(branches_to_keep)
@@ -782,14 +788,22 @@ def import_module( module ) :
 
     return ImportedModule
 
-def get_keep_branches( module, branches, enable_keep_filter, enable_remove_filter ) :
+def get_keep_branches( module, branches, enable_keep_filter, keep_tag, enable_remove_filter, remove_tag ) :
 
     remove_filter = []
     keep_filter = []
     if hasattr(module, 'get_remove_filter') :
+        try : 
+            remove_filter = module.get_remove_filter(remove_tag)
+        except TypeError :
+            remove_filter = module.get_remove_filter()
+
         remove_filter = module.get_remove_filter()
     if hasattr(module, 'get_keep_filter') :
-        keep_filter = module.get_keep_filter()
+        try : 
+            keep_filter = module.get_keep_filter(keep_tag)
+        except TypeError :
+            keep_filter = module.get_keep_filter()
 
     # by default keep all branches
     all_branches = [ br['name'] for br in branches ]
@@ -801,6 +815,8 @@ def get_keep_branches( module, branches, enable_keep_filter, enable_remove_filte
             matches = [ re.match( kregex, br['name'] ) for br in branches ]
             successful_matches = filter( lambda x : x is not None, matches )
             branches_to_keep += [ x.group(0) for x in successful_matches]
+
+        branches_to_keep = list( set( branches_to_keep ) )
 
     if enable_remove_filter :
         for rregex in remove_filter :

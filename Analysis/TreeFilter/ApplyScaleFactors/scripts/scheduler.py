@@ -62,7 +62,7 @@ top_configs = [
     {   
      'module'      : 'Conf.py', 
      #'args'        : {'functions' : 'get_muon_sf,get_electron_sf,get_photon_sf,get_pileup_sf' },
-     'args'        : {'functions' : 'get_muon_sf' },
+     'args'        : {'functions' : 'get_muon_sf,get_photon_sf' },
      'input_name'  : 'LepGamma_mug_2017_09_05',
      'output_tag'  : 'TESTSF',
      'tag'         : 'muFinalSF'

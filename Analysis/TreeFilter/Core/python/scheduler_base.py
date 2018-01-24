@@ -65,6 +65,11 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 job_exename = '%s_Data_%s' %(exename, config['tag'] )
     
                 module_arg = dict(config.get('args', {}))
+                for tag in getattr( job, 'tags', [] ) :
+                    module_arg_tag = config.get('args_tag_%s' %tag )
+                    for conf, val in module_arg_tag.iteritems() :
+                        module_arg[conf] = val
+
                 module_arg['isData'] = 'true'
                 module_str = '{ '
                 # build the module string
@@ -82,10 +87,20 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     
                 command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey }
 
+
+                keepSelection   = config.get('keepSelection'  , None )
+                removeSelection = config.get('removeSelection', None )
+
                 if enableKeepFilter :
                     command += ' --enableKeepFilter '
+                    if keepSelection is not None :
+                        command += ' --keepFilterSelection %s' %keepSelection
+
                 if enableRemoveFilter :
                     command += ' --enableRemoveFilter '
+                    if removeSelection is not None :
+                        command += ' --removeFilterSelection %s' %removeSelection
+
                 if disableOutputTree :
                     command += ' --disableOutputTree'
 
@@ -116,6 +131,10 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 job_exename = '%s_MC_%s' %(exename, config['tag'] )
     
                 module_arg = dict(config.get('args', {}) )
+                for tag in getattr( job, 'tags', [] ) :
+                    module_arg_tag = config.get('args_tag_%s' %tag )
+                    for conf, val in module_arg_tag.iteritems() :
+                        module_arg[conf] = val
     
                 module_str = '{ '
                 for key, val in module_arg.iteritems() :
@@ -137,10 +156,19 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
 
                 command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey }
 
+                keepSelection   = config.get('keepSelection'  , None )
+                removeSelection = config.get('removeSelection', None )
+
                 if enableKeepFilter :
                     command += ' --enableKeepFilter '
+                    if keepSelection is not None :
+                        command += ' --keepFilterSelection %s' %keepSelection
+
                 if enableRemoveFilter :
                     command += ' --enableRemoveFilter '
+                    if removeSelection is not None :
+                        command += ' --removeFilterSelection %s' %removeSelection
+
                 if disableOutputTree :
                     command += ' --disableOutputTree'
 
@@ -194,7 +222,12 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 originalDS = '%(base)s/%(input)s/%(sample)s/%(version)s'%job_info_dic
                 filteredDS = '%(output)s/%(outsample)s' %job_info_dic
                 treeNameOrig  = '%(treename)s' %job_info_dic
-                histNameFilt = 'tupel/filter' 
+                histNameFilt = 'filter' 
+                if treename is not None :
+                    split_name = treename.split('/')
+                    if len(split_name) > 1 : 
+                        histNameFilt = split_name[0] + '/filter'
+
                 fileKeyOrig = '%(filekey)s' %job_info_dic 
                 fileKeyFilt  = 'tree.root'
 

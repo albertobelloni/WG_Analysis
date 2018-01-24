@@ -7,7 +7,9 @@ import math
 import pickle
 import selection_defs as defs
 from uncertainties import ufloat
+from FitManager import FitManager
 #ROOT.TVirtualFitter.SetMaxIterations( 100000 )
+ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
 from SampleManager import SampleManager
 from argparse import ArgumentParser
@@ -18,8 +20,11 @@ parser.add_argument('--baseDirElGNoId',      default=None,           dest='baseD
 parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--outputDir',      default=None,           dest='outputDir',         required=False, help='Output directory to write histograms')
+parser.add_argument('--useRooFit',       default=False,    action='store_true',      dest='useRooFit', required=False, help='Make fits using roostats' )
 parser.add_argument('--doSignal',       default=False,    action='store_true',      dest='doSignal', required=False, help='make signal fits' )
 parser.add_argument('--doWGamma',       default=False,    action='store_true',      dest='doWGamma', required=False, help='make wgamma fits' )
+parser.add_argument('--doTop',          default=False,    action='store_true',      dest='doTop', required=False, help='make top fits' )
+parser.add_argument('--doZGamma',          default=False,    action='store_true',      dest='doZGamma', required=False, help='make ZGamma fits' )
 parser.add_argument('--doWJets',       default=False,     action='store_true',     dest='doWJets', required=False, help='make w+jets fits' )
 parser.add_argument('--doEleFake',       default=False,     action='store_true',     dest='doEleFake', required=False, help='make electron fake fits' )
 parser.add_argument('--doClosure',       default=False,   action='store_true',       dest='doClosure', required=False, help='make closure tests' )
@@ -27,15 +32,12 @@ parser.add_argument('--doClosure',       default=False,   action='store_true',  
 options = parser.parse_args()
 
 
-_TREENAME = 'tupel/EventTree'
+_TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
 _XSFILE   = 'cross_sections/photon15.py'
 _LUMI     = 36000
 _BASEPATH = '/home/jkunkle/usercode/Plotting/LimitSetting/'
 _SAMPCONF = 'Modules/Resonance.py'
-
-
-#_binning = (100, 0, 2000)
 
 
 def get_cut_defaults( shape_var, ieta ) :
@@ -46,20 +48,12 @@ def get_cut_defaults( shape_var, ieta ) :
 
     return cut_defaults[shape_var][ieta]
 
-kine_vars = [ ('mt_lep_met_ph', 'mt_incl_lepph_z'),
-              ('m_lep_met_ph', 'm_incl_lepph_z' ),
-              ('mt_res', 'mt_fulltrans' ),
-              ('recoM_lep_nu_ph', 'mt_constrwmass' ),
-              ('ph_pt[0]', 'ph_pt' ),
-            ]
-
 
 ROOT.gROOT.SetBatch(False)
 if options.outputDir is not None :
     ROOT.gROOT.SetBatch(True)
     if not os.path.isdir( options.outputDir ) :
         os.makedirs( options.outputDir )
-
 
 def main() :
 
@@ -81,69 +75,153 @@ def main() :
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
     sel_base_el = 'el_pt30_n==1 && el_n==1'
 
+    sel_jetveto_mu = sel_base_mu + ' && jet_n == 0 '
+    sel_jetveto_el = sel_base_el + ' && jet_n == 0 '
+
     #eta_cuts = ['EB', 'EE']
     eta_cuts = ['EB']
 
     workspaces_to_save = {}
 
-    xmin = 140
-    xmax = 2000
+    xmin_m = 60
+    xmax_m = 4000
+    bin_width_m = 20
 
-    binning = ((xmax-xmin)/20, xmin, xmax)
-    xvar = ROOT.RooRealVar( 'x', 'x',xmin , xmax)
+    xmin_pt = xmin_m/2
+    if xmin_pt < 50 :
+        xmin_pt = 50
+    xmax_pt = xmax_m/2
+    bin_width_pt = bin_width_m/2.
 
-    if options.doSignal : 
+    binning_m = ((xmax_m-xmin_m)/bin_width_m, xmin_m, xmax_m)
 
-        workspace_signal = ROOT.RooWorkspace( 'workspace_signal' )
+    binning_pt = ( (xmax_pt - xmin_pt )/bin_width_pt, xmin_pt, xmax_pt )
 
-        for var, name in kine_vars :
-            make_signal_fits( sampManMuG, sel_base_mu, eta_cuts, var, xvar, binning, workspace_signal, suffix='mu_%s'%name )
-            #make_signal_fits( sampManMuG, sel_base_el, eta_cuts, var, xvar, binning, workspace_signal, suffix='el_%s'%name )
+    xvar_m = ROOT.RooRealVar( 'x_m', 'x_m',xmin_m , xmax_m)
 
-        workspaces_to_save['signal'] = []
-        workspaces_to_save['signal'].append(workspace_signal )
+    xvar_pt = ROOT.RooRealVar( 'x_pt', 'x_pt', xmin_pt, xmax_pt )
 
-    if options.doWGamma :
+    signal_binning_m = { 200 : ( (xmax_m)/5 , 0, xmax_m ),
+                         250 : ( (xmax_m)/5 , 0, xmax_m ),
+                         300 : ( (xmax_m)/5 , 0, xmax_m ),
+                         350 : ( (xmax_m)/5 , 0, xmax_m ),
+                         400 : ( (xmax_m)/5 , 0, xmax_m ),
+                         450 : ( (xmax_m)/5 , 0, xmax_m ),
+                         500 : ( (xmax_m)/10 , 0, xmax_m ),
+                         600 : ( (xmax_m)/10, 0, xmax_m ),
+                         700 : ( (xmax_m)/10, 0, xmax_m ),
+                         800 : ( (xmax_m)/10, 0, xmax_m ),
+                         900 : ( (xmax_m)/10, 0, xmax_m ),
+                        1000 : ( (xmax_m)/10, 0, xmax_m ),
+                        1200 : ( (xmax_m)/20, 0, xmax_m ),
+                        1400 : ( (xmax_m)/20, 0, xmax_m ),
+                        1600 : ( (xmax_m)/20, 0, xmax_m ),
+                        1800 : ( (xmax_m)/20, 0, xmax_m ),
+                        2000 : ( (xmax_m)/20, 0, xmax_m ),
+                       }
 
-        workspace_wgamma = ROOT.RooWorkspace( 'workspace_wgamma' )
+    signal_binning_pt = {}
+    for mass, binning in signal_binning_m.iteritems() :
+        pt_min = binning[1]/2.
+        if pt_min < 50 :
+            pt_min = 50
+        signal_binning_pt[mass] = ( binning[0]/2., pt_min, binning[2]/2. )
 
-        for var, name in kine_vars :
 
-            wgamma_res_mu = get_wgamma_fit( sampManMuG, sel_base_mu, eta_cuts, xvar, var, binning, workspace_wgamma, suffix='mu_%s' %name )
-            wgamma_res_el = get_wgamma_fit( sampManElG, sel_base_el, eta_cuts, xvar, var, binning, workspace_wgamma, suffix='el_%s' %name )
 
-        workspaces_to_save['wgamma'] = []
-        workspaces_to_save['wgamma'].append(workspace_wgamma)
+    kine_vars = { #'mt_incl_lepph_z' : { 'var' : 'mt_lep_met_ph'   , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
+                  #'m_incl_lepph_z'  : { 'var' : 'm_lep_met_ph'    , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
+                  ##'mt_rotated'      : { 'var' : 'mt_rotated'      , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
+                  'mt_fulltrans'    : { 'var' : 'mt_res'          , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
+                  #'mt_constrwmass'  : { 'var' : 'recoM_lep_nu_ph' , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
+                  #'ph_pt'           : { 'var' : 'ph_pt[0]'        , 'xvar' : xvar_pt , 'binning' : binning_pt, 'signal_binning' : signal_binning_pt },
+                }
 
-    if options.doWJets :
+    selections = { 'base'    : { 
+                                'mu' : {'selection' : sel_base_mu }, 
+                                 #'el' : { 'selection' : sel_base_el }, 
+                               },
+                   #'jetVeto' : { 'mu' : {'selection' : sel_jetveto_mu }, 
+                   #              'el' : { 'selection' : sel_jetveto_el } ,
+                   #            },
+                 }
 
-        wjets  = ROOT.RooWorkspace( 'workspace_wjets' )
-        #wjets_mu_EB  = ROOT.RooWorkspace( 'wjets_mu_EB' )
-        #wjets_el_EB  = ROOT.RooWorkspace( 'wjets_el_EB' )
-        #wjets_mu_EE  = ROOT.RooWorkspace( 'wjets_mu_EE' )
-        #wjets_el_EE  = ROOT.RooWorkspace( 'wjets_el_EE' )
+    workspace_signal   = ROOT.RooWorkspace( 'workspace_signal' )
+    workspace_wgamma   = ROOT.RooWorkspace( 'workspace_wgamma' )
+    workspace_wgammalo = ROOT.RooWorkspace( 'workspace_wgammalo' )
+    workspace_top    = ROOT.RooWorkspace( 'workspace_top' )
+    workspace_zgamma = ROOT.RooWorkspace( 'workspace_zgamma' )
+    wjets            = ROOT.RooWorkspace( 'workspace_wjets' )
+    elefake          = ROOT.RooWorkspace( 'elefake' )
 
-        for var, name in kine_vars :
-            wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EB', var, 'chIso', 'sigmaIEIE', binning, xvar, suffix='wjets_mu_EB_%s' %name, closure=False, workspace=wjets)
-            #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='wjets_el_EB', closure=False, workspace=wjets)
-            #wjets_res_mu = make_wjets_fit( sampManMuGNoId, 'Data', sel_base_mu, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='mu', closure=False, workspace=wjets_mu_EE )
-            #wjets_res_el = make_wjets_fit( sampManElGNoId, 'Data', sel_base_el, 'EE', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='el', closure=False, workspace=wjets_el_EE )
+    lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
 
-        workspaces_to_save['wjets'] = []
-        workspaces_to_save['wjets'].append( wjets )
+    for seltag, chdic in selections.iteritems() : 
 
-    if options.doEleFake : 
+        for ch, seldic in chdic.iteritems() : 
+                                    
+            if options.doSignal : 
 
-        elefake = ROOT.RooWorkspace( 'elefake' )
+                for name, vardata in kine_vars.iteritems() :
 
-        elefake_res = make_elefake_fit( sampManElGNoId, 'EleFakeBackground', sel_base_el, 'EB', 'mt_lep_met_ph',  (100, 0, 1000), xvar, workspace=elefake )
+                    make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, suffix='%s_%s_%s'%(ch,name,seltag ) )
+            if options.doWGamma :
 
-    if options.doClosure :
 
-        closure_res_mu = make_wjets_fit( sampManMuGNoId, 'Wjets', sel_base_mu, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='closure_mu_EB', closure=True )
-        closure_res_el = make_wjets_fit( sampManElGNoId, 'Wjets', sel_base_el, 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning, xvar, suffix='closure_el_EB', closure=True )
+                for name, vardata in kine_vars.iteritems() :
+
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-130-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-500-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-500-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-130-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'WgammaLO', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgammalo, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'Wgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+            if options.doTop : 
+
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'TTG', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_top, suffix='%s_%s_%s' %(ch,name,seltag ) )
+
+            if options.doZGamma: 
+
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'Zgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_top, suffix='%s_%s_%s' %(ch,name,seltag ) )
+
+            if options.doWJets :
+
+                    make_wjets_fit( sampManMuGNoId, 'Data', seldic['selection'], 'EB', vardata['var'], 'chIso', 'sigmaIEIE', vardata['binning'], vardata['xvar'], suffix='wjets_%s_EB_%s' %(ch,seltag), closure=False, workspace=wjets)
+
+            if options.doEleFake : 
+
+                if ch == 'el' :
+                    elefake_res = make_elefake_fit( sampManElGNoId, 'EleFakeBackground', seldic['selection'], 'EB', 'mt_lep_met_ph',  (100, 0, 1000), xvar_m, workspace=elefake )
+
+            if options.doClosure :
+
+                closure_res_mu = make_wjets_fit( sampManMuGNoId, 'Wjets', seldic['selection'], 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning_m, xvar_m, suffix='closure_%s_EB_%s' %( ch, seltag ), closure=True )
 
     if options.outputDir is not None :
+
+        if options.doSignal : 
+            workspace_signal.writeToFile( '%s/%s.root' %( options.outputDir,workspace_signal.GetName() ) )
+        if options.doTop : 
+            workspace_top.writeToFile( '%s/%s.root' %( options.outputDir,workspace_top.GetName() ) )
+        if options.doWGamma :
+            workspace_wgamma.writeToFile( '%s/%s.root' %( options.outputDir,workspace_wgamma.GetName() ) )
+            workspace_wgammalo.writeToFile( '%s/%s.root' %( options.outputDir,workspace_wgammalo.GetName() ) )
+        if options.doZGamma: 
+            workspace_zgamma.writeToFile( '%s/%s.root' %( options.outputDir,workspace_zgamma.GetName() ) )
+        if options.doWJets :
+            wjets.writeToFile( '%s/%s.root' %( options.outputDir,wjets.GetName() ) )
+        if options.doEleFake : 
+            elefake.writeToFile( '%s/%s.root' %( options.outputDir,elefake.GetName() ) )
+
 
         for fileid, ws_list in workspaces_to_save.iteritems() :
             for idx, ws in enumerate(ws_list) :
@@ -186,17 +264,30 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
 
     for samp in sampMan.get_samples(isSignal=True ) :
 
+        print 'Sample = ', samp.name
+
         res = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_width(\d|0p01)', samp.name )
         if res is None :
             print 'Could not interpret path ', samp.name
         else :
-
-            mass = res.group(2)
+            mass = float(res.group(2))
             width = res.group(3)
+            if width == '0p01' :
+                width = 0.0001
+            else :
+                width = float( width )
+
+        if mass != 450 : 
+            continue
 
         ph_selection_sr = '%s==1' %defs.get_phid_selection('all')
         ph_idx_sr =  defs.get_phid_idx( 'all' )
-        addtl_cuts_sr = 'ph_pt[%s] > 50  && %s > %f && %s < %f ' %(ph_idx_sr, plot_var, binning[1], plot_var, binning[2] )
+        print binning[mass]
+        addtl_cuts_sr = 'ph_pt[%s] > 50  && %s > %f && %s < %f ' %(ph_idx_sr, plot_var, binning[mass][1], plot_var, binning[mass][2] )
+
+        xvar.setBins(10000,'cache')
+        xvar.setMin('cache',-100)
+        xvar.setMax('cache',1500)
 
         for ieta in eta_cuts :
 
@@ -207,27 +298,168 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
 
             #hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr, binning )
-            sampMan.create_hist( samp, plot_var, full_sel_sr, binning )
+            sampMan.create_hist( samp, plot_var, full_sel_sr, binning[mass] ) 
 
             hist_sr = samp.hist
 
+            integral = hist_sr.Integral()
+
+            #hist_sr.Scale( 1.0/integral )
+
             datahist = ROOT.RooDataHist( 'srhist_%s' %full_suffix, 'srhist', ROOT.RooArgList(xvar), hist_sr)
 
-            histpdf = ROOT.RooHistPdf( 'srhistpdf_%s' %(full_suffix), 'srhistpdf' , ROOT.RooArgSet( xvar), datahist, 3 )
+            #histpdf = ROOT.RooHistPdf( 'srhistpdf_%s' %(full_suffix), 'srhistpdf' , ROOT.RooArgSet( xvar), datahist, 3 )
+
+            fit_min = 0
+            fit_max = mass*1.1
+            fit_min = mass/2.
+            if mass >= 1000 :
+                fit_max = mass*1.05
+                fit_min = mass*0.7
+
+            ##------------------------------
+            ## Breit-Wigner, has two parameters, the resonance mass and the width
+            #------------------------------
+            bw_width = mass*width
+            #if bw_width < 0.05 : 
+            bw_width = 0.05
+            bw_m = ROOT.RooRealVar('bw_mass' , 'Resonance  Mass', mass, fit_min, fit_max, 'GeV')
+            bw_w = ROOT.RooRealVar('bw_width', 'Breit-Wigner width',bw_width, 0, 200,'GeV')
+            bw_m.setConstant()
+            bw_w.setConstant()
+            bw = ROOT.RooBreitWigner('bw' ,'A Breit-Wigner Distribution', xvar, bw_m,bw_w)
+
+            ##------------------------------
+            ## Gaussian, has two parameters, the resonance mass and the width
+            ##------------------------------
+            #gaus_width_val = mass*width
+            #if gaus_width_val < 2. :
+            #    gaus_width_val = 2.0
+            #gaus_m = ROOT.RooRealVar('gaus_mass' , 'Resonance  Mass', mass, fit_min, fit_max,'GeV')
+            #gaus_w = ROOT.RooRealVar('gaus_width', 'Breit-Wigner width',gaus_width_val , -100, 100,'GeV')
+            #gaus_m.setConstant()
+            ##gaus_w.setConstant()
+            #gaus = ROOT.RooGaussian('gaus%s' %suffix,'A Gaussian Distribution', xvar, gaus_m,gaus_w)
+
+
+            #------------------------------
+            # crystal ball, has four parameters
+            #------------------------------
+            cb_cut   = ROOT.RooRealVar('cb_cut'   , 'Cut'  , 0.5, 0.38, 0.60 , '')
+            cb_sigma = ROOT.RooRealVar('cb_sigma' , 'Width', 28.49, 5  , 100, 'GeV')
+            cb_power = ROOT.RooRealVar('cb_power' , 'Power', 30.,   0.    , 130., '')
+            cb_m0    = ROOT.RooRealVar('cb_mass'  , 'mass' , -18.84, -100.  , 0.,'GeV')
+
+            #cb_cut = ROOT.RooRealVar('cb_cut'      , 'Cut'  , 0.3851, 0.22, 0.52 , '')
+            #cb_cut = ROOT.RooRealVar('cb_cut'      , 'Cut'  , 0.438, 0.38, 0.50 , '')
+            cb_cut = ROOT.RooRealVar('cb_cut'      , 'Cut'  , 0.5, 0.38, 0.60 , '')
+            #cb_sigma = ROOT.RooRealVar('cb_sigma' , 'Width', 28.49, 20  , 40, 'GeV')
+            cb_sigma = ROOT.RooRealVar('cb_sigma' , 'Width', 26.5, 24.  , 30., 'GeV')
+            #cb_power = ROOT.RooRealVar('cb_power'      , 'Power', 30., 0.    , 130., '')
+            cb_power = ROOT.RooRealVar('cb_power'      , 'Power', 2.415, 2.2    , 2.6, '')
+            #cb_m0 = ROOT.RooRealVar('cb_mass' , 'mass' , -18.84, -20. , -15.,'GeV')
+            cb_m0 = ROOT.RooRealVar('cb_mass' , 'mass' , -17.451, -19. , -15.,'GeV')
+            cb_cut.setConstant()
+
+            cb_cut.setError( 0.05 )
+            cb_sigma.setError( 0.5 )
+            cb_power.setError( 1. )
+            cb_m0.setError( 1. )
+
+            cb = ROOT.RooCBShape('cb', 'A  Crystal Ball Lineshape', xvar, cb_m0, cb_sigma,cb_cut,cb_power)
+
+            model = ROOT.RooFFTConvPdf('sig_model','Convolution', xvar, bw, cb)
+
+            datahist = ROOT.RooDataHist( 'datahist', 'datahist', ROOT.RooArgList(xvar), hist_sr )
+
+            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True) , ROOT.RooCmdArg( 'Minimizer', 0,0,0,0,'GSLMultiMin' ))
+            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Minos', 1 ) )
+            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Minos', 0 ) )
+            model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
+
+            cb_sigma.setVal( cb_sigma.getValV() )
+            cb_sigma.setMin( cb_sigma.getValV() - cb_sigma.getErrorLo() )
+            cb_sigma.setMin( cb_sigma.getValV() + cb_sigma.getErrorHi() )
+            model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
+
+            ## Construct unbinned likelihood of model w.r.t. data
+            #nll = model.createNLL(datahist) ;
+            #raw_input('cont1')
+            ##// I n t e r a c t i v e   m i n i m i z a t i o n ,   e r r o r   a n a l y s i s
+            ##// -------------------------------------------------------------------------------
+            ##// Create MINUIT interface object
+            #m = ROOT.RooMinimizer(nll) 
+            #raw_input('cont2')
+            ##// Activate verbose logging of MINUIT parameter space stepping
+            #m.setVerbose(ROOT.kTRUE) 
+            #raw_input('cont3')
+            ##// Call MIGRAD to minimize the likelihood
+            #m.migrad() 
+            #raw_input('cont4')
+            ##// Print values of all parameters, that reflect values (and error estimates)
+            ##// that are back propagated from MINUIT
+            #model.getParameters(ROOT.RooArgSet(xvar)).Print("s") 
+            #raw_input('cont5')
+            ##// Disable verbose logging
+            #m.setVerbose(ROOT.kFALSE) 
+            #raw_input('cont6')
+            ##// Run HESSE to calculate errors from d2L/dp2
+            #m.hesse() 
+            #raw_input('cont7')
+            ##// Print value (and error) of sigma_g2 parameter, that reflects
+            ##// value and error back propagated from MINUIT
+            #cb.Print() 
+            #raw_input('cont8')
+            #bw.Print() 
+            #raw_input('cont9')
+            #cb_cut.Print()
+            #raw_input('cont10')
+            #cb_sigma.Print()
+            #raw_input('cont11')
+            #cb_power.Print()
+            #raw_input('cont12')
+            #cb_m0.Print()
+            #raw_input('cont13')
+            ##// Run MINOS on sigma_g2 parameter only
+            #m.minos(ROOT.RooArgSet(cb_power)) 
+            #raw_input('cont14')
+            #cb_power.Print()
+            #raw_input('cont15')
+            ##// Print value (and error) of sigma_g2 parameter, that reflects
+            ##// value and error back propagated from MINUIT
+            #sigma_g2.Print() ;
+
 
             can = ROOT.TCanvas( 'signal_can_%s' %( full_suffix ), '' )
-            frame = xvar.frame()
-
-            datahist.plotOn( frame )
-            histpdf.plotOn( frame )
-
+            frame = xvar.frame(fit_min, fit_max) 
+            datahist.plotOn(frame)
+            model.plotOn( frame )
+            model.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.1,0.5,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(3)));
             frame.Draw()
+
+            #frame = xvar.frame()
+
+            #datahist.plotOn( frame )
+            #histpdf.plotOn( frame )
+
+            #frame.Draw()
             sampMan.outputs[can.GetName()] = can
 
-            getattr(workspace, 'import' )(histpdf)
+            norm_var = ROOT.RooRealVar( 'srhist_%s_norm' %( full_suffix ), 'signal normalization', integral )
+
+            xs_var = ROOT.RooRealVar( 'cross_section_%s' %full_suffix, 'Cross section', samp.cross_section )
+            tot_evt = ROOT.RooRealVar( 'total_events_%s' %full_suffix, 'Total Events', samp.total_events)
+            scale = ROOT.RooRealVar( 'scale_%s' %full_suffix, 'Scale', samp.scale)
+
+            getattr(workspace, 'import' )(model)
+            getattr(workspace, 'import' )(datahist)
+            getattr(workspace, 'import' )(norm_var)
+            getattr(workspace, 'import' )(xs_var)
+            getattr(workspace, 'import' )(tot_evt)
+            getattr(workspace, 'import' )(scale)
 
 
-def get_wgamma_fit( sampMan, sel_base, eta_cuts, xvar, plot_var, binning, workspace, suffix='' ) :
+def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, workspace, suffix='' ) :
 
     ph_selection_sr = 'ph_n == 1'
     xmin = xvar.getMin()
@@ -242,9 +474,13 @@ def get_wgamma_fit( sampMan, sel_base, eta_cuts, xvar, plot_var, binning, worksp
 
         full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
 
-        hist_sr    = clone_sample_and_draw( sampMan, 'Wgamma', plot_var, full_sel_sr   , binning )
+        hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr   , binning )
+        
+        label = '%s_%s_%s'%(sampname, suffix, ieta)
 
-        results[ieta] = fit_dijet( hist_sr, xvar, 'wgamma_%s_%s'%(suffix, ieta), sampMan, workspace )
+        fitManager = FitManager( 'dijet', 2, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
+
+        results[ieta] = fit_distribution( fitManager, sampMan, workspace )
 
     return results
 
@@ -259,7 +495,7 @@ def make_elefake_fit( sampMan, sample, sel_base, eta_cut, plot_var, binning, xva
     full_selection = ' %s * ( %s ) ' %( weight_str, ' && '.join( [sel_base, ph_selection, eta_selection] ) )
 
     hist_mc = clone_sample_and_draw( sampMan, sample, plot_var, full_selection, binning )
-    result = fit_dijet( hist_mc, xvar, 'EleFake', sampMan, workspace  )
+    result = fit_distribution( 'dijet', 2, hist_mc, xvar, 'EleFake', sampMan, workspace  )
 
     sampMan.outputs['EleFake'].Draw()
 
@@ -322,11 +558,11 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
         ws = workspace
 
     hist_shape = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_shape, binning )
-    result_shape= fit_dijet( hist_shape, xvar, label_shape  , sampMan, ws  )
+    result_shape= fit_distribution( 'dijet', 2, hist_shape, xvar, label_shape  , sampMan, ws  )
     hist_num   = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_num  , binning )
-    result_num = fit_dijet( hist_num, xvar, label_num , sampMan, ws )
+    result_num = fit_distribution(  'dijet', 2, hist_num, xvar, label_num , sampMan, ws )
     hist_den   = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_den  , binning )
-    result_den = fit_dijet( hist_den, xvar, label_den , sampMan, ws )
+    result_den = fit_distribution( 'dijet', 2,  hist_den, xvar, label_den , sampMan, ws )
 
     _integral_num =  ws.pdf( 'dijet_%s' %label_num ).getNormIntegral(ROOT.RooArgSet( xvar ) )
     func_integral_num  = _integral_num.getValV()
@@ -426,7 +662,7 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     if closure :
 
         hist_sr    = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_sr   , binning )
-        result_sr  = fit_dijet( hist_sr, xvar, label_sr, sampMan, ws )
+        result_sr  = fit_distribution( 'dijet', 2, hist_sr, xvar, label_sr, sampMan, ws )
 
         can_sr = ROOT.TCanvas( str(uuid.uuid4()), '' )
 
@@ -465,48 +701,190 @@ def fit_pol1( hist, xmin, xmax ) :
     hist.Draw()
     lin_func.Draw('same')
 
-def fit_dijet( hist, xvar, label='', sampMan=None, workspace=None ) :
+def fit_distribution( fitManager, sampMan=None, workspace=None ) :
 
-    ###------------------------------
-    ### Breit-Wigner, has two parameters, the resonance mass and the width
-    ##------------------------------
-    #bw_m = ROOT.RooRealVar('bw_mass' , 'Resonance  Mass', 100, 60, 160, 'GeV')
-    #bw_w = ROOT.RooRealVar('bw_width', 'Breit-Wigner width',20, 0, 100,'GeV')
-    #bw = ROOT.RooBreitWigner('bw' ,'A Breit-Wigner Distribution', xvar, bw_m,bw_w)
-    #bw_m.setConstant()
+    fitManager.fit_histogram()
+    fitManager.calculate_func_pdf()
 
-    ##------------------------------
-    ## crystal ball, has four parameters
-    ##------------------------------
-    #cb_cut = ROOT.RooRealVar('cb_cut'      , 'Cut'  , 0.2 , 0, 2 , '')
-    #cb_sigma = ROOT.RooRealVar('cb_sigma' , 'Width', 2., 0  , 60, 'GeV')
-    #cb_power = ROOT.RooRealVar('cb_power'      , 'Power', 7.1, 0    , 100 , '')
-    #cb_m0 = ROOT.RooRealVar('cb_mass' , 'mass' , 0 , -200 , 200,'GeV')
+    if sampMan is not None :
 
-    #cb = ROOT.RooCBShape('cb', 'A  Crystal Ball Lineshape', xvar, cb_m0, cb_sigma,cb_cut,cb_power)
+        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
+        frame = fitManager.xvar.frame() 
+        fitManager.datahist.plotOn(frame)
+        fitManager.func_pdf.plotOn( frame )
+        fitManager.func_pdf.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
+        frame.Draw()
+        ymax = frame.GetMaximum()
+        frame.SetMinimum( 0.001 )
+        frame.SetMaximum( ymax*10 )
+        can.SetLogy()
+        can.SetLogx()
 
-    #model = ROOT.RooFFTConvPdf('sig_model','Convolution', xvar, bw, cb)
+        raw_input('cont')
 
-    #datahist = ROOT.RooDataHist( 'datahist', 'datahist', ROOT.RooArgList(xvar), hist )
+        sampMan.outputs[fitManager.label] = can
 
-    #model.fitTo( datahist, ROOT.RooFit.Range( 0, 1800),ROOT.RooFit.SumW2Error(True)  )
+    integral = fitManager.Integral( )
 
-    #frame = xvar.frame() 
-    #datahist.plotOn(frame)
-    #model.plotOn( frame )
-    #frame.Draw()
-    #raw_input('cont')
+    #power_res = ufloat( power.getValV(), power.getErrorHi() )
+    #log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
+    #int_res   = ufloat( integral, math.sqrt( integral ) )
+
+    power_res = ufloat( 0, 0 )
+    log_res   = ufloat( 0,0)
+    int_res   = ufloat( 0, 0)
+
+    integral_var = ROOT.RooRealVar('dijet_%s_norm' %( fitManager.label ), 'normalization', integral )
+
+    #power.SetName( power_name )
+    #logcoef.SetName( logcoef_name )
+
+    if workspace is not None :
+        getattr( workspace , 'import' ) ( fitManager.datahist )
+        getattr( workspace , 'import' ) ( fitManager.func_pdf )
+        getattr( workspace , 'import' ) ( integral_var )
+
+
+    return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : fitManager.get_fit_function(), 'object' : fitManager.func_pdf }
+
+
+def fit_dijet_3( hist, xvar, label='', sampMan=None, workspace=None ) :
 
     xmin = xvar.getMin()
     xmax = xvar.getMax()
 
-    power_name = 'power_dijet_%s'  %label
-    logcoef_name = 'logcoef_dijet_%s' %label
+    power_name = 'power_dijet3_%s'  %label
+    logsqcoef_name = 'logcoef_dijet3_%s' %label
+    logcoef_name = 'logcoef_dijet3_%s' %label
 
     power = ROOT.RooRealVar( 'power', 'power', -9.9, -100, 100)
+    logsqcoef = ROOT.RooRealVar( 'logsqcoef', 'logsqcoef', -0.85, -10, 10 )
     logcoef = ROOT.RooRealVar( 'logcoef', 'logcoef', -0.85, -10, 10 )
-    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))'  
-    dijet = ROOT.RooGenericPdf('dijet_%s' %label, 'dijet', func, ROOT.RooArgList(xvar,power, logcoef))
+
+    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000)*TMath::Log10(@0/13000) + @3*TMath::Log10(@0/13000))'  
+    dijet = ROOT.RooGenericPdf('dijet3_%s' %label, 'dijet3', func, ROOT.RooArgList(xvar,power, logsqcoef, logcoef))
+
+    #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
+    datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
+
+    dijet.fitTo( datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True)  )
+
+    integral =  dijet.getNormIntegral(ROOT.RooArgSet( xvar ) )
+
+    #power.setConstant()
+    #logcoef.setConstant()
+
+    if sampMan is not None :
+        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
+        frame = xvar.frame() 
+        datahist.plotOn(frame)
+        dijet.plotOn( frame )
+        dijet.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
+        frame.Draw()
+        ymax = frame.GetMaximum()
+        frame.SetMinimum( 0.001 )
+        frame.SetMaximum( ymax*10 )
+        can.SetLogy()
+
+        sampMan.outputs[label] = can
+
+    integral = hist.Integral( hist.FindBin( xmin), hist.FindBin( xmax ) )
+
+    power_res = ufloat( power.getValV(), power.getErrorHi() )
+    log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
+    int_res   = ufloat( integral, math.sqrt( integral ) )
+
+    integral_var = ROOT.RooRealVar('dijet3_%s_norm' %( label ), 'normalization', integral )
+
+    power.SetName( power_name )
+    logcoef.SetName( logcoef_name )
+
+    if workspace is not None :
+        getattr( workspace , 'import' ) ( datahist )
+        getattr( workspace , 'import' ) ( dijet )
+        getattr( workspace , 'import' ) ( integral_var )
+
+
+    return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : func, 'object' : dijet }
+
+def fit_dijet_4( hist, xvar, label='', sampMan=None, workspace=None ) :
+
+    xmin = xvar.getMin()
+    xmax = xvar.getMax()
+
+    power_name = 'power_dijet4_%s'  %label
+    logcubcoef_name = 'logcubcoef_dijet4_%s' %label
+    logsqcoef_name = 'logsqcoef_dijet4_%s' %label
+    logcoef_name = 'logcoef_dijet4_%s' %label
+
+    power = ROOT.RooRealVar( 'power', 'power', -9.9, -100, 100)
+    logsqcoef = ROOT.RooRealVar( 'logsqcoef', 'logsqcoef', 0.0, -10, 10 )
+    logcubcoef = ROOT.RooRealVar( 'logcubcoef', 'logcubcoef', 0.0, -10, 10 )
+    #exp = ROOT.RooRealVar( 'exp', 'exp', -0.85, -10, 10 )
+    logcoef = ROOT.RooRealVar( 'logcoef', 'logcoef', -0.85, -10, 10 )
+
+    #func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))*TMath::Exp( @0*@3) '  
+    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000)*TMath::Log10(@0/13000)*TMath::Log10(@0/13000) +@3*TMath::Log10(@0/13000)*TMath::Log10(@0/13000) + @4*TMath::Log10(@0/13000))'  
+    dijet = ROOT.RooGenericPdf('dijet4_%s' %label, 'dijet4', func, ROOT.RooArgList(xvar,power, logcubcoef, logsqcoef, logcoef))
+
+    #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
+    datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
+
+    dijet.fitTo( datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True)  )
+
+    integral =  dijet.getNormIntegral(ROOT.RooArgSet( xvar ) )
+
+    #power.setConstant()
+    #logcoef.setConstant()
+
+    if sampMan is not None :
+        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
+        frame = xvar.frame() 
+        datahist.plotOn(frame)
+        dijet.plotOn( frame )
+        dijet.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
+        frame.Draw()
+        ymax = frame.GetMaximum()
+        frame.SetMinimum( 0.001 )
+        frame.SetMaximum( ymax*10 )
+        can.SetLogy()
+
+        sampMan.outputs[label] = can
+
+    integral = hist.Integral( hist.FindBin( xmin), hist.FindBin( xmax ) )
+
+    power_res = ufloat( power.getValV(), power.getErrorHi() )
+    log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
+    int_res   = ufloat( integral, math.sqrt( integral ) )
+
+    integral_var = ROOT.RooRealVar('dijet3_%s_norm' %( label ), 'normalization', integral )
+
+    power.SetName( power_name )
+    logcoef.SetName( logcoef_name )
+
+    if workspace is not None :
+        getattr( workspace , 'import' ) ( datahist )
+        getattr( workspace , 'import' ) ( dijet )
+        getattr( workspace , 'import' ) ( integral_var )
+
+
+    return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : func, 'object' : dijet }
+
+def fit_dijet_mod( hist, xvar, label='', sampMan=None, workspace=None ) :
+
+    xmin = xvar.getMin()
+    xmax = xvar.getMax()
+
+    power_name = 'power_dijetmod_%s'  %label
+    logsqcoef_name = 'logcoef_dijetmod_%s' %label
+    logcoef_name = 'logcoef_dijetmod_%s' %label
+
+    numpower = ROOT.RooRealVar( 'numpower', 'numpower', -9.9, -100, 100)
+    power = ROOT.RooRealVar( 'power', 'power', -9.9, -100, 100)
+    logcoef = ROOT.RooRealVar( 'logcoef', 'logcoef', -0.85, -10, 10 )
+
+    func = 'TMath::Power(@0/13000, @3)/(TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000)))'  
+    dijet = ROOT.RooGenericPdf('dijetmod_%s' %label, 'dijetmod', func, ROOT.RooArgList(xvar,power, logcoef, numpower))
 
     #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
     datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
@@ -538,7 +916,7 @@ def fit_dijet( hist, xvar, label='', sampMan=None, workspace=None ) :
     log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
     int_res   = ufloat( integral, math.sqrt( integral ) )
 
-    integral_var = ROOT.RooRealVar('dijet_%s_norm' %( label ), 'normalization', integral )
+    integral_var = ROOT.RooRealVar('dijetmod_%s_norm' %( label ), 'normalization', integral )
 
     power.SetName( power_name )
     logcoef.SetName( logcoef_name )
@@ -551,32 +929,67 @@ def fit_dijet( hist, xvar, label='', sampMan=None, workspace=None ) :
 
     return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : func, 'object' : dijet }
 
-    #dijet_func = ROOT.TF1( 'dijet_func', '[0]*pow(x/13000, [1]+[2]*log(x/13000))', xmin, xmax )
-    ##dijet_func2 = ROOT.TF1( 'dijet_func2', '[0]*pow(x/13000, [1]+[2]*log(x/13000))', xmin, xmax )
-    ##dijet_func3 = ROOT.TF1( 'dijet_func3', '[0]*pow(x/13000, [1]+[2]*log(x/13000))', xmin, xmax )
-    ###dijet_func = ROOT.TF1( 'dijet_func', '[0]*pow(x/13000, [1])', xmin, xmax )
 
-    #dijet_func.SetParameter(0, 8.9e-8 )
-    #dijet_func.SetParameter(1, -5.6 )
-    #dijet_func.SetParameter(2, 0.01 )
+def fit_exppow( hist, xvar, label='', sampMan=None, workspace=None ) :
 
-    ###dijet_func2.SetParameter(0, 8.9e-8 )
-    ###dijet_func2.SetParameter(1, -5.6 )
-    ###dijet_func2.SetParameter(2, -0.02 )
+    xmin = xvar.getMin()
+    xmax = xvar.getMax()
 
-    ###dijet_func3.SetParameter(0, 8.9e-8 )
-    ###dijet_func3.SetParameter(1, -5.6 )
-    ###dijet_func3.SetParameter(2, 0.02 )
+    power_name = 'power_exppow_%s'  %label
+    exp_name = 'exp_exppow_%s' %label
 
-    #hist.Fit( dijet_func, 'R' )
+    power1 = ROOT.RooRealVar( 'power1', 'power1', -9.9, -100, 100)
+    power2 = ROOT.RooRealVar( 'power2', 'power2', -9.9, -100, 100)
+    #frac = ROOT.RooRealVar( 'frac', 'frac', 1, -100, 100 )
 
-    #hist.Draw()
-    #dijet_func.Draw('same')
-    ###dijet_func2.SetLineColor( ROOT.kMagenta )
-    ###dijet_func3.SetLineColor( ROOT.kGreen)
-    ###dijet_func2.Draw('same')
-    ###dijet_func3.Draw('same')
-    #raw_input('cont')
+    #func = 'TMath::Power(@0/13000, @1)*TMath::Exp((@0/13000)*@1) + @2*TMath::Power(@0/13000, @3)*TMath::Exp((@0/13000)*@3)'  
+    func = 'TMath::Power(@0/13000, @1)*TMath::Exp((@0/13000)*@2)'  
+    dijet = ROOT.RooGenericPdf('exppow%s' %label, 'exppow', func, ROOT.RooArgList(xvar, power1, power2))
+
+    #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
+    datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
+
+    dijet.fitTo( datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True)  )
+
+    integral =  dijet.getNormIntegral(ROOT.RooArgSet( xvar ) )
+
+    #power.setConstant()
+    #logcoef.setConstant()
+
+    if sampMan is not None :
+        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
+        frame = xvar.frame() 
+        datahist.plotOn(frame)
+        dijet.plotOn( frame )
+        dijet.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
+        frame.Draw()
+        ymax = frame.GetMaximum()
+        frame.SetMinimum( 0.1 )
+        frame.SetMaximum( ymax*5 )
+        can.SetLogy()
+
+        sampMan.outputs[label] = can
+
+    integral = hist.Integral( hist.FindBin( xmin), hist.FindBin( xmax ) )
+
+    #power_res = ufloat( power.getValV(), power.getErrorHi() )
+    #log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
+    #int_res   = ufloat( integral, math.sqrt( integral ) )
+
+    integral_var = ROOT.RooRealVar('exppow_%s_norm' %( label ), 'normalization', integral )
+
+    #power.SetName( power_name )
+    #logcoef.SetName( logcoef_name )
+
+    if workspace is not None :
+        getattr( workspace , 'import' ) ( datahist )
+        getattr( workspace , 'import' ) ( dijet )
+        getattr( workspace , 'import' ) ( integral_var )
+
+
+    #return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : func, 'object' : dijet }
+    return {}
+
 
 
 def clone_sample_and_draw( sampMan, samp, var, sel, binning ) :

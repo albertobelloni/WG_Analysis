@@ -2,6 +2,7 @@ import os
 import json
 import re
 from argparse import ArgumentParser
+#works if you setup CMSSW_5_3_22_patch1 first
 
 from check_dataset_completion import get_dataset_counts
 
@@ -17,13 +18,13 @@ options = parser.parse_args()
 
 BASE_DIR   = '/store/user/jkunkle'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-#DATA_SAMPLES = ['SingleElectron', 'SingleMuon', 'SinglePhoton']
-DATA_SAMPLES = ['SingleElectron']
+DATA_SAMPLES = ['SingleElectron', 'SingleMuon']
+#DATA_SAMPLES = ['SingleElectron']
 RUN_YEAR = 'Run2016'
-#RECO_TYPE = ['23Sep2016', 'H-PromptReco']
-RECO_TYPE = ['03Feb2017']
+RECO_TYPE = ['23Sep2016', 'H-PromptReco']
+#RECO_TYPE = ['03Feb2017']
 FILE_KEY = 'ntuple'
-TREE_NAME = 'tupel/EventTree'
+TREE_NAME = 'UMDNTuple/EventTree'
 MC_CAMPAIGN_STR = 'RunIISummer16'
 
 

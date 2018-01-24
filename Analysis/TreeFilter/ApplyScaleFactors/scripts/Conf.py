@@ -73,9 +73,8 @@ def get_photon_sf(options) :
 
     photon_sf = Filter( 'AddPhotonSF' )
 
-    photon_sf.add_var( 'FilePathId', '%s/Photon_ID_CSEV_SF_Jan22rereco_Full2012_S10_MC_V01.root' %base_path )
-    photon_sf.add_var( 'FilePathEveto', '%s/hist_sf_eveto_nom.root' %base_path )
-    photon_sf.add_var( 'FilePathEvetoHighPt', '%s/hist_sf_eveto_highpt.root' %base_path )
+    photon_sf.add_var( 'FilePathId', '%s/egammaEffi_PhMediumID_EGM2D.root' %base_path )
+    photon_sf.add_var( 'FilePathEveto', '%s/PhoEleVetoSF_80X_Summer16.root' %base_path )
     
     return photon_sf
 

@@ -37,7 +37,7 @@ if options.outputDir is not None :
     ROOT.gROOT.SetBatch(True)
 
 
-_TREENAME = 'tupel/EventTree'
+_TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
 _XSFILE   = 'cross_sections/photon15.py'
 _LUMI     = 36000
@@ -136,28 +136,28 @@ def MakeWCRPlots( sampManMu, sampManEl ) :
     full_sel_str_mu = ' %s * ( %s ) ' %( weight_str, selection_mu )
     full_sel_str_el = ' %s * ( %s ) ' %( weight_str, selection_el )
 
-    sampManMu.Draw( 'mt_lep_met', full_sel_str_mu, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Transverse Mass [GeV]'}, 
-                   label_config={'labelStyle' : 'fancy13'},
-                  )
+    #sampManMu.Draw( 'mt_lep_met', full_sel_str_mu, (50, 0, 500), 
+    #               hist_config={'logy' : True, 'xlabel' : 'Transverse Mass [GeV]', 'doratio' : 1}, 
+    #               label_config={'labelStyle' : 'fancy13'},
+    #              )
 
-    if options.outputDir is not None :
-        sampManMu.SaveStack( 'mt_lep_met_mu.pdf' ,outdir, 'base' ) 
-    else :
-        raw_input('cont')
+    #if options.outputDir is not None :
+    #    sampManMu.SaveStack( 'mt_lep_met_mu.pdf' ,outdir, 'base' ) 
+    #else :
+    #    raw_input('cont')
 
-    sampManEl.Draw( 'mt_lep_met', full_sel_str_el, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Transverse Mass [GeV]'}, 
-                   label_config={'labelStyle' : 'fancy13'},
-                  )
+    #sampManEl.Draw( 'mt_lep_met', full_sel_str_el, (50, 0, 500), 
+    #               hist_config={'logy' : True, 'xlabel' : 'Transverse Mass [GeV]', 'doratio' : 1}, 
+    #               label_config={'labelStyle' : 'fancy13'},
+    #              )
 
-    if options.outputDir is not None :
-        sampManEl.SaveStack( 'mt_lep_met_el.pdf' ,outdir, 'base' ) 
-    else :
-        raw_input('cont')
+    #if options.outputDir is not None :
+    #    sampManEl.SaveStack( 'mt_lep_met_el.pdf' ,outdir, 'base' ) 
+    #else :
+    #    raw_input('cont')
 
     sampManMu.Draw( 'met_pt', full_sel_str_mu, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Transverse Mass [GeV]'}, 
+                   hist_config={'logy' : True, 'xlabel' : 'Missing Transverse Momentum [GeV]', 'doratio' : 1}, 
                    label_config={'labelStyle' : 'fancy13'},
                   )
 
@@ -167,7 +167,7 @@ def MakeWCRPlots( sampManMu, sampManEl ) :
         raw_input('cont')
 
     sampManEl.Draw( 'met_pt', full_sel_str_el, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Transverse Mass [GeV]'}, 
+                   hist_config={'logy' : True, 'xlabel' : 'Missing Transverse Momentum [GeV]', 'doratio' : 1}, 
                    label_config={'labelStyle' : 'fancy13'},
                   )
 
@@ -176,8 +176,25 @@ def MakeWCRPlots( sampManMu, sampManEl ) :
     else :
         raw_input('cont')
 
+    sampManMu.Draw( 'mu_pt[0]', full_sel_str_mu, (50, 0, 500), 
+                   hist_config={'logy' : True, 'xlabel' : 'Lepton p_{T} [GeV]', 'doratio' : 1}, 
+                   label_config={'labelStyle' : 'fancy13'},
+                  )
 
-    
+    if options.outputDir is not None :
+        sampManMu.SaveStack( 'lep_pt_mu.pdf' ,outdir, 'base' ) 
+    else :
+        raw_input('cont')
+
+    sampManEl.Draw( 'el_pt[0]', full_sel_str_el, (50, 0, 500), 
+                   hist_config={'logy' : True, 'xlabel' : 'Lepton p_{T} [GeV]', 'doratio' : 1}, 
+                   label_config={'labelStyle' : 'fancy13'},
+                  )
+
+    if options.outputDir is not None :
+        sampManEl.SaveStack( 'lep_pt_el.pdf' , outdir, 'base' ) 
+    else :
+        raw_input('cont')
 
 
 def MakeZCRPlots( sampManMu, sampManEl ) :
@@ -197,7 +214,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
 
     
     sampManMu.Draw( plot_var, full_sel_str_mu, (100, 0, 1000), 
-                   hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]'}, 
+                   hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]', 'doratio' : 1}, 
                    label_config={'labelStyle' : 'fancy13'},
                   )
 
@@ -207,7 +224,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         raw_input('cont')
 
     sampManEl.Draw( plot_var, full_sel_str_el, (100, 0, 1000), 
-                   hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]'}, 
+                   hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]', 'doratio' : 1}, 
                    label_config={'labelStyle' : 'fancy13'},
                   )
 
@@ -221,47 +238,87 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
     full_sel_str_mug = ' %s * ( %s ) ' %( weight_str, ' && '.join( [selection_mu, selection_ph] ) )
     full_sel_str_elg = ' %s * ( %s ) ' %( weight_str, ' && '.join( [selection_el, selection_ph] ) )
 
-    sampManMu.Draw( plot_var, full_sel_str_mug, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]'}, 
+    #sampManMu.Draw( plot_var, full_sel_str_mug, (50, 0, 500), 
+    #               hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]', 'doratio' : 1}, 
+    #               label_config={'labelStyle' : 'fancy13'},
+    #              )
+
+    #if options.outputDir is not None :
+    #    sampManMu.SaveStack( 'm_ll_mumug.pdf' ,outdir, 'base' ) 
+    #else :
+    #    raw_input('cont')
+
+    #sampManEl.Draw( plot_var, full_sel_str_elg, (50, 0, 500), 
+    #               hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]', 'doratio' : 1}, 
+    #               label_config={'labelStyle' : 'fancy13'},
+    #              )
+
+    #if options.outputDir is not None :
+    #    sampManEl.SaveStack( 'm_ll_elelg.pdf' , outdir, 'base' ) 
+    #else :
+    #    raw_input('cont')
+
+
+    #sampManMu.Draw( 'dr_lep_ph', full_sel_str_mug, (50, 0, 5), 
+    #               hist_config={'logy' : True, 'xlabel' : '#Delta R (#ell, #gamma)', 'doratio' : 1}, 
+    #               label_config={'labelStyle' : 'fancy13'},
+    #              )
+
+    #if options.outputDir is not None :
+    #    sampManMu.SaveStack( 'dr_lep_ph_mumug.pdf', outdir, 'base' ) 
+    #else :
+    #    raw_input('cont')
+
+    #sampManEl.Draw( 'dr_lep_ph', full_sel_str_elg, (50, 0, 5), 
+    #               hist_config={'logy' : True, 'xlabel' : '#Delta R (#ell, #gamma)', 'doratio' : 1}, 
+    #               label_config={'labelStyle' : 'fancy13'},
+    #              )
+
+    #if options.outputDir is not None :
+    #    sampManEl.SaveStack( 'dr_lep_ph_elelg.pdf' , outdir, 'base' )
+    #else :
+    #    raw_input('cont')
+
+    sampManMu.Draw( 'mu_pt[0]', full_sel_str_mu, (50, 0, 500), 
+                   hist_config={'logy' : True, 'xlabel' : 'Lead Lepton p_{T} [GeV]', 'doratio' : 1}, 
                    label_config={'labelStyle' : 'fancy13'},
                   )
 
     if options.outputDir is not None :
-        sampManMu.SaveStack( 'm_ll_mumug.pdf' ,outdir, 'base' ) 
+        sampManMu.SaveStack( 'leadlep_pt_mu.pdf' ,outdir, 'base' ) 
     else :
         raw_input('cont')
 
-    sampManEl.Draw( plot_var, full_sel_str_elg, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]'}, 
+    sampManEl.Draw( 'el_pt[0]', full_sel_str_el, (50, 0, 500), 
+                   hist_config={'logy' : True, 'xlabel' : 'Lead Lepton p_{T} [GeV]', 'doratio' : 1}, 
                    label_config={'labelStyle' : 'fancy13'},
                   )
 
     if options.outputDir is not None :
-        sampManEl.SaveStack( 'm_ll_elelg.pdf' , outdir, 'base' ) 
+        sampManEl.SaveStack( 'leadlep_pt_el.pdf' , outdir, 'base' ) 
     else :
         raw_input('cont')
 
 
-    sampManMu.Draw( 'dr_lep_ph', full_sel_str_mug, (50, 0, 5), 
-                   hist_config={'logy' : True, 'xlabel' : '#Delta R (#ell, #gamma)'}, 
+    sampManMu.Draw( 'mu_pt[1]', full_sel_str_mu, (50, 0, 500), 
+                   hist_config={'logy' : True, 'xlabel' : 'Sublead Lepton p_{T} [GeV]', 'doratio' : 1}, 
                    label_config={'labelStyle' : 'fancy13'},
                   )
 
     if options.outputDir is not None :
-        sampManMu.SaveStack( 'dr_lep_ph_mumug.pdf', outdir, 'base' ) 
+        sampManMu.SaveStack( 'lep_pt_mu.pdf' ,outdir, 'base' ) 
     else :
         raw_input('cont')
 
-    sampManEl.Draw( 'dr_lep_ph', full_sel_str_elg, (50, 0, 5), 
-                   hist_config={'logy' : True, 'xlabel' : '#Delta R (#ell, #gamma)'}, 
+    sampManEl.Draw( 'el_pt[1]', full_sel_str_el, (50, 0, 500), 
+                   hist_config={'logy' : True, 'xlabel' : 'Sublead Lepton p_{T} [GeV]', 'doratio' : 1}, 
                    label_config={'labelStyle' : 'fancy13'},
                   )
 
     if options.outputDir is not None :
-        sampManEl.SaveStack( 'dr_lep_ph_elelg.pdf' , outdir, 'base' )
+        sampManEl.SaveStack( 'lep_pt_el.pdf' , outdir, 'base' ) 
     else :
         raw_input('cont')
-
 
 
 
@@ -276,7 +333,7 @@ def MakeEFakePlots( sampManEl ) :
 
     weight_str = defs.get_weight_str()
 
-    selection_ph = 'ph_n==1 && ph_eleVeto[0] == 0 && !isBlinded'
+    selection_ph = 'ph_n==1 && ph_passEleVeto[0] == 0 && !isBlinded'
 
     full_sel_str_el = ' %s * ( %s ) ' %( weight_str, ' && ' .join( [selection_el, selection_ph] ) )
 
@@ -287,7 +344,7 @@ def MakeEFakePlots( sampManEl ) :
     else :
         raw_input('cont')
 
-    selection_ph = 'ph_n==1 && ph_eleVeto[0] == 1 && !isBlinded'
+    selection_ph = 'ph_n==1 && ph_passEleVeto[0] == 1 && !isBlinded'
 
     full_sel_str_el = ' %s * ( %s ) ' %( weight_str, ' && ' .join( [selection_el, selection_ph] ) )
 
@@ -433,8 +490,6 @@ def MakeSignalTruthPlots( sampManNoFilt ) :
         else :
             raw_input('cont')
 
-
-
 def MakeSignalRegionPlots( sampManMuG, sampManElG ) :
 
     sampManMuG.deactivate_sample( 'Data')
@@ -443,8 +498,8 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG ) :
     name = 'SignalRegionPlots'
     outdir = '%s/%s' %(options.outputDir, name )
 
-    legend_conf = sampManMuG.config_legend( legendCompress = 1.1, legendWiden = 1.4 )
-    legend_conf_s = sampManMuG.config_legend( legendCompress = 0.6, legendWiden = 1.0 )
+    legend_conf = sampManMuG.config_legend( legendCompress = 1.0, legendWiden = 1.4 )
+    legend_conf_s = sampManMuG.config_legend( legendCompress = 0.8, legendWiden = 1.0 )
     label_loc_conf = (0.2, 0.87)
 
     weight_str = defs.get_weight_str()
@@ -468,6 +523,35 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG ) :
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'mt_res_elg_nodata' ,outdir, 'base' )
+    else :
+        raw_input('cont')
+
+    sampManMuG.Draw( 'mt_lep_met_ph', sel_mu_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
+
+    if options.outputDir is not None :
+        sampManMuG.SaveStack( 'mt_lep_met_ph_mug_nodata' ,outdir, 'base' )
+    else :
+        raw_input('cont')
+
+    sampManElG.Draw( 'mt_lep_met_ph', sel_el_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
+
+    if options.outputDir is not None :
+        sampManElG.SaveStack( 'mt_lep_met_ph_elg_nodata' ,outdir, 'base' )
+    else :
+        raw_input('cont')
+
+
+    sampManMuG.Draw( 'm_lep_met_ph', sel_mu_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
+
+    if options.outputDir is not None :
+        sampManMuG.SaveStack( 'm_lep_met_ph_mug_nodata' ,outdir, 'base' )
+    else :
+        raw_input('cont')
+
+    sampManElG.Draw( 'm_lep_met_ph', sel_el_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
+
+    if options.outputDir is not None :
+        sampManElG.SaveStack( 'm_lep_met_ph_elg_nodata' ,outdir, 'base' )
     else :
         raw_input('cont')
 
@@ -529,6 +613,20 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG ) :
     else :
         raw_input('cont')
 
+    sampManMuG.Draw( 'fabs(dphi_lep_met)', sel_mu_nominal, (32, 0, 3.2 ), hist_config={'xlabel' : '#Delta #phi (l, MET)', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 200000000}, legend_config={'legendLoc' : 'TopLeft'}, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Muon Channel', 'extra_label_loc':(0.6, 0.87)} )
+
+    if options.outputDir is not None :
+        sampManMuG.SaveStack( 'dphi_lep_met_mug_nodata' ,outdir, 'base' )
+    else :
+        raw_input('cont')
+
+    sampManElG.Draw( 'fabs(dphi_lep_met)', sel_el_nominal, (32, 0, 3.2 ), hist_config={'xlabel' : '#Delta #phi (l, MET)', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 10000000000}, legend_config={'legendLoc' : 'TopLeft'}, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Electron Channel', 'extra_label_loc':(0.6, 0.87)} )
+
+    if options.outputDir is not None :
+        sampManElG.SaveStack( 'dphi_lep_met_elg_nodata' ,outdir, 'base' )
+    else :
+        raw_input('cont')
+
     sampManMuG.Draw( 'recoM_lep_nu_ph-mt_res', sel_mu_nominal, (100, -500, 500 ), hist_config={'xlabel' : 'Reconstructed Mass Difference [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
@@ -582,6 +680,20 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG ) :
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'mt_lep_met_elg_nodata' ,outdir, 'base' )
+    else :
+        raw_input('cont')
+
+    sampManMuG.Draw( 'jet_n', sel_mu_nominal, (10, 0, 10 ), hist_config={'xlabel' : 'Jet Multiplicity', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
+
+    if options.outputDir is not None :
+        sampManMuG.SaveStack( 'jet_n_mug_nodata' ,outdir, 'base' )
+    else :
+        raw_input('cont')
+
+    sampManElG.Draw( 'jet_n', sel_el_nominal, (10, 0, 10 ), hist_config={'xlabel' : 'Jet Multiplicity', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy13', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
+
+    if options.outputDir is not None :
+        sampManElG.SaveStack( 'jet_n_elg_nodata' ,outdir, 'base' )
     else :
         raw_input('cont')
 
