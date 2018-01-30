@@ -15,6 +15,8 @@ from SampleManager import SampleManager
 from argparse import ArgumentParser
 parser = ArgumentParser()
 
+parser.add_argument('--baseDirMuGNoId',      default=None,           dest='baseDirMuGNoId',         required=False, help='Path to muon base directory')
+parser.add_argument('--baseDirElGNoId',      default=None,           dest='baseDirElGNoId',         required=False, help='Path to electron base directory')
 parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--outputDir',      default=None,           dest='outputDir',         required=False, help='Output directory to write histograms')
@@ -38,6 +40,15 @@ _BASEPATH = '/home/jkunkle/usercode/Plotting/LimitSetting/'
 _SAMPCONF = 'Modules/Resonance.py'
 
 
+def get_cut_defaults( shape_var, ieta ) :
+
+    cut_defaults = {'sigmaIEIE' : { 'EB' : ( 0.012, 0.02 ), 'EE' : ( 0.0, 0.0 ) },
+                    'chIso'     : { 'EB' : ( 4, 10 ),       'EE' : (4, 10) },
+                   }
+
+    return cut_defaults[shape_var][ieta]
+
+
 ROOT.gROOT.SetBatch(False)
 if options.outputDir is not None :
     ROOT.gROOT.SetBatch(True)
@@ -46,12 +57,18 @@ if options.outputDir is not None :
 
 def main() :
 
+    sampManMuGNoId = SampleManager( options.baseDirMuGNoId, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManElGNoId = SampleManager( options.baseDirElGNoId, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
     sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
     sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
 
+    sampManMuGNoId.ReadSamples( _SAMPCONF )
+    sampManElGNoId.ReadSamples( _SAMPCONF )
     sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG.ReadSamples( _SAMPCONF )
 
+    sampManMuGNoId.outputs = {}
+    sampManElGNoId.outputs = {}
     sampManMuG.outputs = {}
     sampManElG.outputs = {}
 
@@ -130,6 +147,12 @@ def main() :
                  }
 
     workspace_signal   = ROOT.RooWorkspace( 'workspace_signal' )
+    workspace_wgamma   = ROOT.RooWorkspace( 'workspace_wgamma' )
+    workspace_wgammalo = ROOT.RooWorkspace( 'workspace_wgammalo' )
+    workspace_top    = ROOT.RooWorkspace( 'workspace_top' )
+    workspace_zgamma = ROOT.RooWorkspace( 'workspace_zgamma' )
+    wjets            = ROOT.RooWorkspace( 'workspace_wjets' )
+    elefake          = ROOT.RooWorkspace( 'elefake' )
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
 
@@ -137,13 +160,68 @@ def main() :
 
         for ch, seldic in chdic.iteritems() : 
                                     
-            for name, vardata in kine_vars.iteritems() :
+            if options.doSignal : 
 
-                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, suffix='%s_%s_%s'%(ch,name,seltag ) )
+                for name, vardata in kine_vars.iteritems() :
+
+                    make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, suffix='%s_%s_%s'%(ch,name,seltag ) )
+            if options.doWGamma :
+
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-130-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-500-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-500-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-130-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'WgammaLO', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgammalo, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'Wgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+            if options.doTop : 
+
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'TTG', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_top, suffix='%s_%s_%s' %(ch,name,seltag ) )
+
+            if options.doZGamma: 
+
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'Zgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_top, suffix='%s_%s_%s' %(ch,name,seltag ) )
+
+            if options.doWJets :
+
+                    make_wjets_fit( sampManMuGNoId, 'Data', seldic['selection'], 'EB', vardata['var'], 'chIso', 'sigmaIEIE', vardata['binning'], vardata['xvar'], suffix='wjets_%s_EB_%s' %(ch,seltag), closure=False, workspace=wjets)
+
+            if options.doEleFake : 
+
+                if ch == 'el' :
+                    elefake_res = make_elefake_fit( sampManElGNoId, 'EleFakeBackground', seldic['selection'], 'EB', 'mt_lep_met_ph',  (100, 0, 1000), xvar_m, workspace=elefake )
+
+            if options.doClosure :
+
+                closure_res_mu = make_wjets_fit( sampManMuGNoId, 'Wjets', seldic['selection'], 'EB', 'mt_lep_met_ph', 'chIso', 'sigmaIEIE', binning_m, xvar_m, suffix='closure_%s_EB_%s' %( ch, seltag ), closure=True )
 
     if options.outputDir is not None :
 
-        workspace_signal.writeToFile( '%s/%s.root' %( options.outputDir,workspace_signal.GetName() ) )
+        if options.doSignal : 
+            workspace_signal.writeToFile( '%s/%s.root' %( options.outputDir,workspace_signal.GetName() ) )
+        if options.doTop : 
+            workspace_top.writeToFile( '%s/%s.root' %( options.outputDir,workspace_top.GetName() ) )
+        if options.doWGamma :
+            workspace_wgamma.writeToFile( '%s/%s.root' %( options.outputDir,workspace_wgamma.GetName() ) )
+            workspace_wgammalo.writeToFile( '%s/%s.root' %( options.outputDir,workspace_wgammalo.GetName() ) )
+        if options.doZGamma: 
+            workspace_zgamma.writeToFile( '%s/%s.root' %( options.outputDir,workspace_zgamma.GetName() ) )
+        if options.doWJets :
+            wjets.writeToFile( '%s/%s.root' %( options.outputDir,wjets.GetName() ) )
+        if options.doEleFake : 
+            elefake.writeToFile( '%s/%s.root' %( options.outputDir,elefake.GetName() ) )
+
 
         for fileid, ws_list in workspaces_to_save.iteritems() :
             for idx, ws in enumerate(ws_list) :
@@ -154,10 +232,30 @@ def main() :
 
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
+        for key, can in sampManMuGNoId.outputs.iteritems() :
+            can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
+        for key, can in sampManElGNoId.outputs.iteritems() :
+            can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
         for key, can in sampManMuG.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
         for key, can in sampManElG.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
+
+#def make_toy_data( out_workspace, in_workspace, in_pdf, suffix='' ) :
+#
+#    in_workspace.Print()
+#
+#    pdf = in_workspace.pdf( in_pdf )
+#
+#    nevents = in_workspace.var( 'norm_%s' %in_pdf )
+#
+#    #dataset = pdf.generate( in_workspace.var('xvar'), Name='toydata%s' %suffix  )
+#    dataset = pdf.generate( ROOT.RooArgSet(in_workspace.var('x')), nevents )
+#    dataset.SetName( 'toydata%s' %suffix )
+#    print dataset
+#
+#    getattr( out_workspace, 'import' )( dataset )
+
 
 
 def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspace, suffix ) : 
@@ -401,6 +499,237 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             #getattr(workspace, 'import' )(xs_var)
             #getattr(workspace, 'import' )(tot_evt)
             #getattr(workspace, 'import' )(scale)
+
+
+def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, workspace, suffix='' ) :
+
+    ph_selection_sr = 'ph_n == 1'
+    xmin = xvar.getMin()
+    xmax = xvar.getMax()
+    addtl_cuts_sr = 'ph_pt[0] > 50 && %s > %d && %s < %d  ' %(plot_var, xmin, plot_var , xmax )
+
+    results = {}
+
+    for ieta in eta_cuts :
+
+        eta_str_sr = 'ph_Is%s[0]' %( ieta )
+
+        full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
+
+        hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr   , binning )
+        
+        label = '%s_%s_%s'%(sampname, suffix, ieta)
+
+        fitManager = FitManager( 'dijet', 2, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
+
+        fit_distribution( fitManager, sampMan, workspace, logy=True )
+        results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
+
+    return results
+
+def make_elefake_fit( sampMan, sample, sel_base, eta_cut, plot_var, binning, xvar, suffix='', closure=False, workspace=None) :
+
+    ph_selection = 'ph_n==1 && ph_eleVeto[0] == 0 && ph_pt[0] > 50 ' 
+
+    eta_selection = 'ph_Is%s[0]' %eta_cut
+
+    weight_str = defs.get_weight_str()
+
+    full_selection = ' %s * ( %s ) ' %( weight_str, ' && '.join( [sel_base, ph_selection, eta_selection] ) )
+
+    hist_mc = clone_sample_and_draw( sampMan, sample, plot_var, full_selection, binning )
+    result = fit_distribution( 'dijet', 2, hist_mc, xvar, 'EleFake', sampMan, workspace  )
+
+    sampMan.outputs['EleFake'].Draw()
+
+
+def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num_var, binning, xvar, suffix='', closure=False, workspace=None) :
+
+    ph_selection_sr = '%s==1' %defs.get_phid_selection('medium')
+    ph_selection_den = '%s==1'%defs.get_phid_selection( num_var, shape_var )
+
+    ph_selection_num = '%s==1' %defs.get_phid_selection( num_var )
+    ph_selection_shape = '%s==1' %defs.get_phid_selection( shape_var )
+
+    ph_idx_sr =  defs.get_phid_idx( 'medium' )
+    ph_idx_den = defs.get_phid_idx( num_var, shape_var )
+    ph_idx_num = defs.get_phid_idx( num_var )
+    ph_idx_shape = defs.get_phid_idx( shape_var )
+
+    xmin = xvar.getMin()
+    xmax = xvar.getMax()
+
+    addtl_cuts_sr = 'ph_pt[%s] > 50 && %s > %d && %s < %d '     %( ph_idx_sr, plot_var, xmin, plot_var, xmax )
+    addtl_cuts_den = 'ph_pt[%s] > 50 && %s > %d && %s < %d  '   %( ph_idx_den, plot_var, xmin, plot_var, xmax )
+    addtl_cuts_num = 'ph_pt[%s] > 50 && %s > %d && %s < %d  '   %( ph_idx_num, plot_var, xmin, plot_var, xmax )
+    addtl_cuts_shape = 'ph_pt[%s] > 50 && %s > %d && %s < %d  ' %( ph_idx_shape, plot_var, xmin, plot_var, xmax )
+
+    cut_var_shape = defs.get_phid_cut_var( shape_var )
+    cut_var_num = defs.get_phid_cut_var( num_var )
+
+    eta_str_shape = 'ph_Is%s[%s]' %( eta_cut, ph_idx_shape )
+    eta_str_den = 'ph_Is%s[%s]' %( eta_cut, ph_idx_den)
+    eta_str_num = 'ph_Is%s[%s]' %( eta_cut, ph_idx_num )
+    eta_str_sr = 'ph_Is%s[%s]' %( eta_cut, ph_idx_sr )
+
+    cut_vals_shape = get_cut_defaults( shape_var, eta_cut )
+    cut_vals_num = get_cut_defaults( num_var, eta_cut )
+
+    cut_str_base = ' {var}[{idx}] > {val_low} && {var}[{idx}] < {val_high}'
+
+    cut_str_shape = cut_str_base.format(var=cut_var_shape, idx=ph_idx_shape, val_low=cut_vals_shape[0], val_high=cut_vals_shape[1] )
+    cut_str_num = cut_str_base.format(var=cut_var_num, idx=ph_idx_num, val_low=cut_vals_num[0], val_high=cut_vals_num[1] )
+
+    cut_str_den_1 = cut_str_base.format(var=cut_var_shape, idx=ph_idx_den, val_low=cut_vals_shape[0], val_high=cut_vals_shape[1] )
+    cut_str_den_2 = cut_str_base.format(var=cut_var_num, idx=ph_idx_den, val_low=cut_vals_num[0], val_high=cut_vals_num[1] )
+
+    cut_str_den = cut_str_den_1 + ' && ' + cut_str_den_2
+
+    full_sel_shape = ' && '.join( [sel_base, ph_selection_shape, eta_str_shape, addtl_cuts_shape, cut_str_shape ] )
+    full_sel_num   = ' && '.join( [sel_base, ph_selection_num, eta_str_num, addtl_cuts_num, cut_str_num] )
+    full_sel_den   = ' && '.join( [sel_base, ph_selection_den, eta_str_den, addtl_cuts_den, cut_str_den] )
+    full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
+
+    label_shape = 'shape_%s' %suffix
+    label_num   = 'num_%s' %suffix
+    label_den   = 'den_%s' %suffix
+    label_sr    = 'sr_%s' %suffix
+
+    if workspace is None :
+        ws = ROOT.RooWorkspace( 'ws') 
+    else :
+        ws = workspace
+
+    hist_shape = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_shape, binning )
+    result_shape= fit_distribution( 'dijet', 2, hist_shape, xvar, label_shape  , sampMan, ws  )
+    hist_num   = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_num  , binning )
+    result_num = fit_distribution(  'dijet', 2, hist_num, xvar, label_num , sampMan, ws )
+    hist_den   = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_den  , binning )
+    result_den = fit_distribution( 'dijet', 2,  hist_den, xvar, label_den , sampMan, ws )
+
+    _integral_num =  ws.pdf( 'dijet_%s' %label_num ).getNormIntegral(ROOT.RooArgSet( xvar ) )
+    func_integral_num  = _integral_num.getValV()
+    _integral_den =  ws.pdf( 'dijet_%s' %label_den).getNormIntegral(ROOT.RooArgSet( xvar ) )
+    func_integral_den  = _integral_den.getValV()
+    _integral_shape =  ws.pdf( 'dijet_%s' %label_shape).getNormIntegral(ROOT.RooArgSet( xvar ) )
+    func_integral_shape  = _integral_shape.getValV()
+
+    hist_integral_num = result_num['integral'].n
+    hist_integral_den = result_den['integral'].n
+    hist_integral_shape = result_shape['integral'].n
+
+    norm_num = hist_integral_num / func_integral_num
+    norm_den = hist_integral_den / func_integral_den
+    norm_shape = hist_integral_shape / func_integral_shape
+
+    print 'func integral Num = ', func_integral_num
+    print 'hist integral Num = ', hist_integral_num
+    print 'normalization Num = ', norm_num
+
+    print 'func integral Den = ', func_integral_den
+    print 'hist integral Den = ', hist_integral_den
+    print 'normalization Den = ', norm_den
+
+    print 'func integral Shape = ', func_integral_shape
+    print 'hist integral Shape = ', hist_integral_shape
+    print 'normalization Shape = ', norm_shape
+
+    power_pred_name    = 'power_pred_%s' %suffix
+    logcoef_pred_name  = 'logcoef_pred_%s' %suffix
+    #power_ratio_name   = 'power_ratio_%s' %suffix
+    #logcoef_ratio_name = 'logcoef_ratio_%s' %suffix
+
+
+    val_power_num   = ws.var( 'power_dijet_%s' %label_num   )
+    val_power_den   = ws.var( 'power_dijet_%s' %label_den   )
+    val_power_shape = ws.var( 'power_dijet_%s' %label_shape )
+
+    val_logcoef_num   = ws.var( 'logcoef_dijet_%s' %label_num   )
+    val_logcoef_den   = ws.var( 'logcoef_dijet_%s' %label_den   )
+    val_logcoef_shape = ws.var( 'logcoef_dijet_%s' %label_shape )
+
+    power_pred    = ROOT.RooRealVar( power_pred_name   , 'power'  , (val_power_num.getValV() + val_power_shape.getValV() - val_power_den.getValV()) , -100, 100)
+    logcoef_pred  = ROOT.RooRealVar( logcoef_pred_name , 'logcoef', (val_logcoef_num.getValV() + val_logcoef_shape.getValV() - val_logcoef_den.getValV()), -10, 10 )
+    #power_ratio   = ROOT.RooRealVar( power_ratio_name  , 'power'  , val_power_num - val_power_den , -100, 100)
+    #logcoef_ratio = ROOT.RooRealVar( logcoef_ratio_name, 'logcoef', val_logcoef_num - val_logcoef_den, -10, 10 )
+
+    can_ratio = ROOT.TCanvas( str(uuid.uuid4()), '' )
+
+    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))'  
+    prediction = ROOT.RooGenericPdf('dijet_prediction_%s' %suffix , 'prediction', func, ROOT.RooArgList(xvar,power_pred, logcoef_pred))
+    norm_pred = ROOT.RooRealVar( 'dijet_prediction_%s_norm' %(suffix), 'prediction normalization', (hist_integral_shape * hist_integral_num) / hist_integral_den )
+    getattr( ws , 'import' ) ( norm_pred )
+    getattr( ws , 'import' ) ( prediction )
+
+    ratio_func = ROOT.TF1( 'ratio_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
+
+    ratio_func.SetParameter(0, result_num['power'].n - result_den['power'].n)
+    ratio_func.SetParameter(1, result_num['logcoef'].n  - result_den['logcoef'].n )
+    ratio_func.SetParameter(2, norm_num / norm_den )
+
+    ratiohist = hist_num.Clone( 'closure_ratio_%s' %(suffix) )
+    ratiohist.Divide( hist_den )
+    ratiohist.SetMarkerStyle(20)
+    ratiohist.SetMarkerSize(1)
+    ratiohist.GetXaxis().SetTitle( 'Transverse Mass [GeV]' )
+    ratiohist.GetYaxis().SetTitle( 'ratio of passing to failing %s' %shape_var )
+    ratiohist.Draw()
+    ratiohist.SetStats(0)
+
+    ratio_func.Draw('same')
+
+    ratio_power_v = val_power_num.getValV() - val_power_den.getValV()
+    ratio_power_e = math.sqrt(val_power_num.getErrorHi()*val_power_num.getErrorHi() + val_power_den.getErrorHi()*val_power_den.getErrorHi() )
+    ratio_logcoef_v = val_logcoef_num.getValV() - val_logcoef_den.getValV()
+    ratio_logcoef_e = math.sqrt(val_logcoef_num.getErrorHi()*val_logcoef_num.getErrorHi() + val_logcoef_den.getErrorHi()*val_logcoef_den.getErrorHi() )
+
+    power_tex   = ROOT.TLatex(0, 0, 'power = %.01f #pm %.02f' %( ratio_power_v,  ratio_power_e ))
+    logcoef_tex = ROOT.TLatex(0, 0, 'logcoef = %.01f #pm %.02f' %( ratio_logcoef_v,  ratio_logcoef_e ))
+
+    power_tex.SetNDC()
+    logcoef_tex.SetNDC()
+
+    power_tex  .SetX( 0.6 )
+    power_tex  .SetY( 0.84 )
+    logcoef_tex.SetX( 0.6 )
+    logcoef_tex.SetY( 0.78 )
+
+    power_tex.Draw()
+    logcoef_tex.Draw()
+
+    if closure :
+        sampMan.outputs['wjetsclosure_ratio_%s' %suffix] = can_ratio 
+    else :
+        sampMan.outputs['wjets_ratio_%s' %suffix] = can_ratio 
+    
+    if closure :
+
+        hist_sr    = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_sr   , binning )
+        result_sr  = fit_distribution( 'dijet', 2, hist_sr, xvar, label_sr, sampMan, ws )
+
+        can_sr = ROOT.TCanvas( str(uuid.uuid4()), '' )
+
+        pred_val = (hist_integral_shape * hist_integral_num) / hist_integral_den 
+
+        tot_sr = hist_sr.Integral( hist_sr.FindBin( xmin ), hist_sr.FindBin( xmax ) )
+        print 'SR integral = ', tot_sr
+        sr_func = ROOT.TF1( 'sr_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
+        sr_func.SetParameter(0, result_num['power'].n + result_shape['power'].n - result_den['power'].n )
+        sr_func.SetParameter(1, result_num['logcoef'].n + result_shape['logcoef'].n - result_den['logcoef'].n )
+        sr_func.SetParameter(2, 1 )
+        sr_int = sr_func.Integral( xmin, xmax )
+        print 'Normalization = ',(norm_shape*norm_num) / norm_den
+        print 'func Integral SR Before = ', sr_func.Integral( xmin, xmax )
+        sr_func.SetParameter(2, pred_val/sr_int )
+
+        hist_sr.Draw()
+        sr_func.Draw('same')
+
+        sampMan.outputs['wjetsclosure_pred_%s' %suffix] = can_sr
+
+
+        tot_ratio = result_num['integral']/result_den['integral']
+
 
 
 def fit_pol1( hist, xmin, xmax ) :
