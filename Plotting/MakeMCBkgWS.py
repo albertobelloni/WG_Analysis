@@ -129,7 +129,10 @@ def main() :
                    #            },
                  }
 
-    workspace_signal   = ROOT.RooWorkspace( 'workspace_signal' )
+    workspace_wgamma   = ROOT.RooWorkspace( 'workspace_wgamma' )
+    workspace_wgammalo = ROOT.RooWorkspace( 'workspace_wgammalo' )
+    workspace_top    = ROOT.RooWorkspace( 'workspace_top' )
+    workspace_zgamma = ROOT.RooWorkspace( 'workspace_zgamma' )
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
 
@@ -137,13 +140,43 @@ def main() :
 
         for ch, seldic in chdic.iteritems() : 
                                     
-            for name, vardata in kine_vars.iteritems() :
+            if options.doWGamma :
 
-                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, suffix='%s_%s_%s'%(ch,name,seltag ) )
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-130-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-500-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-500-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-130-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WGToLNuG-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'WgammaLO', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgammalo, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'Wgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
+            if options.doTop : 
+
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'TTG', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_top, suffix='%s_%s_%s' %(ch,name,seltag ) )
+
+            if options.doZGamma: 
+
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'Zgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_top, suffix='%s_%s_%s' %(ch,name,seltag ) )
 
     if options.outputDir is not None :
 
-        workspace_signal.writeToFile( '%s/%s.root' %( options.outputDir,workspace_signal.GetName() ) )
+        if options.doTop : 
+            workspace_top.writeToFile( '%s/%s.root' %( options.outputDir,workspace_top.GetName() ) )
+        if options.doWGamma :
+            workspace_wgamma.writeToFile( '%s/%s.root' %( options.outputDir,workspace_wgamma.GetName() ) )
+            workspace_wgammalo.writeToFile( '%s/%s.root' %( options.outputDir,workspace_wgammalo.GetName() ) )
+        if options.doZGamma: 
+            workspace_zgamma.writeToFile( '%s/%s.root' %( options.outputDir,workspace_zgamma.GetName() ) )
 
         for fileid, ws_list in workspaces_to_save.iteritems() :
             for idx, ws in enumerate(ws_list) :
@@ -160,248 +193,31 @@ def main() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
 
 
-def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspace, suffix ) : 
+def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, workspace, suffix='' ) :
 
-    sampMan.clear_hists()
+    ph_selection_sr = 'ph_n == 1'
+    xmin = xvar.getMin()
+    xmax = xvar.getMax()
+    addtl_cuts_sr = 'ph_pt[0] > 50 && %s > %d && %s < %d  ' %(plot_var, xmin, plot_var , xmax )
 
-    for samp in sampMan.get_samples(isSignal=True ) :
+    results = {}
 
-        print 'Sample = ', samp.name
+    for ieta in eta_cuts :
 
+        eta_str_sr = 'ph_Is%s[0]' %( ieta )
 
-        res = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_.*', samp.name )
-        if res is None :
-            print 'Could not interpret path ', samp.name
-        else :
+        full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
 
-            mass = float(res.group(2))
+        hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr   , binning )
+        
+        label = '%s_%s_%s'%(sampname, suffix, ieta)
 
-            if samp.name.count( 'width0p01' ) :
-                width = 0.0001
-            else :
-                res2 = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_width(\d)', samp.name )
-                width = float(res2.group(3))/100.
+        fitManager = FitManager( 'dijet', 2, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
 
-        if mass != 450 : 
-            continue
+        fit_distribution( fitManager, sampMan, workspace, logy=True )
+        results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
 
-        ph_selection_sr = '%s==1' %defs.get_phid_selection('all')
-        ph_idx_sr =  defs.get_phid_idx( 'all' )
-        print binning[mass]
-        addtl_cuts_sr = 'ph_pt[%s] > 50  && %s > %f && %s < %f ' %(ph_idx_sr, plot_var, binning[mass][1], plot_var, binning[mass][2] )
-
-        xvar.setBins(10000,'cache')
-        xvar.setMin('cache',-100)
-        xvar.setMax('cache',1500)
-
-        for ieta in eta_cuts :
-
-            full_suffix = '%s_%s_%s' %(samp.name, suffix, ieta)
-
-            eta_str_sr = 'ph_Is%s[%s]' %( ieta, ph_idx_sr )
-
-            full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
-
-            #hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr, binning )
-            sampMan.create_hist( samp, plot_var, full_sel_sr, binning[mass] ) 
-
-            hist_sr = samp.hist
-
-            integral = hist_sr.Integral()
-
-            #hist_sr.Scale( 1.0/integral )
-
-            #datahist = ROOT.RooDataHist( 'srhist_%s' %full_suffix, 'srhist', ROOT.RooArgList(xvar), hist_sr)
-
-            #histpdf = ROOT.RooHistPdf( 'srhistpdf_%s' %(full_suffix), 'srhistpdf' , ROOT.RooArgSet( xvar), datahist, 3 )
-
-            fit_max = mass*1.1
-            fit_min = mass/1.8
-            if mass >= 1000 :
-                fit_max = mass*1.05
-                fit_min = mass*0.7
-
-            xvar.setMin( fit_min )
-            xvar.setMax( fit_max )
-
-
-            fitManager = FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
-                                    sample_params={'mass' : mass, 'width' : width}, )
-
-            fit_distribution( fitManager)
-            #save_fit( fitManager, sampMan, workspace, stats_pos='left' )
-
-            iter_managers = []
-            iter_managers.append( fitManager )
-
-            saved_result = False
-            for i in range( 0, 4 ) :
-            #for i in [0.5, 0.3, 0.2, 0.1, 0.05] :
-
-                print 'GOTHERE1'
-                iter_managers.append(FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
-                                        sample_params={'mass' : mass, 'width' : width}, ))
-
-                print 'GOTHERE2'
-                cv_sigma = iter_managers[-2].cb_sigma.getValV()
-                lo_sigma = iter_managers[-2].cb_sigma.getErrorLo()
-                hi_sigma = iter_managers[-2].cb_sigma.getErrorHi()
-                cv_power = iter_managers[-2].cb_power.getValV()
-                lo_power = iter_managers[-2].cb_power.getErrorLo()
-                hi_power = iter_managers[-2].cb_power.getErrorHi()
-                cv_mass  = iter_managers[-2].cb_mass.getValV()
-                lo_mass  = iter_managers[-2].cb_mass.getErrorLo()
-                hi_mass  = iter_managers[-2].cb_mass.getErrorHi()
-
-                err_sigma = hi_sigma/cv_sigma
-                err_power = hi_power/cv_power
-                err_mass = hi_mass/cv_mass
-
-                #new_lim_sigma = ( cv_sigma, cv_sigma*(1-i), cv_sigma*(1+i)) 
-                #new_lim_power = ( cv_power, cv_power*(1-i), cv_power*(1+i) ) 
-                #new_lim_mass  = ( cv_mass, cv_mass*(1-i), cv_mass*(1+i)    ) 
-
-                new_lim_sigma = ( cv_sigma, cv_sigma+lo_sigma, cv_sigma+hi_sigma) 
-                new_lim_power = ( cv_power, cv_power+lo_power, cv_power+hi_power ) 
-                new_lim_mass  = ( cv_mass,  cv_mass+lo_mass, cv_mass+hi_mass    ) 
-
-                #if cv_sigma < 0 :
-                #    new_lim_sigma = ( new_lim_sigma[0], new_lim_sigma[2], new_lim_sigma[1]) 
-                #if cv_power < 0 :
-                #    new_lim_power = ( new_lim_power[0], new_lim_power[2], new_lim_power[1]) 
-                #if cv_mass < 0 :
-                #    new_lim_mass = ( new_lim_mass[0], new_lim_mass[2], new_lim_mass[1] ) 
-
-                print 'NEW DEFAULTS'
-                print new_lim_sigma
-                print new_lim_power
-                print new_lim_mass
-
-                iter_managers[-1].set_vals('cb_sigma', mass, new_lim_sigma )
-                iter_managers[-1].set_vals('cb_power', mass, new_lim_power )
-                iter_managers[-1].set_vals('cb_mass',  mass, new_lim_mass  )
-
-                print 'GOTHERE3'
-                fit_distribution( iter_managers[-1] )
-                print 'GOTHERE4'
-
-                cv_sigma_new = iter_managers[-1].cb_sigma.getValV()
-                lo_sigma_new = iter_managers[-1].cb_sigma.getErrorLo()
-                hi_sigma_new = iter_managers[-1].cb_sigma.getErrorHi()
-                cv_power_new = iter_managers[-1].cb_power.getValV()
-                lo_power_new = iter_managers[-1].cb_power.getErrorLo()
-                hi_power_new = iter_managers[-1].cb_power.getErrorHi()
-                cv_mass_new  = iter_managers[-1].cb_mass.getValV()
-                lo_mass_new  = iter_managers[-1].cb_mass.getErrorLo()
-                hi_mass_new  = iter_managers[-1].cb_mass.getErrorHi()
-
-                err_sigma_new = hi_sigma_new/cv_sigma_new
-                err_power_new = hi_power_new/cv_power_new
-                err_mass_new = hi_mass_new/cv_mass_new
-
-                print 'Sigma : Previous error = %f, new error = %f' %( err_sigma, err_sigma_new )
-                print 'Power : Previous error = %f, new error = %f' %( err_power, err_power_new )
-                print 'Mass : Previous error = %f, new error = %f' %( err_mass, err_mass_new )
-
-                print 'GOTHERE5'
-                # if we get worse results with the new fit, then use the previous one
-                if math.fabs(err_sigma_new) > math.fabs(err_sigma) or math.fabs(err_power_new) > math.fabs(err_power) or math.fabs(err_mass_new) > math.fabs(err_mass) :
-                    print 'GOTHERE6'
-                    save_fit( iter_managers[-2], sampMan, workspace, stats_pos='left' )
-                    print 'GOTHERE7'
-                    saved_result = True
-                    break
-
-            # if we haven't saved the fit yet, then the best
-            # version is the latest
-            if not saved_result :
-                print 'GOTHERE8'
-                save_fit( iter_managers[-1], sampMan, workspace, stats_pos='left' )
-                print 'GOTHERE9'
-
-
-
-            #cb_sigma.setVal( cb_sigma.getValV() )
-            #cb_sigma.setMin( cb_sigma.getValV() - cb_sigma.getErrorLo() )
-            #cb_sigma.setMin( cb_sigma.getValV() + cb_sigma.getErrorHi() )
-            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
-
-            ## Construct unbinned likelihood of model w.r.t. data
-            #nll = model.createNLL(datahist) ;
-            #raw_input('cont1')
-            ##// I n t e r a c t i v e   m i n i m i z a t i o n ,   e r r o r   a n a l y s i s
-            ##// -------------------------------------------------------------------------------
-            ##// Create MINUIT interface object
-            #m = ROOT.RooMinimizer(nll) 
-            #raw_input('cont2')
-            ##// Activate verbose logging of MINUIT parameter space stepping
-            #m.setVerbose(ROOT.kTRUE) 
-            #raw_input('cont3')
-            ##// Call MIGRAD to minimize the likelihood
-            #m.migrad() 
-            #raw_input('cont4')
-            ##// Print values of all parameters, that reflect values (and error estimates)
-            ##// that are back propagated from MINUIT
-            #model.getParameters(ROOT.RooArgSet(xvar)).Print("s") 
-            #raw_input('cont5')
-            ##// Disable verbose logging
-            #m.setVerbose(ROOT.kFALSE) 
-            #raw_input('cont6')
-            ##// Run HESSE to calculate errors from d2L/dp2
-            #m.hesse() 
-            #raw_input('cont7')
-            ##// Print value (and error) of sigma_g2 parameter, that reflects
-            ##// value and error back propagated from MINUIT
-            #cb.Print() 
-            #raw_input('cont8')
-            #bw.Print() 
-            #raw_input('cont9')
-            #cb_cut.Print()
-            #raw_input('cont10')
-            #cb_sigma.Print()
-            #raw_input('cont11')
-            #cb_power.Print()
-            #raw_input('cont12')
-            #cb_m0.Print()
-            #raw_input('cont13')
-            ##// Run MINOS on sigma_g2 parameter only
-            #m.minos(ROOT.RooArgSet(cb_power)) 
-            #raw_input('cont14')
-            #cb_power.Print()
-            #raw_input('cont15')
-            ##// Print value (and error) of sigma_g2 parameter, that reflects
-            ##// value and error back propagated from MINUIT
-            #sigma_g2.Print() ;
-
-
-            #can = ROOT.TCanvas( 'signal_can_%s' %( full_suffix ), '' )
-            #frame = xvar.frame(fit_min, fit_max) 
-            #datahist.plotOn(frame)
-            #model.plotOn( frame )
-            #model.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.1,0.5,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(3)));
-            #frame.Draw()
-
-            #frame = xvar.frame()
-
-            #datahist.plotOn( frame )
-            #histpdf.plotOn( frame )
-
-            ##frame.Draw()
-            #sampMan.outputs[can.GetName()] = can
-
-            #norm_var = ROOT.RooRealVar( 'srhist_%s_norm' %( full_suffix ), 'signal normalization', integral )
-
-            #xs_var = ROOT.RooRealVar( 'cross_section_%s' %full_suffix, 'Cross section', samp.cross_section )
-            #tot_evt = ROOT.RooRealVar( 'total_events_%s' %full_suffix, 'Total Events', samp.total_events)
-            #scale = ROOT.RooRealVar( 'scale_%s' %full_suffix, 'Scale', samp.scale)
-
-            #getattr(workspace, 'import' )(model)
-            #getattr(workspace, 'import' )(datahist)
-            #getattr(workspace, 'import' )(norm_var)
-            #getattr(workspace, 'import' )(xs_var)
-            #getattr(workspace, 'import' )(tot_evt)
-            #getattr(workspace, 'import' )(scale)
-
+    return results
 
 def fit_pol1( hist, xmin, xmax ) :
 
