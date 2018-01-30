@@ -101,8 +101,8 @@ def main() :
 
     xvar_pt = ROOT.RooRealVar( 'x_pt', 'x_pt', xmin_pt, xmax_pt )
 
-    signal_binning_m = { 200 : ( (xmax_m)/5 , 0, xmax_m ),
-                         250 : ( (xmax_m)/5 , 0, xmax_m ),
+    signal_binning_m = { 200 : ( (xmax_m)/3 , 0, xmax_m ),
+                         250 : ( (xmax_m)/3 , 0, xmax_m ),
                          300 : ( (xmax_m)/5 , 0, xmax_m ),
                          350 : ( (xmax_m)/5 , 0, xmax_m ),
                          400 : ( (xmax_m)/5 , 0, xmax_m ),
@@ -110,9 +110,9 @@ def main() :
                          500 : ( (xmax_m)/10 , 0, xmax_m ),
                          600 : ( (xmax_m)/10, 0, xmax_m ),
                          700 : ( (xmax_m)/10, 0, xmax_m ),
-                         800 : ( (xmax_m)/10, 0, xmax_m ),
-                         900 : ( (xmax_m)/10, 0, xmax_m ),
-                        1000 : ( (xmax_m)/10, 0, xmax_m ),
+                         800 : ( (xmax_m)/15, 0, xmax_m ),
+                         900 : ( (xmax_m)/15, 0, xmax_m ),
+                        1000 : ( (xmax_m)/15, 0, xmax_m ),
                         1200 : ( (xmax_m)/20, 0, xmax_m ),
                         1400 : ( (xmax_m)/20, 0, xmax_m ),
                         1600 : ( (xmax_m)/20, 0, xmax_m ),
@@ -266,16 +266,19 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
 
         print 'Sample = ', samp.name
 
-        res = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_width(\d|0p01)', samp.name )
+
+        res = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_.*', samp.name )
         if res is None :
             print 'Could not interpret path ', samp.name
         else :
+
             mass = float(res.group(2))
-            width = res.group(3)
-            if width == '0p01' :
+
+            if samp.name.count( 'width0p01' ) :
                 width = 0.0001
             else :
-                width = float( width )
+                res2 = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_width(\d)', samp.name )
+                width = float(res2.group(3))/100.
 
         if mass != 450 : 
             continue
@@ -306,81 +309,120 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
 
             #hist_sr.Scale( 1.0/integral )
 
-            datahist = ROOT.RooDataHist( 'srhist_%s' %full_suffix, 'srhist', ROOT.RooArgList(xvar), hist_sr)
+            #datahist = ROOT.RooDataHist( 'srhist_%s' %full_suffix, 'srhist', ROOT.RooArgList(xvar), hist_sr)
 
             #histpdf = ROOT.RooHistPdf( 'srhistpdf_%s' %(full_suffix), 'srhistpdf' , ROOT.RooArgSet( xvar), datahist, 3 )
 
-            fit_min = 0
             fit_max = mass*1.1
-            fit_min = mass/2.
+            fit_min = mass/1.8
             if mass >= 1000 :
                 fit_max = mass*1.05
                 fit_min = mass*0.7
 
-            ##------------------------------
-            ## Breit-Wigner, has two parameters, the resonance mass and the width
-            #------------------------------
-            bw_width = mass*width
-            #if bw_width < 0.05 : 
-            bw_width = 0.05
-            bw_m = ROOT.RooRealVar('bw_mass' , 'Resonance  Mass', mass, fit_min, fit_max, 'GeV')
-            bw_w = ROOT.RooRealVar('bw_width', 'Breit-Wigner width',bw_width, 0, 200,'GeV')
-            bw_m.setConstant()
-            bw_w.setConstant()
-            bw = ROOT.RooBreitWigner('bw' ,'A Breit-Wigner Distribution', xvar, bw_m,bw_w)
-
-            ##------------------------------
-            ## Gaussian, has two parameters, the resonance mass and the width
-            ##------------------------------
-            #gaus_width_val = mass*width
-            #if gaus_width_val < 2. :
-            #    gaus_width_val = 2.0
-            #gaus_m = ROOT.RooRealVar('gaus_mass' , 'Resonance  Mass', mass, fit_min, fit_max,'GeV')
-            #gaus_w = ROOT.RooRealVar('gaus_width', 'Breit-Wigner width',gaus_width_val , -100, 100,'GeV')
-            #gaus_m.setConstant()
-            ##gaus_w.setConstant()
-            #gaus = ROOT.RooGaussian('gaus%s' %suffix,'A Gaussian Distribution', xvar, gaus_m,gaus_w)
+            xvar.setMin( fit_min )
+            xvar.setMax( fit_max )
 
 
-            #------------------------------
-            # crystal ball, has four parameters
-            #------------------------------
-            cb_cut   = ROOT.RooRealVar('cb_cut'   , 'Cut'  , 0.5, 0.38, 0.60 , '')
-            cb_sigma = ROOT.RooRealVar('cb_sigma' , 'Width', 28.49, 5  , 100, 'GeV')
-            cb_power = ROOT.RooRealVar('cb_power' , 'Power', 30.,   0.    , 130., '')
-            cb_m0    = ROOT.RooRealVar('cb_mass'  , 'mass' , -18.84, -100.  , 0.,'GeV')
+            fitManager = FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
+                                    sample_params={'mass' : mass, 'width' : width}, )
 
-            #cb_cut = ROOT.RooRealVar('cb_cut'      , 'Cut'  , 0.3851, 0.22, 0.52 , '')
-            #cb_cut = ROOT.RooRealVar('cb_cut'      , 'Cut'  , 0.438, 0.38, 0.50 , '')
-            cb_cut = ROOT.RooRealVar('cb_cut'      , 'Cut'  , 0.5, 0.38, 0.60 , '')
-            #cb_sigma = ROOT.RooRealVar('cb_sigma' , 'Width', 28.49, 20  , 40, 'GeV')
-            cb_sigma = ROOT.RooRealVar('cb_sigma' , 'Width', 26.5, 24.  , 30., 'GeV')
-            #cb_power = ROOT.RooRealVar('cb_power'      , 'Power', 30., 0.    , 130., '')
-            cb_power = ROOT.RooRealVar('cb_power'      , 'Power', 2.415, 2.2    , 2.6, '')
-            #cb_m0 = ROOT.RooRealVar('cb_mass' , 'mass' , -18.84, -20. , -15.,'GeV')
-            cb_m0 = ROOT.RooRealVar('cb_mass' , 'mass' , -17.451, -19. , -15.,'GeV')
-            cb_cut.setConstant()
+            fit_distribution( fitManager)
+            #save_fit( fitManager, sampMan, workspace, stats_pos='left' )
 
-            cb_cut.setError( 0.05 )
-            cb_sigma.setError( 0.5 )
-            cb_power.setError( 1. )
-            cb_m0.setError( 1. )
+            iter_managers = []
+            iter_managers.append( fitManager )
 
-            cb = ROOT.RooCBShape('cb', 'A  Crystal Ball Lineshape', xvar, cb_m0, cb_sigma,cb_cut,cb_power)
+            saved_result = False
+            for i in range( 0, 4 ) :
+            #for i in [0.5, 0.3, 0.2, 0.1, 0.05] :
 
-            model = ROOT.RooFFTConvPdf('sig_model','Convolution', xvar, bw, cb)
+                print 'GOTHERE1'
+                iter_managers.append(FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
+                                        sample_params={'mass' : mass, 'width' : width}, ))
 
-            datahist = ROOT.RooDataHist( 'datahist', 'datahist', ROOT.RooArgList(xvar), hist_sr )
+                print 'GOTHERE2'
+                cv_sigma = iter_managers[-2].cb_sigma.getValV()
+                lo_sigma = iter_managers[-2].cb_sigma.getErrorLo()
+                hi_sigma = iter_managers[-2].cb_sigma.getErrorHi()
+                cv_power = iter_managers[-2].cb_power.getValV()
+                lo_power = iter_managers[-2].cb_power.getErrorLo()
+                hi_power = iter_managers[-2].cb_power.getErrorHi()
+                cv_mass  = iter_managers[-2].cb_mass.getValV()
+                lo_mass  = iter_managers[-2].cb_mass.getErrorLo()
+                hi_mass  = iter_managers[-2].cb_mass.getErrorHi()
 
-            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True) , ROOT.RooCmdArg( 'Minimizer', 0,0,0,0,'GSLMultiMin' ))
-            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Minos', 1 ) )
-            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Minos', 0 ) )
-            model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
+                err_sigma = hi_sigma/cv_sigma
+                err_power = hi_power/cv_power
+                err_mass = hi_mass/cv_mass
 
-            cb_sigma.setVal( cb_sigma.getValV() )
-            cb_sigma.setMin( cb_sigma.getValV() - cb_sigma.getErrorLo() )
-            cb_sigma.setMin( cb_sigma.getValV() + cb_sigma.getErrorHi() )
-            model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
+                #new_lim_sigma = ( cv_sigma, cv_sigma*(1-i), cv_sigma*(1+i)) 
+                #new_lim_power = ( cv_power, cv_power*(1-i), cv_power*(1+i) ) 
+                #new_lim_mass  = ( cv_mass, cv_mass*(1-i), cv_mass*(1+i)    ) 
+
+                new_lim_sigma = ( cv_sigma, cv_sigma+lo_sigma, cv_sigma+hi_sigma) 
+                new_lim_power = ( cv_power, cv_power+lo_power, cv_power+hi_power ) 
+                new_lim_mass  = ( cv_mass,  cv_mass+lo_mass, cv_mass+hi_mass    ) 
+
+                #if cv_sigma < 0 :
+                #    new_lim_sigma = ( new_lim_sigma[0], new_lim_sigma[2], new_lim_sigma[1]) 
+                #if cv_power < 0 :
+                #    new_lim_power = ( new_lim_power[0], new_lim_power[2], new_lim_power[1]) 
+                #if cv_mass < 0 :
+                #    new_lim_mass = ( new_lim_mass[0], new_lim_mass[2], new_lim_mass[1] ) 
+
+                print 'NEW DEFAULTS'
+                print new_lim_sigma
+                print new_lim_power
+                print new_lim_mass
+
+                iter_managers[-1].set_vals('cb_sigma', mass, new_lim_sigma )
+                iter_managers[-1].set_vals('cb_power', mass, new_lim_power )
+                iter_managers[-1].set_vals('cb_mass',  mass, new_lim_mass  )
+
+                print 'GOTHERE3'
+                fit_distribution( iter_managers[-1] )
+                print 'GOTHERE4'
+
+                cv_sigma_new = iter_managers[-1].cb_sigma.getValV()
+                lo_sigma_new = iter_managers[-1].cb_sigma.getErrorLo()
+                hi_sigma_new = iter_managers[-1].cb_sigma.getErrorHi()
+                cv_power_new = iter_managers[-1].cb_power.getValV()
+                lo_power_new = iter_managers[-1].cb_power.getErrorLo()
+                hi_power_new = iter_managers[-1].cb_power.getErrorHi()
+                cv_mass_new  = iter_managers[-1].cb_mass.getValV()
+                lo_mass_new  = iter_managers[-1].cb_mass.getErrorLo()
+                hi_mass_new  = iter_managers[-1].cb_mass.getErrorHi()
+
+                err_sigma_new = hi_sigma_new/cv_sigma_new
+                err_power_new = hi_power_new/cv_power_new
+                err_mass_new = hi_mass_new/cv_mass_new
+
+                print 'Sigma : Previous error = %f, new error = %f' %( err_sigma, err_sigma_new )
+                print 'Power : Previous error = %f, new error = %f' %( err_power, err_power_new )
+                print 'Mass : Previous error = %f, new error = %f' %( err_mass, err_mass_new )
+
+                print 'GOTHERE5'
+                # if we get worse results with the new fit, then use the previous one
+                if math.fabs(err_sigma_new) > math.fabs(err_sigma) or math.fabs(err_power_new) > math.fabs(err_power) or math.fabs(err_mass_new) > math.fabs(err_mass) :
+                    print 'GOTHERE6'
+                    save_fit( iter_managers[-2], sampMan, workspace, stats_pos='left' )
+                    print 'GOTHERE7'
+                    saved_result = True
+                    break
+
+            # if we haven't saved the fit yet, then the best
+            # version is the latest
+            if not saved_result :
+                print 'GOTHERE8'
+                save_fit( iter_managers[-1], sampMan, workspace, stats_pos='left' )
+                print 'GOTHERE9'
+
+
+
+            #cb_sigma.setVal( cb_sigma.getValV() )
+            #cb_sigma.setMin( cb_sigma.getValV() - cb_sigma.getErrorLo() )
+            #cb_sigma.setMin( cb_sigma.getValV() + cb_sigma.getErrorHi() )
+            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
 
             ## Construct unbinned likelihood of model w.r.t. data
             #nll = model.createNLL(datahist) ;
@@ -430,33 +472,33 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             #sigma_g2.Print() ;
 
 
-            can = ROOT.TCanvas( 'signal_can_%s' %( full_suffix ), '' )
-            frame = xvar.frame(fit_min, fit_max) 
-            datahist.plotOn(frame)
-            model.plotOn( frame )
-            model.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.1,0.5,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(3)));
-            frame.Draw()
+            #can = ROOT.TCanvas( 'signal_can_%s' %( full_suffix ), '' )
+            #frame = xvar.frame(fit_min, fit_max) 
+            #datahist.plotOn(frame)
+            #model.plotOn( frame )
+            #model.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.1,0.5,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(3)));
+            #frame.Draw()
 
             #frame = xvar.frame()
 
             #datahist.plotOn( frame )
             #histpdf.plotOn( frame )
 
-            #frame.Draw()
-            sampMan.outputs[can.GetName()] = can
+            ##frame.Draw()
+            #sampMan.outputs[can.GetName()] = can
 
-            norm_var = ROOT.RooRealVar( 'srhist_%s_norm' %( full_suffix ), 'signal normalization', integral )
+            #norm_var = ROOT.RooRealVar( 'srhist_%s_norm' %( full_suffix ), 'signal normalization', integral )
 
-            xs_var = ROOT.RooRealVar( 'cross_section_%s' %full_suffix, 'Cross section', samp.cross_section )
-            tot_evt = ROOT.RooRealVar( 'total_events_%s' %full_suffix, 'Total Events', samp.total_events)
-            scale = ROOT.RooRealVar( 'scale_%s' %full_suffix, 'Scale', samp.scale)
+            #xs_var = ROOT.RooRealVar( 'cross_section_%s' %full_suffix, 'Cross section', samp.cross_section )
+            #tot_evt = ROOT.RooRealVar( 'total_events_%s' %full_suffix, 'Total Events', samp.total_events)
+            #scale = ROOT.RooRealVar( 'scale_%s' %full_suffix, 'Scale', samp.scale)
 
-            getattr(workspace, 'import' )(model)
-            getattr(workspace, 'import' )(datahist)
-            getattr(workspace, 'import' )(norm_var)
-            getattr(workspace, 'import' )(xs_var)
-            getattr(workspace, 'import' )(tot_evt)
-            getattr(workspace, 'import' )(scale)
+            #getattr(workspace, 'import' )(model)
+            #getattr(workspace, 'import' )(datahist)
+            #getattr(workspace, 'import' )(norm_var)
+            #getattr(workspace, 'import' )(xs_var)
+            #getattr(workspace, 'import' )(tot_evt)
+            #getattr(workspace, 'import' )(scale)
 
 
 def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, workspace, suffix='' ) :
@@ -480,7 +522,8 @@ def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, 
 
         fitManager = FitManager( 'dijet', 2, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
 
-        results[ieta] = fit_distribution( fitManager, sampMan, workspace )
+        fit_distribution( fitManager, sampMan, workspace, logy=True )
+        results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
 
     return results
 
@@ -701,10 +744,12 @@ def fit_pol1( hist, xmin, xmax ) :
     hist.Draw()
     lin_func.Draw('same')
 
-def fit_distribution( fitManager, sampMan=None, workspace=None ) :
+def fit_distribution( fitManager ) :
 
     fitManager.fit_histogram()
     fitManager.calculate_func_pdf()
+
+def save_fit( fitManager, sampMan=None, workspace=None, logy=False, stats_pos='right' ) :
 
     if sampMan is not None :
 
@@ -712,15 +757,17 @@ def fit_distribution( fitManager, sampMan=None, workspace=None ) :
         frame = fitManager.xvar.frame() 
         fitManager.datahist.plotOn(frame)
         fitManager.func_pdf.plotOn( frame )
-        fitManager.func_pdf.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
+        if stats_pos == 'left' : 
+            fitManager.func_pdf.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.1,0.5,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(3)));
+        if stats_pos == 'right' :
+            fitManager.func_pdf.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
         frame.Draw()
-        ymax = frame.GetMaximum()
-        frame.SetMinimum( 0.001 )
-        frame.SetMaximum( ymax*10 )
-        can.SetLogy()
-        can.SetLogx()
-
-        raw_input('cont')
+        if logy :
+            ymax = frame.GetMaximum()
+            frame.SetMinimum( 0.001 )
+            frame.SetMaximum( ymax*10 )
+            can.SetLogy()
+            can.SetLogx()
 
         sampMan.outputs[fitManager.label] = can
 

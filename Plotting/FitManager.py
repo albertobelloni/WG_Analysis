@@ -1,8 +1,9 @@
 import ROOT
 
 class FitManager : 
+    """ Aim to collect all fitting machinery here """
 
-    def __init__(self, typename, norders, sampname, hist, plot_var, ieta, xvar, label, useRooFit) :
+    def __init__(self, typename, norders, sampname, hist, plot_var, ieta, xvar, label, useRooFit, sample_params={}) :
 
         self.defs = {}
 
@@ -24,6 +25,8 @@ class FitManager :
 
         self.useRooFit = useRooFit
 
+        self.sample_params = sample_params
+
         self.hist.SetLineColor( ROOT.kBlack )
         self.hist.SetMarkerColor( ROOT.kBlack )
         self.hist.SetMarkerStyle( 20 )
@@ -33,6 +36,29 @@ class FitManager :
         ROOT.SetOwnership( self.datahist, False )
         
         self.get_defaults( sampname, plot_var, ieta )
+
+        self.objs = []
+
+    def MakeROOTObj( self, root_obj, name, *args ) :
+        """ Generic function for making ROOT objects."""  
+
+        all_args = ( name, ) + args
+
+        try :
+            thisobj = getattr(ROOT, root_obj)( *all_args )
+            ROOT.SetOwnership( thisobj, False )
+            setattr( self, name, thisobj )
+
+            #self.objs.append( thisobj )
+            return thisobj
+        except TypeError :
+            print '***********************************************************'
+            print 'FitManager.MakeROOTObj -- Failed to create a %s.  Please check the arguments :'%name
+            print args
+            print 'Exception is below'
+            print '***********************************************************'
+            raise
+
 
     def Integral( self ) :
 
@@ -144,12 +170,92 @@ class FitManager :
 
             func_str = self.get_fit_function() 
 
-            self.func_pdf = ROOT.RooGenericPdf('%s_%s' %(self.func_name, self.label), self.func_name, func_str, arg_list)
-            ROOT.SetOwnership(func_pdf, False)
+            if self.func_name == 'bwxcb'  :
 
-            self.func_pdf.fitTo( self.datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True)  )
+                mass = self.sample_params['mass']
+                width = self.sample_params['width']
 
-            return func_pdf
+                bw_width = mass*width
+                if bw_width < 2  :
+                    bw_width = 2
+
+                bw_m = self.MakeROOTObj( 'RooRealVar', 'bw_mass' , 'Resonance  Mass', mass, xmin, xmax, 'GeV' )
+                bw_w = self.MakeROOTObj('RooRealVar', 'bw_width', 'Breit-Wigner width',bw_width, 0, 200,'GeV')
+                #bw_m.setConstant()
+                #bw_w.setConstant()
+                bw = self.MakeROOTObj('RooBreitWigner', 'bw' ,'A Breit-Wigner Distribution', self.xvar, bw_m,bw_w)
+
+                #------------------------------
+                # crystal ball, has four parameters
+                #------------------------------
+                sigma_vals = self.defs['cb_sigma'][mass]
+                power_vals = self.defs['cb_power'][mass]
+                mass_vals  = self.defs['cb_mass'][mass]
+                cb_cut   = self.MakeROOTObj('RooRealVar','cb_cut'   , 'Cut'  , 0.5, 0.5, 0.50 , '')
+                cb_sigma = self.MakeROOTObj('RooRealVar','cb_sigma' , 'Width', sigma_vals[0], sigma_vals[1], sigma_vals[2], 'GeV')
+                cb_power = self.MakeROOTObj('RooRealVar','cb_power' , 'Power', power_vals[0], power_vals[1], power_vals[2], '')
+                cb_m0    = self.MakeROOTObj('RooRealVar','cb_mass'  , 'mass' , mass_vals[0], mass_vals[1], mass_vals[2],'GeV')
+
+                cb_cut.setConstant()
+                #cb_power.setConstant()
+                #cb_m0.setConstant()
+
+                cb_cut.setError( 0.05 )
+                cb_sigma.setError( 0.5 )
+                cb_power.setError( 1. )
+                cb_m0.setError( 1. )
+
+                cb = self.MakeROOTObj('RooCBShape','cb', 'A  Crystal Ball Lineshape', self.xvar, cb_m0, cb_sigma,cb_cut,cb_power)
+
+                self.func_pdf = self.MakeROOTObj('RooFFTConvPdf','sig_model','Convolution', self.xvar, bw, cb)
+                
+            else :
+                self.func_pdf = self.MakeROOTObj('RooGenericPdf','%s_%s' %(self.func_name, self.label), self.func_name, func_str, arg_list)
+
+            self.func_pdf.fitTo( self.datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
+
+            #nll = self.func_pdf.createNLL(self.datahist) ;
+            #m = ROOT.RooMinimizer(nll) 
+            #m.setStrategy(2)
+            #raw_input('cont2')
+            ##// Activate verbose logging of MINUIT parameter space stepping
+            #m.setVerbose(ROOT.kTRUE) 
+            #raw_input('cont3')
+            ##// Call MIGRAD to minimize the likelihood
+            #m.simplex() 
+            #raw_input('cont3.5')
+            #m.migrad() 
+            #raw_input('cont4')
+            ##// Print values of all parameters, that reflect values (and error estimates)
+            ##// that are back propagated from MINUIT
+            #self.func_pdf.getParameters(ROOT.RooArgSet(self.xvar)).Print("s") 
+            #raw_input('cont5')
+            ##// Disable verbose logging
+            #m.setVerbose(ROOT.kFALSE) 
+            #raw_input('cont6')
+            ##// Run HESSE to calculate errors from d2L/dp2
+            #m.hesse() 
+            #raw_input('cont7')
+            ##// Print value (and error) of sigma_g2 parameter, that reflects
+            ##// value and error back propagated from MINUIT
+            ##cb_cut.Print()
+            ##raw_input('cont10')
+            #self.cb_sigma.Print()
+            ##raw_input('cont11')
+            ##cb_power.Print()
+            ##raw_input('cont12')
+            ##cb_m0.Print()
+            #raw_input('cont13')
+            ##// Run MINOS on sigma_g2 parameter only
+            #m.minos(ROOT.RooArgSet(self.cb_sigma)) 
+            #raw_input('cont14')
+            #self.cb_sigma.Print()
+            #raw_input('cont15')
+            ##// Print value (and error) of sigma_g2 parameter, that reflects
+            ##// value and error back propagated from MINUIT
+            ##sigma_g2.Print() ;
+
+            return self.func_pdf
         else :
 
             func_str = self.get_fit_function( ) 
@@ -221,6 +327,27 @@ class FitManager :
         self.set_vals('atlas_den_power', 1, ( -9.9, -100, 100 ) )
         self.set_vals('atlas_den_logcoef', 1, ( -9.9, -100, 100 ) )
         self.set_vals('atlas_den_logcoef', 2, ( -9.9, -100, 100 ) )
+
+        #self.set_vals('cb_sigma', 450, ( 26.41, 15., 35. ) )
+        #self.set_vals('cb_power', 450, ( 2.15, 1., 4. ) )
+        #self.set_vals('cb_mass',  450, ( -18.1, -30., -10. ) )
+        
+        #self.set_vals('cb_sigma', 450, ( 28., 1., 100. ) )
+        #self.set_vals('cb_power', 450, ( 30., 0., 130. ) )
+        #self.set_vals('cb_mass',  450, ( -18, -100, 0 ) )
+    
+        self.set_vals('cb_sigma', 500, ( 28., 1., 100. ) )
+        self.set_vals('cb_power', 500, ( 2.15, 0., 10. ) )
+        self.set_vals('cb_mass',  500, ( -18, -100, 0 ) )
+        
+        self.set_vals('cb_sigma', 450, ( 28., 1., 100. ) )
+        self.set_vals('cb_power', 450, ( 2.15, 0., 10. ) )
+        self.set_vals('cb_mass',  450, ( -18, -100, 0 ) )
+        
+        self.set_vals('cb_sigma', 400, ( 28., 1., 100. ) )
+        self.set_vals('cb_power', 400, ( 2.15, 0., 10. ) )
+        self.set_vals('cb_mass',  400, ( -18, -100, 0 ) )
+        
     
     
 
