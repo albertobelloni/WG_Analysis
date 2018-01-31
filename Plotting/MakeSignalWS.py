@@ -228,8 +228,8 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             fitManager = FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
                                     sample_params={'mass' : mass, 'width' : width}, )
 
-            fit_distribution( fitManager)
-            #save_fit( fitManager, sampMan, workspace, stats_pos='left' )
+            fitManager.fit_histogram( )
+            #fitManager.save_fit( sampMan, workspace, stats_pos='left' )
 
             iter_managers = []
             iter_managers.append( fitManager )
@@ -282,7 +282,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
                 iter_managers[-1].set_vals('cb_mass',  mass, new_lim_mass  )
 
                 print 'GOTHERE3'
-                fit_distribution( iter_managers[-1] )
+                iter_managers[-1].fit_histogram(  )
                 print 'GOTHERE4'
 
                 cv_sigma_new = iter_managers[-1].cb_sigma.getValV()
@@ -307,7 +307,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
                 # if we get worse results with the new fit, then use the previous one
                 if math.fabs(err_sigma_new) > math.fabs(err_sigma) or math.fabs(err_power_new) > math.fabs(err_power) or math.fabs(err_mass_new) > math.fabs(err_mass) :
                     print 'GOTHERE6'
-                    save_fit( iter_managers[-2], sampMan, workspace, stats_pos='left' )
+                    iter_managers[-2].save_fit( sampMan, workspace, stats_pos='left' )
                     print 'GOTHERE7'
                     saved_result = True
                     break
@@ -316,7 +316,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             # version is the latest
             if not saved_result :
                 print 'GOTHERE8'
-                save_fit( iter_managers[-1], sampMan, workspace, stats_pos='left' )
+                iter_managers[-1].save_fit(sampMan, workspace, stats_pos='left' )
                 print 'GOTHERE9'
 
 
@@ -414,300 +414,6 @@ def fit_pol1( hist, xmin, xmax ) :
 
     hist.Draw()
     lin_func.Draw('same')
-
-def fit_distribution( fitManager ) :
-
-    fitManager.fit_histogram()
-    fitManager.calculate_func_pdf()
-
-def save_fit( fitManager, sampMan=None, workspace=None, logy=False, stats_pos='right' ) :
-
-    if sampMan is not None :
-
-        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
-        frame = fitManager.xvar.frame() 
-        fitManager.datahist.plotOn(frame)
-        fitManager.func_pdf.plotOn( frame )
-        if stats_pos == 'left' : 
-            fitManager.func_pdf.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.1,0.5,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(3)));
-        if stats_pos == 'right' :
-            fitManager.func_pdf.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
-        frame.Draw()
-        if logy :
-            ymax = frame.GetMaximum()
-            frame.SetMinimum( 0.001 )
-            frame.SetMaximum( ymax*10 )
-            can.SetLogy()
-            can.SetLogx()
-
-        sampMan.outputs[fitManager.label] = can
-
-    integral = fitManager.Integral( )
-
-    #power_res = ufloat( power.getValV(), power.getErrorHi() )
-    #log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
-    #int_res   = ufloat( integral, math.sqrt( integral ) )
-
-    power_res = ufloat( 0, 0 )
-    log_res   = ufloat( 0,0)
-    int_res   = ufloat( 0, 0)
-
-    integral_var = ROOT.RooRealVar('dijet_%s_norm' %( fitManager.label ), 'normalization', integral )
-
-    #power.SetName( power_name )
-    #logcoef.SetName( logcoef_name )
-
-    if workspace is not None :
-        getattr( workspace , 'import' ) ( fitManager.datahist )
-        getattr( workspace , 'import' ) ( fitManager.func_pdf )
-        getattr( workspace , 'import' ) ( integral_var )
-
-
-    return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : fitManager.get_fit_function(), 'object' : fitManager.func_pdf }
-
-
-def fit_dijet_3( hist, xvar, label='', sampMan=None, workspace=None ) :
-
-    xmin = xvar.getMin()
-    xmax = xvar.getMax()
-
-    power_name = 'power_dijet3_%s'  %label
-    logsqcoef_name = 'logcoef_dijet3_%s' %label
-    logcoef_name = 'logcoef_dijet3_%s' %label
-
-    power = ROOT.RooRealVar( 'power', 'power', -9.9, -100, 100)
-    logsqcoef = ROOT.RooRealVar( 'logsqcoef', 'logsqcoef', -0.85, -10, 10 )
-    logcoef = ROOT.RooRealVar( 'logcoef', 'logcoef', -0.85, -10, 10 )
-
-    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000)*TMath::Log10(@0/13000) + @3*TMath::Log10(@0/13000))'  
-    dijet = ROOT.RooGenericPdf('dijet3_%s' %label, 'dijet3', func, ROOT.RooArgList(xvar,power, logsqcoef, logcoef))
-
-    #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
-    datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
-
-    dijet.fitTo( datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True)  )
-
-    integral =  dijet.getNormIntegral(ROOT.RooArgSet( xvar ) )
-
-    #power.setConstant()
-    #logcoef.setConstant()
-
-    if sampMan is not None :
-        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
-        frame = xvar.frame() 
-        datahist.plotOn(frame)
-        dijet.plotOn( frame )
-        dijet.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
-        frame.Draw()
-        ymax = frame.GetMaximum()
-        frame.SetMinimum( 0.001 )
-        frame.SetMaximum( ymax*10 )
-        can.SetLogy()
-
-        sampMan.outputs[label] = can
-
-    integral = hist.Integral( hist.FindBin( xmin), hist.FindBin( xmax ) )
-
-    power_res = ufloat( power.getValV(), power.getErrorHi() )
-    log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
-    int_res   = ufloat( integral, math.sqrt( integral ) )
-
-    integral_var = ROOT.RooRealVar('dijet3_%s_norm' %( label ), 'normalization', integral )
-
-    power.SetName( power_name )
-    logcoef.SetName( logcoef_name )
-
-    if workspace is not None :
-        getattr( workspace , 'import' ) ( datahist )
-        getattr( workspace , 'import' ) ( dijet )
-        getattr( workspace , 'import' ) ( integral_var )
-
-
-    return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : func, 'object' : dijet }
-
-def fit_dijet_4( hist, xvar, label='', sampMan=None, workspace=None ) :
-
-    xmin = xvar.getMin()
-    xmax = xvar.getMax()
-
-    power_name = 'power_dijet4_%s'  %label
-    logcubcoef_name = 'logcubcoef_dijet4_%s' %label
-    logsqcoef_name = 'logsqcoef_dijet4_%s' %label
-    logcoef_name = 'logcoef_dijet4_%s' %label
-
-    power = ROOT.RooRealVar( 'power', 'power', -9.9, -100, 100)
-    logsqcoef = ROOT.RooRealVar( 'logsqcoef', 'logsqcoef', 0.0, -10, 10 )
-    logcubcoef = ROOT.RooRealVar( 'logcubcoef', 'logcubcoef', 0.0, -10, 10 )
-    #exp = ROOT.RooRealVar( 'exp', 'exp', -0.85, -10, 10 )
-    logcoef = ROOT.RooRealVar( 'logcoef', 'logcoef', -0.85, -10, 10 )
-
-    #func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))*TMath::Exp( @0*@3) '  
-    func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000)*TMath::Log10(@0/13000)*TMath::Log10(@0/13000) +@3*TMath::Log10(@0/13000)*TMath::Log10(@0/13000) + @4*TMath::Log10(@0/13000))'  
-    dijet = ROOT.RooGenericPdf('dijet4_%s' %label, 'dijet4', func, ROOT.RooArgList(xvar,power, logcubcoef, logsqcoef, logcoef))
-
-    #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
-    datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
-
-    dijet.fitTo( datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True)  )
-
-    integral =  dijet.getNormIntegral(ROOT.RooArgSet( xvar ) )
-
-    #power.setConstant()
-    #logcoef.setConstant()
-
-    if sampMan is not None :
-        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
-        frame = xvar.frame() 
-        datahist.plotOn(frame)
-        dijet.plotOn( frame )
-        dijet.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
-        frame.Draw()
-        ymax = frame.GetMaximum()
-        frame.SetMinimum( 0.001 )
-        frame.SetMaximum( ymax*10 )
-        can.SetLogy()
-
-        sampMan.outputs[label] = can
-
-    integral = hist.Integral( hist.FindBin( xmin), hist.FindBin( xmax ) )
-
-    power_res = ufloat( power.getValV(), power.getErrorHi() )
-    log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
-    int_res   = ufloat( integral, math.sqrt( integral ) )
-
-    integral_var = ROOT.RooRealVar('dijet3_%s_norm' %( label ), 'normalization', integral )
-
-    power.SetName( power_name )
-    logcoef.SetName( logcoef_name )
-
-    if workspace is not None :
-        getattr( workspace , 'import' ) ( datahist )
-        getattr( workspace , 'import' ) ( dijet )
-        getattr( workspace , 'import' ) ( integral_var )
-
-
-    return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : func, 'object' : dijet }
-
-def fit_dijet_mod( hist, xvar, label='', sampMan=None, workspace=None ) :
-
-    xmin = xvar.getMin()
-    xmax = xvar.getMax()
-
-    power_name = 'power_dijetmod_%s'  %label
-    logsqcoef_name = 'logcoef_dijetmod_%s' %label
-    logcoef_name = 'logcoef_dijetmod_%s' %label
-
-    numpower = ROOT.RooRealVar( 'numpower', 'numpower', -9.9, -100, 100)
-    power = ROOT.RooRealVar( 'power', 'power', -9.9, -100, 100)
-    logcoef = ROOT.RooRealVar( 'logcoef', 'logcoef', -0.85, -10, 10 )
-
-    func = 'TMath::Power(@0/13000, @3)/(TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000)))'  
-    dijet = ROOT.RooGenericPdf('dijetmod_%s' %label, 'dijetmod', func, ROOT.RooArgList(xvar,power, logcoef, numpower))
-
-    #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
-    datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
-
-    dijet.fitTo( datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True)  )
-
-    integral =  dijet.getNormIntegral(ROOT.RooArgSet( xvar ) )
-
-    #power.setConstant()
-    #logcoef.setConstant()
-
-    if sampMan is not None :
-        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
-        frame = xvar.frame() 
-        datahist.plotOn(frame)
-        dijet.plotOn( frame )
-        dijet.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
-        frame.Draw()
-        ymax = frame.GetMaximum()
-        frame.SetMinimum( 0.1 )
-        frame.SetMaximum( ymax*5 )
-        can.SetLogy()
-
-        sampMan.outputs[label] = can
-
-    integral = hist.Integral( hist.FindBin( xmin), hist.FindBin( xmax ) )
-
-    power_res = ufloat( power.getValV(), power.getErrorHi() )
-    log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
-    int_res   = ufloat( integral, math.sqrt( integral ) )
-
-    integral_var = ROOT.RooRealVar('dijetmod_%s_norm' %( label ), 'normalization', integral )
-
-    power.SetName( power_name )
-    logcoef.SetName( logcoef_name )
-
-    if workspace is not None :
-        getattr( workspace , 'import' ) ( datahist )
-        getattr( workspace , 'import' ) ( dijet )
-        getattr( workspace , 'import' ) ( integral_var )
-
-
-    return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : func, 'object' : dijet }
-
-
-def fit_exppow( hist, xvar, label='', sampMan=None, workspace=None ) :
-
-    xmin = xvar.getMin()
-    xmax = xvar.getMax()
-
-    power_name = 'power_exppow_%s'  %label
-    exp_name = 'exp_exppow_%s' %label
-
-    power1 = ROOT.RooRealVar( 'power1', 'power1', -9.9, -100, 100)
-    power2 = ROOT.RooRealVar( 'power2', 'power2', -9.9, -100, 100)
-    #frac = ROOT.RooRealVar( 'frac', 'frac', 1, -100, 100 )
-
-    #func = 'TMath::Power(@0/13000, @1)*TMath::Exp((@0/13000)*@1) + @2*TMath::Power(@0/13000, @3)*TMath::Exp((@0/13000)*@3)'  
-    func = 'TMath::Power(@0/13000, @1)*TMath::Exp((@0/13000)*@2)'  
-    dijet = ROOT.RooGenericPdf('exppow%s' %label, 'exppow', func, ROOT.RooArgList(xvar, power1, power2))
-
-    #datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
-    datahist = ROOT.RooDataHist( 'datahist_%s' %label, 'data', ROOT.RooArgList(xvar), hist )
-
-    dijet.fitTo( datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True)  )
-
-    integral =  dijet.getNormIntegral(ROOT.RooArgSet( xvar ) )
-
-    #power.setConstant()
-    #logcoef.setConstant()
-
-    if sampMan is not None :
-        can = ROOT.TCanvas( str(uuid.uuid4()), '' )
-        frame = xvar.frame() 
-        datahist.plotOn(frame)
-        dijet.plotOn( frame )
-        dijet.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
-        frame.Draw()
-        ymax = frame.GetMaximum()
-        frame.SetMinimum( 0.1 )
-        frame.SetMaximum( ymax*5 )
-        can.SetLogy()
-
-        sampMan.outputs[label] = can
-
-    integral = hist.Integral( hist.FindBin( xmin), hist.FindBin( xmax ) )
-
-    #power_res = ufloat( power.getValV(), power.getErrorHi() )
-    #log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
-    #int_res   = ufloat( integral, math.sqrt( integral ) )
-
-    integral_var = ROOT.RooRealVar('exppow_%s_norm' %( label ), 'normalization', integral )
-
-    #power.SetName( power_name )
-    #logcoef.SetName( logcoef_name )
-
-    if workspace is not None :
-        getattr( workspace , 'import' ) ( datahist )
-        getattr( workspace , 'import' ) ( dijet )
-        getattr( workspace , 'import' ) ( integral_var )
-
-
-    #return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : func, 'object' : dijet }
-    return {}
-
 
 
 def clone_sample_and_draw( sampMan, samp, var, sel, binning ) :

@@ -1,16 +1,17 @@
 import ROOT
+from uncertainties import ufloat
+import uuid
 
 class FitManager : 
     """ Aim to collect all fitting machinery here """
 
-    def __init__(self, typename, norders, sampname, hist, plot_var, ieta, xvar, label, useRooFit, sample_params={}) :
+    def __init__(self, typename, sampname, norders, hist, plot_var, ieta, xvar, label, useRooFit, sample_params={}) :
 
         self.defs = {}
 
         self.func_name = typename
         self.func_norders = norders
 
-        self.sample_name = sampname
         self.plot_var = plot_var
 
         self.ieta = ieta
@@ -155,7 +156,14 @@ class FitManager :
                 mod_function = mod_function.replace( '@%d' %i, '[%d]' %i )
             return mod_function
 
-    def fit_histogram(self ) : 
+    def fit_histogram( self, workspace=None ) :
+
+        self.run_fit()
+        self.calculate_func_pdf()
+        return self.get_results( workspace )
+
+
+    def run_fit(self ) : 
 
         xmin = self.xvar.getMin()
         xmax = self.xvar.getMax()
@@ -301,6 +309,54 @@ class FitManager :
 
             self.func_pdf = ROOT.RooGenericPdf('%s_%s' %(self.func_name, self.label), self.func_name, func_str, arg_list)
             ROOT.SetOwnership(self.func_pdf, False)
+
+
+    def save_fit( self, sampMan=None, workspace = None, logy=False, stats_pos='right' ) :
+
+        if sampMan is not None :
+
+            can = ROOT.TCanvas( str(uuid.uuid4()), '' )
+            frame = self.xvar.frame() 
+            self.datahist.plotOn(frame)
+            self.func_pdf.plotOn( frame )
+            if stats_pos == 'left' : 
+                self.func_pdf.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.1,0.5,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(3)));
+            if stats_pos == 'right' :
+                self.func_pdf.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.5,0.9,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(2)));
+            frame.Draw()
+            if logy :
+                ymax = frame.GetMaximum()
+                frame.SetMinimum( 0.001 )
+                frame.SetMaximum( ymax*10 )
+                can.SetLogy()
+                can.SetLogx()
+
+            sampMan.outputs[self.label] = can
+
+    def get_results( self, workspace = None) :
+
+        integral = self.Integral( )
+
+        #power_res = ufloat( power.getValV(), power.getErrorHi() )
+        #log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
+        #int_res   = ufloat( integral, math.sqrt( integral ) )
+
+        power_res = ufloat( 0, 0 )
+        log_res   = ufloat( 0,0)
+        int_res   = ufloat( 0, 0)
+
+        integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', integral )
+
+        #power.SetName( power_name )
+        #logcoef.SetName( logcoef_name )
+
+        if workspace is not None :
+            getattr( workspace , 'import' ) ( self.datahist )
+            getattr( workspace , 'import' ) ( self.func_pdf )
+            getattr( workspace , 'import' ) ( integral_var )
+
+
+        return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : self.get_fit_function(), 'object' : self.func_pdf }
 
 
     def get_defaults( self, sample, var, ieta ) :
