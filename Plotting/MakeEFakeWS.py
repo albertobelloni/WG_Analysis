@@ -323,7 +323,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             xvar.setMax( fit_max )
 
 
-            fitManager = FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
+            fitManager = FitManager( 'bwxcb', 0, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
                                     sample_params={'mass' : mass, 'width' : width}, )
 
             fit_distribution( fitManager)
@@ -337,7 +337,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             #for i in [0.5, 0.3, 0.2, 0.1, 0.05] :
 
                 print 'GOTHERE1'
-                iter_managers.append(FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
+                iter_managers.append(FitManager( 'bwxcb', 0, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
                                         sample_params={'mass' : mass, 'width' : width}, ))
 
                 print 'GOTHERE2'
@@ -520,7 +520,7 @@ def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, 
         
         label = '%s_%s_%s'%(sampname, suffix, ieta)
 
-        fitManager = FitManager( 'dijet', 2, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
+        fitManager = FitManager( 'dijet', 2, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
 
         fit_distribution( fitManager, sampMan, workspace, logy=True )
         results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
@@ -744,10 +744,14 @@ def fit_pol1( hist, xmin, xmax ) :
     hist.Draw()
     lin_func.Draw('same')
 
-def fit_distribution( fitManager ) :
+def fit_distribution( fitManager, workspace=None ) :
 
     fitManager.fit_histogram()
     fitManager.calculate_func_pdf()
+    results = fitManager.get_results( workspace )
+
+    return results
+
 
 def save_fit( fitManager, sampMan=None, workspace=None, logy=False, stats_pos='right' ) :
 
