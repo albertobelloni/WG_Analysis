@@ -5,7 +5,7 @@ import uuid
 class FitManager : 
     """ Aim to collect all fitting machinery here """
 
-    def __init__(self, typename, sampname, norders, hist, plot_var, ieta, xvar, label, useRooFit, sample_params={}) :
+    def __init__(self, typename, norders, sampname, hist, plot_var, ieta, xvar, label, useRooFit, sample_params={}) :
 
         self.defs = {}
 
@@ -23,6 +23,7 @@ class FitManager :
 
         self.func = None
         self.func_pdf = None
+        self.fit_params = {}
 
         self.useRooFit = useRooFit
 
@@ -40,21 +41,17 @@ class FitManager :
 
         self.objs = []
 
-    def MakeROOTObj( self, root_obj, name, *args ) :
+    def MakeROOTObj( self, root_obj, *args ) :
         """ Generic function for making ROOT objects."""  
 
-        all_args = ( name, ) + args
-
         try :
-            thisobj = getattr(ROOT, root_obj)( *all_args )
+            thisobj = getattr(ROOT, root_obj)( *args )
             ROOT.SetOwnership( thisobj, False )
-            setattr( self, name, thisobj )
-
-            #self.objs.append( thisobj )
             return thisobj
+
         except TypeError :
             print '***********************************************************'
-            print 'FitManager.MakeROOTObj -- Failed to create a %s.  Please check the arguments :'%name
+            print 'FitManager.MakeROOTObj -- Failed to create a %s.  Please check the arguments :'%root_obj
             print args
             print 'Exception is below'
             print '***********************************************************'
@@ -63,7 +60,10 @@ class FitManager :
 
     def Integral( self ) :
 
-        return self.hist.Integral( self.hist.FindBin( self.xvar.getMin() ), self.hist.FindBin( self.xvar.getMax() ) )
+        err = ROOT.Double()
+        val = self.hist.IntegralAndError( self.hist.FindBin( self.xvar.getMin() ), self.hist.FindBin( self.xvar.getMax() ), err )
+
+        return ufloat( val, err )
 
     def set_vals(self, name, order, vals ) :
 
@@ -78,41 +78,47 @@ class FitManager :
 
         if self.func_name == 'dijet' : 
             for i in range( 1, self.func_norders+1 ) :
+                short_name = 'power' 
+                if i > 1 :
+                    short_name = 'logcoef%d' %(i-1)
+
+                long_name = '%s_order%d_%s' %( self.func_name, i, self.label )
                 this_def = self.get_vals( self.func_name, i )
-                var = ROOT.RooRealVar( 'order%d' %i, 'order%d' %i, this_def[0], this_def[1], this_def[2] )
+                var = ROOT.RooRealVar( long_name, long_name, this_def[0], this_def[1], this_def[2] )
                 ROOT.SetOwnership(var, False)
-                var.SetName( '%s_order%d' %( self.func_name, i ) )
                 arg_list.add( var  ) 
+                self.fit_params[short_name] = var
 
-        if self.func_name == 'atlas' : 
-            def_num_power = self.get_vals( self.func_name+'_num_power', 1 )
-            def_den_power = self.get_vals( self.func_name+'_den_power', 1 )
+        # These need to be modified to match the format above
+        #if self.func_name == 'atlas' : 
+        #    def_num_power = self.get_vals( self.func_name+'_num_power', 1 )
+        #    def_den_power = self.get_vals( self.func_name+'_den_power', 1 )
 
-            var_num_power = ROOT.RooRealVar( 'num_power', 'num_power', def_num_power[0], def_num_power[1], def_num_power[2] )
-            var_den_power = ROOT.RooRealVar( 'den_power', 'den_power', def_den_power[0], def_den_power[1], def_den_power[2] )
-            ROOT.SetOwnership(var_num_power, False)
-            ROOT.SetOwnership(var_den_power, False)
-            arg_list.add( var_num_power )
-            arg_list.add( var_den_power )
-            for i in range( 1, self.func_norders+1 ) :
-                def_den_logcoef = self.get_vals( self.func_name+'_den_logcoef', i )
-                var_den_locoef  = ROOT.RooRealVar( 'den_logcoef_order%d' %i, 'den_logcoef_order%d' %i, def_den_logcoef[0], def_den_logcoef[1], def_den_logcoef[2] )
-                ROOT.SetOwnership(var_den_locoef, False)
-                #var.SetName( '%s_order%d' %( self.func_name, i ) )
-                arg_list.add( var_den_locoef  ) 
+        #    var_num_power = ROOT.RooRealVar( 'num_power', 'num_power', def_num_power[0], def_num_power[1], def_num_power[2] )
+        #    var_den_power = ROOT.RooRealVar( 'den_power', 'den_power', def_den_power[0], def_den_power[1], def_den_power[2] )
+        #    ROOT.SetOwnership(var_num_power, False)
+        #    ROOT.SetOwnership(var_den_power, False)
+        #    arg_list.add( var_num_power )
+        #    arg_list.add( var_den_power )
+        #    for i in range( 1, self.func_norders+1 ) :
+        #        def_den_logcoef = self.get_vals( self.func_name+'_den_logcoef', i )
+        #        var_den_locoef  = ROOT.RooRealVar( 'den_logcoef_order%d' %i, 'den_logcoef_order%d' %i, def_den_logcoef[0], def_den_logcoef[1], def_den_logcoef[2] )
+        #        ROOT.SetOwnership(var_den_locoef, False)
+        #        #var.SetName( '%s_order%d' %( self.func_name, i ) )
+        #        arg_list.add( var_den_locoef  ) 
 
-        if self.func_name == 'power' : 
-            for i in range( 1, self.func_norders+1 ) :
-                this_def_coef = self.get_vals( self.func_name+'_coef', i )
-                this_def_pow  = self.get_vals( self.func_name+'_pow', i )
+        #if self.func_name == 'power' : 
+        #    for i in range( 1, self.func_norders+1 ) :
+        #        this_def_coef = self.get_vals( self.func_name+'_coef', i )
+        #        this_def_pow  = self.get_vals( self.func_name+'_pow', i )
 
-                var_coef = ROOT.RooRealVar( 'coef%d' %i, 'coef%d'%i, this_def_coef[0], this_def_coef[1], this_def_coef[2] )
-                ROOT.SetOwnership(var_coef, False)
-                var_pow = ROOT.RooRealVar( 'pow%d' %i, 'pow%d'%i, this_def_pow[0], this_def_pow[1], this_def_pow[2] )
-                ROOT.SetOwnership(var_pow, False)
+        #        var_coef = ROOT.RooRealVar( 'coef%d' %i, 'coef%d'%i, this_def_coef[0], this_def_coef[1], this_def_coef[2] )
+        #        ROOT.SetOwnership(var_coef, False)
+        #        var_pow = ROOT.RooRealVar( 'pow%d' %i, 'pow%d'%i, this_def_pow[0], this_def_pow[1], this_def_pow[2] )
+        #        ROOT.SetOwnership(var_pow, False)
 
-                arg_list.add( var_coef )
-                arg_list.add( var_pow )
+        #        arg_list.add( var_coef )
+        #        arg_list.add( var_pow )
 
 
     def get_fit_function( self, forceUseRooFit=False ) :
@@ -187,11 +193,11 @@ class FitManager :
                 if bw_width < 2  :
                     bw_width = 2
 
-                bw_m = self.MakeROOTObj( 'RooRealVar', 'bw_mass' , 'Resonance  Mass', mass, xmin, xmax, 'GeV' )
-                bw_w = self.MakeROOTObj('RooRealVar', 'bw_width', 'Breit-Wigner width',bw_width, 0, 200,'GeV')
+                bw_m = self.MakeROOTObj( 'RooRealVar', 'bw_mass_%s' %self.label, 'Resonance  Mass', mass, xmin, xmax, 'GeV' )
+                bw_w = self.MakeROOTObj('RooRealVar', 'bw_width_%s' %self.label, 'Breit-Wigner width',bw_width, 0, 200,'GeV')
                 #bw_m.setConstant()
                 #bw_w.setConstant()
-                bw = self.MakeROOTObj('RooBreitWigner', 'bw' ,'A Breit-Wigner Distribution', self.xvar, bw_m,bw_w)
+                bw = self.MakeROOTObj('RooBreitWigner','bw_%s' %self.label, 'A Breit-Wigner Distribution', self.xvar, bw_m,bw_w)
 
                 #------------------------------
                 # crystal ball, has four parameters
@@ -199,10 +205,10 @@ class FitManager :
                 sigma_vals = self.defs['cb_sigma'][mass]
                 power_vals = self.defs['cb_power'][mass]
                 mass_vals  = self.defs['cb_mass'][mass]
-                cb_cut   = self.MakeROOTObj('RooRealVar','cb_cut'   , 'Cut'  , 0.5, 0.5, 0.50 , '')
-                cb_sigma = self.MakeROOTObj('RooRealVar','cb_sigma' , 'Width', sigma_vals[0], sigma_vals[1], sigma_vals[2], 'GeV')
-                cb_power = self.MakeROOTObj('RooRealVar','cb_power' , 'Power', power_vals[0], power_vals[1], power_vals[2], '')
-                cb_m0    = self.MakeROOTObj('RooRealVar','cb_mass'  , 'mass' , mass_vals[0], mass_vals[1], mass_vals[2],'GeV')
+                cb_cut   = self.MakeROOTObj('RooRealVar','cb_cut_%s' %self.label, 'Cut'  , 0.5, 0.5, 0.50 , '')
+                cb_sigma = self.MakeROOTObj('RooRealVar','cb_sigma_%s' %self.label, 'Width', sigma_vals[0], sigma_vals[1], sigma_vals[2], 'GeV')
+                cb_power = self.MakeROOTObj('RooRealVar','cb_power_%s' %self.label, 'Power', power_vals[0], power_vals[1], power_vals[2], '')
+                cb_m0    = self.MakeROOTObj('RooRealVar','cb_mass_%s' %self.label, 'mass' , mass_vals[0], mass_vals[1], mass_vals[2],'GeV')
 
                 cb_cut.setConstant()
                 #cb_power.setConstant()
@@ -213,12 +219,23 @@ class FitManager :
                 cb_power.setError( 1. )
                 cb_m0.setError( 1. )
 
-                cb = self.MakeROOTObj('RooCBShape','cb', 'A  Crystal Ball Lineshape', self.xvar, cb_m0, cb_sigma,cb_cut,cb_power)
+                cb = self.MakeROOTObj('RooCBShape','cb_%s' %self.label, 'A  Crystal Ball Lineshape', self.xvar, cb_m0, cb_sigma,cb_cut,cb_power)
 
-                self.func_pdf = self.MakeROOTObj('RooFFTConvPdf','sig_model','Convolution', self.xvar, bw, cb)
+                self.func_pdf = self.MakeROOTObj('RooFFTConvPdf','sig_model_%s' %self.label,'Convolution', self.xvar, bw, cb)
+
+                self.fit_params['bw_mass'] = bw_m
+                self.fit_params['bw_width'] = bw_w
+                #self.fit_params['bw'] = bw
+
+                self.fit_params['cb_cut'] = cb_cut
+                self.fit_params['cb_sigma'] = cb_sigma
+                self.fit_params['cb_power'] = cb_power
+                self.fit_params['cb_mass'] = cb_m0
+                #self.fit_params['cb'] = cb
+
                 
             else :
-                self.func_pdf = self.MakeROOTObj('RooGenericPdf','%s_%s' %(self.func_name, self.label), self.func_name, func_str, arg_list)
+                self.func_pdf = self.MakeROOTObj('RooGenericPdf', '%s_%s' %(self.func_name, self.label), self.func_name, func_str, arg_list)
 
             self.func_pdf.fitTo( self.datahist, ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
 
@@ -268,7 +285,7 @@ class FitManager :
 
             func_str = self.get_fit_function( ) 
 
-            self.func = ROOT.TF1( 'tf1_%s' %self.label, func_str, xmin, xmax )
+            self.func = self.MakeROOTObj( 'TF1', 'tf1_%s' %self.label, func_str, xmin, xmax )
 
             if self.func_name == 'dijet' : 
 
@@ -295,8 +312,7 @@ class FitManager :
 
                 self.defs['dijet'][i] = ( fitted_result, fitted_result - fitted_error, fitted_result + fitted_error )
 
-            arg_list = ROOT.RooArgList()
-            ROOT.SetOwnership(arg_list, False)
+            arg_list = self.MakeROOTObj( 'RooArgList' )
             arg_list.add( self.xvar )
             self.add_vars( arg_list )
 
@@ -304,16 +320,17 @@ class FitManager :
                 fitted_error = self.func.GetParError(i)
                 arg_list[i].setError( fitted_error )
 
-
             func_str = self.get_fit_function( forceUseRooFit=True) 
 
-            self.func_pdf = ROOT.RooGenericPdf('%s_%s' %(self.func_name, self.label), self.func_name, func_str, arg_list)
-            ROOT.SetOwnership(self.func_pdf, False)
+            self.func_pdf = self.MakeROOTObj( 'RooGenericPdf', '%s_%s' %( self.func_name, self.label), self.func_name, func_str, arg_list)
 
 
     def save_fit( self, sampMan=None, workspace = None, logy=False, stats_pos='right' ) :
 
         if sampMan is not None :
+
+            for name, param in self.fit_params.iteritems() : 
+                param.SetName( name) 
 
             can = ROOT.TCanvas( str(uuid.uuid4()), '' )
             frame = self.xvar.frame() 
@@ -335,20 +352,20 @@ class FitManager :
 
     def get_results( self, workspace = None) :
 
-        integral = self.Integral( )
+
+        results = {}
+        for param in self.fit_params.values() :
+            results[param.GetName()] = ufloat( param.getValV(), param.getErrorHi() )
+
 
         #power_res = ufloat( power.getValV(), power.getErrorHi() )
         #log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
         #int_res   = ufloat( integral, math.sqrt( integral ) )
 
-        power_res = ufloat( 0, 0 )
-        log_res   = ufloat( 0,0)
-        int_res   = ufloat( 0, 0)
 
-        integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', integral )
-
-        #power.SetName( power_name )
-        #logcoef.SetName( logcoef_name )
+        results['integral'] = self.Integral( )
+        integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', results['integral'].n )
+        integral_var.setError( results['integral'].s )
 
         if workspace is not None :
             getattr( workspace , 'import' ) ( self.datahist )
@@ -356,7 +373,7 @@ class FitManager :
             getattr( workspace , 'import' ) ( integral_var )
 
 
-        return {'power' : power_res, 'logcoef' : log_res, 'integral' : int_res, 'function_str' : self.get_fit_function(), 'object' : self.func_pdf }
+        return results
 
 
     def get_defaults( self, sample, var, ieta ) :

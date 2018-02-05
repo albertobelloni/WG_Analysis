@@ -228,7 +228,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             fitManager = FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
                                     sample_params={'mass' : mass, 'width' : width}, )
 
-            fitManager.fit_histogram( )
+            fitManager.fit_histogram(workspace )
             #fitManager.save_fit( sampMan, workspace, stats_pos='left' )
 
             iter_managers = []
@@ -243,15 +243,15 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
                                         sample_params={'mass' : mass, 'width' : width}, ))
 
                 print 'GOTHERE2'
-                cv_sigma = iter_managers[-2].cb_sigma.getValV()
-                lo_sigma = iter_managers[-2].cb_sigma.getErrorLo()
-                hi_sigma = iter_managers[-2].cb_sigma.getErrorHi()
-                cv_power = iter_managers[-2].cb_power.getValV()
-                lo_power = iter_managers[-2].cb_power.getErrorLo()
-                hi_power = iter_managers[-2].cb_power.getErrorHi()
-                cv_mass  = iter_managers[-2].cb_mass.getValV()
-                lo_mass  = iter_managers[-2].cb_mass.getErrorLo()
-                hi_mass  = iter_managers[-2].cb_mass.getErrorHi()
+                cv_sigma = iter_managers[-2].fit_params['cb_sigma'].getValV()
+                lo_sigma = iter_managers[-2].fit_params['cb_sigma'].getErrorLo()
+                hi_sigma = iter_managers[-2].fit_params['cb_sigma'].getErrorHi()
+                cv_power = iter_managers[-2].fit_params['cb_power'].getValV()
+                lo_power = iter_managers[-2].fit_params['cb_power'].getErrorLo()
+                hi_power = iter_managers[-2].fit_params['cb_power'].getErrorHi()
+                cv_mass  = iter_managers[-2].fit_params['cb_mass'].getValV()
+                lo_mass  = iter_managers[-2].fit_params['cb_mass'].getErrorLo()
+                hi_mass  = iter_managers[-2].fit_params['cb_mass'].getErrorHi()
 
                 err_sigma = hi_sigma/cv_sigma
                 err_power = hi_power/cv_power
@@ -285,15 +285,15 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
                 iter_managers[-1].fit_histogram(  )
                 print 'GOTHERE4'
 
-                cv_sigma_new = iter_managers[-1].cb_sigma.getValV()
-                lo_sigma_new = iter_managers[-1].cb_sigma.getErrorLo()
-                hi_sigma_new = iter_managers[-1].cb_sigma.getErrorHi()
-                cv_power_new = iter_managers[-1].cb_power.getValV()
-                lo_power_new = iter_managers[-1].cb_power.getErrorLo()
-                hi_power_new = iter_managers[-1].cb_power.getErrorHi()
-                cv_mass_new  = iter_managers[-1].cb_mass.getValV()
-                lo_mass_new  = iter_managers[-1].cb_mass.getErrorLo()
-                hi_mass_new  = iter_managers[-1].cb_mass.getErrorHi()
+                cv_sigma_new = iter_managers[-1].fit_params['cb_sigma'].getValV()
+                lo_sigma_new = iter_managers[-1].fit_params['cb_sigma'].getErrorLo()
+                hi_sigma_new = iter_managers[-1].fit_params['cb_sigma'].getErrorHi()
+                cv_power_new = iter_managers[-1].fit_params['cb_power'].getValV()
+                lo_power_new = iter_managers[-1].fit_params['cb_power'].getErrorLo()
+                hi_power_new = iter_managers[-1].fit_params['cb_power'].getErrorHi()
+                cv_mass_new  = iter_managers[-1].fit_params['cb_mass'].getValV()
+                lo_mass_new  = iter_managers[-1].fit_params['cb_mass'].getErrorLo()
+                hi_mass_new  = iter_managers[-1].fit_params['cb_mass'].getErrorHi()
 
                 err_sigma_new = hi_sigma_new/cv_sigma_new
                 err_power_new = hi_power_new/cv_power_new

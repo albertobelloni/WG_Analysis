@@ -65,8 +65,8 @@ def main() :
 
     workspaces_to_save = {}
 
-    xmin_m = 60
-    xmax_m = 4000
+    xmin_m = 160
+    xmax_m = 2000
     bin_width_m = 20
 
     xmin_pt = xmin_m/2
@@ -103,10 +103,10 @@ def main() :
     workspace_signal   = ROOT.RooWorkspace( 'workspace_signal' )
     workspace_wgamma   = ROOT.RooWorkspace( 'workspace_wgamma' )
     workspace_wgammalo = ROOT.RooWorkspace( 'workspace_wgammalo' )
-    workspace_top    = ROOT.RooWorkspace( 'workspace_top' )
-    workspace_zgamma = ROOT.RooWorkspace( 'workspace_zgamma' )
-    wjets            = ROOT.RooWorkspace( 'workspace_wjets' )
-    elefake          = ROOT.RooWorkspace( 'elefake' )
+    workspace_top      = ROOT.RooWorkspace( 'workspace_top' )
+    workspace_zgamma   = ROOT.RooWorkspace( 'workspace_zgamma' )
+    wjets              = ROOT.RooWorkspace( 'workspace_wjets' )
+    elefake            = ROOT.RooWorkspace( 'elefake' )
 
     for seltag, chdic in selections.iteritems() : 
 
@@ -142,10 +142,12 @@ def main() :
 
 def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num_var, binning, xvar, suffix='', closure=False, workspace=None) :
 
-    ph_selection_sr = '%s==1' %defs.get_phid_selection('medium')
-    ph_selection_den = '%s==1'%defs.get_phid_selection( num_var, shape_var )
-
-    ph_selection_num = '%s==1' %defs.get_phid_selection( num_var )
+    #---------------------------------------
+    # Get the base selection for each region
+    #---------------------------------------
+    ph_selection_sr    = '%s==1' %defs.get_phid_selection('medium')
+    ph_selection_den   = '%s==1'%defs.get_phid_selection( num_var, shape_var )
+    ph_selection_num   = '%s==1' %defs.get_phid_selection( num_var )
     ph_selection_shape = '%s==1' %defs.get_phid_selection( shape_var )
 
     ph_idx_sr =  defs.get_phid_idx( 'medium' )
@@ -156,23 +158,35 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     xmin = xvar.getMin()
     xmax = xvar.getMax()
 
-    addtl_cuts_sr = 'ph_pt[%s] > 50 && %s > %d && %s < %d '     %( ph_idx_sr, plot_var, xmin, plot_var, xmax )
-    addtl_cuts_den = 'ph_pt[%s] > 50 && %s > %d && %s < %d  '   %( ph_idx_den, plot_var, xmin, plot_var, xmax )
-    addtl_cuts_num = 'ph_pt[%s] > 50 && %s > %d && %s < %d  '   %( ph_idx_num, plot_var, xmin, plot_var, xmax )
-    addtl_cuts_shape = 'ph_pt[%s] > 50 && %s > %d && %s < %d  ' %( ph_idx_shape, plot_var, xmin, plot_var, xmax )
-
-    cut_var_shape = defs.get_phid_cut_var( shape_var )
-    cut_var_num = defs.get_phid_cut_var( num_var )
-
+    #---------------------------------------
+    # Add eta cuts, (IsEB, IsEE)
+    #---------------------------------------
     eta_str_shape = 'ph_Is%s[%s]' %( eta_cut, ph_idx_shape )
     eta_str_den = 'ph_Is%s[%s]' %( eta_cut, ph_idx_den)
     eta_str_num = 'ph_Is%s[%s]' %( eta_cut, ph_idx_num )
     eta_str_sr = 'ph_Is%s[%s]' %( eta_cut, ph_idx_sr )
 
+    #---------------------------------------
+    # Add additional cuts, mainly restricting
+    # the fitted variable to the plotting limits
+    #---------------------------------------
+    addtl_cuts_sr = 'ph_pt[%s] > 50 && %s > %d && %s < %d '     %( ph_idx_sr, plot_var, xmin, plot_var, xmax )
+    addtl_cuts_den = 'ph_pt[%s] > 50 && %s > %d && %s < %d  '   %( ph_idx_den, plot_var, xmin, plot_var, xmax )
+    addtl_cuts_num = 'ph_pt[%s] > 50 && %s > %d && %s < %d  '   %( ph_idx_num, plot_var, xmin, plot_var, xmax )
+    addtl_cuts_shape = 'ph_pt[%s] > 50 && %s > %d && %s < %d  ' %( ph_idx_shape, plot_var, xmin, plot_var, xmax )
+
+
+    #---------------------------------------
+    # Get the cuts that define the photon
+    # sideband regions
+    #---------------------------------------
+    cut_str_base = ' {var}[{idx}] > {val_low} && {var}[{idx}] < {val_high}'
+
+    cut_var_shape = defs.get_phid_cut_var( shape_var )
+    cut_var_num = defs.get_phid_cut_var( num_var )
+
     cut_vals_shape = get_cut_defaults( shape_var, eta_cut )
     cut_vals_num = get_cut_defaults( num_var, eta_cut )
-
-    cut_str_base = ' {var}[{idx}] > {val_low} && {var}[{idx}] < {val_high}'
 
     cut_str_shape = cut_str_base.format(var=cut_var_shape, idx=ph_idx_shape, val_low=cut_vals_shape[0], val_high=cut_vals_shape[1] )
     cut_str_num = cut_str_base.format(var=cut_var_num, idx=ph_idx_num, val_low=cut_vals_num[0], val_high=cut_vals_num[1] )
@@ -182,6 +196,9 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
 
     cut_str_den = cut_str_den_1 + ' && ' + cut_str_den_2
 
+    #---------------------------------------
+    # put the cuts together
+    #---------------------------------------
     full_sel_shape = ' && '.join( [sel_base, ph_selection_shape, eta_str_shape, addtl_cuts_shape, cut_str_shape ] )
     full_sel_num   = ' && '.join( [sel_base, ph_selection_num, eta_str_num, addtl_cuts_num, cut_str_num] )
     full_sel_den   = ' && '.join( [sel_base, ph_selection_den, eta_str_den, addtl_cuts_den, cut_str_den] )
@@ -197,22 +214,44 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     else :
         ws = workspace
 
+    #---------------------------------------
+    # draw the histograms
+    #---------------------------------------
     hist_shape = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_shape, binning )
-    fitMan_shape = FitManager( 'dijet', 2, 'wjets_shape', hist_shape, plot_var, ieta, xvar, label_shape, useRooFit=False )
-    result_shape= fitMan_shape.fit_histogram(  )
     hist_num   = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_num  , binning )
-    fitMan_num = FitManager( 'dijet', 2, 'wjets_num', hist_num, plot_var, ieta, xvar, label_num, useRooFit=False )
-    result_num = fitMan_num.fit_histogram(  )
-
     hist_den   = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_den  , binning )
-    fitMan_den = FitManager( 'dijet', 2, 'wjets_den', hist_den, plot_var, ieta, xvar, label_den, useRooFit=False )
-    result_den = fitMan_den.fit_histogram(  )
 
-    _integral_num =  ws.pdf( 'dijet_%s' %label_num ).getNormIntegral(ROOT.RooArgSet( xvar ) )
-    func_integral_num  = _integral_num.getValV()
-    _integral_den =  ws.pdf( 'dijet_%s' %label_den).getNormIntegral(ROOT.RooArgSet( xvar ) )
-    func_integral_den  = _integral_den.getValV()
+    #---------------------------------------
+    # make fit managers
+    #---------------------------------------
+    fitMan_shape = FitManager( 'dijet', 2, 'wjets_shape', hist_shape, plot_var, eta_cut, xvar, label_shape, useRooFit=False )
+    fitMan_num   = FitManager( 'dijet', 2, 'wjets_num', hist_num, plot_var, eta_cut, xvar, label_num, useRooFit=False )
+    fitMan_den   = FitManager( 'dijet', 2, 'wjets_den', hist_den, plot_var, eta_cut, xvar, label_den, useRooFit=False )
+
+    #---------------------------------------
+    # Do the fits
+    #---------------------------------------
+    result_shape= fitMan_shape.fit_histogram( ws )
+    result_num = fitMan_num.fit_histogram( ws )
+    result_den = fitMan_den.fit_histogram( ws )
+
+    #---------------------------------------
+    # save the results
+    #---------------------------------------
+    fitMan_den.save_fit( sampMan, ws, logy=True )
+    fitMan_shape.save_fit( sampMan, ws, logy=True )
+    fitMan_num.save_fit( sampMan, ws, logy=True )
+
+    #---------------------------------------
+    # calculate the function that describes
+    # the ratio of num/den
+    #---------------------------------------
+    _integral_num   =  ws.pdf( 'dijet_%s' %label_num ).getNormIntegral(ROOT.RooArgSet( xvar ) )
+    _integral_den   =  ws.pdf( 'dijet_%s' %label_den).getNormIntegral(ROOT.RooArgSet( xvar ) )
     _integral_shape =  ws.pdf( 'dijet_%s' %label_shape).getNormIntegral(ROOT.RooArgSet( xvar ) )
+
+    func_integral_num    = _integral_num.getValV()
+    func_integral_den    = _integral_den.getValV()
     func_integral_shape  = _integral_shape.getValV()
 
     hist_integral_num = result_num['integral'].n
@@ -240,21 +279,35 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     #power_ratio_name   = 'power_ratio_%s' %suffix
     #logcoef_ratio_name = 'logcoef_ratio_%s' %suffix
 
+    #name_power_num     ='power' 
+    #name_power_den     ='power' 
+    #name_power_shape   ='power' 
 
-    val_power_num   = ws.var( 'power_dijet_%s' %label_num   )
-    val_power_den   = ws.var( 'power_dijet_%s' %label_den   )
-    val_power_shape = ws.var( 'power_dijet_%s' %label_shape )
+    #name_logcoef_num   ='logcoef1' 
+    #name_logcoef_den   ='logcoef1' 
+    #name_logcoef_shape ='logcoef1' 
 
-    val_logcoef_num   = ws.var( 'logcoef_dijet_%s' %label_num   )
-    val_logcoef_den   = ws.var( 'logcoef_dijet_%s' %label_den   )
-    val_logcoef_shape = ws.var( 'logcoef_dijet_%s' %label_shape )
+    name_power_num     ='dijet_order1_%s' %label_num  
+    name_power_den     ='dijet_order1_%s' %label_den  
+    name_power_shape   ='dijet_order1_%s' %label_shape
+
+    name_logcoef_num   ='dijet_order2_%s' %label_num  
+    name_logcoef_den   ='dijet_order2_%s' %label_den  
+    name_logcoef_shape ='dijet_order2_%s' %label_shape
+
+    val_power_num     = ws.var( name_power_num      )
+    val_power_den     = ws.var( name_power_den      )
+    val_power_shape   = ws.var( name_power_shape    )
+
+    val_logcoef_num   = ws.var( name_logcoef_num    )
+    val_logcoef_den   = ws.var( name_logcoef_den    )
+    val_logcoef_shape = ws.var( name_logcoef_shape  )
 
     power_pred    = ROOT.RooRealVar( power_pred_name   , 'power'  , (val_power_num.getValV() + val_power_shape.getValV() - val_power_den.getValV()) , -100, 100)
     logcoef_pred  = ROOT.RooRealVar( logcoef_pred_name , 'logcoef', (val_logcoef_num.getValV() + val_logcoef_shape.getValV() - val_logcoef_den.getValV()), -10, 10 )
     #power_ratio   = ROOT.RooRealVar( power_ratio_name  , 'power'  , val_power_num - val_power_den , -100, 100)
     #logcoef_ratio = ROOT.RooRealVar( logcoef_ratio_name, 'logcoef', val_logcoef_num - val_logcoef_den, -10, 10 )
 
-    can_ratio = ROOT.TCanvas( str(uuid.uuid4()), '' )
 
     func = 'TMath::Power(@0/13000, @1+@2*TMath::Log10(@0/13000))'  
     prediction = ROOT.RooGenericPdf('dijet_prediction_%s' %suffix , 'prediction', func, ROOT.RooArgList(xvar,power_pred, logcoef_pred))
@@ -262,13 +315,15 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     getattr( ws , 'import' ) ( norm_pred )
     getattr( ws , 'import' ) ( prediction )
 
-    ratio_func = ROOT.TF1( 'ratio_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
+    #---------------------------------------
+    # Save the ratio hisotgram
+    #---------------------------------------
+    can_ratio = ROOT.TCanvas( str(uuid.uuid4()), '' )
 
-    ratio_func.SetParameter(0, result_num['power'].n - result_den['power'].n)
-    ratio_func.SetParameter(1, result_num['logcoef'].n  - result_den['logcoef'].n )
-    ratio_func.SetParameter(2, norm_num / norm_den )
-
-    ratiohist = hist_num.Clone( 'closure_ratio_%s' %(suffix) )
+    ratiohist = ROOT.TH1F( 'ratio_%s' %(suffix), 'ratio', hist_num.GetNbinsX(), hist_num.GetXaxis().GetXmin(), hist_num.GetXaxis().GetXmax())
+    hist_num.Copy( ratiohist) 
+    #ratiohist = hist_num.Clone( 'ratio_%s' %(suffix) )
+    ROOT.SetOwnership( ratiohist, False )
     ratiohist.Divide( hist_den )
     ratiohist.SetMarkerStyle(20)
     ratiohist.SetMarkerSize(1)
@@ -276,6 +331,15 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     ratiohist.GetYaxis().SetTitle( 'ratio of passing to failing %s' %shape_var )
     ratiohist.Draw()
     ratiohist.SetStats(0)
+    ratiohist.SetMinimum( 0) 
+    ratiohist.SetMaximum( 5) 
+
+    ratio_func = ROOT.TF1( 'ratio_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
+
+    ROOT.SetOwnership( ratio_func, False )
+    ratio_func.SetParameter(0, result_num[name_power_num].n - result_den[name_power_den].n)
+    ratio_func.SetParameter(1, result_num[name_logcoef_num].n  - result_den[name_logcoef_den].n )
+    ratio_func.SetParameter(2, norm_num / norm_den )
 
     ratio_func.Draw('same')
 
@@ -285,7 +349,9 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     ratio_logcoef_e = math.sqrt(val_logcoef_num.getErrorHi()*val_logcoef_num.getErrorHi() + val_logcoef_den.getErrorHi()*val_logcoef_den.getErrorHi() )
 
     power_tex   = ROOT.TLatex(0, 0, 'power = %.01f #pm %.02f' %( ratio_power_v,  ratio_power_e ))
+    ROOT.SetOwnership( power_tex, False )
     logcoef_tex = ROOT.TLatex(0, 0, 'logcoef = %.01f #pm %.02f' %( ratio_logcoef_v,  ratio_logcoef_e ))
+    ROOT.SetOwnership( logcoef_tex, False )
 
     power_tex.SetNDC()
     logcoef_tex.SetNDC()
@@ -306,9 +372,9 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     if closure :
 
         hist_sr    = clone_sample_and_draw( sampMan, sample, plot_var, full_sel_sr   , binning )
-        fitMan_sr = FitManager( 'dijet', 2, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, useRooFit=False )
+        fitMan_sr = FitManager( 'dijet', 2, samp.name, hist_sr, plot_var, eta_cut, xvar, full_suffix, useRooFit=False )
                                     
-        result_sr  = fitMan_sr.fit_histogram(  )
+        result_sr  = fitMan_sr.fit_histogram( ws )
 
         can_sr = ROOT.TCanvas( str(uuid.uuid4()), '' )
 
