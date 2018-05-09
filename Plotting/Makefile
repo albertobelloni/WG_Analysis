@@ -28,9 +28,13 @@ signal :
 
 	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalWS
 
+fitplot:
+
+	python PlotFitResults.py --baseDir ${OUTPUTMAIN}/SignalWS --outputDir ${OUTPUTMAIN}/SignalWS
+
 mcbkg : 
 
-	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS
+	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --useRooFit --doWGamma
 
 efake : 
 
@@ -52,3 +56,5 @@ fits :
 
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits
+
+
