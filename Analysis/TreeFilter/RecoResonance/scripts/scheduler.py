@@ -188,7 +188,7 @@ if options.test :
     options.batch = False
     options.local = True
 
-output_base = '/afs/cern.ch/work/j/jkunkle/TEST'
+output_base = '/data/users/fengyb/WGammaNtuple/'
 
 args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
 configs = [
