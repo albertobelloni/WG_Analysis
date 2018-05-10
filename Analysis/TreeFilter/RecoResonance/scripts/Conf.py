@@ -715,7 +715,7 @@ def weight_event( args ) :
 
         workarea = os.getenv('WorkArea')
         filt.add_var( 'sample_file', args['sampleFile'])
-        filt.add_var( 'data_file', '%s/TreeFilter/RecoResonance/data/MyDataPileupHistogram.root' %workarea )
+        filt.add_var( 'data_file', '%s/TreeFilter/RecoResonance/data/DataPileupHistogram2016.root' %workarea )
         filt.add_var( 'sample_hist', 'pileup_true' )
         filt.add_var('data_hist', 'pileup')
     else :
