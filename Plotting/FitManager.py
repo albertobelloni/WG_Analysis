@@ -370,7 +370,7 @@ class FitManager :
                 self.func.SetParameter( param, this_def[0] )
                 param += 1
         
-        self.fitresult = self.hist.Fit( self.func, 'RL' )
+        self.fitresult = self.hist.Fit( self.func, 'R' )
 
         return self.func
 
