@@ -27,6 +27,10 @@ version_nlo = 'UMDNTuple_v4'
 version_py = 'UMDNTuple_v5'
 
 jobs = [
+        #--------------------------
+        # Used to run on the DYJets sample which stores additional variables
+        JobConf('/data/users/jkunkle/UMDNTuple/UMDNtupleMod_2018_06_10', 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'    ),
+
         ##JobConf(base, 'DoubleMuon'),
         ##JobConf(base, 'DoubleEG'),
         ##JobConf(base, 'SinglePhoton'),
@@ -142,7 +146,7 @@ jobs = [
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1400_width0p01', version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1600_width0p01', version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1800_width0p01', version=version_py ),
-        JobConf(base,'PythiaChargedResonance_WGToLNu_M2000_width0p01', version=version_py ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2000_width0p01', version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M200_width0p01' , version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M2200_width0p01', version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M2400_width0p01', version=version_py ),
@@ -256,15 +260,15 @@ configs = [
     #    'tag'    : 'elg',
     #    'dataset': 'SingleElectron',
     #},
-    #{
-    #    'module' : 'Conf.py',
-    #    'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True', 'eleOlap' : 'False'},
-    #    'args_tag_NLO' : args_nlo,
-    #    'input'  : '' ,
-    #    'output' : output_base+'LepGammaNoEleOlap_elg_2018_04_10',
-    #    'tag'    : 'elgnov',
-    #    'dataset': 'SingleElectron',
-    #},
+    {
+        'module' : 'Conf.py',
+        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True', 'eleOlap' : 'False'},
+        'args_tag_NLO' : args_nlo,
+        'input'  : '' ,
+        'output' : output_base+'LepGammaNoEleOlapMod_elg_2018_06_11',
+        'tag'    : 'elgnov',
+        'dataset': 'SingleElectron',
+    },
     #{
     #    'module' : 'Conf.py',
     #    'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'True', 'phot_id' : 'None', 'unblind' : 'True' },
@@ -305,13 +309,13 @@ configs = [
     #    'output' : base+'LepGamma_elg_noseclepveto_2017_03_14',
     #    'tag'    : 'elgnslv',
     #},
-    {
-        'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_nofilt' , 'pass_lepton' : 'False'},
-        'input'  : '',
-        'output' : output_base+'SigNoFilt_TEST',
-        'tag'    : 'nofilt',
-    },
+    #{
+    #    'module' : 'Conf.py',
+    #    'args'   : { 'function' : 'make_nofilt' , 'pass_lepton' : 'False'},
+    #    'input'  : '',
+    #    'output' : output_base+'SigNoFilt_TEST',
+    #    'tag'    : 'nofilt',
+    #},
     ##{
     ##    'module' : 'Conf.py',
     ##    'args'   : { 'function' : 'make_final_elgjj', 'el_pt' : ' > 30 ' },

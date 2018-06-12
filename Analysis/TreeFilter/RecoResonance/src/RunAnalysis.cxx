@@ -106,6 +106,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::jet_IdTightLep                         = 0;
     
     OUT::m_lep_ph                               = 0;
+    OUT::m_lep_ph_comb_leadLep                  = 0;
+    OUT::m_lep_ph_comb_sublLep                  = 0;
     OUT::m_lep_met_ph                           = 0;
     OUT::m_mt_lep_met_ph = 0;
     OUT::m_mt_lep_met_ph_forcewmass = 0;
@@ -267,11 +269,11 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
     OUT::NLOWeight                              = 1;
 
-    OUT::PUWeight                               = 0;
-    OUT::PUWeightUP5                            = 0;
-    OUT::PUWeightUP10                           = 0;
-    OUT::PUWeightDN5                            = 0;
-    OUT::PUWeightDN10                           = 0;
+    OUT::PUWeight                               = 1;
+    OUT::PUWeightUP5                            = 1;
+    OUT::PUWeightUP10                           = 1;
+    OUT::PUWeightDN5                            = 1;
+    OUT::PUWeightDN10                           = 1;
 
     // *************************
     // Declare Branches
@@ -341,6 +343,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("jet_IdTightLep", &OUT::jet_IdTightLep );
 
     outtree->Branch("m_lep_ph"        , &OUT::m_lep_ph        , "m_lep_ph/F"  );
+    outtree->Branch("m_lep_ph_comb_sublLep"        , &OUT::m_lep_ph_comb_sublLep);
+    outtree->Branch("m_lep_ph_comb_leadLep"        , &OUT::m_lep_ph_comb_leadLep);
     outtree->Branch("m_lep_met_ph"        , &OUT::m_lep_met_ph        , "m_lep_met_ph/F"  );
     outtree->Branch("m_mt_lep_met_ph"        , &OUT::m_mt_lep_met_ph        , "m_mtlep_met_ph/F"  );
     outtree->Branch("m_mt_lep_met_ph_forcewmass"        , &OUT::m_mt_lep_met_ph_forcewmass        , "m_mt_lep_met_ph_forcewmass/F"  );
@@ -2101,6 +2105,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
 
 
     OUT::m_lep_ph = 0;
+    OUT::m_lep_ph_comb_leadLep->clear();
+    OUT::m_lep_ph_comb_sublLep->clear();
     OUT::m_lep_met_ph = 0;
     OUT::m_mt_lep_met_ph = 0;
     OUT::m_mt_lep_met_ph_forcewmass = 0;
@@ -2225,8 +2231,24 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
 
             OUT::mt_res = ( lep_trans + ph_trans + metlvOrig ).M();
             OUT::mt_lep_ph = ( lep_trans + ph_trans ).M();
-            
 
+            for( std::vector<TLorentzVector>::const_iterator phitr = photons.begin();
+                    phitr != photons.end(); ++phitr ) {
+
+                float mass = ( *phitr + leptons[0] ).M();
+
+                OUT::m_lep_ph_comb_leadLep->push_back( mass );
+            }
+
+            if( leptons.size() == 2 ) {
+                for( std::vector<TLorentzVector>::const_iterator phitr = photons.begin();
+                        phitr != photons.end(); ++phitr ) {
+
+                    float mass = ( *phitr + leptons[1] ).M();
+
+                    OUT::m_lep_ph_comb_sublLep->push_back( mass );
+                }
+            }
         }
     }
 
