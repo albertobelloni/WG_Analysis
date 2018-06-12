@@ -159,6 +159,8 @@ namespace OUT {
     std::vector<Bool_t>  *jet_IdTightLep;
     
     float m_lep_ph;
+    std::vector<float> *m_lep_ph_comb_leadLep;
+    std::vector<float> *m_lep_ph_comb_sublLep;
     float m_lep_met_ph;
     float m_mt_lep_met_ph;
     float m_mt_lep_met_ph_forcewmass;
