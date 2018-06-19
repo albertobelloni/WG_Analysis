@@ -1,0 +1,11 @@
+--- models/pions_from_unification_UFO/parameters.py	2018-06-13 10:01:13.000000001 +0200
++++ models/pions_from_unification_UFO/parametersMod.py	2018-06-13 10:01:42.000000001 +0200
+@@ -380,7 +380,7 @@
+ Wpi3C = Parameter(name = 'Wpi3C',
+                   nature = 'internal',
+                   type = 'real',
+-                  value = 'Mpi3C/10.',
++                  value = 'Mpi3C/10000.',
+                   texname = '\\text{Wpi3C}',
+                   lhablock = 'DECAY',
+                   lhacode = [ 9000007 ])
