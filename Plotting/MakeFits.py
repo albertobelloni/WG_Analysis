@@ -41,7 +41,7 @@ def main() :
     bins = [
         {'channel' : 'mu', 'eta' : 'EB' },
         #{'channel' : 'mu', 'eta' : 'EE' },
-        {'channel' : 'el', 'eta' : 'EB' },
+        #{'channel' : 'el', 'eta' : 'EB' },
         #{'channel' : 'el', 'eta' : 'EE' },
     ]
 
@@ -63,19 +63,20 @@ def main() :
         signal_base = 'srhist_MadGraphResonanceMass{pt}_width0p01' 
 
     #generate_card( options.baseDir, 'workspace_toy', 'workspace_signal', signal_pred, options.outputCard )
-    if options.doMainLimits : 
+    #if options.doMainLimits : 
+    #   pass
 
     if options.doVarOptimization:
 
         var_opt = {}
 
         kine_vars = [ 
-                     { 'name' : 'mt_incl_lepph_z', 'color' : ROOT.kBlue},
+                     #{ 'name' : 'mt_incl_lepph_z', 'color' : ROOT.kBlue},
                      #{ 'name' : 'm_incl_lepph_z' , 'color' : ROOT.kRed },
                      #{ 'name' : 'mt_rotated' , 'color' : ROOT.kRed },
                      { 'name' : 'mt_fulltrans'   , 'color' : ROOT.kBlack },
-                     { 'name' : 'mt_constrwmass' , 'color' : ROOT.kGreen },
-                     { 'name' : 'ph_pt'          , 'color' : ROOT.kMagenta },
+                     #{ 'name' : 'mt_constrwmass' , 'color' : ROOT.kGreen },
+                     #{ 'name' : 'ph_pt'          , 'color' : ROOT.kMagenta },
                    ]
 
         for var in kine_vars :
@@ -95,7 +96,7 @@ def main() :
                                                      
 
         for opt in var_opt.values() :
-            opt.setup()
+            opt.setup( kine_vars )
 
         combine_jobs = []
         for opt in var_opt.values() :
@@ -1333,7 +1334,7 @@ class MakeLimits( ) :
             print 'Must provide a base directory'
             self.fail = True
 
-    def setup( self ):
+    def setup( self , kine_vars ):
 
         if self.fail :
             print 'Initialzation failed, will not setup'
@@ -1348,13 +1349,16 @@ class MakeLimits( ) :
         # -------------------------------------------------
         # if testing using an exponential background, make that workspace
         # -------------------------------------------------
+        xvar_name = "x_m"
+
         if options.useToyBackground :
             self.make_exp_background( xvar_name, kine_vars, 50000, 
                                 'workspace_exp_background', 'mu_%s_EB' %( self.plot_var ), self.outputDir)
             #---------------------
             # update backgrounds to use the toy distribution
             #---------------------
-            backgrounds = [ 
+            self.backgrounds = [
+            #backgrounds = [ 
                 {'name' : 'Wgamma' , 'path' : '%s/workspace_exp_background.root' %self.outputDir, 'wsname' : 'workspace_exp_background', 'hist_base' : 'exp' }
                           ]
 
@@ -1417,6 +1421,7 @@ class MakeLimits( ) :
         bkg_ws_list = {}
         bkg_files = []
         for bkg in self.backgrounds :
+            print bkg['path']
             bkg_files.append(ROOT.TFile.Open( bkg['path'], 'READ' ))
             bkg_ws_list[bkg['name']] = bkg_files[-1].Get( bkg['wsname'] )
 
@@ -1446,6 +1451,7 @@ class MakeLimits( ) :
 
                 binid = '%s_%s' %( ibin['channel'], ibin['eta'] )
 
+                print signal_data
                 signal_dic['norm'][binid] = signal_data[signal_name][self.plot_var][binid]['norm']
 
                 for bkg in self.backgrounds :
@@ -1578,6 +1584,7 @@ class MakeLimits( ) :
         for ws_key, hist_key in zip( ws_key_list, hist_key_list ) :
     
             full_path = '%s/%s.root' %( basedir, ws_key )
+            print "full_path : ******** %s"%full_path
             ofile = ROOT.TFile.Open( full_path )
             print full_path
     
@@ -1588,6 +1595,7 @@ class MakeLimits( ) :
                 pdfs.append(ws.data( hist_key ))
                 norms.append(pdfs[-1].sumEntries())
             else :
+                print '%s_norm'%hist_key
                 norms.append(ws.var( '%s_norm' %hist_key ).getValV())
                 pdfs.append(ws.pdf( hist_key ))
     
@@ -1717,7 +1725,7 @@ class MakeLimits( ) :
         ofile.Close()
         return signal_data
 
-    def make_gauss_signal(self, xvar_name, kine_vars, masses, wsname, suffix, output_dir ) :
+    def make_gauss_signal(self, xvar_name, kine_vars, signal_points, wsname, suffix, output_dir ) :
     
         workspace = ROOT.RooWorkspace(wsname)
         for var in kine_vars :
@@ -1746,7 +1754,7 @@ class MakeLimits( ) :
                 getattr( workspace, 'import' ) ( signal )
                 #getattr( workspace, 'import' ) ( norm )
     
-        workspace_gauss_signal.writeToFile( '%s/%s.root' %( output_dir, wsname ) )
+        workspace.writeToFile( '%s/%s.root' %( output_dir, wsname ) )
     
     
     def make_exp_background(self, xvar_name, kine_vars, norm, wsname, suffix, output_dir ) :
