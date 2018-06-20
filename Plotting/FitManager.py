@@ -287,16 +287,15 @@ class FitManager :
         ll.Add( arg1 )
         ll.Add( arg2 )
         #ll.Add( arg3 )
-        self.roofitresult = self.func_pdf.chi2FitTo( self.datahist, ll)
+        #self.roofitresult = self.func_pdf.chi2FitTo( self.datahist, ll)
         #self.roofitresult = self.func_pdf.fitTo( self.datahist, ROOT.RooFit.Save(), ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
-        #self.func_pdf.fitTo( self.datahist, ROOT.RooFit.Save(), ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
+        self.func_pdf.fitTo( self.datahist, ROOT.RooFit.Save(), ROOT.RooFit.Range( xmin, xmax),ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
         #self.roofitresult = self.func_pdf.fitTo( self.datahist, ROOT.RooFit.Save(), ROOT.RooFit.Range( xmin, xmax), ROOT.RooFit.SumW2Error(True), ROOT.RooFit.Minimizer('Minuit', "Hesse")) 
         #self.func_pdf.fitTo( self.datahist, ROOT.RooFit.Save())
         print "\n**************************"
         print "***** finished fitTo******"
         print "*********************\n"
 
-        '''
         nll = self.func_pdf.createNLL(self.datahist) ;
         m = ROOT.RooMinimizer(nll) 
         #m.setStrategy(2)
@@ -349,7 +348,6 @@ class FitManager :
         ##sigma_g2.Print() ;
 
         self.roofitresult = m.save()
-        '''
 
         #return self.func_pdf
 
@@ -370,7 +368,20 @@ class FitManager :
                 self.func.SetParameter( param, this_def[0] )
                 param += 1
         
-        self.fitresult = self.hist.Fit( self.func, 'R' )
+        #self.fitresult = self.hist.Fit( self.func, 'REM' )
+        self.hist.Fit( self.func, 'REM' )
+        print "**************************************"
+        print "********** fit again *****************"
+        for iparam in xrange( 1, self.func_norders+1 ):
+            self.func.SetParameter( iparam, self.func.GetParameter(iparam)) 
+        self.hist.Fit( self.func, 'REM' )
+        print "**************************************"
+        print "********** fit again *****************"
+        for iparam in xrange( 1, self.func_norders+1 ):
+            self.func.SetParameter( iparam, self.func.GetParameter(iparam))
+        self.hist.Fit( self.func, 'REM' )
+        #self.fitresult = self.hist.Fit( self.func, 'R' )
+        print "********** finished  *****************"
 
         return self.func
 
@@ -446,7 +457,7 @@ class FitManager :
                 frame.findObject("%s_paramBox"%self.func_pdf.GetName()).SetBorderSize(0)
 
             plabel.SetTextSize(0.03)
-            plabel.AddText(ROOT.Form("#chi^{2}=%.2f"%self.chi2))
+            #plabel.AddText(ROOT.Form("#chi^{2}=%.2f"%self.chi2))
             plabel.AddText(ROOT.Form("#chi^{2}/ndof=%.2f"%self.normchi2))
             #plabel.AddText(ROOT.Form("%.2f cal %2.f"%(int(round(self.chi2/self.normchi2)), self.datahist.numEntries())))
             #plabel.AddText(ROOT.Form("#chi^{2} Prob=%.6f"%ROOT.TMath.Prob(self.chi2, int(round(self.chi2/self.normchi2)))))
@@ -520,12 +531,12 @@ class FitManager :
         #self.set_vals('dijet', 1, ( -10.0, -20, 0 ) )
         #self.set_vals('dijet', 2, (-2.0, -20., -1.0 ))
         #self.set_vals('dijet', 3, ( 0.0, -10, 10) )
-        #self.set_vals('dijet', 1, (-14.0,  -20.0,  -10.0))
-        #self.set_vals('dijet', 2, (-7.0,   -9.0,  -5.0))
+        self.set_vals('dijet', 1, (-16.0,  -20.0,  -10.0))
+        self.set_vals('dijet', 2, (-5.0,    -9.0,  -3.0))
+        self.set_vals('dijet', 3, (-1.5,   -5.0,  -1.0))
+        #self.set_vals('dijet', 1, (-18.0,  -20.0,  -10.0))
+        #self.set_vals('dijet', 2, (-10.0,    -9.0,  -3.0))
         #self.set_vals('dijet', 3, (-2.0,   -5.0,  -1.0))
-        self.set_vals('dijet', 1, (-15.0,  -20.0,  -10.0))
-        self.set_vals('dijet', 2, (-7.0,   -9.0,  -5.0))
-        self.set_vals('dijet', 3, (-2.0,   -5.0,  -1.0))
         self.set_vals('dijet', 4, (0.0, -10 ,10 ) )
         self.set_vals('dijet', 5, (0.0, -10 ,10 ) )
     

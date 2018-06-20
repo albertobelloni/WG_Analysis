@@ -590,6 +590,17 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     outtree->Branch(name_id_map[1].c_str(), &(triggerResults[trig_id]), (name_id_map[1]+"/O").c_str() );
                 }
             }
+            eitr = mod_conf.GetInitData().find( "selectTriggered" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+                if( eitr->second == "true" ) {
+                   _select_triggered_event = true;
+                   std::cout << " will filter events failed the trigger" << std::endl;
+                }
+                else{
+                   _select_triggered_event = false;
+                   std::cout << " will NOT filter events failed the trigger " << std::endl;
+                }
+            }
         }
         if( mod_conf.GetName() == "WeightEvent" ) { 
             std::map<std::string, std::string>::const_iterator itr = mod_conf.GetInitData().find( "ApplyNLOWeight" );
@@ -2090,8 +2101,9 @@ bool RunModule::FilterTrigger( ModuleConfig & config ) {
     }
 
     bool keep_event = true;
-
-    if( !config.PassAnyIntVector( "cut_bits", passed_ids ) ) keep_event = false;
+    if( _select_triggered_event ){
+      if( !config.PassAnyIntVector( "cut_bits", passed_ids ) ) keep_event = false;
+    }
 
     return keep_event;
     

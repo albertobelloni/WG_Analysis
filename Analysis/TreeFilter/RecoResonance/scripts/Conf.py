@@ -348,12 +348,19 @@ def make_nofilt( alg_list, args ) :
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( Filter( 'BuildTruth' ) )
 
+    #filter_trig = filter_trigger( selectTriggered=False )
+    #alg_list.append( filter_trig )
 
-def filter_trigger() : 
+
+def filter_trigger( selectTriggered=True ) : 
 
     filter_trigger = Filter('FilterTrigger')
 
     filter_trigger.add_var( 'triggerBits', '23:HLT_IsoMu24,31:HLT_IsoTkMu24,60:HLT_Ele27_eta2p1_WPTight_Gsf' )
+    if selectTriggered:
+       filter_trigger.add_var('selectTriggered', 'True')
+    else:
+       filter_trigger.add_var('selectTriggered', 'False')
 
     return filter_trigger
 
