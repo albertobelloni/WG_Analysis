@@ -142,6 +142,7 @@ jobs = [
         JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width5'  , version=version_py   ),
         JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width5'  , version=version_py   ),
 
+<<<<<<< HEAD
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1000_width0p01', version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1200_width0p01', version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1400_width0p01', version=version_py ),
@@ -166,6 +167,8 @@ jobs = [
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M700_width0p01' , version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width0p01' , version=version_py ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width0p01' , version=version_py ),
+=======
+>>>>>>> move to lxplus
         JobConf(base,'PythiaChargedResonance_WGToLNu_M1000_width0p01', version=version_py ),
         JobConf(base,'PythiaChargedResonance_WGToLNu_M1200_width0p01', version=version_py ),
         JobConf(base,'PythiaChargedResonance_WGToLNu_M1400_width0p01', version=version_py ),
@@ -334,6 +337,18 @@ configs = [
     #    'output' : base+'LepGamma_elg_noseclepveto_2017_03_14',
     #    'tag'    : 'elgnslv',
     #},
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    #{
+    #    'module' : 'Conf.py',
+    #    'args'   : { 'function' : 'make_nofilt' , 'pass_lepton' : 'False'},
+    #    'input'  : '',
+    #    'output' : output_base+'SigNoFilt_TEST',
+    #    'tag'    : 'nofilt',
+    #},
+=======
+>>>>>>> move to lxplus
     {
         'module' : 'Conf.py',
         'args'   : { 'function' : 'make_nofilt' , 'pass_lepton' : 'True'},
@@ -341,6 +356,10 @@ configs = [
         'output' : output_base+'SigNoFilt_2018_05_11_TEST',
         'tag'    : 'nofilt',
     },
+<<<<<<< HEAD
+=======
+>>>>>>> move to lxplus
+>>>>>>> move to lxplus
     ##{
     ##    'module' : 'Conf.py',
     ##    'args'   : { 'function' : 'make_final_elgjj', 'el_pt' : ' > 30 ' },
