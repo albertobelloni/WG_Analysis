@@ -50,28 +50,21 @@ def main() :
     #sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
     sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME)
     #sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME)
 
     sampManMuG.ReadSamples( _SAMPCONF )
-    sampManElG.ReadSamples( _SAMPCONF )
+    #sampManElG.ReadSamples( _SAMPCONF )
 
     sampManMuG.outputs = OrderedDict()
     sampManMuG.fitresults = OrderedDict()
     sampManMuG.chi2= OrderedDict()
     sampManMuG.chi2prob = OrderedDict()
-
-    sampManElG.outputs = OrderedDict()
-    sampManElG.fitresults = OrderedDict()
-    sampManElG.chi2= OrderedDict()
-    sampManElG.chi2prob = OrderedDict()
-
     #sampManElG.outputs = {}
 
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
-    sel_base_el = 'el_pt30_n==1 && el_n==1'
+    #sel_base_el = 'el_pt30_n==1 && el_n==1'
 
     sel_jetveto_mu = sel_base_mu + ' && jet_n == 0 '
-    sel_jetveto_el = sel_base_el + ' && jet_n == 0 '
+    #sel_jetveto_el = sel_base_el + ' && jet_n == 0 '
 
     #eta_cuts = ['EB', 'EE']
     eta_cuts = ['EB']
@@ -170,8 +163,8 @@ def main() :
                 }
 
     selections = { 'base'    : { 
-                                 'mu' : {'selection' : sel_base_mu }, 
-                                 'el' : { 'selection' : sel_base_el }, 
+                                'mu' : {'selection' : sel_base_mu }, 
+                                 #'el' : { 'selection' : sel_base_el }, 
                                },
                    #'jetVeto' : { 'mu' : {'selection' : sel_jetveto_mu }, 
                    #              'el' : { 'selection' : sel_jetveto_el } ,
@@ -180,10 +173,8 @@ def main() :
 
     workspace_signal   = ROOT.RooWorkspace( 'workspace_signal' )
 
-    lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
-    #lepg_samps = {'mu' : sampManMuG }
-
-    tf1file = ROOT.TFile("/home/fengyb/Plots/Resonance/Plots_2018_01_22/SignalWS/result.root")
+    #lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
+    lepg_samps = {'mu' : sampManMuG }
 
     for seltag, chdic in selections.iteritems() : 
 
@@ -191,7 +182,7 @@ def main() :
                                     
             for name, vardata in kine_vars.iteritems() :
 
-                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, tf1file, suffix='%s_%s_%s'%(ch,name,seltag ))
+                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, suffix='%s_%s_%s'%(ch,name,seltag ) )
 
     if options.outputDir is not None :
 
@@ -214,7 +205,7 @@ def main() :
         result.Print()
 
 
-def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspace, tf1file, suffix) : 
+def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspace, suffix ) : 
 
     sampMan.clear_hists()
 
@@ -299,21 +290,6 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
                                     sample_params={'mass' : mass, 'width' : width}, )
 
             fitManager.make_func_pdf()
-            if width==1e-4:
-               ikey = "0p01"
-            else:
-               ikey = "5"
-            '''
-            fitManager.fit_params['cb_mass'].setVal(tf1file.Get("func_cb_mass_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_mass'].setConstant()
-            fitManager.fit_params['cb_mass'].setError(0.0)
-            fitManager.fit_params['cb_sigma'].setVal(tf1file.Get("func_cb_sigma_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_sigma'].setConstant()
-            fitManager.fit_params['cb_sigma'].setError(0.0)
-            fitManager.fit_params['cb_cut1'].setVal(tf1file.Get("func_cb_cut1_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_cut1'].setConstant()
-            fitManager.fit_params['cb_cut1'].setError(0.0)
-            '''
             fitManager.fit_histogram(workspace )
             fitManager.save_fit( sampMan, workspace, stats_pos='left' )
             print "************"

@@ -2,6 +2,9 @@ OUTPUTMAIN=~/Plots/Resonance/Plots_2018_01_22
 
 DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2018_01_21
 DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2018_01_21
+DIR_LGSIG=/data/users/fengyb/WGammaNtuple/SigNoFilt_2018_05_11
+DIR_MUGSM=/data/users/jkunkle/Resonances/LepGamma_mug_2018_03_28
+DIR_ELGSM=/data/users/jkunkle/Resonances/LepGamma_elg_2018_03_28
 DIR_MUGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_mug_2018_01_21
 DIR_ELGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_elg_2018_01_21
 DIR_MU=/data/users/jkunkle/Resonances/SingleLepNoPhID_mu_2018_01_21
@@ -34,7 +37,7 @@ fitplot:
 
 mcbkg : 
 
-	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --useRooFit --doWGamma
+	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUGSM} --baseDirElG ${DIR_ELGSM} --outputDir ${OUTPUTMAIN}/MCBkgWS --useRooFit --doWGamma
 
 efake : 
 
@@ -49,12 +52,23 @@ workspaces :
 	python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
 fits :
-	python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/jkunkle/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
+	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/jkunkle/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
 	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod MaxLikelihoodFit
 	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod HybridNew
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/jkunkle/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod Asymptotic   --useToySignal --useToyBackground
+	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /data/users/fengyb/WGToLNuG/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod Asymptotic   --useToySignal --useToyBackground
+	python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /data/users/fengyb/WGToLNuG/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization  --useToySignal --useToyBackground
 
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits
 
+acceptance :
+	python MakeSignalEff.py --baseDir ${DIR_LGSIG} --outputFile /data/users/fengyb/WGToLNuG/WG_Analysis/Plotting/Acceptance/acceptance.pickle
 
+pdfuncertainty :
+	python MakeSignalEffPdf.py --baseDir ${DIR_LGSIG} --outputFile /data/users/fengyb/WGToLNuG/WG_Analysis/Plotting/Acceptance/pdfuncertainty
+
+puuncertainty :
+	python MakeSignalEffPU.py --baseDir ${DIR_LGSIG} --outputFile /data/users/fengyb/WGToLNuG/WG_Analysis/Plotting/Acceptance
+
+metuncertainty :
+	python MakeSignalEffMET.py --baseDir ${DIR_LGSIG} --outputFile /data/users/fengyb/WGToLNuG/WG_Analysis/Plotting/Acceptance

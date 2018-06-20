@@ -75,7 +75,7 @@ def main() :
     workspaces_to_save = {}
 
     #xmin_m = 60
-    xmin_m = 200
+    xmin_m = 150
     xmax_m = 4000
     bin_width_m = 40
 
@@ -144,6 +144,7 @@ def main() :
     workspace_zgamma = ROOT.RooWorkspace( 'workspace_zgamma' )
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
+    #lepg_samps = { 'mu' : sampManMuG}
 
     for seltag, chdic in selections.iteritems() : 
 
@@ -221,13 +222,19 @@ def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, 
         eta_str_sr = 'ph_Is%s[0]' %( ieta )
 
         full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
+ 
+        full_sel_sr    = ' ( ' + full_sel_sr + ' ) * NLOWeight * PUWeight' 
+        #full_sel_sr    = ' ( ' + full_sel_sr + ' ) * NLOWeight'
+        #full_sel_sr    = ' ( ' + full_sel_sr + ' ) * EventWeights[50]'
 
         hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr   , binning )
+        print " **** sampname %s number of total events %f **********"%(sampname, hist_sr.Integral(0, 100000))
+        print " **** sampname %s number of events %f **********"%(sampname, hist_sr.Integral())
         
         label = '%s_%s_%s'%(sampname, suffix, ieta)
 
-        fitManager = FitManager( 'dijet', 3, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
-        #fitManager = FitManager( 'dijet', 3, sampname, hist_sr, plot_var, ieta, xvar, label, False)
+        #fitManager = FitManager( 'dijet', 3, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
+        fitManager = FitManager( 'dijet', 3, sampname, hist_sr, plot_var, ieta, xvar, label, False)
         #fitManager = FitManager( 'power', 2, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
 
         #fit_distribution( fitManager, sampMan, workspace, logy=True )
