@@ -2529,6 +2529,9 @@ class SampleManager :
 
         topcan = self.curr_stack
 
+        active_samps = self.get_samples( isActive=True )
+        self.curr_legend = self.create_standard_legend(len(active_samps), draw_config=draw_config )
+
         self.DrawCanvas(topcan, draw_config, datahists=datahists, sighists=self.get_signal_samples(), errhists=['err_band']  )
 
         if xmin is not None and xmax is not None :
@@ -2542,19 +2545,19 @@ class SampleManager :
             # but we still need to create a legend
 
             # first find the active samples
-            active_samps = self.get_samples( isActive=True )
-            self.curr_legend = self.create_standard_legend( len( active_samps ), draw_config=draw_config)
+            #active_samps = self.get_samples( isActive=True )
+            #self.curr_legend = self.create_standard_legend( len( active_samps ), draw_config=draw_config)
 
-            legendOrder = legend_config.get( 'legendOrder', [] )
+            #legendOrder = legend_config.get( 'legendOrder', [] )
 
-            if legendOrder :
-                active_samps = []
+            #if legendOrder :
+            #    active_samps = []
 
-                for entry in legendOrder :
-                    active_samps.append( self.get_samples( name = entry )[0] )
-                    
-                
-            self.create_same_legend(legend_entries=legendOrder, created_samples=active_samps)
+            #    for entry in legendOrder :
+            #        active_samps.append( self.get_samples( name = entry )[0] )
+            #        
+            #    
+            #self.create_same_legend(legend_entries=legendOrder, created_samples=active_samps)
 
             self.curr_legend.Draw()
 

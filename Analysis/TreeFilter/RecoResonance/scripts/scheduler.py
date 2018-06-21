@@ -29,7 +29,8 @@ version_py = 'UMDNTuple_v5'
 jobs = [
         #--------------------------
         # Used to run on the DYJets sample which stores additional variables
-        JobConf('/data/users/jkunkle/UMDNTuple/UMDNtupleMod_2018_06_10', 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'    ),
+        #JobConf('/data/users/jkunkle/UMDNTuple/UMDNtupleMod_2018_06_10', 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'    ),
+        JobConf('/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/WGamma','MadGraphChargedResonance_WGToLNu_M1400_width0p01', version='UMDNTuple_0620' ),
 
         ##JobConf(base, 'DoubleMuon'),
         ##JobConf(base, 'DoubleEG'),
@@ -178,7 +179,7 @@ options.copyInputFiles=False
 options.enableKeepFilter=True
 options.enableRemoveFilter=False
 options.filekey = 'ntuple'
-options.PUPath='/data/users/jkunkle/Resonances/PileupHistograms/'
+options.PUPath='/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/PileupHistograms'
 
 if options.test : 
     options.nproc = 1
@@ -187,7 +188,7 @@ if options.test :
     options.batch = False
     options.local = True
 
-output_base = '/data/users/jkunkle/Resonances/'
+output_base = '/afs/cern.ch/work/j/jkunkle/TEST'
 
 args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
 configs = [
