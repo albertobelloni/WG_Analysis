@@ -43,6 +43,7 @@ const ModuleConfig AnaConfig::getEntry( unsigned int i ) const {
 
 void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
 
+    // if no input files were given, try to run anyways
     if( options.files.size() == 0 ) {
         runmod.initialize( 0, 0, 0, options, getEntries() );
         runmod.execute( getEntries() );

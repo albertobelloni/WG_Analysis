@@ -93,6 +93,8 @@ class RunModule : public virtual RunModuleBase {
         TH1F * _puweight_sample_hist;
         TH1D * _puweight_data_hist;
 
+        TChain * _input_tree;
+
 };
 
 // Ouput namespace 

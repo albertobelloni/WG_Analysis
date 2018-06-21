@@ -344,6 +344,8 @@ def make_nofilt( alg_list, args ) :
         alg_list.append( filter_electron( el_pt = ' > 0 ' ) )
 
     alg_list.append( filter_photon( ph_pt = ' > 0 ', id_cut = 'medium'   )  )
+
+    alg_list.append( filter_trigger() )
                            
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( Filter( 'BuildTruth' ) )
@@ -354,6 +356,7 @@ def filter_trigger() :
     filter_trigger = Filter('FilterTrigger')
 
     filter_trigger.add_var( 'triggerBits', '23:HLT_IsoMu24,31:HLT_IsoTkMu24,60:HLT_Ele27_eta2p1_WPTight_Gsf' )
+    filter_trigger.add_var( 'AuxTreeName', 'TrigInfoTree' )
 
     return filter_trigger
 
