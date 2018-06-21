@@ -355,8 +355,10 @@ def filter_trigger() :
 
     filter_trigger = Filter('FilterTrigger')
 
-    filter_trigger.add_var( 'triggerBits', '23:HLT_IsoMu24,31:HLT_IsoTkMu24,60:HLT_Ele27_eta2p1_WPTight_Gsf' )
-    filter_trigger.add_var( 'AuxTreeName', 'TrigInfoTree' )
+    # this will store branches for only these triggers
+    #filter_trigger.add_var( 'triggerBits', '23:HLT_IsoMu24,31:HLT_IsoTkMu24,60:HLT_Ele27_eta2p1_WPTight_Gsf' )
+    # this will store branches for all triggers found in the provided tree
+    filter_trigger.add_var( 'AuxTreeName', 'UMDNTuple/TrigInfoTree' )
 
     return filter_trigger
 

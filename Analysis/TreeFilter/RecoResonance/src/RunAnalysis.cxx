@@ -606,16 +606,22 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     const std::string & trig_tree_name = eitr->second;
                     TFile * fptr = _input_tree->GetFile();
                     TTree * trigTree = dynamic_cast<TTree*>(fptr->Get(trig_tree_name.c_str()));
-                    Int_t   trigger_ids;
-                    Char_t  trigger_names;
-                    trigTree->SetBranchAddress("trigger_ids", &trigger_ids);
-                    trigTree->SetBranchAddress("trigger_names", &trigger_names);
+                    if( !trigTree ) {
+                        std::cout << "Did not locate tree with name " + trig_tree_name + ". Will not store trigger results!" << std::endl;
+                    }
+                    else {
+                        Int_t   trigger_ids;
+                        Char_t  trigger_names;
+                        std::cout << trigTree->GetName() << std::endl;
+                        trigTree->SetBranchAddress("trigger_ids", &trigger_ids);
+                        trigTree->SetBranchAddress("trigger_names", &trigger_names);
 
-                    for( int tidx = 0; tidx < trigTree->GetEntries();  ) {
-                        trigTree->GetEntry(tidx);
-                        triggerResults[trigger_ids] = 0;
-                        std::string tn( &trigger_names);
-                        outtree->Branch(tn.c_str(), &(triggerResults[trigger_ids]), (tn+"/O").c_str() );
+                        for( int tidx = 0; tidx < trigTree->GetEntries(); tidx++  ) {
+                            trigTree->GetEntry(tidx);
+                            triggerResults[trigger_ids] = 0;
+                            std::string tn( &trigger_names);
+                            outtree->Branch(tn.c_str(), &(triggerResults[trigger_ids]), (tn+"/O").c_str() );
+                        }
                     }
                 }
             }
