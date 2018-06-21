@@ -2119,9 +2119,8 @@ bool RunModule::FilterTrigger( ModuleConfig & config ) {
     }
 
     bool keep_event = true;
-    if( _select_triggered_event ){
-      if( !config.PassAnyIntVector( "cut_bits", passed_ids ) ) keep_event = false;
-    }
+
+    if( !config.PassAnyIntVector( "cut_bits", passed_ids ) ) keep_event = false;
 
     return keep_event;
     
