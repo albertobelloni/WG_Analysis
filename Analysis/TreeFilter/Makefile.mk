@@ -84,7 +84,7 @@ endif
 EXE = $(EXE_DIR)/$(NEWEXENAME)
 
 # Main targets
-all:   $(EXE) 
+all: check $(EXE) 
 
 $(SRC_DIR)/Dict.cxx: $(PKG_DIR)/include/LinkDef.h
 	rootcint -f $@ -c -p $^
@@ -111,3 +111,14 @@ veryclean :
 	rm -f $(INC_DIR)/LinkDef.h
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
+check :
+	@if [ ! -f $(WORK_AREA)/TreeFilter/Core/obj/AnalysisBase.o ] ; \
+	    then \
+	    echo "**************************************" ; \
+	    echo "WARNING : CORE NOT COMPILED.  YOUR COMPLIATION WILL FAIL" ; \
+	    echo "Simply enter the Core package and type make" ; \
+	    echo "cd ../Core ; make ; cd -" ; \
+	    echo "**************************************" ; \
+	fi;
+	         
+

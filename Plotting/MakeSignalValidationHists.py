@@ -40,14 +40,14 @@ def main() :
     samples_lepnu = []
     samples_qq = []
 
-    dirBaseName = 'ChargedResonance'
+    dirBaseName = 'MadGraphChargedResonance'
     if options.pythia :
         dirBaseName = 'PythiaChargedResonance'
 
 
 
     for dirname in os.listdir( options.baseDir ) :
-        res = re.match( '%s_(WGToLNu|WGToJJ)_M(\d{3,4})_width(0p01|\d{1,2})' %dirBaseName, dirname )
+        res = re.match( '%s_(WGToLNuG|WGToJJG)_M(\d{3,4})_width(0p01|\d{1,2})' %dirBaseName, dirname )
 
         if res is not None :
 
@@ -59,9 +59,10 @@ def main() :
             else :
                 width = res.group(3)
 
-            if res.group(1) == 'WGToLNu' :
+            if res.group(1) == 'WGToLNuG' :
+                continue
                 samples_lepnu.append( {'name' : dirname, 'mass' : mass, 'width' :  width} )
-            elif res.group(1) == 'WGToJJ'  :
+            elif res.group(1) == 'WGToJJG'  :
                 samples_qq.append( {'name' : dirname, 'mass' : mass, 'width' :  width} )
 
 
@@ -73,10 +74,10 @@ def main() :
 
     # make the list of masses unique
 
-    #draw_width_comp_hists( sampMan, 'm_lep_nu_ph', samples_lepnu, prefix='WidthCompare_ChargedResonance_WGToLNu', xlabel='Resonance Mass [GeV]' )
-    #draw_width_comp_hists( sampMan, 'm_q_q_ph', samples_qq, prefix='WidthCompare_ChargedResonance_WGToJJ', xlabel='Resonance Mass [GeV]' )
-    #draw_mass_comp_hists( sampManMass, 'm_lep_nu_ph', samples_lepnu, prefix='MassCompare_ChargedResonance_WGToLNu', xlabel='Resonance Mass [GeV]' )
-    draw_mass_comp_hists( sampManMass, 'm_q_q_ph', samples_qq, prefix='MassCompare_ChargedResonance_WGToJJ', xlabel='Resonance Mass [GeV]' )
+    draw_width_comp_hists( sampMan, 'm_lep_nu_ph', samples_lepnu, prefix='WidthCompare_ChargedResonance_WGToLNuG', xlabel='Resonance Mass [GeV]' )
+    draw_width_comp_hists( sampMan, 'm_q_q_ph', samples_qq, prefix='WidthCompare_ChargedResonance_WGToJJG', xlabel='Resonance Mass [GeV]' )
+    draw_mass_comp_hists( sampManMass, 'm_lep_nu_ph', samples_lepnu, prefix='MassCompare_ChargedResonance_WGToLNuG', xlabel='Resonance Mass [GeV]' )
+    draw_mass_comp_hists( sampManMass, 'm_q_q_ph', samples_qq, prefix='MassCompare_ChargedResonance_WGToJJG', xlabel='Resonance Mass [GeV]' )
 
 def draw_mass_comp_hists( sampMan, var, samples, prefix, xlabel ) :
 
