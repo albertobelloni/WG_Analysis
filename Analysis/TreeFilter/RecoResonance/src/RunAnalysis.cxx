@@ -41,6 +41,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                             const CmdOptions & options,
 			    std::vector<ModuleConfig> &configs ) {
 
+    _input_tree = chain;
     // *************************
     // initialize trees
     // *************************
@@ -581,17 +582,41 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         if( mod_conf.GetName() == "FilterTrigger" ) { 
             std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "triggerBits" );
             if( eitr != mod_conf.GetInitData().end() ) {
-                std::cout << "Get trigger bits" << std::endl;
+                // get the mapping of trigger ID to the name
+                // This could be taken from the TrigInfoTree
                 std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
                 for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
-                    std::cout << "Have trigger pair " << *bitr << std::endl;
                     std::vector<std::string> name_id_map = Tokenize( *bitr, ":" );
                     std::stringstream ss_id( name_id_map[0] );
+                    // convert the ID to an int
                     int trig_id;
                     ss_id >> trig_id;
-                    std::cout << "use trigger ID " << trig_id << std::endl;
+                    // make an entry in the output map
                     triggerResults[trig_id] = 0;
                     outtree->Branch(name_id_map[1].c_str(), &(triggerResults[trig_id]), (name_id_map[1]+"/O").c_str() );
+                }
+            }
+            eitr = mod_conf.GetInitData().find( "AuxTreeName" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+                // if the trigger bits were provided, do not overwrite
+                if( triggerResults.size() ) {
+                    std::cout << "WARNING -- triggerBits were provided.  Will not get trigger info from the tree.  Please provide either triggerBits or AuxTreeName" << std::endl;
+                }
+                else {
+                    const std::string & trig_tree_name = eitr->second;
+                    TFile * fptr = _input_tree->GetFile();
+                    TTree * trigTree = dynamic_cast<TTree*>(fptr->Get(trig_tree_name.c_str()));
+                    Int_t   trigger_ids;
+                    Char_t  trigger_names;
+                    trigTree->SetBranchAddress("trigger_ids", &trigger_ids);
+                    trigTree->SetBranchAddress("trigger_names", &trigger_names);
+
+                    for( int tidx = 0; tidx < trigTree->GetEntries();  ) {
+                        trigTree->GetEntry(tidx);
+                        triggerResults[trigger_ids] = 0;
+                        std::string tn( &trigger_names);
+                        outtree->Branch(tn.c_str(), &(triggerResults[trigger_ids]), (tn+"/O").c_str() );
+                    }
                 }
             }
         }
@@ -2072,24 +2097,18 @@ bool RunModule::FilterEvent( ModuleConfig & config ) const {
 bool RunModule::FilterTrigger( ModuleConfig & config ) {
 
     std::vector<int> passed_ids;
+    // for each configured trigger, get its decision and store the result 
+    // in the output branch
     for( std::map<int, bool>::iterator itr = triggerResults.begin();
             itr != triggerResults.end() ; ++itr ) {
-        //std::cout << "Check if ID " << (itr->first) << " passed " << std::endl;
-        //std::cout << "Passing IDS = ";
-        //for( std::vector<int>::const_iterator titr = IN::passedTriggers->begin(); titr != IN::passedTriggers->end(); ++titr ) {
-        //    std::cout << *titr << " ";
-        //}
-        //std::cout << std::endl;
 
         if( std::find( IN::passedTriggers->begin(), IN::passedTriggers->end(), itr->first ) 
                 != IN::passedTriggers->end() ) {
             itr->second = true;
             passed_ids.push_back( itr->first );
-            //std::cout << "Passed" << std::endl;
         }
         else {
             itr->second = false;
-            //std::cout << "FAiled" << std::endl;
         }
     }
 
