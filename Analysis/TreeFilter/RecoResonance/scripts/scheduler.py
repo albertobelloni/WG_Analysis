@@ -189,7 +189,7 @@ if options.test :
     options.local = True
 
 #output_base = '/data/users/fengyb/WGammaNtuple/'
-output_base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple'
+output_base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/'
 
 args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
 configs = [
