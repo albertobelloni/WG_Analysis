@@ -395,8 +395,8 @@ def config_and_run( options, package_name ) :
             ##    get the event range
             wrapper = '%s/wrapper_%s.sh' %( options.outputDir, jobid) 
             file = open( wrapper, 'w' )
-            file.write( 'cd %s\n' %workarea )
-            file.write( 'source setup.sh\n' )
+            #file.write( 'cd %s\n' %workarea )
+            #file.write( 'source setup.sh\n' )
             #file.write( 'source /afs/cern.ch/user/j/jkunkle/.bashrc \n' )
             #file.write( 'source  /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.28/x86_64-slc6-gcc47-opt/root/bin/thisroot.sh \n' )
             #file.write( 'export LD_LIBRARY_PATH=/afs/cern.ch/sw/lcg/contrib/gcc/4.6/x86_64-slc6-gcc46-opt/lib64:$LD_LIBRARY_PATH\n' )
