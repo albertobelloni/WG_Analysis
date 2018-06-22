@@ -179,6 +179,7 @@ options.copyInputFiles=False
 options.enableKeepFilter=True
 options.enableRemoveFilter=False
 options.filekey = 'ntuple'
+#options.PUPath='/data/users/jkunkle/Resonances/PileupHistograms/'
 options.PUPath='/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/PileupHistograms'
 
 if options.test : 
@@ -310,13 +311,6 @@ configs = [
     #    'input'  : input_base,
     #    'output' : base+'LepGamma_elg_noseclepveto_2017_03_14',
     #    'tag'    : 'elgnslv',
-    #},
-    #{
-    #    'module' : 'Conf.py',
-    #    'args'   : { 'function' : 'make_nofilt' , 'pass_lepton' : 'False'},
-    #    'input'  : '',
-    #    'output' : output_base+'SigNoFilt_TEST',
-    #    'tag'    : 'nofilt',
     #},
     {
         'module' : 'Conf.py',

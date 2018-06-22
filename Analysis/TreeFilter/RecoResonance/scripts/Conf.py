@@ -350,6 +350,8 @@ def make_nofilt( alg_list, args ) :
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( Filter( 'BuildTruth' ) )
 
+    alg_list.append( filter_trigger() )
+
 
 def filter_trigger() : 
 
