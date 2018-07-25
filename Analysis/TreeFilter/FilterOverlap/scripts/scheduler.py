@@ -18,7 +18,7 @@ else :
 options.local = ( not options.batch )
 
 
-base = '/data/users/jkunkle/Resonances'
+base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple'
 
 # ----------------------------
 # The suffix that appears on the 
@@ -60,8 +60,8 @@ jobs = [
     #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , tags=['PtMin500'], suffix = 'PhCutMin'),
 
     JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', tags=['PtMin130'], suffix = 'PhCutMin'),
-    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , tags=['PtMin130'], suffix = 'PhCutMin'),
-    JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlap'     , tags=['pholap']  , suffix = 'PhOlap'  ),
+    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , tags=['PtMin130'], suffix = 'PhCutMin'),
+    #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlap'     , tags=['pholap']  , suffix = 'PhOlap'  ),
 
     ##JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax'                , tags=['mtMax600']       , suffix = 'MTResCut'),
     ##JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin', tags=['mtMax1300']      , suffix = 'MTResCut'),
@@ -92,7 +92,8 @@ input_dirs =[
               #'LepGamma_mug_2018_03_28','LepGamma_elg_2018_03_28', 
               #'LepGammaNoPhId_mug_2018_03_28',
               #'LepGammaNoPhId_elg_2018_03_28', 
-              'LepGammaNoEleOlap_elg_2018_04_10', 
+              #'LepGammaNoEleOlap_elg_2018_04_10', 
+              'LepGamma_mug_2018_07_12', 'LepGamma_elg_2018_07_12',
 ]
 
 module = 'Conf.py'

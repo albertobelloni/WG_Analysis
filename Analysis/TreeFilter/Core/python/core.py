@@ -143,8 +143,8 @@ def config_and_run( options, package_name ) :
     assert options.noInputFiles or options.treeName is not None, 'Must provide a tree name via --treeName'
     assert options.module is not None, 'Must provide a module via --module'
     
-    if options.batch and options.noCompileWithCheck :
-        assert False, "Running noCompileWithCheck with batch mode can result in an executable not being created for a batch job!"
+    #if options.batch and options.noCompileWithCheck :
+    #    assert False, "Running noCompileWithCheck with batch mode can result in an executable not being created for a batch job!"
 
     if options.copyInputFiles and not ( options.batch or options.condor ) :
         print "Can only copy input files in batch mode"

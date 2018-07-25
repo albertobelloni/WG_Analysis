@@ -276,6 +276,23 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::PUWeightDN5                            = 1;
     OUT::PUWeightDN10                           = 1;
 
+    OUT::el_pt_shift                            = 0;
+    OUT::mu_pt_shift                            = 0;
+    OUT::ph_pt_shift                            = 0;
+     
+    OUT::met_elShiftedUp_pt                     = 0;
+    OUT::met_elShiftedUp_phi                    = 0;
+    OUT::met_elShiftedDown_pt                   = 0;
+    OUT::met_elShiftedDown_phi                  = 0;
+    OUT::met_muShiftedUp_pt                     = 0;
+    OUT::met_muShiftedUp_phi                    = 0;
+    OUT::met_muShiftedDown_pt                   = 0;
+    OUT::met_muShiftedDown_phi                  = 0;
+    OUT::met_phShiftedUp_pt                     = 0;
+    OUT::met_phShiftedUp_phi                    = 0;
+    OUT::met_phShiftedDown_pt                   = 0;
+    OUT::met_phShiftedDown_phi                  = 0;
+
     // *************************
     // Declare Branches
     // *************************
@@ -283,6 +300,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     bool build_truth = false;
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
         if( mod_conf.GetName() == "BuildTruth" )  build_truth = true;
+    }
+    bool smear_energy = false;
+    BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
+        if( mod_conf.GetName() == "SmearEnergy" )  smear_energy = true;
     }
     outtree->Branch("mu_pt20_n", &OUT::mu_pt20_n, "mu_pt20_n/I"  );
     outtree->Branch("mu_pt30_n", &OUT::mu_pt30_n, "mu_pt30_n/I"  );
@@ -520,6 +541,25 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("PUWeightDN5", &OUT::PUWeightDN5, "PUWeightDN5/F" );
     outtree->Branch("PUWeightDN10", &OUT::PUWeightDN10, "PUWeightDN10/F" );
 
+    if( smear_energy ){
+        outtree->Branch("el_pt_shift",        &OUT::el_pt_shift                  );
+        outtree->Branch("mu_pt_shift",        &OUT::mu_pt_shift                  );
+        outtree->Branch("ph_pt_shift",        &OUT::ph_pt_shift                  );
+
+        outtree->Branch("met_elShiftedUp_pt",     &OUT::met_elShiftedUp_pt,    "met_elShiftedUp_pt/F"     );
+        outtree->Branch("met_elShiftedUp_phi",    &OUT::met_elShiftedUp_phi,   "met_elShiftedUp_phi/F"    );
+        outtree->Branch("met_elShiftedDown_pt",   &OUT::met_elShiftedDown_pt,  "met_elShiftedDown_pt/F"   );
+        outtree->Branch("met_elShiftedDown_phi",  &OUT::met_elShiftedDown_phi, "met_elShiftedDown_phi/F"  );
+        outtree->Branch("met_muShiftedUp_pt",     &OUT::met_muShiftedUp_pt,    "met_muShiftedUp_pt/F"     );
+        outtree->Branch("met_muShiftedUp_phi",    &OUT::met_muShiftedUp_phi,   "met_muShiftedUp_phi/F"    );
+        outtree->Branch("met_muShiftedDown_pt",   &OUT::met_muShiftedDown_pt,  "met_muShiftedDown_pt/F"   );
+        outtree->Branch("met_muShiftedDown_phi",  &OUT::met_muShiftedDown_phi, "met_muShiftedDown_phi/F"  );
+        outtree->Branch("met_phShiftedUp_pt",     &OUT::met_phShiftedUp_pt,    "met_phShiftedUp_pt/F"     );
+        outtree->Branch("met_phShiftedUp_phi",    &OUT::met_phShiftedUp_phi,   "met_phShiftedUp_phi/F"    );
+        outtree->Branch("met_phShiftedDown_pt",   &OUT::met_phShiftedDown_pt,  "met_phShiftedDown_pt/F"   );
+        outtree->Branch("met_phShiftedDown_phi",  &OUT::met_phShiftedDown_phi, "met_phShiftedDown_phi/F"  );
+    }
+
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
     
         if( mod_conf.GetName() == "FilterBlind" ) { 
@@ -621,6 +661,54 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                             triggerResults[trigger_ids] = 0;
                             std::string tn( &trigger_names);
                             outtree->Branch(tn.c_str(), &(triggerResults[trigger_ids]), (tn+"/O").c_str() );
+                        }
+                    }
+                }
+            }
+        }
+       if( mod_conf.GetName() == "FilterMET" ) {
+            // working on met filter. Basically copied from trigger code
+            std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "METFilterBits" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+                // get the mapping of metfilter index to the name
+                // This could be taken from the FilterInfoTree
+                std::vector<std::string> metfilter_bit_list = Tokenize( eitr->second, "," );
+                for( std::vector<std::string>::const_iterator bitr = metfilter_bit_list.begin(); bitr != metfilter_bit_list.end(); ++bitr ) {
+                    std::vector<std::string> name_id_map = Tokenize( *bitr, ":" );
+                    std::stringstream ss_id( name_id_map[0] );
+                    // convert the ID to an int
+                    int metfilter_id;
+                    ss_id >> metfilter_id;
+                    // make an entry in the output map
+                    metfilterResults[metfilter_id] = 0;
+                    outtree->Branch(name_id_map[1].c_str(), &(metfilterResults[metfilter_id]), (name_id_map[1]+"/O").c_str() );
+                }
+            }
+            eitr = mod_conf.GetInitData().find( "METAuxTreeName" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+                // if the metfilter bits were provided, do not overwrite
+                if( metfilterResults.size() ) {
+                    std::cout << "WARNING -- METFilterBits were provided.  Will not get metfilter info from the tree.  Please provide either metfilterBits or METAuxTreeName" << std::endl;
+                }
+                else {
+                    const std::string & metfilter_tree_name = eitr->second;
+                    TFile * fptr = _input_tree->GetFile();
+                    TTree * metfilterTree = dynamic_cast<TTree*>(fptr->Get(metfilter_tree_name.c_str()));
+                    if( !metfilterTree ) {
+                        std::cout << "Did not locate tree with name " + metfilter_tree_name + ". Will not store metfilter results!" << std::endl;
+                    }
+                    else {
+                        Int_t   filter_ids;
+                        Char_t  filter_names;
+                        std::cout << metfilterTree->GetName() << std::endl;
+                        metfilterTree->SetBranchAddress("filter_ids",   &filter_ids);
+                        metfilterTree->SetBranchAddress("filter_names", &filter_names);
+
+                        for( int tidx = 0; tidx < metfilterTree->GetEntries(); tidx++  ) {
+                            metfilterTree->GetEntry(tidx);
+                            metfilterResults[filter_ids] = 0;
+                            std::string tn( &filter_names);
+                            outtree->Branch(tn.c_str(), &(metfilterResults[filter_ids]), (tn+"/O").c_str() );
                         }
                     }
                 }
@@ -780,6 +868,9 @@ bool RunModule::ApplyModule( ModuleConfig & config ) {
     if( config.GetName() == "FilterJet" ) {
         FilterJet( config );
     }
+    if( config.GetName() == "SmearEnergy" ){
+        SmearEnergy( config );
+    } 
     if( config.GetName() == "BuildEventVars" ) {
         BuildEventVars( config );
     }
@@ -794,6 +885,9 @@ bool RunModule::ApplyModule( ModuleConfig & config ) {
     }
     if( config.GetName() == "FilterTrigger" ) {
         keep_evt &= FilterTrigger( config );
+    }
+    if( config.GetName() == "FilterMET" ){
+        keep_evt &= FilterMET( config );
     }
     if( config.GetName() == "WeightEvent" ) {
         WeightEvent( config );
@@ -2124,6 +2218,33 @@ bool RunModule::FilterTrigger( ModuleConfig & config ) {
 
     return keep_event;
     
+}
+
+bool RunModule::FilterMET( ModuleConfig & config ) {
+
+    std::vector<int> passed_ids;
+    // for each configured metfilter, get its decision and store the result
+    // in the output branch
+    for( std::map<int, bool>::iterator itr = metfilterResults.begin();
+            itr != metfilterResults.end() ; ++itr ) {
+
+        if( std::find( IN::passedFilters->begin(), IN::passedFilters->end(), itr->first )
+                != IN::passedFilters->end() ) {
+            itr->second = true;
+            passed_ids.push_back( itr->first );
+        }
+        else {
+            itr->second = false;
+        }
+    }
+
+    bool keep_event = true;
+
+
+    if( !config.PassAnyIntVector( "cut_metfilter_bits", passed_ids ) ) keep_event = false;
+
+    return keep_event;
+
 }
 
 void RunModule::BuildEventVars( ModuleConfig & config ) const {
@@ -3554,6 +3675,93 @@ void RunModule::WeightEvent( ModuleConfig & config ) const {
 
 #endif
     
+}
+
+void RunModule::SmearEnergy( ModuleConfig & config ) const {
+
+  OUT::el_pt_shift->clear();
+  OUT::mu_pt_shift->clear();
+  OUT::ph_pt_shift->clear();
+
+  OUT::met_elShiftedUp_pt = 0;
+  OUT::met_elShiftedUp_phi = 0;
+  OUT::met_elShiftedDown_pt = 0;
+  OUT::met_elShiftedDown_phi = 0;
+  OUT::met_muShiftedUp_pt = 0;
+  OUT::met_muShiftedUp_phi = 0;
+  OUT::met_muShiftedDown_pt = 0;
+  OUT::met_muShiftedDown_phi = 0;
+  OUT::met_phShiftedUp_pt = 0;
+  OUT::met_phShiftedUp_phi = 0;
+  OUT::met_phShiftedDown_pt = 0;
+  OUT::met_phShiftedDown_phi = 0;
+
+  TLorentzVector metOrig;
+  metOrig.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
+
+  // electron
+  TLorentzVector elshift(0, 0, 0, 0);
+  for( int elidx = 0; elidx < OUT::el_n; ++elidx ) {
+    float ptshift = ShiftElectronEnergy( OUT::el_pt->at(elidx) , OUT::el_eta->at(elidx), 1.0);
+    OUT::el_pt_shift->push_back( ptshift );
+
+    TLorentzVector eltemp;
+    eltemp.SetPtEtaPhiM( ptshift, 0.0, OUT::el_phi->at(elidx), 0. );
+    elshift += eltemp;
+  }
+
+  OUT::met_elShiftedUp_pt    =  ( metOrig - elshift ).Pt();
+  OUT::met_elShiftedUp_phi   =  ( metOrig - elshift ).Phi();
+  OUT::met_elShiftedDown_pt  =  ( metOrig + elshift ).Pt();
+  OUT::met_elShiftedDown_phi =  ( metOrig + elshift ).Phi();
+
+  // muon
+  TLorentzVector mushift(0, 0, 0, 0);
+  for( int muidx = 0; muidx < OUT::mu_n; ++muidx ) {
+    float ptshift = ShiftMuonEnergy( OUT::mu_pt->at(muidx) , OUT::mu_eta->at(muidx), 1.0);
+    OUT::mu_pt_shift->push_back( ptshift );
+
+    TLorentzVector mutemp;
+    mutemp.SetPtEtaPhiM( ptshift, 0.0, OUT::mu_phi->at(muidx), 0. );
+    mushift += mutemp;
+  }
+
+  OUT::met_muShiftedUp_pt    =  ( metOrig - mushift ).Pt();
+  OUT::met_muShiftedUp_phi   =  ( metOrig - mushift ).Phi();
+  OUT::met_muShiftedDown_pt  =  ( metOrig + mushift ).Pt();
+  OUT::met_muShiftedDown_phi =  ( metOrig + mushift ).Phi();
+
+  // Photon
+  TLorentzVector phshift(0, 0, 0, 0);
+  for( int phidx = 0; phidx < OUT::ph_n; ++phidx ) {
+    float ptshift = ShiftPhotonEnergy( OUT::ph_pt->at(phidx) , OUT::ph_eta->at(phidx),1.0);
+    OUT::ph_pt_shift->push_back( ptshift );
+
+    TLorentzVector phtemp;
+    phtemp.SetPtEtaPhiE( ptshift, 0.0, OUT::ph_phi->at(phidx), 0. );
+    phshift += phtemp;
+  }
+
+  OUT::met_phShiftedUp_pt    =  ( metOrig - phshift ).Pt();
+  OUT::met_phShiftedUp_phi   =  ( metOrig - phshift ).Phi();
+  OUT::met_phShiftedDown_pt  =  ( metOrig + phshift ).Pt();
+  OUT::met_phShiftedDown_phi =  ( metOrig + phshift ).Phi();
+}
+
+
+//  Numbers taken from 
+//   https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections
+float RunModule::ShiftElectronEnergy( float pt, float eta, int NSigma) const{
+  if( fabs(eta)<1.4444 ) return NSigma * pt * 0.006;
+  else                   return NSigma * pt * 0.015;
+}
+
+float RunModule::ShiftPhotonEnergy( float pt, float eta, int NSigma) const{
+  return ShiftElectronEnergy(pt, eta, NSigma);
+}
+
+float RunModule::ShiftMuonEnergy( float pt, float eta, int NSigma) const{
+  return NSigma * pt * 0.002 ;
 }
 
 float RunModule::calc_pu_weight( float puval, float mod ) const {
