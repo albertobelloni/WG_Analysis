@@ -60,8 +60,8 @@ jobs = [
     #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , tags=['PtMin500'], suffix = 'PhCutMin'),
 
     JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', tags=['PtMin130'], suffix = 'PhCutMin'),
-    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , tags=['PtMin130'], suffix = 'PhCutMin'),
-    #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlap'     , tags=['pholap']  , suffix = 'PhOlap'  ),
+    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , tags=['PtMin130'], suffix = 'PhCutMin'),
+    JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlap'     , tags=['pholap']  , suffix = 'PhOlap'  ),
 
     ##JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax'                , tags=['mtMax600']       , suffix = 'MTResCut'),
     ##JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin', tags=['mtMax1300']      , suffix = 'MTResCut'),

@@ -928,7 +928,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         float eta = IN::mu_eta->at(idx);
 
         if( !config.PassFloat( "cut_pt", pt   ) ) continue;
-        if( !config.PassFloat( "cut_eta", eta ) ) continue;
+        if( !config.PassFloat( "cut_eta", fabs(eta) ) ) continue;
 
         bool isPfMu = IN::mu_isPf->at(idx);
         bool isGloMu = IN::mu_isGlobal->at(idx);
@@ -1047,7 +1047,9 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 
 
         bool matchTrig = false;
-        if( mindr < 0.2 ) {
+        //if( mindr < 0.2 ) {
+        // change it to 0.1 according to the muon pog
+        if( mindr < 0.1 ){ 
             matchTrig = true;
         }
         OUT::mu_hasTrigMatch->push_back(matchTrig);
@@ -2031,6 +2033,7 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
         float eta = IN::jet_eta->at(idx);
 
         if( !config.PassFloat( "cut_pt", pt ) ) continue;
+        if( !config.PassFloat( "cut_eta", fabs(eta)) ) continue;
 
         float nhf        = IN::jet_nhf->at(idx);
         float chf        = IN::jet_chf->at(idx);
@@ -2090,6 +2093,10 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
             if( !config.PassFloat( "cut_jet_nemf_forward_tight", nemf ) ) pass_tight = false;
             if( !config.PassInt( "cut_jet_nmult_forward_tight", nmult ) ) pass_tight = false;
         }
+
+        if( !config.PassBool( "cut_tight", pass_tight) ) continue;
+        if( !config.PassBool( "cut_loose", pass_loose) ) continue;
+
         TLorentzVector jetlv;
         jetlv.SetPtEtaPhiE( IN::jet_pt->at(idx), 
                             IN::jet_eta->at(idx),
@@ -2114,6 +2121,8 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
             }
         }
 
+        if( !config.PassFloat( "cut_muon_dr", min_mu_dr ) ) continue;
+
         float min_el_dr = 100.0;
         for( int elidx = 0; elidx < OUT::el_n; ++elidx ) {
 
@@ -2130,6 +2139,8 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
                 min_el_dr = dr;
             }
         }
+
+        if( !config.PassFloat( "cut_electron_dr", min_el_dr ) ) continue;
 
         float min_ph_dr = 100.0;
         for( int phidx = 0; phidx < OUT::ph_n; ++phidx ) {
