@@ -423,13 +423,16 @@ def config_and_run( options, package_name ) :
         else :
             command_info = command_info_orig
 
-        job_desc_file = create_job_desc_file( command_info, {})
+        if command_info:
+            ## check if command_info is zero length, i.e., all jobs have been finished
+            ## this is used for resubmitting
+            job_desc_file = create_job_desc_file( command_info, {})
 
-        condor_command = 'condor_submit %s ' % job_desc_file 
-        logging.info('********************************')
-        logging.info( 'Executing ' + condor_command )
-        logging.info('********************************')
-        os.system(condor_command)
+            condor_command = 'condor_submit %s ' % job_desc_file 
+            logging.info('********************************')
+            logging.info( 'Executing ' + condor_command )
+            logging.info('********************************')
+            os.system(condor_command)
 
     
 
