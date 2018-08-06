@@ -209,7 +209,7 @@ def make_final_elg( alg_list, args) :
     alg_list.append( filter_trig )
 
     filtermet = filter_met()
-    filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==6 & == 10 & ==12 & ==100 & ==101'
+    filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
     alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
@@ -261,7 +261,7 @@ def make_final_mug( alg_list, args) :
     alg_list.append( filter_trig )
 
     filtermet = filter_met()
-    filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==6 & == 10 & ==12 & ==100 & ==101'
+    filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
     alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
