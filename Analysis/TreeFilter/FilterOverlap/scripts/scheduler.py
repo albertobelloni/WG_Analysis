@@ -18,7 +18,7 @@ else :
 options.local = ( not options.batch )
 
 
-base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple'
+base = '/data/users/jkunkle/Resonances'
 
 # ----------------------------
 # The suffix that appears on the 
@@ -92,8 +92,7 @@ input_dirs =[
               #'LepGamma_mug_2018_03_28','LepGamma_elg_2018_03_28', 
               #'LepGammaNoPhId_mug_2018_03_28',
               #'LepGammaNoPhId_elg_2018_03_28', 
-              #'LepGammaNoEleOlap_elg_2018_04_10', 
-              'LepGamma_mug_2018_07_12', 'LepGamma_elg_2018_07_12',
+              'LepGammaNoEleOlap_elg_2018_04_10', 
 ]
 
 module = 'Conf.py'
