@@ -51,9 +51,6 @@ class RunModule : public virtual RunModuleBase {
         bool FilterEvent         ( ModuleConfig & config ) const;
         void WeightEvent         ( ModuleConfig & config ) const;
 
-        // provide the smeared lepton, photon energy and corresponding met
-        void SmearEnergy         ( ModuleConfig & config ) const;
-
         bool FilterDataQuality   ( ModuleConfig & config ) const;
         bool FilterBlind         ( ModuleConfig & config ) const;
 
@@ -68,11 +65,6 @@ class RunModule : public virtual RunModuleBase {
         void calc_corr_iso( float chIso, float phoIso, float neuIso, float rho, float eta, float &chIsoCorr, float &phoIsoCorr, float &neuIsoCorr )  const;
 
         float calc_pu_weight( float puval, float mod=1.0) const;
-
-        float ShiftElectronEnergy( float pt, float eta, int NSigma) const;
-        float ShiftPhotonEnergy(   float pt, float eta, int NSigma) const;
-        float ShiftMuonEnergy(     float pt, float eta, int NSigma) const;
-       
 
     private :
 
@@ -345,24 +337,6 @@ namespace OUT {
     float PUWeightUP10;
     float PUWeightDN5;
     float PUWeightDN10;
-
-    // smeared leptons/photons pt and new met
-    std::vector<float> *el_pt_shift;
-    std::vector<float> *mu_pt_shift;
-    std::vector<float> *ph_pt_shift;
-
-    float met_elShiftedUp_pt;
-    float met_elShiftedUp_phi;
-    float met_elShiftedDown_pt;
-    float met_elShiftedDown_phi;
-    float met_muShiftedUp_pt;
-    float met_muShiftedUp_phi;
-    float met_muShiftedDown_pt;
-    float met_muShiftedDown_phi;
-    float met_phShiftedUp_pt;
-    float met_phShiftedUp_phi;
-    float met_phShiftedDown_pt;
-    float met_phShiftedDown_phi;
 
 };
 

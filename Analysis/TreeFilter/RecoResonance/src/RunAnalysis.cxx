@@ -276,23 +276,6 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::PUWeightDN5                            = 1;
     OUT::PUWeightDN10                           = 1;
 
-    OUT::el_pt_shift                            = 0;
-    OUT::mu_pt_shift                            = 0;
-    OUT::ph_pt_shift                            = 0;
-     
-    OUT::met_elShiftedUp_pt                     = 0;
-    OUT::met_elShiftedUp_phi                    = 0;
-    OUT::met_elShiftedDown_pt                   = 0;
-    OUT::met_elShiftedDown_phi                  = 0;
-    OUT::met_muShiftedUp_pt                     = 0;
-    OUT::met_muShiftedUp_phi                    = 0;
-    OUT::met_muShiftedDown_pt                   = 0;
-    OUT::met_muShiftedDown_phi                  = 0;
-    OUT::met_phShiftedUp_pt                     = 0;
-    OUT::met_phShiftedUp_phi                    = 0;
-    OUT::met_phShiftedDown_pt                   = 0;
-    OUT::met_phShiftedDown_phi                  = 0;
-
     // *************************
     // Declare Branches
     // *************************
@@ -300,10 +283,6 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     bool build_truth = false;
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
         if( mod_conf.GetName() == "BuildTruth" )  build_truth = true;
-    }
-    bool smear_energy = false;
-    BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
-        if( mod_conf.GetName() == "SmearEnergy" )  smear_energy = true;
     }
     outtree->Branch("mu_pt20_n", &OUT::mu_pt20_n, "mu_pt20_n/I"  );
     outtree->Branch("mu_pt30_n", &OUT::mu_pt30_n, "mu_pt30_n/I"  );
@@ -540,25 +519,6 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("PUWeightUP10", &OUT::PUWeightUP10, "PUWeightUP10/F" );
     outtree->Branch("PUWeightDN5", &OUT::PUWeightDN5, "PUWeightDN5/F" );
     outtree->Branch("PUWeightDN10", &OUT::PUWeightDN10, "PUWeightDN10/F" );
-
-    if( smear_energy ){
-        outtree->Branch("el_pt_shift",        &OUT::el_pt_shift                  );
-        outtree->Branch("mu_pt_shift",        &OUT::mu_pt_shift                  );
-        outtree->Branch("ph_pt_shift",        &OUT::ph_pt_shift                  );
-
-        outtree->Branch("met_elShiftedUp_pt",     &OUT::met_elShiftedUp_pt,    "met_elShiftedUp_pt/F"     );
-        outtree->Branch("met_elShiftedUp_phi",    &OUT::met_elShiftedUp_phi,   "met_elShiftedUp_phi/F"    );
-        outtree->Branch("met_elShiftedDown_pt",   &OUT::met_elShiftedDown_pt,  "met_elShiftedDown_pt/F"   );
-        outtree->Branch("met_elShiftedDown_phi",  &OUT::met_elShiftedDown_phi, "met_elShiftedDown_phi/F"  );
-        outtree->Branch("met_muShiftedUp_pt",     &OUT::met_muShiftedUp_pt,    "met_muShiftedUp_pt/F"     );
-        outtree->Branch("met_muShiftedUp_phi",    &OUT::met_muShiftedUp_phi,   "met_muShiftedUp_phi/F"    );
-        outtree->Branch("met_muShiftedDown_pt",   &OUT::met_muShiftedDown_pt,  "met_muShiftedDown_pt/F"   );
-        outtree->Branch("met_muShiftedDown_phi",  &OUT::met_muShiftedDown_phi, "met_muShiftedDown_phi/F"  );
-        outtree->Branch("met_phShiftedUp_pt",     &OUT::met_phShiftedUp_pt,    "met_phShiftedUp_pt/F"     );
-        outtree->Branch("met_phShiftedUp_phi",    &OUT::met_phShiftedUp_phi,   "met_phShiftedUp_phi/F"    );
-        outtree->Branch("met_phShiftedDown_pt",   &OUT::met_phShiftedDown_pt,  "met_phShiftedDown_pt/F"   );
-        outtree->Branch("met_phShiftedDown_phi",  &OUT::met_phShiftedDown_phi, "met_phShiftedDown_phi/F"  );
-    }
 
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
     
@@ -868,9 +828,6 @@ bool RunModule::ApplyModule( ModuleConfig & config ) {
     if( config.GetName() == "FilterJet" ) {
         FilterJet( config );
     }
-    if( config.GetName() == "SmearEnergy" ){
-        SmearEnergy( config );
-    } 
     if( config.GetName() == "BuildEventVars" ) {
         BuildEventVars( config );
     }
@@ -3686,93 +3643,6 @@ void RunModule::WeightEvent( ModuleConfig & config ) const {
 
 #endif
     
-}
-
-void RunModule::SmearEnergy( ModuleConfig & config ) const {
-
-  OUT::el_pt_shift->clear();
-  OUT::mu_pt_shift->clear();
-  OUT::ph_pt_shift->clear();
-
-  OUT::met_elShiftedUp_pt = 0;
-  OUT::met_elShiftedUp_phi = 0;
-  OUT::met_elShiftedDown_pt = 0;
-  OUT::met_elShiftedDown_phi = 0;
-  OUT::met_muShiftedUp_pt = 0;
-  OUT::met_muShiftedUp_phi = 0;
-  OUT::met_muShiftedDown_pt = 0;
-  OUT::met_muShiftedDown_phi = 0;
-  OUT::met_phShiftedUp_pt = 0;
-  OUT::met_phShiftedUp_phi = 0;
-  OUT::met_phShiftedDown_pt = 0;
-  OUT::met_phShiftedDown_phi = 0;
-
-  TLorentzVector metOrig;
-  metOrig.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
-
-  // electron
-  TLorentzVector elshift(0, 0, 0, 0);
-  for( int elidx = 0; elidx < OUT::el_n; ++elidx ) {
-    float ptshift = ShiftElectronEnergy( OUT::el_pt->at(elidx) , OUT::el_eta->at(elidx), 1.0);
-    OUT::el_pt_shift->push_back( ptshift );
-
-    TLorentzVector eltemp;
-    eltemp.SetPtEtaPhiM( ptshift, 0.0, OUT::el_phi->at(elidx), 0. );
-    elshift += eltemp;
-  }
-
-  OUT::met_elShiftedUp_pt    =  ( metOrig - elshift ).Pt();
-  OUT::met_elShiftedUp_phi   =  ( metOrig - elshift ).Phi();
-  OUT::met_elShiftedDown_pt  =  ( metOrig + elshift ).Pt();
-  OUT::met_elShiftedDown_phi =  ( metOrig + elshift ).Phi();
-
-  // muon
-  TLorentzVector mushift(0, 0, 0, 0);
-  for( int muidx = 0; muidx < OUT::mu_n; ++muidx ) {
-    float ptshift = ShiftMuonEnergy( OUT::mu_pt->at(muidx) , OUT::mu_eta->at(muidx), 1.0);
-    OUT::mu_pt_shift->push_back( ptshift );
-
-    TLorentzVector mutemp;
-    mutemp.SetPtEtaPhiM( ptshift, 0.0, OUT::mu_phi->at(muidx), 0. );
-    mushift += mutemp;
-  }
-
-  OUT::met_muShiftedUp_pt    =  ( metOrig - mushift ).Pt();
-  OUT::met_muShiftedUp_phi   =  ( metOrig - mushift ).Phi();
-  OUT::met_muShiftedDown_pt  =  ( metOrig + mushift ).Pt();
-  OUT::met_muShiftedDown_phi =  ( metOrig + mushift ).Phi();
-
-  // Photon
-  TLorentzVector phshift(0, 0, 0, 0);
-  for( int phidx = 0; phidx < OUT::ph_n; ++phidx ) {
-    float ptshift = ShiftPhotonEnergy( OUT::ph_pt->at(phidx) , OUT::ph_eta->at(phidx),1.0);
-    OUT::ph_pt_shift->push_back( ptshift );
-
-    TLorentzVector phtemp;
-    phtemp.SetPtEtaPhiE( ptshift, 0.0, OUT::ph_phi->at(phidx), 0. );
-    phshift += phtemp;
-  }
-
-  OUT::met_phShiftedUp_pt    =  ( metOrig - phshift ).Pt();
-  OUT::met_phShiftedUp_phi   =  ( metOrig - phshift ).Phi();
-  OUT::met_phShiftedDown_pt  =  ( metOrig + phshift ).Pt();
-  OUT::met_phShiftedDown_phi =  ( metOrig + phshift ).Phi();
-}
-
-
-//  Numbers taken from 
-//   https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections
-float RunModule::ShiftElectronEnergy( float pt, float eta, int NSigma) const{
-  if( fabs(eta)<1.4444 ) return NSigma * pt * 0.006;
-  else                   return NSigma * pt * 0.015;
-}
-
-float RunModule::ShiftPhotonEnergy( float pt, float eta, int NSigma) const{
-  return ShiftElectronEnergy(pt, eta, NSigma);
-}
-
-float RunModule::ShiftMuonEnergy( float pt, float eta, int NSigma) const{
-  return NSigma * pt * 0.002 ;
 }
 
 float RunModule::calc_pu_weight( float puval, float mod ) const {

@@ -261,7 +261,6 @@ def config_samples(samples) :
     samples.AddSampleGroup(  'Wgamma', legend_name='W#gamma',
                            #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
-                           #input_samples = ['WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            plotColor = ROOT.kRed-2,
                            isActive=True,

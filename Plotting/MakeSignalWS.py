@@ -8,7 +8,6 @@ import pickle
 import selection_defs as defs
 from uncertainties import ufloat
 from FitManager import FitManager
-from collections import OrderedDict
 #ROOT.TVirtualFitter.SetMaxIterations( 100000 )
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
@@ -47,25 +46,14 @@ if options.outputDir is not None :
 
 def main() :
 
-    #sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME)
-    #sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME)
+    sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
 
     sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG.ReadSamples( _SAMPCONF )
 
-    sampManMuG.outputs = OrderedDict()
-    sampManMuG.fitresults = OrderedDict()
-    sampManMuG.chi2= OrderedDict()
-    sampManMuG.chi2prob = OrderedDict()
-
-    sampManElG.outputs = OrderedDict()
-    sampManElG.fitresults = OrderedDict()
-    sampManElG.chi2= OrderedDict()
-    sampManElG.chi2prob = OrderedDict()
-
-    #sampManElG.outputs = {}
+    sampManMuG.outputs = {}
+    sampManElG.outputs = {}
 
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
     sel_base_el = 'el_pt30_n==1 && el_n==1'
@@ -96,64 +84,27 @@ def main() :
 
     xvar_pt = ROOT.RooRealVar( 'x_pt', 'x_pt', xmin_pt, xmax_pt )
 
-    signal_binning_m_width1 = { 
-                         200 : ( (xmax_m)/4 , 0, xmax_m ),
-                         250 : ( (xmax_m)/4 , 0, xmax_m ),
-                         300 : ( (xmax_m)/4 , 0, xmax_m ),
-                         350 : ( (xmax_m)/4 , 0, xmax_m ),
-                         400 : ( (xmax_m)/4 , 0, xmax_m ),
-                         450 : ( (xmax_m)/5 , 0, xmax_m ),
-                         500 : ( (xmax_m)/8 , 0, xmax_m ),
-                         600 : ( (xmax_m)/10, 0, xmax_m ),
-                         700 : ( (xmax_m)/10, 0, xmax_m ),
-                         800 : ( (xmax_m)/10, 0, xmax_m ),
-                         900 : ( (xmax_m)/10, 0, xmax_m ),
-                        1000 : ( (xmax_m)/10, 0, xmax_m ),
-                        1200 : ( int((xmax_m)/15), 0, xmax_m ),
-                        1400 : ( int((xmax_m)/15), 0, xmax_m ),
-                        1600 : ( int((xmax_m)/15), 0, xmax_m ),
-                        1800 : ( int((xmax_m)/15), 0, xmax_m ),
-                        2000 : ( (xmax_m)/20, 0, xmax_m ),
-                        2200 : ( (xmax_m)/20, 0, xmax_m ),
-                        2400 : ( (xmax_m)/20, 0, xmax_m ),
-                        2600 : ( (xmax_m)/20, 0, xmax_m ),
-                        2800 : ( int((xmax_m)/25), 0, xmax_m ),
-                        3000 : ( int((xmax_m)/25), 0, xmax_m ),
-                        3500 : ( int((xmax_m)/40), 0, xmax_m ),
-                        4000 : ( int((xmax_m)/40), 0, xmax_m ),
-                       }
-
-    signal_binning_m_width2 = {
-                         200 : ( (xmax_m)/4 , 0, xmax_m ),
-                         250 : ( (xmax_m)/4 , 0, xmax_m ),
-                         300 : ( (xmax_m)/4 , 0, xmax_m ),
+    signal_binning_m = { 200 : ( (xmax_m)/3 , 0, xmax_m ),
+                         250 : ( (xmax_m)/3 , 0, xmax_m ),
+                         300 : ( (xmax_m)/5 , 0, xmax_m ),
                          350 : ( (xmax_m)/5 , 0, xmax_m ),
                          400 : ( (xmax_m)/5 , 0, xmax_m ),
-                         450 : ( (xmax_m)/8 , 0, xmax_m ),
-                         500 : ( (xmax_m)/8 , 0, xmax_m ),
-                         600 : ( (xmax_m)/8 , 0, xmax_m ),
+                         450 : ( (xmax_m)/5 , 0, xmax_m ),
+                         500 : ( (xmax_m)/10 , 0, xmax_m ),
+                         600 : ( (xmax_m)/10, 0, xmax_m ),
                          700 : ( (xmax_m)/10, 0, xmax_m ),
-                         800 : ( (xmax_m)/10, 0, xmax_m ),
-                         900 : ( int((xmax_m)/15), 0, xmax_m ),
-                        1000 : ( int((xmax_m)/15), 0, xmax_m ),
+                         800 : ( (xmax_m)/15, 0, xmax_m ),
+                         900 : ( (xmax_m)/15, 0, xmax_m ),
+                        1000 : ( (xmax_m)/15, 0, xmax_m ),
                         1200 : ( (xmax_m)/20, 0, xmax_m ),
-                        1400 : ( (xmax_m)/25, 0, xmax_m ),
-                        1600 : ( (xmax_m)/25, 0, xmax_m ),
-                        1800 : ( int((xmax_m)/30), 0, xmax_m ),
-                        2000 : ( int((xmax_m)/30), 0, xmax_m ),
-                        2200 : ( int((xmax_m)/30), 0, xmax_m ),
-                        2400 : ( int((xmax_m)/30), 0, xmax_m ),
-                        2600 : ( int((xmax_m)/35), 0, xmax_m ),
-                        2800 : ( int((xmax_m)/35), 0, xmax_m ),
-                        3000 : ( int((xmax_m)/35), 0, xmax_m ),
-                        3500 : ( int((xmax_m)/40), 0, xmax_m ),
-                        4000 : ( int((xmax_m)/40), 0, xmax_m ),
+                        1400 : ( (xmax_m)/20, 0, xmax_m ),
+                        1600 : ( (xmax_m)/20, 0, xmax_m ),
+                        1800 : ( (xmax_m)/20, 0, xmax_m ),
+                        2000 : ( (xmax_m)/20, 0, xmax_m ),
                        }
 
-    signal_binning_m = [ signal_binning_m_width1, signal_binning_m_width2 ]
-
     signal_binning_pt = {}
-    for mass, binning in signal_binning_m_width1.iteritems() :
+    for mass, binning in signal_binning_m.iteritems() :
         pt_min = binning[1]/2.
         if pt_min < 50 :
             pt_min = 50
@@ -170,8 +121,8 @@ def main() :
                 }
 
     selections = { 'base'    : { 
-                                 'mu' : {'selection' : sel_base_mu }, 
-                                 'el' : { 'selection' : sel_base_el }, 
+                                'mu' : {'selection' : sel_base_mu }, 
+                                 #'el' : { 'selection' : sel_base_el }, 
                                },
                    #'jetVeto' : { 'mu' : {'selection' : sel_jetveto_mu }, 
                    #              'el' : { 'selection' : sel_jetveto_el } ,
@@ -181,9 +132,6 @@ def main() :
     workspace_signal   = ROOT.RooWorkspace( 'workspace_signal' )
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
-    #lepg_samps = {'mu' : sampManMuG }
-
-    tf1file = ROOT.TFile("/home/fengyb/Plots/Resonance/Plots_2018_01_22/SignalWS/result.root")
 
     for seltag, chdic in selections.iteritems() : 
 
@@ -191,7 +139,7 @@ def main() :
                                     
             for name, vardata in kine_vars.iteritems() :
 
-                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, tf1file, suffix='%s_%s_%s'%(ch,name,seltag ))
+                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, suffix='%s_%s_%s'%(ch,name,seltag ) )
 
     if options.outputDir is not None :
 
@@ -208,13 +156,11 @@ def main() :
 
         for key, can in sampManMuG.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-
-    for key, result in sampManMuG.fitresults.iteritems():
-        print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManMuG.chi2[key])
-        result.Print()
+        for key, can in sampManElG.outputs.iteritems() :
+            can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
 
 
-def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspace, tf1file, suffix) : 
+def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspace, suffix ) : 
 
     sampMan.clear_hists()
 
@@ -229,36 +175,24 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
         else :
 
             mass = float(res.group(2))
-            
-            iwidth = 0
+
             if samp.name.count( 'width0p01' ) :
                 width = 0.0001
             else :
                 res2 = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_width(\d)', samp.name )
                 width = float(res2.group(3))/100.
-                iwidth = 1
 
-        #if mass != 400:
-        #   continue
-        if mass != 1000 : 
-           continue
-        if samp.name.count( 'MadGraph' ) == 0:
-           continue
-        #if width != 0.05:
-        #   continue
-        #if mass < 2000:
-        #   continue
-        #if mass != 1200:
-        #   continue
+        if mass != 450 : 
+            continue
 
         ph_selection_sr = '%s==1' %defs.get_phid_selection('all')
         ph_idx_sr =  defs.get_phid_idx( 'all' )
-        print binning[iwidth][mass]
-        addtl_cuts_sr = 'ph_pt[%s] > 50  && %s > %f && %s < %f ' %(ph_idx_sr, plot_var, binning[iwidth][mass][1], plot_var, binning[iwidth][mass][2] )
+        print binning[mass]
+        addtl_cuts_sr = 'ph_pt[%s] > 50  && %s > %f && %s < %f ' %(ph_idx_sr, plot_var, binning[mass][1], plot_var, binning[mass][2] )
 
-        #xvar.setBins(10000,'cache')
-        #xvar.setMin('cache',-100)
-        #xvar.setMax('cache',1500)
+        xvar.setBins(10000,'cache')
+        xvar.setMin('cache',-100)
+        xvar.setMax('cache',1500)
 
         for ieta in eta_cuts :
 
@@ -269,7 +203,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
 
             #hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr, binning )
-            sampMan.create_hist( samp, plot_var, full_sel_sr, binning[iwidth][mass] ) 
+            sampMan.create_hist( samp, plot_var, full_sel_sr, binning[mass] ) 
 
             hist_sr = samp.hist
 
@@ -281,15 +215,11 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
 
             #histpdf = ROOT.RooHistPdf( 'srhistpdf_%s' %(full_suffix), 'srhistpdf' , ROOT.RooArgSet( xvar), datahist, 3 )
 
-            if width == 1e-4:
-               fit_max = mass*1.10
-               fit_min = mass*0.65
-               if mass >= 1000 :
-                  fit_max = mass*1.05
-                  fit_min = mass*0.7
-            else:
-               fit_max = mass*1.15
-               fit_min = mass*0.48
+            fit_max = mass*1.1
+            fit_min = mass/1.8
+            if mass >= 1000 :
+                fit_max = mass*1.05
+                fit_min = mass*0.7
 
             xvar.setMin( fit_min )
             xvar.setMax( fit_max )
@@ -298,28 +228,9 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             fitManager = FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
                                     sample_params={'mass' : mass, 'width' : width}, )
 
-            fitManager.make_func_pdf()
-            if width==1e-4:
-               ikey = "0p01"
-            else:
-               ikey = "5"
-            '''
-            fitManager.fit_params['cb_mass'].setVal(tf1file.Get("func_cb_mass_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_mass'].setConstant()
-            fitManager.fit_params['cb_mass'].setError(0.0)
-            fitManager.fit_params['cb_sigma'].setVal(tf1file.Get("func_cb_sigma_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_sigma'].setConstant()
-            fitManager.fit_params['cb_sigma'].setError(0.0)
-            fitManager.fit_params['cb_cut1'].setVal(tf1file.Get("func_cb_cut1_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_cut1'].setConstant()
-            fitManager.fit_params['cb_cut1'].setError(0.0)
-            '''
             fitManager.fit_histogram(workspace )
-            fitManager.save_fit( sampMan, workspace, stats_pos='left' )
-            print "************"
-            print " RooFitResult Status: %d"%fitManager.roofitresult.status()
-            print "************"
-            '''
+            #fitManager.save_fit( sampMan, workspace, stats_pos='left' )
+
             iter_managers = []
             iter_managers.append( fitManager )
 
@@ -407,8 +318,6 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
                 print 'GOTHERE8'
                 iter_managers[-1].save_fit(sampMan, workspace, stats_pos='left' )
                 print 'GOTHERE9'
-
-            '''
 
 
 

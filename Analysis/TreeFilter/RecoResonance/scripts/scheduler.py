@@ -21,16 +21,11 @@ options.batch = ( not options.local )
 
 #base = '/store/user/jkunkle/'
 #base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/WGamma'
-base = '/eos/user/y/yofeng/WGamma'
 #base = '/afs/cern.ch/user/a/abelloni/work/analysis/WG_EXO/usercode/test/'
+base = '/store/user/yofeng/WGamma'
 
-version = 'UMDNTuple_v3'
 version = 'UMDNTuple_0620'
-#version_nlo = 'UMDNTuple_v4'
-version_nlo = 'UMDNTuple_0703'
-version_wgamma = 'UMDNTuple_0620'
-version_wjets = 'UMDNTuple_0620'
-version_py = 'UMDNTuple_v5'
+version_sig = 'UMDNTuple_0703'
 
 jobs = [
         #--------------------------
@@ -46,83 +41,83 @@ jobs = [
         #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                     ),
         #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
         #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
-        #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version_wgamma, tags=['NLO']                        ),
-        #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version_wgamma, tags=['NLO']                         ),
-        #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version_wgamma, tags=['NLO']                         ),
-        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
-        JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf(base, 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
-        JobConf(base, 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
-        JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
-        JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version), 
-        JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version), 
-        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
-        JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , version=version, tags=['NLO']       ),
-        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version_wjets, tags=['NLO']     ),
-        JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version     ),
-        JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version     ),
-        JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , version=version    ),
-        JobConf(base, 'TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', version=version, tags=['NLO'] ),
-        JobConf( base, 'GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf( base, 'GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf( base, 'GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf( base, 'GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version ),
-        JobConf( base, 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', version=version, tags=['NLO']),
+        #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version, tags=['NLO']                        ),
+        #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version, tags=['NLO']                         ),
+        #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version, tags=['NLO']                         ),
+        #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
+        #JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
+        #JobConf(base, 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
+        #JobConf(base, 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
+        #JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
+        #JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version), 
+        #JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
+        #JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version), 
+        #JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
+        #JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , version=version, tags=['NLO']       ),
+        #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version, tags=['NLO']     ),
+        #JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version     ),
+        #JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version     ),
+        #JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , version=version    ),
+        #JobConf(base, 'TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', version=version, tags=['NLO'] ),
+        #JobConf( base, 'GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
+        #JobConf( base, 'GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
+        #JobConf( base, 'GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
+        #JobConf( base, 'GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version ),
+        #JobConf( base, 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
+        #JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', version=version, tags=['NLO']),
 
-        JobConf( base, 'WWTo2L2Nu_13TeV-powheg'),
-        JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', tags=['NLO']     ),
-        JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', tags=['NLO']     ),
-        #JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', tags=['NLO']),
+        #JobConf( base, 'WWTo2L2Nu_13TeV-powheg'),
+        #JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', tags=['NLO']     ),
+        #JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', tags=['NLO']     ),
+        ##JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', tags=['NLO']),
 
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width5' , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width5'  , version=version_nlo   ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width5'  , version=version_nlo   ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width5' , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width5'  , version=version_sig   ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width5'  , version=version_sig   ),
 
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3000_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width0p01', version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width0p01' , version=version_nlo ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width0p01' , version=version_nlo ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3000_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width0p01', version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width0p01' , version=version_sig ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width0p01' , version=version_sig ),
 
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1000_width5' , version=version_py   ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1200_width5' , version=version_py   ),
@@ -183,8 +178,8 @@ options.copyInputFiles=False
 options.enableKeepFilter=True
 options.enableRemoveFilter=False
 options.filekey = 'ntuple'
-#options.PUPath='/data/users/jkunkle/Resonances/PileupHistograms/'
-options.PUPath='/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/PileupHistograms'
+options.PUPath='/data/users/jkunkle/Resonances/PileupHistograms/'
+#options.PUPath='/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/PileupHistograms'
 
 if options.test : 
     options.nproc = 1
@@ -193,8 +188,8 @@ if options.test :
     options.batch = False
     options.local = True
 
-#output_base = '/data/users/fengyb/WGammaNtuple/'
-output_base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/'
+output_base = '/data/users/fengyb/WGammaNtuple/test/'
+#output_base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/'
 
 args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
 configs = [
@@ -224,7 +219,7 @@ configs = [
     #    'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
     #    'args_tag_NLO' : args_nlo,
     #    'input'  : '',
-    #    'output' : output_base+'LepLep_mumu_2018_03_28',
+    #    'output' : output_base+'LepLep_mumu_2018_08_03',
     #    'tag'    : 'mumu',
     #    'keepSelection': 'tight',
     #    'dataset': 'SingleMuon',
@@ -244,7 +239,7 @@ configs = [
     #    'args'   : { 'function' : 'make_final_elel', 'el_pt' : ' > 30 ' },
     #    'args_tag_NLO' : args_nlo,
     #    'input'  : '',
-    #    'output' : output_base+'LepLep_elel_2018_03_28',
+    #    'output' : output_base+'LepLep_elel_2018_08_03',
     #    'tag'    : 'elel',
     #    'keepSelection': 'tight',
     #    'dataset': 'SingleElectron',
@@ -254,19 +249,19 @@ configs = [
         'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'True' },
         'args_tag_NLO' : args_nlo,
         'input'  : '',
-        'output' : output_base+'LepGamma_mug_2018_07_12',
+        'output' : output_base+'LepGamma_mug_2018_08_03',
         'tag'    : 'mug',
         'dataset': 'SingleMuon',
     },
-    {
-        'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True'},
-        'args_tag_NLO' : args_nlo,
-        'input'  : '' ,
-        'output' : output_base+'LepGamma_elg_2018_07_12',
-        'tag'    : 'elg',
-        'dataset': 'SingleElectron',
-    },
+    #{
+    #    'module' : 'Conf.py',
+    #    'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True'},
+    #    'args_tag_NLO' : args_nlo,
+    #    'input'  : '' ,
+    #    'output' : output_base+'LepGamma_elg_2018_08_03',
+    #    'tag'    : 'elg',
+    #    'dataset': 'SingleElectron',
+    #},
     #{
     #    'module' : 'Conf.py',
     #    'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True', 'eleOlap' : 'False'},
