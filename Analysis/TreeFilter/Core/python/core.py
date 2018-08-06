@@ -143,8 +143,8 @@ def config_and_run( options, package_name ) :
     assert options.noInputFiles or options.treeName is not None, 'Must provide a tree name via --treeName'
     assert options.module is not None, 'Must provide a module via --module'
     
-    if options.batch and options.noCompileWithCheck :
-        assert False, "Running noCompileWithCheck with batch mode can result in an executable not being created for a batch job!"
+    #if options.batch and options.noCompileWithCheck :
+    #    assert False, "Running noCompileWithCheck with batch mode can result in an executable not being created for a batch job!"
 
     if options.copyInputFiles and not ( options.batch or options.condor ) :
         print "Can only copy input files in batch mode"
@@ -395,8 +395,8 @@ def config_and_run( options, package_name ) :
             ##    get the event range
             wrapper = '%s/wrapper_%s.sh' %( options.outputDir, jobid) 
             file = open( wrapper, 'w' )
-            file.write( 'cd %s\n' %workarea )
-            file.write( 'source setup.sh\n' )
+            #file.write( 'cd %s\n' %workarea )
+            #file.write( 'source setup.sh\n' )
             #file.write( 'source /afs/cern.ch/user/j/jkunkle/.bashrc \n' )
             #file.write( 'source  /afs/cern.ch/sw/lcg/app/releases/ROOT/5.34.28/x86_64-slc6-gcc47-opt/root/bin/thisroot.sh \n' )
             #file.write( 'export LD_LIBRARY_PATH=/afs/cern.ch/sw/lcg/contrib/gcc/4.6/x86_64-slc6-gcc46-opt/lib64:$LD_LIBRARY_PATH\n' )
@@ -423,13 +423,16 @@ def config_and_run( options, package_name ) :
         else :
             command_info = command_info_orig
 
-        job_desc_file = create_job_desc_file( command_info, {})
+        if command_info:
+            ## check if command_info is zero length, i.e., all jobs have been finished
+            ## this is used for resubmitting
+            job_desc_file = create_job_desc_file( command_info, {})
 
-        condor_command = 'condor_submit %s ' % job_desc_file 
-        logging.info('********************************')
-        logging.info( 'Executing ' + condor_command )
-        logging.info('********************************')
-        os.system(condor_command)
+            condor_command = 'condor_submit %s ' % job_desc_file 
+            logging.info('********************************')
+            logging.info( 'Executing ' + condor_command )
+            logging.info('********************************')
+            os.system(condor_command)
 
     
 
