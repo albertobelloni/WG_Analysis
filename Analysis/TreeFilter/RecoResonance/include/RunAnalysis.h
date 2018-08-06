@@ -47,8 +47,10 @@ class RunModule : public virtual RunModuleBase {
         void MakePhotonCountVars ( ModuleConfig & config ) const;
         void BuildTruth          ( ModuleConfig & config ) const;
         bool FilterTrigger       ( ModuleConfig & config ) ;
+        bool FilterMET           ( ModuleConfig & config ) ;
         bool FilterEvent         ( ModuleConfig & config ) const;
         void WeightEvent         ( ModuleConfig & config ) const;
+
         bool FilterDataQuality   ( ModuleConfig & config ) const;
         bool FilterBlind         ( ModuleConfig & config ) const;
 
@@ -87,6 +89,7 @@ class RunModule : public virtual RunModuleBase {
         std::vector<int> _electronTrigMatchBits;
 
         std::map<int, bool> triggerResults;
+        std::map<int, bool> metfilterResults;
 
         TFile * _puweight_sample_file;
         TFile * _puweight_data_file;
@@ -334,6 +337,7 @@ namespace OUT {
     float PUWeightUP10;
     float PUWeightDN5;
     float PUWeightDN10;
+
 };
 
 #endif
