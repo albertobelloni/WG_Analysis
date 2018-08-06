@@ -4,42 +4,42 @@ The analysis part is based on ntuples made from
 
 To run the analyzer, first do 
 
-   git clone https://github.com/albertobelloni/WG_Analysis.git
+   **git clone https://github.com/albertobelloni/WG_Analysis.git**
 
-   cd WG_Analysis/
+   **cd WG_Analysis/**
 
 If you are on bash:
 
-   source setup.sh
+   **source setup.sh**
 
 or if you are on tcsh:
 
-   source setup.csh
+   **source setup.csh**
 
 
 If this is your first time to run the analysis, compile the core first:
 
-   cd Analysis/TreeFilter/Core
+   **cd Analysis/TreeFilter/Core**
 
-   make
+   **make**
 
 Then modify the script in RecoResonance:
 
-   cd ../RecoResonance/scripts/
+   **cd ../RecoResonance/scripts/**
 
 change the base, output_base, and options.PUPath if necessary
 
-   cd ..
+   **cd ..**
 
-   python scripts/scheduler.py
+   **python scripts/scheduler.py**
 
 If you want your jobs to run locally, do
 
-   python scripts/scheduler.py --local
+   **python scripts/scheduler.py --local**
 
 After finishing, check if all events in the input files have been processed by
 
-   python scripts/scheduler.py --check
+   **python scripts/scheduler.py --check**
 
 More information on the Twiki:
 
@@ -80,12 +80,12 @@ After processing, your new ntuples should contain about 20 branches, such as Fla
 
 After finishing the above, please be careful if you are using inclusive and binned MC samples, you might need to run FilterOverlap to remove overlapping between different MC samples, 
 
-  cd WG_Analysis/Analysis/TreeFilter/FilterOverlap/scripts/
+  **cd WG_Analysis/Analysis/TreeFilter/FilterOverlap/scripts/**
 
 and modify the base to the your output
 
-  cd ..
+  **cd ..**
 
-  python scripts/scheduler.py
+  **python scripts/scheduler.py**
 
 In theory the cuts should be the same so you don't need to change other settings.
