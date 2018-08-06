@@ -8,6 +8,7 @@ import pickle
 import selection_defs as defs
 from uncertainties import ufloat
 from FitManager import FitManager
+from collections import OrderedDict
 #ROOT.TVirtualFitter.SetMaxIterations( 100000 )
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
@@ -48,12 +49,19 @@ def main() :
 
     sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
     sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    #sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME)
 
     sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG.ReadSamples( _SAMPCONF )
 
-    sampManMuG.outputs = {}
+    sampManMuG.outputs = OrderedDict()
     sampManElG.outputs = {}
+    sampManMuG.fitresults = OrderedDict()
+    sampManMuG.chi2= OrderedDict()
+    sampManMuG.chi2prob = OrderedDict()
+    sampManElG.fitresults = OrderedDict()
+    sampManElG.chi2= OrderedDict()
+    sampManElG.chi2prob = OrderedDict()
 
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
     sel_base_el = 'el_pt30_n==1 && el_n==1'
@@ -66,9 +74,10 @@ def main() :
 
     workspaces_to_save = {}
 
-    xmin_m = 60
+    #xmin_m = 60
+    xmin_m = 150
     xmax_m = 4000
-    bin_width_m = 20
+    bin_width_m = 40
 
     xmin_pt = xmin_m/2
     if xmin_pt < 50 :
@@ -117,12 +126,12 @@ def main() :
                   ##'mt_rotated'      : { 'var' : 'mt_rotated'      , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
                   'mt_fulltrans'    : { 'var' : 'mt_res'          , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
                   #'mt_constrwmass'  : { 'var' : 'recoM_lep_nu_ph' , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
-                  #'ph_pt'           : { 'var' : 'ph_pt[0]'        , 'xvar' : xvar_pt , 'binning' : binning_pt, 'signal_binning' : signal_binning_pt },
+                  #'ph_pt'           : { 'var' : 'ph_pt[0]'         , 'xvar' : xvar_pt , 'binning' : binning_pt, 'signal_binning' : signal_binning_pt },
                 }
 
     selections = { 'base'    : { 
-                                'mu' : {'selection' : sel_base_mu }, 
-                                 #'el' : { 'selection' : sel_base_el }, 
+                                'mu' : { 'selection' : sel_base_mu }, 
+                                'el' : { 'selection' : sel_base_el }, 
                                },
                    #'jetVeto' : { 'mu' : {'selection' : sel_jetveto_mu }, 
                    #              'el' : { 'selection' : sel_jetveto_el } ,
@@ -135,6 +144,7 @@ def main() :
     workspace_zgamma = ROOT.RooWorkspace( 'workspace_zgamma' )
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
+    #lepg_samps = { 'mu' : sampManMuG}
 
     for seltag, chdic in selections.iteritems() : 
 
@@ -152,7 +162,7 @@ def main() :
                     #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-500-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
                     #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-130-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
                     #get_mc_fit( lepg_samps[ch], 'WGToLNuG-amcatnloFXFX', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
-                    get_mc_fit( lepg_samps[ch], 'WgammaLO', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgammalo, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    #get_mc_fit( lepg_samps[ch], 'WgammaLO', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgammalo, suffix='%s_%s_%s' %(ch,name,seltag ) )
                     get_mc_fit( lepg_samps[ch], 'Wgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
             if options.doTop : 
 
@@ -192,9 +202,14 @@ def main() :
         for key, can in sampManElG.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
 
+        for key, result in sampManMuG.fitresults.iteritems():
+            print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManMuG.chi2[key])
+            result.Print()
+
 
 def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, workspace, suffix='' ) :
 
+    print "*****************\n calling get_mc_fit \n *********************"
     ph_selection_sr = 'ph_n == 1'
     xmin = xvar.getMin()
     xmax = xvar.getMax()
@@ -207,16 +222,26 @@ def get_mc_fit( sampMan, sampname, sel_base, eta_cuts, xvar, plot_var, binning, 
         eta_str_sr = 'ph_Is%s[0]' %( ieta )
 
         full_sel_sr    = ' && '.join( [sel_base, ph_selection_sr, eta_str_sr, addtl_cuts_sr] )
+ 
+        full_sel_sr    = ' ( ' + full_sel_sr + ' ) * NLOWeight * PUWeight' 
+        #full_sel_sr    = ' ( ' + full_sel_sr + ' ) * NLOWeight'
+        #full_sel_sr    = ' ( ' + full_sel_sr + ' ) * EventWeights[50]'
 
         hist_sr    = clone_sample_and_draw( sampMan, sampname, plot_var, full_sel_sr   , binning )
+        print " **** sampname %s number of total events %f **********"%(sampname, hist_sr.Integral(0, 100000))
+        print " **** sampname %s number of events %f **********"%(sampname, hist_sr.Integral())
         
         label = '%s_%s_%s'%(sampname, suffix, ieta)
 
-        fitManager = FitManager( 'dijet', 2, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
+        #fitManager = FitManager( 'dijet', 3, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
+        fitManager = FitManager( 'dijet', 3, sampname, hist_sr, plot_var, ieta, xvar, label, False)
+        #fitManager = FitManager( 'power', 2, sampname, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
 
         #fit_distribution( fitManager, sampMan, workspace, logy=True )
+        fitManager.make_func_pdf()
         fitManager.fit_histogram()
-        results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
+        #results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
+        fitManager.save_fit( sampMan, workspace, logy = True, stats_pos='right')
 
     return results
 

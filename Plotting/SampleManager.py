@@ -3001,8 +3001,7 @@ class SampleManager :
                     return
                 sample.hist= ROOT.TH3F( histname, '',histpars[0], histpars[1], histpars[2], histpars[3], histpars[4], histpars[5], histpars[6], histpars[7], histpars[8] )
             else : # 1-d histogram
-
-                sample.hist= ROOT.TH1F( histname, '', histpars[0], histpars[1], histpars[2])
+                sample.hist= ROOT.TH1F( histname, '', int(histpars[0]), histpars[1], histpars[2])
 
         elif type( histpars ) is list :
             sample.hist = ROOT.TH1F( histname, '', len(histpars)-1, array('f', histpars))
