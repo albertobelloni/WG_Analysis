@@ -54,9 +54,7 @@ After finishing, check if all events in the input files have been processed by
    python scripts/scheduler.py --check
    ```
 
-More information on the [Twiki](https://twiki.cern.ch/twiki/bin/view/CMS/WGToLNuGResonance)
-
-Try search 'how to process ntuples'
+More information on the [Twiki](https://twiki.cern.ch/twiki/bin/view/CMS/WGToLNuGResonance). Try search 'how to process ntuples'
 
 ## MET filter
 
@@ -66,7 +64,7 @@ For the MET filter, it's under
 
 Line 211-213 or Line 263-265
 
-The three lines will pass the cut ids to FilterMET and select events passing these 7 flags, recommended by the MET group ([twiki](https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2)).
+The three lines will pass the cut ids to FilterMET and select events passing these 7 flags, recommended by the MET group ([Twiki](https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2)).
 
 The filter id and name map can be found in the ntuples from UMDNTuple/FilterInfoTree
 
