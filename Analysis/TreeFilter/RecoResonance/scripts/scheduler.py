@@ -21,21 +21,17 @@ options.batch = ( not options.local )
 
 #base = '/store/user/jkunkle/'
 #base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/WGamma'
-#base = '/afs/cern.ch/user/a/abelloni/work/analysis/WG_EXO/usercode/test/'
 base = '/store/user/yofeng/WGamma'
 
+# background and data
 version = 'UMDNTuple_0620'
+# signal
 version_sig = 'UMDNTuple_0703'
+# 2016 ReminiAOD data, with met filter, but the tags/selections are not updated
+version_reminiAoD = 'UMDNTuple_0807'
 
 jobs = [
         #--------------------------
-        # Used to run on the DYJets sample which stores additional variables
-        #JobConf('/data/users/jkunkle/UMDNTuple/UMDNtupleMod_2018_06_10', 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'    ),
-
-        ##JobConf(base, 'DoubleMuon'),
-        ##JobConf(base, 'DoubleEG'),
-        ##JobConf(base, 'SinglePhoton'),
-        ##JobConf(base, 'JetHT'),
         #JobConf(base, 'SingleMuon', isData=True, version=version),
         #JobConf(base, 'SingleElectron', isData=True, version=version),
         #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                     ),
