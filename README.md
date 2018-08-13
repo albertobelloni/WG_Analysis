@@ -78,7 +78,7 @@ After processing, your new ntuples should contain about 20 branches, such as Fla
 
     Flag_globalSuperTightHalo2016Filter
 
-    Flag_EcalDeadCellTriggerPrimit
+    Flag_EcalDeadCellTriggerPrimitiveFilter
 
     Flag_goodVertices
 

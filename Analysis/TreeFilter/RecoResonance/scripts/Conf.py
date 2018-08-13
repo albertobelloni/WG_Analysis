@@ -79,6 +79,11 @@ def make_final_mumu( alg_list, args) :
     filter_trig = filter_trigger()
     filter_trig.cut_bits = ' == 23 | == 31 '
     alg_list.append( filter_trig )
+
+    filtermet = filter_met()
+    # run the met filter, save the flags but do not filter out events
+    #filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
+    alg_list.append( filtermet )
  
     filter_event = Filter('FilterEvent')
     filter_event.cut_mu_n = ' == 2 '
@@ -102,6 +107,11 @@ def make_final_elel( alg_list, args) :
     filter_trig = filter_trigger()
     filter_trig.cut_bits = ' == 60 '
     alg_list.append( filter_trig )
+
+    filtermet = filter_met()
+    # run the met filter, save the flags but do not filter out events
+    #filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
+    alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
     filter_event.cut_el_n = ' == 2 '
