@@ -92,7 +92,14 @@ After finishing the above, please be careful if you are using inclusive and binn
    ```
    cd WG_Analysis/Analysis/TreeFilter/FilterOverlap/scripts/
    ```
-and modify the base to the your output
+and modify the base in `scheduler.py` to the your output. 
+
+If this is your first time to run FilterOverlap, please
+   ```
+   cd WG_Analysis/Analysis/TreeFilter/FilterOverlap/
+   mkdir obj
+   ```
+Otherwise it would go into problem when compiling. Finally,
    ```
    cd ..
    python scripts/scheduler.py

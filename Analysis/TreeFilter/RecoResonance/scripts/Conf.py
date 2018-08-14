@@ -90,7 +90,7 @@ def make_final_mumu( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -118,7 +118,7 @@ def make_final_elel( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
