@@ -1,13 +1,14 @@
 import os
+from argparse import ArgumentParser
+
 import scheduler_base
 from scheduler_base import JobConf
 
-from argparse import ArgumentParser
 p = ArgumentParser()
 p.add_argument( '--run', dest='run', default=False, action='store_true', help='Run filtering' )
 p.add_argument( '--check', dest='check', default=False, action='store_true', help='Run check of completion' )
 p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true', help='Only submit missing output' )
-p.add_argument( '--batch', dest='batch', default=False, action='store_true', help='Run on batch, not locally ' )
+p.add_argument( '--local', dest='local', default=False, action='store_true', help='Run locally' )
 options = p.parse_args()
 
 if not options.check :
@@ -15,10 +16,11 @@ if not options.check :
 else :
     options.run = False
 
-options.local = ( not options.batch )
+options.batch = ( not options.local )
 
 
-base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple'
+#base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple'
+base = '/data/users/fengyb/WGammaNtuple'
 
 # ----------------------------
 # The suffix that appears on the 
@@ -93,7 +95,8 @@ input_dirs =[
               #'LepGammaNoPhId_mug_2018_03_28',
               #'LepGammaNoPhId_elg_2018_03_28', 
               #'LepGammaNoEleOlap_elg_2018_04_10', 
-              'LepGamma_mug_2018_07_12', 'LepGamma_elg_2018_07_12',
+              #'LepGamma_mug_2018_07_12', 'LepGamma_elg_2018_07_12',
+              'LepLep_mumu_2018_08_13', 'LepLep_elel_2018_08_13', 
 ]
 
 module = 'Conf.py'
