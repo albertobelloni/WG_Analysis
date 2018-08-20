@@ -10,11 +10,11 @@ parser = ArgumentParser()
 parser.add_argument('--version', dest='version', required=True, help='Name of version directory (Resonances_v10)' )
 parser.add_argument('--outputDir', dest='outputDir', required=True, help='output path' )
 parser.add_argument('--fileKey', dest='fileKey', default=None, help='key to match files' )
-parser.add_argument('--treeName', dest='treeName', default='tupel/EventTree', help='tree name' )
+parser.add_argument('--treeName', dest='treeName', default='UMDNTuple/EventTree', help='tree name' )
 
 options = parser.parse_args()
 
-_NTUPLE_DIR = '/store/user/jkunkle'
+_NTUPLE_DIR = '/store/user/yofeng/WGamma'
 
 def main() :
 
@@ -58,7 +58,7 @@ def main() :
 
 def get_histograms(files, outfile) :
 
-    branch_name = 'EvtPuCntTruth'
+    branch_name = 'truepu_n'
 
     chain = ROOT.TChain( options.treeName )
 
@@ -67,11 +67,11 @@ def get_histograms(files, outfile) :
 
     chain.SetBranchStatus('*', 0)
     chain.SetBranchStatus(branch_name, 1)
-    chain.SetBranchStatus('EvtWeights', 1)
+    chain.SetBranchStatus('EventWeights', 1)
 
     outfile.cd()
 
-    chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '1 * ( EvtWeights[0] > 0 ) - 1* ( EvtWeights[0] < 0 ) ' )
+    chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '1 * ( EventWeights[0] > 0 ) - 1* ( EventWeights[0] < 0 ) ' )
 
     hist = outfile.Get('pileup_true')
 
