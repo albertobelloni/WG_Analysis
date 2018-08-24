@@ -407,7 +407,7 @@ def config_and_run( options, package_name ) :
 
         print 'Will submit %d jobs' %len(wrappers)
         for jobid, wrap in wrappers :
-            os.system( 'bsub -q 1nh -o %s/out_%s.txt -e %s/err_%s.txt %s ' %(options.outputDir, jobid, options.outputDir, jobid, wrap) )
+            os.system( 'bsub -q 1nh -o %s/%s/out.txt -e %s/%s/err.txt %s ' %(options.outputDir, jobid, options.outputDir, jobid, wrap) )
 
     elif options.condor :
 
@@ -935,7 +935,7 @@ def make_exe_command( exe_path, conf_file, output_loc ) :
 
     command = [exe_path,
                ' --conf_file %s' %conf_file,
-               ' | tee %s/stdout' %(output_loc),
+               #' | tee %s/stdout' %(output_loc),
               ]
 
     return ' '.join(command)
