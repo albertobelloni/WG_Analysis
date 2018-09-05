@@ -19,8 +19,7 @@ parser.add_argument( '--notree', dest='notree',  default=False,action='store_tru
 
 options = parser.parse_args()
 
-#BASE_DIR   = '/store/user/jkunkle'
-BASE_DIR   = '/eos/cms/store/user/friccita/WGammaNtuples/RawNtuples'
+BASE_DIR   = '/store/user/friccita/'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_SAMPLES = ['SingleElectron', 'SingleMuon']
 #DATA_SAMPLES = ['SingleElectron']
@@ -187,13 +186,15 @@ def main() :
     print ' Results '
     print '******************************************'
     for samp in found_samples :
-        mindiff = min([s-local_events[samp] for s in das_events[samp] if s -local_events[samp]>=0])
-        print '%s : Orignal = %d events, filtered = %d events.  \033[1mDifference = %d\033[0m' %( samp, mindiff+local_events[samp], local_events[samp],mindiff)
-
-
-
-
-
+        if not das_events[samp]:
+                continue
+        diffs = [s-local_events[samp] for s in das_events[samp] if s -local_events[samp]>=0]
+        if not diffs:
+            maxevent = max(das_events[samp])
+            print '%s : Orignal = %d events, filtered = %d events.  \033[31mDifference = %d\033[0m' %( samp, maxevent, local_events[samp],maxevent - local_events[samp])
+        else:
+            mindiff = min(diffs)
+            print '%s : Orignal = %d events, filtered = %d events.  \033[1mDifference = %d\033[0m' %( samp, mindiff+local_events[samp], local_events[samp],mindiff)
 
 
 
