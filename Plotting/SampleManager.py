@@ -100,6 +100,9 @@ class Sample :
 
         self.list_of_branches = []
 
+    def __repr__ (self) :
+            return "<Sample %s at %x>" %(self.name,id(self)) #<SampleManager.Sample instance at 0x>
+
     def SetHist( self, hist=None ) :
         if hist is not None :
             self.hist = hist
@@ -112,6 +115,7 @@ class Sample :
         self.hist.Scale( self.scale )
         print 'Scale %s by %f' %( self.name, self.scale )
         if self.isData :
+            print self.name, " is DATA!!"
             self.hist.SetMarkerStyle( 20 )
             self.hist.SetMarkerSize( 1.15 )
             self.hist.SetStats(0)
@@ -232,6 +236,15 @@ class DrawConfig :
 
     def doRatio(self) :
         return self.hist_config.get('doratio', False)
+
+    def reverseRatio(self) :
+        return self.hist_config.get('reverseratio', False)
+
+    def binomunc(self) :
+        return self.hist_config.get('binomunc', False)
+
+    def get_drawhist(self) :
+        return self.hist_config.get('drawhist', False)
 
     def get_ylabel(self ) :
         #FIX
@@ -933,7 +946,7 @@ class SampleManager :
         return newsample
 
     #--------------------------------
-    def create_ratio_sample( self, name, num_sample, den_sample, color=ROOT.kBlack ) :
+    def create_ratio_sample( self, name, num_sample, den_sample, color=ROOT.kBlack, reverseratio=False ,binomunc = False) :
 
         if name in self.get_sample_names() :
             print 'Sample %s already exists!  Will not create!' %name
@@ -953,8 +966,25 @@ class SampleManager :
                 return None
             den_sample = den_sample_list[0]
 
+        if reverseratio:
+            tmp_sample = den_sample 
+            den_sample = num_sample
+            num_sample = tmp_sample
+			
         ratio_hist = num_sample.hist.Clone( name )
         ratio_hist.Divide( den_sample.hist )
+        if binomunc:
+            for i in range(1,num_sample.hist.GetNbinsX()+1):
+                 den_num = den_sample.hist.GetBinContent(i)
+                 eff_ratio = ratio_hist.GetBinContent(i)
+                 if den_num>0:	
+                     eff = num_sample.hist.GetBinContent(i)/den_sample.hist.GetBinContent(i)
+                     assert abs(eff_ratio-eff)/eff<0.00001, "ratio off: %f %f" %(eff_ratio, eff)
+                     err  = math.sqrt(eff*(1-eff)/den_num)
+                 else:
+                     err = 0
+                 ratio_hist.SetBinError(i,err)
+
 
         ratio_hist.SetMarkerStyle(20)
         ratio_hist.SetMarkerSize(1.1)
@@ -1212,6 +1242,23 @@ class SampleManager :
                 out_order.append( samp.name )
 
         return out_order
+
+    #---------------------------------------
+    def change_stack_order(self,iorder,forder):
+            if isinstance(iorder,int) and isinstance(forder,int): 
+                self.samples.insert(forder,self.samples.pop(iorder)) # index of the original
+                return
+            ordr = [iorder,forder]
+            for i in (0,1):
+                if isinstance(ordr[i],str):
+                    samp = self.get_samples(name = ordr[i])
+                    if samp:
+                        ordr[i] = self.samples.index(samp[0])
+                    else:
+                            print "WARNING: cannot find sample with name %s" %(ordr[i])
+                            return
+            self.change_stack_order(*ordr)
+            return
 
     #---------------------------------------
     def GetLowestGroupedSamples( self, sample ) :
@@ -2910,6 +2957,8 @@ class SampleManager :
                         rname = 'ratio%s_%d' %(samp, i)
                         if rname not in self.get_sample_names() :
                             break
+                reverseratio = draw_config.reverseRatio()
+                binomunc = draw_config.binomunc()
                 rsamp = self.create_ratio_sample( rname, num_sample = draw_config.hist_configs.keys()[0], den_sample=hist_name, color=rcolor)
                 rsamp.legend_entry = hist_config.get('legend_entry', None )
 
@@ -3853,6 +3902,7 @@ class SampleManager :
         ymax = draw_config.get_ymax()
         ymax_scale = draw_config.get_ymax_scale()
         normalize = draw_config.get_normalize()
+        drawhist = draw_config.get_drawhist()
 
         calcymax = 0
         calcymin = 0.5
@@ -3891,7 +3941,7 @@ class SampleManager :
             if first :
                 drawcmd = ''
                 first = False
-            if draw_samp is not None and draw_samp.isSignal  :
+            if draw_samp is not None and not draw_samp.isSignal and drawhist:
                 drawcmd+='hist'
 
             
@@ -3920,10 +3970,10 @@ class SampleManager :
         assert len(selections) == len(reqsamples), 'selections and samples must have same length'
 
         if 'colors' in hist_config :
-            if len(hist_config['colors']) != len( selections ) :
+            if len(hist_config['colors']) < len( selections ) :
                 print 'Size of colors input does not match size of vars input!'
-
-                hist_config['colors'] = [ self.get_samples(name=s)[0].color for s in reqsamples ]
+                reqnum = len(hist_config['colors']) - len( selections ) 
+                hist_config['colors'].extend([ self.get_samples(name=s)[0].color for s in reqsamples[reqnum:] ])
 
         if self.collect_commands :
             self.add_compare_config( varexp, selections, reqsamples, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config)
@@ -3991,9 +4041,9 @@ class SampleManager :
             self.create_hist( newsamp, varexp, selection, histpars)
 
             if xlabel is not None :
-                samp.hist.GetXaxis().SetTitle( xlabel )
+                newsamp.hist.GetXaxis().SetTitle( xlabel )
             if ylabel is not None :
-                samp.hist.GetYaxis().SetTitle( ylabel )
+                newsamp.hist.GetYaxis().SetTitle( ylabel )
             
             created_samples.append(newsamp)
 

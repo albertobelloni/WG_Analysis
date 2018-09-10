@@ -16,6 +16,7 @@ parser.add_argument( '--dataEras', dest='dataEras',  default=None, help='List of
 parser.add_argument( '--sampleKey', dest='sampleKey',  default=None, help='Filter samples based on this key' )
 parser.add_argument( '--nodas', dest='nodas',  default=False,action='store_true', help='skip inquiring das' )
 parser.add_argument( '--notree', dest='notree',  default=False,action='store_true', help='skip reading tree' )
+parser.add_argument( '--vetofail', dest='vetofail',default =False, action='store_true',help='veto failed jobs')
 
 options = parser.parse_args()
 
@@ -171,8 +172,10 @@ def main() :
     else:	
         for samp in found_samples :
 
-            #tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME, vetoes='failed' )
-            tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME)
+            if options.vetofail: 
+                  tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME, vetoes='failed' )
+            else:
+                  tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME)
 
             local_events[samp] = tree_counts
     
