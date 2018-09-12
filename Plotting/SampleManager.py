@@ -971,19 +971,10 @@ class SampleManager :
             den_sample = num_sample
             num_sample = tmp_sample
 			
-        ratio_hist = num_sample.hist.Clone( name )
-        ratio_hist.Divide( den_sample.hist )
+        divoptn = ""
         if binomunc:
-            for i in range(1,num_sample.hist.GetNbinsX()+1):
-                 den_num = den_sample.hist.GetBinContent(i)
-                 eff_ratio = ratio_hist.GetBinContent(i)
-                 if den_num>0:	
-                     eff = num_sample.hist.GetBinContent(i)/den_sample.hist.GetBinContent(i)
-                     assert abs(eff_ratio-eff)/eff<0.00001, "ratio off: %f %f" %(eff_ratio, eff)
-                     err  = math.sqrt(eff*(1-eff)/den_num)
-                 else:
-                     err = 0
-                 ratio_hist.SetBinError(i,err)
+                divoptn += "b"
+        ratio_hist.Divide( num_sample.hist, den_sample.hist,1,1,divoptn)
 
 
         ratio_hist.SetMarkerStyle(20)
