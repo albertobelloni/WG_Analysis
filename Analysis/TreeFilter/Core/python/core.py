@@ -476,7 +476,11 @@ def collect_input_files_local( filesDir, filekey='.root' ) :
     for top, dirs, files in os.walk(filesDir) :
         for f in files :
             if f.count(filekey) > 0 and os.path.isfile( top+'/'+f ) :
-                input_files.append(top+'/'+f)
+                ## skip the failed directories
+                if top.count('failed') > 0:
+                   print " Skip the failed file %s/%s"%( top, f)
+                else:
+                   input_files.append(top+'/'+f)
 
     return input_files
 
@@ -751,19 +755,24 @@ def check_and_filter_input_files( input_files, treename ) :
         pass_filter = True
 
         file = ROOT.TFile.Open( filename )
-        tree = file.Get( treename )
-        
-        if tree == None :
-            pass_filter = False
-            print 'Removed file %s that did not contain the input tree' %filename
-            print 'Existing top level objects : '
-            for obj in file.GetListOfKeys() :
-                print obj.GetName()
+        if file == None:
+           ## current fix. Need to check what is wrong
+           print "Remove file %s that seems corrupted??? "%filename
+         
+        else:
+           tree = file.Get( treename )
+           
+           if tree == None :
+               pass_filter = False
+               print 'Removed file %s that did not contain the input tree' %filename
+               print 'Existing top level objects : '
+               for obj in file.GetListOfKeys() :
+                   print obj.GetName()
 
-        if pass_filter :
-            filtered_files.append(filename)
+           if pass_filter :
+               filtered_files.append(filename)
 
-        file.Close()
+           file.Close()
 
 
     logging.info('Found %d input files.  %d Files were removed' %(len(filtered_files), len(input_files) - len(filtered_files) ) )

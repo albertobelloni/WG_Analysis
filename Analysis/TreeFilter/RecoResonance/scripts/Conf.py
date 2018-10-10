@@ -20,9 +20,13 @@ def get_keep_filter(tag=None) :
         except for those in remove_filter """
 
     mu_basic = ['mu_n','mu_pt', 'mu_eta', 'mu_phi', 'mu_e', 'mu_charge']
-    el_basic = ['el_n', 'el_phi', 'el_eta', 'el_e', 'el_pt', 'el_charge']
-    el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig', 
-                'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose', 
+    mu_addtl = ['mu_isLoose', 'mu_isMedium', 'mu_isTight', 'mu_isSoft', 'mu_isHighPt']
+    el_basic = ['el_n', 'el_phi', 'el_eta', 'el_e', 'el_pt', 'el_charge', 'el_d0', 'el_dz']
+    #el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig', 
+    #            'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose', 
+    #            'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
+    el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
+                'el_passVIDHEEP', 'el_passVIDTight', 'el_passVIDVeryLoose',
                 'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
     ph_basic = ['ph_n', 'ph_phi', 'ph_eta', 'ph_pt','ph_e','ph_hasPixSeed', 'ph_passEleVeto.*', ]
     ph_addtl = ['ph_passVIDLoose', 'ph_passVIDMedium', 'ph_passVIDTight', 
@@ -50,7 +54,7 @@ def get_keep_filter(tag=None) :
     if tag == 'tight' : 
         return branches_tight
     else :
-        return branches_tight + el_addtl + ph_addtl + met_addtl + jet_addtl
+        return branches_tight + mu_addtl + el_addtl + ph_addtl + met_addtl + jet_addtl
 
 def config_analysis( alg_list, args ) :
     """ Configure analysis modules. Order is preserved """
@@ -90,7 +94,7 @@ def make_final_mumu( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -118,7 +122,7 @@ def make_final_elel( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -146,13 +150,20 @@ def make_final_muel( alg_list, args) :
 
 def make_final_mu( alg_list, args) :
 
-    mu_pt = args.get( 'mu_pt', ' > 25 ' )
-    ph_id_cut = args.get( 'ph_id_cut', 'medium' )
+    el_pt = args.get( 'el_pt', ' > 10 ' )
+    mu_pt = args.get( 'mu_pt', ' > 10 ' )
+    ph_pt = args.get( 'ph_pt', ' > 15 ' )
+    muphtrig = args.get( 'muphtrig', 'False' )
+    phot_vars = args.get( 'phot_vars', ' False ' )
+    phot_id = args.get( 'phot_id', 'medium' )
+    ph_eta = args.get( 'ph_eta', None )
+    sec_lep_veto = args.get( 'sec_lep_veto', 'True' )
+    unblind = args.get( 'unblind', 'False' )
 
     # order should be muon, electron, photon, jet
     alg_list.append( filter_muon( mu_pt ) )
-    alg_list.append( filter_electron( ) )
-    alg_list.append( filter_photon( id_cut=ph_id_cut ) )
+    alg_list.append( filter_electron( el_pt ) )
+    alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta ) )
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
@@ -171,13 +182,22 @@ def make_final_mu( alg_list, args) :
 
 def make_final_el( alg_list, args) :
 
-    el_pt = args.get( 'el_pt', ' > 25 ' )
-    ph_id_cut = args.get( 'ph_id_cut', 'medium' )
+    mu_pt = args.get( 'mu_pt', ' > 10 ' )
+    el_pt = args.get( 'el_pt', ' > 10 ' )
+    ph_pt = args.get( 'ph_pt', ' > 15 ' )
+    phot_vars = args.get( 'phot_vars', 'False' )
+    phot_id = args.get( 'phot_id', 'medium' )
+    ph_eta = args.get( 'ph_eta', None )
+    sec_lep_veto = args.get( 'sec_lep_veto', 'True' )
+    unblind = args.get( 'unblind', 'False' )
+    eleVeto = args.get('eleVeto', 'None' )
+    eleOlap = args.get('eleOlap', 'True' )
+
 
     # order should be muon, electron, photon, jet
-    alg_list.append( filter_muon( ) )
-    alg_list.append( filter_electron( el_pt ) )
-    alg_list.append( filter_photon( id_cut=ph_id_cut ) )
+    alg_list.append( filter_muon(mu_pt ) )
+    alg_list.append( filter_electron(el_pt ) )
+    alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta,ele_veto=eleVeto, ele_olap=eleOlap  ) )
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
@@ -218,9 +238,9 @@ def make_final_elg( alg_list, args) :
     filter_trig.cut_bits = ' == 60 '
     alg_list.append( filter_trig )
 
-    filtermet = filter_met()
-    filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
-    alg_list.append( filtermet )
+    #filtermet = filter_met()
+    #filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
+    #alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
     if eleOlap == 'False' :
@@ -243,7 +263,8 @@ def make_final_elg( alg_list, args) :
 
     if unblind is not 'True' :
         filter_blind = Filter( 'FilterBlind' )
-        filter_blind.cut_mt_lep_met_ph = ' < 100 ' 
+        #filter_blind.cut_mt_lep_met_ph = ' < 100 ' 
+        filter_blind.cut_mt_res = ' < 100 '
 
         filter_blind.add_var( 'isData', args.get('isData', ' == False' ) )
         alg_list.append( filter_blind )
@@ -270,9 +291,9 @@ def make_final_mug( alg_list, args) :
     filter_trig.cut_bits = ' == 23 | == 31 '
     alg_list.append( filter_trig )
 
-    filtermet = filter_met()
-    filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
-    alg_list.append( filtermet )
+    #filtermet = filter_met()
+    #filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
+    #alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
     filter_event.cut_mu_pt30_n = ' == 1 '
@@ -292,7 +313,8 @@ def make_final_mug( alg_list, args) :
 
     if unblind is not 'True' :
         filter_blind = Filter( 'FilterBlind' )
-        filter_blind.cut_mt_lep_met_ph = ' < 100 ' 
+        #filter_blind.cut_mt_lep_met_ph = ' < 100 ' 
+        filter_blind.cut_mt_res = ' < 100 '
 
         filter_blind.add_var( 'isData', args.get('isData', ' == False' ) )
         alg_list.append( filter_blind )
@@ -396,9 +418,12 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
         filt.add_var('evalPID', evalPID )
 
     filt.cut_pt           = mu_pt
-    #filt.cut_eta       = ' < 2.5'
     filt.cut_eta          = ' < 2.4'
-    filt.cut_tight        = ' == True '
+    #filt.cut_tight        = ' == True '
+    filt.cut_id_Tight     = '==True'
+    filt.cut_pfiso_tight  = ' < 0.15 '
+    filt.cut_trkiso_tight = ' < 0.05 '
+
     filt.add_var( 'triggerMatchBits', '23,31' )
 
     filt.cut_isPf_loose         = ' == True '
@@ -442,13 +467,20 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt = Filter('FilterElectron')
 
     filt.cut_pt         = el_pt
-    filt.cut_eta        = ' < 2.5'
+    ## change electron eta cut to 2.1 
+    ## because of the trigger
+    filt.cut_eta        = ' < 2.1'
     filt.cut_abssceta       = ' <2.5 '
 
     #filt.cut_tight     = ' == True '
-    filt.cut_vid_medium     = ' == True '
+    #filt.cut_vid_medium     = ' == True '
+    filt.cut_vid_tight      = ' == True '
     filt.cut_muon_dr    = ' > 0.4 '
     filt.add_var( 'triggerMatchBits', '60' )
+    filt.cut_d0_barrel = ' < 0.05 '
+    filt.cut_d0_endcap = ' < 0.10 '
+    filt.cut_dz_barrel = ' < 0.10 '
+    filt.cut_dz_endcap = ' < 0.20 '
 
 
     filt.cut_sigmaIEIE_barrel_tight        = ' < 0.00998 '
@@ -459,7 +491,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_barrel_tight          = ' < 0.0129 '
     #filt.cut_d0_barrel_tight               = ' < 0.0111 '
     #filt.cut_z0_barrel_tight               = ' < 0.0466 '
-    filt.cut_misshits_barrel_tight         = ' < 1 '
+    filt.cut_misshits_barrel_tight         = ' < 2 '
     filt.cut_passConvVeto_barrel_tight     = ' == 1 '
 
     filt.cut_sigmaIEIE_barrel_medium       = ' < 0.00998 '
@@ -470,7 +502,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_barrel_medium         = ' < 0.134 '
     #filt.cut_d0_barrel_medium              = ' < 0.0118 '
     #filt.cut_z0_barrel_medium              = ' < 0.373 '
-    filt.cut_misshits_barrel_medium        = ' < 1 '
+    filt.cut_misshits_barrel_medium        = ' < 2 '
     filt.cut_passConvVeto_barrel_medium    = ' == 1 '
 
     filt.cut_sigmaIEIE_barrel_loose        = ' < 0.011 '
@@ -481,7 +513,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_barrel_loose          = ' < 0.241 '
     #filt.cut_d0_barrel_loose               = ' < 0.0261 '
     #filt.cut_z0_barrel_loose               = ' < 0.41 '
-    filt.cut_misshits_barrel_loose         = ' < 1 '
+    filt.cut_misshits_barrel_loose         = ' < 2 '
     filt.cut_passConvVeto_barrel_loose     = ' == 1 '
 
     filt.cut_sigmaIEIE_barrel_veryloose    = ' < 0.0115 '
@@ -492,7 +524,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_barrel_veryloose      = ' < 0.299 '
     #filt.cut_d0_barrel_veryloose           = ' < 0.0564 '
     #filt.cut_z0_barrel_veryloose           = ' < 0.472 '
-    filt.cut_misshits_barrel_veryloose     = ' < 2 '
+    filt.cut_misshits_barrel_veryloose     = ' < 3 '
     filt.cut_passConvVeto_barrel_veryloose = ' == 1 '
 
     filt.cut_sigmaIEIE_endcap_tight        = ' < 0.0292 '
@@ -503,7 +535,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_endcap_tight          = ' < 0.0129 '
     #filt.cut_d0_endcap_tight               = ' < 0.0351 '
     #filt.cut_z0_endcap_tight               = ' < 0.417 '
-    filt.cut_misshits_endcap_tight         = ' < 1 '
+    filt.cut_misshits_endcap_tight         = ' < 2 '
     filt.cut_passConvVeto_endcap_tight     = ' == 1 '
 
     filt.cut_sigmaIEIE_endcap_medium       = ' < 0.0298 '
@@ -514,7 +546,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_endcap_medium         = ' < 0.13 '
     #filt.cut_d0_endcap_medium              = ' < 0.0739 '
     #filt.cut_z0_endcap_medium              = ' < 0.602 '
-    filt.cut_misshits_endcap_medium        = ' <  1 '
+    filt.cut_misshits_endcap_medium        = ' <  2 '
     filt.cut_passConvVeto_endcap_medium    = ' == 1 '
 
     filt.cut_sigmaIEIE_endcap_loose        = ' < 0.0314 '
@@ -525,7 +557,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_endcap_loose          = ' < 0.14 '
     #filt.cut_d0_endcap_loose               = ' < 0.118 '
     #filt.cut_z0_endcap_loose               = ' < 0.822 '
-    filt.cut_misshits_endcap_loose         = ' <  1 '
+    filt.cut_misshits_endcap_loose         = ' <  2 '
     filt.cut_passConvVeto_endcap_loose     = ' == 1 '
 
     filt.cut_sigmaIEIE_endcap_veryloose    = ' < 0.037 '
@@ -536,7 +568,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_endcap_veryloose      = ' < 0.15 '
     #filt.cut_d0_endcap_veryloose           = ' < 0.222 '
     #filt.cut_z0_endcap_veryloose           = ' < 0.921 '
-    filt.cut_misshits_endcap_veryloose     = ' < 3 '
+    filt.cut_misshits_endcap_veryloose     = ' < 4 '
     filt.cut_passConvVeto_endcap_veryloose = ' == 1 '
 
 
@@ -594,8 +626,9 @@ def filter_photon( ph_pt = ' > 15 ', id_cut='medium', ieta_cut=None, ele_veto='N
         elif ele_veto == 'False'  :
             filt.cut_CSEV = ' == False '
     
-    if( id_cut is not 'None' ) :
-        setattr( filt, 'cut_%s' %id_cut, ' == True ' )
+    #if( id_cut is not 'None' ) :
+    #    setattr( filt, 'cut_%s' %id_cut, ' == True ' )
+    filt.cut_vid_medium     = ' == True '
 
     filt.cut_sigmaIEIE_barrel_loose  = ' < 0.01031 '
     filt.cut_chIsoCorr_barrel_loose  = ' < 1.295 '
