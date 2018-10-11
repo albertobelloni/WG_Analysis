@@ -379,10 +379,10 @@ def make_nofilt( alg_list, args ) :
 
     pass_lepton = args.get('pass_lepton', 'False')
     if pass_lepton == 'True' :
-        alg_list.append( filter_muon( mu_pt = ' > 0 ' ) )
-        alg_list.append( filter_electron( el_pt = ' > 0 ' ) )
+        alg_list.append( filter_muon( mu_pt = ' > 10 ' ) )
+        alg_list.append( filter_electron( el_pt = ' > 10 ' ) )
 
-    alg_list.append( filter_photon( ph_pt = ' > 0 ', id_cut = 'medium'   )  )
+    alg_list.append( filter_photon( ph_pt = ' > 15 ', id_cut = 'medium'   )  )
 
     alg_list.append( filter_trigger() )
     alg_list.append( filter_met() )
