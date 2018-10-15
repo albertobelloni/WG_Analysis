@@ -21,6 +21,8 @@ def get_phid_selection( sel1, sel2='' ) :
 
     if sel1 == 'all' :
         return 'ph_n'
+    if sel1 == 'loose' :
+        return 'ph_loose_n' 
     if sel1 == 'medium' :
         return 'ph_medium_n' 
     if sel1 == 'chIso' :
@@ -40,6 +42,8 @@ def get_phid_idx( sel1, sel2='' ) :
 
     if sel1 == 'all' :
         return '0'
+    if sel1 == 'loose' :
+        return 'ptSorted_ph_loose_idx[0]' 
     if sel1 == 'medium' :
         return 'ptSorted_ph_medium_idx[0]' 
     if sel1 == 'chIso' :
@@ -60,7 +64,7 @@ def get_phid_cut_var( ivar ) :
     if ivar == 'chIso' :
         return 'ph_chIsoCorr'
     if ivar == 'sigmaIEIE' :
-        return 'ph_sigmaIEIE'
+        return 'ph_sigmaIEIEFull5x5' #ph_sigmaIEIE
 
     assert( 'get_phid_cut_var -- Could not parse selection vars!' )
 
