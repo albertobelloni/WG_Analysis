@@ -54,17 +54,13 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::el_trigSFUP = -1;
     OUT::el_trigSFDN = -1;
 
-    OUT::el_diTrigSF = -1;
-    OUT::el_diTrigSFUP = -1;
-    OUT::el_diTrigSFDN = -1;
+    OUT::el_idSF = -1;
+    OUT::el_idSFUP = -1;
+    OUT::el_idSFDN = -1;
 
-    OUT::el_mvaIDSF = -1;
-    OUT::el_mvaIDSFUP = -1;
-    OUT::el_mvaIDSFDN = -1;
-
-    OUT::el_looseIDSF = -1;
-    OUT::el_looseIDSFUP = -1;
-    OUT::el_looseIDSFDN = -1;
+    OUT::el_recoSF   = -1;
+    OUT::el_recoSFUP = -1;
+    OUT::el_recoSFDN = -1; 
 #endif
 
 #ifdef MODULE_AddPhotonSF
@@ -105,15 +101,15 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
     // Examples :
 #ifdef MODULE_AddElectronSF
-    outtree->Branch( "el_trigSF"    ,  &OUT::el_trigSF    , "el_trigSF/F"    );
-    outtree->Branch( "el_trigSFUP"  ,  &OUT::el_trigSFUP  , "el_trigSFUP/F"  );
-    outtree->Branch( "el_trigSFDN"  ,  &OUT::el_trigSFDN  , "el_trigSFDN/F"  );
-    outtree->Branch( "el_mvaIDSF"      ,  &OUT::el_mvaIDSF      , "el_mvaIDSF/F"      );
-    outtree->Branch( "el_mvaIDSFUP"    ,  &OUT::el_mvaIDSFUP    , "el_mvaIDSFUP/F"    );
-    outtree->Branch( "el_mvaIDSFDN"    ,  &OUT::el_mvaIDSFDN    , "el_mvaIDSFDN/F"    );
-    outtree->Branch( "el_looseIDSF"      ,  &OUT::el_looseIDSF      , "el_looseIDSF/F"      );
-    outtree->Branch( "el_looseIDSFUP"    ,  &OUT::el_looseIDSFUP    , "el_looseIDSFUP/F"    );
-    outtree->Branch( "el_looseIDSFDN"    ,  &OUT::el_looseIDSFDN    , "el_looseIDSFDN/F"    );
+    outtree->Branch( "el_trigSF"      ,  &OUT::el_trigSF      , "el_trigSF/F"      );
+    outtree->Branch( "el_trigSFUP"    ,  &OUT::el_trigSFUP    , "el_trigSFUP/F"    );
+    outtree->Branch( "el_trigSFDN"    ,  &OUT::el_trigSFDN    , "el_trigSFDN/F"    );
+    outtree->Branch( "el_idSF"        ,  &OUT::el_idSF        , "el_idSF/F"        );
+    outtree->Branch( "el_idSFUP"      ,  &OUT::el_idSFUP      , "el_idSFUP/F"      );
+    outtree->Branch( "el_idSFDN"      ,  &OUT::el_idSFDN      , "el_idSFDN/F"      );
+    outtree->Branch( "el_recoSF"      ,  &OUT::el_recoSF      , "el_recoSF/F"      );
+    outtree->Branch( "el_recoSFUP"    ,  &OUT::el_recoSFUP    , "el_recoSFUP/F"    );
+    outtree->Branch( "el_recoSFDN"    ,  &OUT::el_recoSFDN    , "el_recoSFDN/F"    );
 #endif
    
 #ifdef MODULE_AddPhotonSF
@@ -165,7 +161,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_iso_bcdef = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_iso_bcdef->IsOpen() ) {
-                    TH2F * thishist =  dynamic_cast<TH2F*>(_sffile_mu_iso_bcdef->Get( "TightISO_TightID_pt_eta/pt_abseta_ratio" ));
+                    TH2D * thishist =  dynamic_cast<TH2D*>(_sffile_mu_iso_bcdef->Get( "NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt" ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_iso_bcdef->GetName() << std::endl;
                     }
@@ -179,7 +175,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_iso_gh = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_iso_gh->IsOpen() ) {
-                    TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_iso_gh->Get( "TightISO_TightID_pt_eta/pt_abseta_ratio" ));
+                    TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_iso_gh->Get( "NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt" ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_iso_gh->GetName() << std::endl;
                     }
@@ -193,7 +189,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_id_bcdef = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_id_bcdef->IsOpen() ) {
-                    TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_id_bcdef->Get( "MC_NUM_TightID_DEN_genTracks_PAR_pt_eta/pt_abseta_ratio" ) );
+                    TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_id_bcdef->Get( "NUM_TightID_DEN_genTracks_eta_pt" ) );
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_id_bcdef->GetName() << std::endl;
                     }
@@ -207,7 +203,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_id_gh = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_id_gh->IsOpen() ) {
-                    TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_id_gh->Get( "MC_NUM_TightID_DEN_genTracks_PAR_pt_eta/pt_abseta_ratio" ));
+                    TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_id_gh->Get( "NUM_TightID_DEN_genTracks_eta_pt" ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_id_gh->GetName() << std::endl;
                     }
@@ -245,36 +241,24 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
-            itr = mod_conf.GetInitData().find( "FilePathTrk" );
-            if( itr != mod_conf.GetInitData().end() ) {
-                _sffile_mu_trk = TFile::Open( (itr->second).c_str(), "READ" );
-                if( _sffile_mu_trk->IsOpen() ) {
-                    _sfgraph_mu_trk = dynamic_cast<TGraphAsymmErrors*>(_sffile_mu_trk->Get( "ratio_eff_aeta_dr030e030_corr" ));
-                    if( !_sfgraph_mu_trk) {
-                        std::cout << "could not get hist from file " << _sffile_mu_trk->GetName() << std::endl;
-                    }
-                }
-                else {
-                    std::cout << "Could not open file " << itr->second << std::endl;
-                }
-            }
         }
         if( mod_conf.GetName() == "AddElectronSF" ) { 
             std::map<std::string, std::string>::const_iterator itr;
-            itr = mod_conf.GetInitData().find( "FilePathID" );
-            if( itr != mod_conf.GetInitData().end() ) {
-                _sffile_el_id = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_el_id = dynamic_cast<TH2F*>(_sffile_el_id->Get( "electronsDATAMCratio_FO_ID_ISO" ));
-            }
-            itr = mod_conf.GetInitData().find( "FilePathDiTrig" );
-            if( itr != mod_conf.GetInitData().end() ) {
-                _sffile_el_ditrig = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_el_ditrig = dynamic_cast<TH2D*>(_sffile_el_ditrig->Get( "scalefactor eta2d with syst" ));
-            }
+
             itr = mod_conf.GetInitData().find( "FilePathCutID" );
             if( itr != mod_conf.GetInitData().end() ) {
-                _sffile_el_cutid = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_el_looseid = dynamic_cast<TH2D*>(_sffile_el_cutid->Get( "sfLOOSE" ));
+                _sffile_el_id = TFile::Open( (itr->second).c_str(), "READ" );
+                _sfhist_el_id = dynamic_cast<TH2F*>(_sffile_el_id->Get( "EGamma_SF2D" ));
+            }
+            itr = mod_conf.GetInitData().find( "FilePathRecoHighPt" );
+            if( itr != mod_conf.GetInitData().end() ){
+                _sffile_el_recohighpt = TFile::Open( (itr->second).c_str(), "READ" );
+                _sfhist_el_recohighpt = dynamic_cast<TH2F*>(_sffile_el_recohighpt->Get("EGamma_SF2D"));
+            }
+            itr = mod_conf.GetInitData().find( "FilePathRecoLowPt" );
+            if( itr != mod_conf.GetInitData().end() ){
+                _sffile_el_recolowpt = TFile::Open( (itr->second).c_str(), "READ" );
+                _sfhist_el_recolowpt = dynamic_cast<TH2F*>(_sffile_el_recolowpt->Get("EGamma_SF2D"));
             }
         }
         if( mod_conf.GetName() == "AddPhotonSF" ) { 
@@ -350,43 +334,30 @@ void RunModule::AddElectronSF( ModuleConfig & /*config*/ ) const {
 
 #ifdef MODULE_AddElectronSF
 
-    OUT::el_mediumIDSF   = 1.0;
-    OUT::el_mediumIDSFUP = 1.0;
-    OUT::el_mediumIDSFDN = 1.0;
-
     OUT::el_trigSF   = 1.0;
     OUT::el_trigSFUP = 1.0;
     OUT::el_trigSFDN = 1.0;
 
-    if( OUT::EvtIsRealData ) {
+    OUT::el_idSF   = 1.0;
+    OUT::el_idSFUP = 1.0;
+    OUT::el_idSFDN = 1.0;
+
+    OUT::el_recoSF   = 1.0;
+    OUT::el_recoSFUP = 1.0;
+    OUT::el_recoSFDN = 1.0;
+
+    if( OUT::isData ) {
         return;
     }
 
-    
-    std::vector<float> loose_idsf;
-    std::vector<float> loose_iderr;
+    std::vector<float> sfs_id;
+    std::vector<float> errs_id;
+    std::vector<float> sfs_reco;
+    std::vector<float> errs_reco;
 
     for( int idx = 0; idx < OUT::el_n; ++idx ) {
+        /*
 
-        if( OUT::el_triggerMatch->at(idx) && OUT::el_passMvaTrig->at(idx) ) {
-
-            float pt = OUT::el_pt->at(idx);
-            float eta = fabs( OUT::el_sceta->at(idx) );
-            // histogram ends at 200, if pT is above
-            // 200, get the value just below
-            if( pt < 200 ) {
-                OUT::el_mvaIDSF = _sfhist_el_id->GetBinContent( _sfhist_el_id->FindBin( eta, pt ) );
-                float err    = _sfhist_el_id->GetBinError  ( _sfhist_el_id->FindBin( eta, pt ) );
-                OUT::el_mvaIDSFUP = OUT::el_mvaIDSF + err;
-                OUT::el_mvaIDSFDN = OUT::el_mvaIDSF - err;
-            }
-            else {
-                OUT::el_mvaIDSF = _sfhist_el_id->GetBinContent( _sfhist_el_id->FindBin( eta, 199. ) );
-                float err    = _sfhist_el_id->GetBinError  ( _sfhist_el_id->FindBin( eta, 199. ) );
-                OUT::el_mvaIDSFUP = OUT::el_mvaIDSF + err;
-                OUT::el_mvaIDSFDN = OUT::el_mvaIDSF - err;
-            }
-        }
         if( OUT::el_triggerMatch->at(idx) ) {
 
             //https://twiki.cern.ch/twiki/bin/viewauth/CMS/KoPFAElectronTagAndProbe
@@ -442,52 +413,48 @@ void RunModule::AddElectronSF( ModuleConfig & /*config*/ ) const {
                 }
             }
         }
+        */
         // Do loose scale factors
         //
 
-        if( OUT::el_passLoose->at(idx) ) {
-            // if the pT is above 200, get the last bin
-            float pt_for_hist = OUT::el_pt->at(idx);
-            if( pt_for_hist > 200 ) pt_for_hist = 199.;
+        float pt  = OUT::el_pt->at(idx);
+        float eta = OUT::el_sc_eta->at(idx);
 
-            loose_idsf .push_back( _sfhist_el_looseid->GetBinContent( _sfhist_el_looseid->FindBin( fabs(OUT::el_sceta->at(idx) ), pt_for_hist ) ) );
-            loose_iderr.push_back( get_ele_cutid_syst( pt_for_hist, fabs( OUT::el_sceta->at(idx) ) ) );
-        }
-    }
-
-    if( loose_idsf.size() == 1 ) {
-        OUT::el_looseIDSF = loose_idsf[0];
-        OUT::el_looseIDSFUP = loose_idsf[0] + loose_iderr[0];
-        OUT::el_looseIDSFDN = loose_idsf[0] - loose_iderr[0];
-    }
-    else if( loose_idsf.size() > 1 ) {
-
-        OUT::el_looseIDSF = loose_idsf[0]*loose_idsf[1];
-        OUT::el_looseIDSFUP = ( loose_idsf[0] + loose_iderr[0] ) *( loose_idsf[1] + loose_iderr[1] );
-        OUT::el_looseIDSFDN = ( loose_idsf[0] - loose_iderr[0] ) *( loose_idsf[1] - loose_iderr[1] );
-    }
-
-
-    if( OUT::el_n==2 ) {
-
-        // https://twiki.cern.ch/twiki/bin/viewauth/CMS/DileptonTriggerResults
-        float lead_eta = OUT::el_eta->at(0);
-        float subl_eta = OUT::el_eta->at(1);
-
-        if( OUT::el_pt->at( 1 ) > OUT::el_pt->at(0) ) {
-            lead_eta = OUT::el_eta->at(1);
-            subl_eta = OUT::el_eta->at(0);
+        ValWithErr res_id   = GetVals2D( _sfhist_el_id, eta, pt );
+        ValWithErr res_reco;
+        if( pt<20.0 ){
+            res_reco = GetVals2D( _sfhist_el_recolowpt, eta, pt ); 
+        } 
+        else{
+            res_reco = GetVals2D( _sfhist_el_recohighpt, eta, pt );
         }
 
-        // Fix for electrons beyond 2.4
-        if( fabs( lead_eta ) > 2.4 ) lead_eta = 2.39;
-        if( fabs( subl_eta ) > 2.4 ) subl_eta = 2.39;
+        sfs_id .push_back(res_id.val );
+        errs_id.push_back(res_id.err_up);
 
-        OUT::el_diTrigSF = _sfhist_el_ditrig->GetBinContent( _sfhist_el_ditrig->FindBin( fabs(lead_eta), fabs(subl_eta) ) );
-        float err        = _sfhist_el_ditrig->GetBinError  ( _sfhist_el_ditrig->FindBin( fabs(lead_eta), fabs(subl_eta) ) );
-        OUT::el_diTrigSFUP = OUT::el_diTrigSF + err;
-        OUT::el_diTrigSFDN = OUT::el_diTrigSF - err;
+        sfs_reco .push_back(res_reco.val );
+        errs_reco.push_back(res_reco.err_up);
 
+    }
+
+    if( sfs_id.size() == 1 ) {
+        OUT::el_idSF   = sfs_id[0];
+        OUT::el_idSFUP = sfs_id[0] + errs_id[0];
+        OUT::el_idSFDN = sfs_id[0] - errs_id[0];
+
+        OUT::el_recoSF   = sfs_reco[0];
+        OUT::el_recoSFUP = sfs_reco[0] + errs_reco[0];
+        OUT::el_recoSFDN = sfs_reco[0] - errs_reco[0]; 
+    }
+
+    else if( sfs_id.size() > 1 ) {
+        OUT::el_idSF = sfs_id[0]*sfs_id[1];
+        OUT::el_idSFUP = ( sfs_id[0] + errs_id[0] ) *( sfs_id[1] + errs_id[1] );
+        OUT::el_idSFDN = ( sfs_id[0] - errs_id[0] ) *( sfs_id[1] - errs_id[1] );
+
+        OUT::el_recoSF = sfs_reco[0]*sfs_reco[1];
+        OUT::el_recoSFUP = ( sfs_reco[0] + errs_reco[0] ) *( sfs_reco[1] + errs_reco[1] );
+        OUT::el_recoSFDN = ( sfs_reco[0] - errs_reco[0] ) *( sfs_reco[1] - errs_reco[1] );
     }
 #endif
 }
@@ -629,7 +596,7 @@ void RunModule::AddPhotonSF( ModuleConfig & /*config*/ ) const {
     OUT::ph_csevSFUP = 1.0;
     OUT::ph_csevSFDN = 1.0;
 
-    if( OUT::EvtIsRealData ) {
+    if( OUT::isData ) {
         return;
     }
     // to check if photon pt is above histogram
@@ -644,7 +611,7 @@ void RunModule::AddPhotonSF( ModuleConfig & /*config*/ ) const {
 
         // in the ID histogram, the x axis is signed eta, y is pt
         float pt = OUT::ph_pt->at(idx);
-        float eta = OUT::ph_sceta->at(idx);
+        float eta = OUT::ph_sc_eta->at(idx);
 
         ValWithErr res_id   = GetVals2D( _sfhist_ph_id, eta, pt );
         ValWithErr res_psv  = GetVals2D( _sfhist_ph_psv, fabs(eta), pt );
@@ -713,7 +680,7 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     OUT::mu_trkSFUP = 1.0;
     OUT::mu_trkSFDN = 1.0;
 
-    if( OUT::EvtIsRealData) {
+    if( OUT::isData) {
         return;
     }
 
@@ -725,11 +692,8 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     std::vector<float> isoerrsup;
     std::vector<float> isoerrsdn;
 
-    std::vector<float> trksfs;
-    std::vector<float> trkerrsup;
-    std::vector<float> trkerrsdn;
 
-
+    /*
     if( OUT::mu_n == 1 )  { // our trigger SFs are only available for single muon triggers
         float feta = fabs(OUT::mu_eta->at(0));
         float pt   =      OUT::mu_pt ->at(0) ;
@@ -746,15 +710,16 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
             std::cout << "AddMuonSF -- WARNING : muon pt or eta out of range " << pt << " " << feta << std::endl;
         }
     }
+    */
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
-        float feta = fabs(OUT::mu_eta->at(idx));
-        float pt   =      OUT::mu_pt ->at(idx) ;
+        float eta =   OUT::mu_eta->at(idx);
+        float pt   =   OUT::mu_pt ->at(idx) ;
 
         ValWithErr entry_id;
         ValWithErr entry_iso;
-        entry_id  = GetValsRunRange2D( _sfhists_mu_id, pt, feta );
-        entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
+        entry_id  = GetValsRunRange2D( _sfhists_mu_id,  eta, pt );
+        entry_iso = GetValsRunRange2D( _sfhists_mu_iso, eta, pt );
 
         idsfs.push_back( entry_id.val );
         iderrsup.push_back( entry_id.err_up );
@@ -764,12 +729,12 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         isoerrsup.push_back( entry_iso.err_up);
         isoerrsdn.push_back( entry_iso.err_dn);
 
-        ValWithErr entry_trk = GetValsFromGraph( _sfgraph_mu_trk, feta);
+        //trksfs.push_back( entry_trk.val);
+        //trkerrsup.push_back( entry_trk.err_up );
+        //trkerrsdn.push_back( entry_trk.err_dn );
 
-        trksfs.push_back( entry_trk.val);
-        trkerrsup.push_back( entry_trk.err_up );
-        trkerrsdn.push_back( entry_trk.err_dn );
-
+        // tracking scale factor is 1.0
+        // https://hypernews.cern.ch/HyperNews/CMS/get/muon/1425.html
     }
 
     if( OUT::mu_n == 1 ) {
@@ -781,10 +746,6 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         OUT::mu_isoSF   = isosfs[0];
         OUT::mu_isoSFUP = isosfs[0] + isoerrsup[0];
         OUT::mu_isoSFDN = isosfs[0] - isoerrsdn[0];
-
-        OUT::mu_trkSF   = trksfs[0];
-        OUT::mu_trkSFUP = trksfs[0] + trkerrsup[0];
-        OUT::mu_trkSFDN = trksfs[0] - trkerrsdn[0];
     }
     else if( OUT::mu_n > 1 ) {
 
@@ -795,11 +756,6 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         OUT::mu_isoSF = isosfs[0]*isosfs[1];
         OUT::mu_isoSFUP = ( isosfs[0] + isoerrsup[0] ) *  ( isosfs[1] + isoerrsup[1] );
         OUT::mu_isoSFDN = ( isosfs[0] - isoerrsdn[0] ) *  ( isosfs[1] - isoerrsdn[1] );
-
-        OUT::mu_trkSF = isosfs[0]*isosfs[1];
-        OUT::mu_trkSFUP = ( isosfs[0] + isoerrsup[0] ) *  ( isosfs[1] + isoerrsup[1] );
-        OUT::mu_trkSFDN = ( isosfs[0] - isoerrsdn[0] ) *  ( isosfs[1] - isoerrsdn[1] );
-
     }
 
 #endif
@@ -855,7 +811,8 @@ template<class HIST> ValWithErr RunModule::GetValsRunRange2D( const std::vector<
     float total_lumi = 0;
     float sum_cv = 0;
     float sum_err = 0;
-    for( std::vector<std::pair<float, TH2F*> >::const_iterator itr = range_hists.begin();
+    //for( std::vector<std::pair<float, HIST*> >::const_iterator itr = range_hists.begin();
+    for( auto itr = range_hists.begin();
             itr != range_hists.end(); ++itr ) {
 
         if( !itr->second ) {
