@@ -626,9 +626,9 @@ def filter_photon( ph_pt = ' > 15 ', id_cut='medium', ieta_cut=None, ele_veto='N
         elif ele_veto == 'False'  :
             filt.cut_CSEV = ' == False '
     
-    #if( id_cut is not 'None' ) :
-    #    setattr( filt, 'cut_%s' %id_cut, ' == True ' )
-    filt.cut_vid_medium     = ' == True '
+    if( id_cut is not 'None' ) :
+        setattr( filt, 'cut_%s' %id_cut, ' == True ' )
+    #filt.cut_vid_medium     = ' == True '
 
     filt.cut_sigmaIEIE_barrel_loose  = ' < 0.01031 '
     filt.cut_chIsoCorr_barrel_loose  = ' < 1.295 '
