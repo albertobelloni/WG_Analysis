@@ -1,4 +1,5 @@
 import os
+import pdb
 import sys
 import math
 import re
@@ -42,6 +43,7 @@ class HistConfig :
 
     def __init__(self) : 
         pass
+
 
 class DrawConfig :
     """ Store and process all informaiton necessary for making a histogram """
@@ -108,16 +110,18 @@ class DrawConfig :
                 bin_width_f = 1
                 
 
+            xunit = self.hist_config.get('xunit', 'GeV') 
             if math.fabs(bin_width_f - bin_width) != 0 :
-                ylabel = 'Events / %.1f GeV' %bin_width_f
+                ylabel = 'Events / %.1f %s' %(bin_width_f,xunit)
             else :
-                ylabel = 'Events / %d GeV' %bin_width
+                ylabel = 'Events / %d %s' %(bin_width, xunit)
 
         return ylabel
 
     def get_xlabel(self) :
 
-        return self.hist_config.get('xlabel', '')
+        xunit = self.hist_config.get('xunit', 'GeV') 
+        return self.hist_config.get('xlabel',"" ) + '[%s]' %xunit
 
     def get_rlabel(self) :
         rlabel = self.hist_config.get('rlabel', None) 
@@ -193,7 +197,7 @@ class DrawConfig :
         if stattext is not None :
             statlabel  = ROOT.TLatex()
             statlabel.SetTextFont( 42 )
-            statlabel   .SetNDC()
+            statlabel  .SetNDC()
             statlabel  .SetTextSize(0.045)
             statlabel.SetText(0.16, 0.93, stattext)
 
@@ -203,18 +207,33 @@ class DrawConfig :
         labelLoc = self.label_config.get('labelLoc', None)
         if labelStyle is None:
 
-            text_x = 0.18
-            text_y = 0.93
+            text_dx = self.label_config.get("dx",0)
+            text_x = text_dx +0.18
+            text_dy = self.label_config.get("dy",0)
+            text_y = text_dy +0.88
 
             if labelLoc == 'topright' :
                 text_x = 0.75
                 text_y = 0.93
             cmslabel = ROOT.TLatex()
             cmslabel.SetNDC()
-            cmslabel.SetTextSize( 0.04 )
-            cmslabel.SetText(text_x, text_y, 'CMS Internal')
+            cmslabel.SetTextSize( 0.05 )
+            cmslabel.SetText(text_x, text_y, 'CMS')
+            wiplabel = ROOT.TLatex()
+            wiplabel.SetNDC()
+            wiplabel.SetTextSize( 0.05 )
+            wiplabel.SetText(text_x+0.07, text_y, 'Simulation Work in Progress')
+            wiplabel.SetTextFont(52)
+            labeltext = '36 fb^{-1} (13 TeV)'
+            rootslabel = ROOT.TLatex()
+            rootslabel.SetText(text_dx+0.75, text_dy+0.88, labeltext  )
+            rootslabel.SetTextFont(42)
+            rootslabel .SetNDC()
+            rootslabel .SetTextSize(0.045)
 
+            labels.append(rootslabel)
             labels.append(cmslabel)
+            labels.append(wiplabel)
 
         elif labelStyle.count('fancy') :
             extText = 'Internal'
@@ -292,41 +311,6 @@ class DrawConfig :
         label.SetText(xval, yval, text)
         return label
 
-    def get_unique_name( self, var ) :
-
-        outname = ''
-        
-        basename = var
-
-        # first remove brackets
-        pos_begin = 100
-        while pos_begin >= 0 :
-            pos_begin = basename.rfind( '[' )
-            if pos_begin < 0 :
-                break
-            pos_end = basename.find( ']', pos_begin )
-            basename = basename[:pos_begin] + basename[pos_end+1:]
-        if basename.count('+') :
-            basename = basename.split('[')[0]
-            basename = basename.replace('+', '_')
-        if basename.count('(') :
-            basename = basename.replace('(', '_')
-        if basename.count(')') :
-            basename = basename.replace(')', '_')
-        if basename.count(':') :
-            basename = basename.replace(':', '_')
-
-        if basename in self.used_names :
-            for i in range( 0, 1000000  ) :
-                outname = '%s_%d' %(basename, i)
-                if outname not in self.used_names :
-                    self.used_names.append(outname)
-                    break
-        else :
-            outname = basename
-            self.used_names.append(basename)
-
-        return outname
 
 
     def get_var_val(self, sample, treename) :
@@ -363,6 +347,48 @@ class DrawConfig :
             return 'TH2F'
         else :
             return 'TH1F'
+
+
+
+    ####################################################
+
+
+    def get_unique_name( self, var ) :
+
+        outname = ''
+        
+        basename = var
+
+        # first remove brackets
+        pos_begin = 100
+        while pos_begin >= 0 :
+            pos_begin = basename.rfind( '[' )
+            if pos_begin < 0 :
+                break
+            pos_end = basename.find( ']', pos_begin )
+            basename = basename[:pos_begin] + basename[pos_end+1:]
+        if basename.count('+') :
+            basename = basename.split('[')[0]
+            basename = basename.replace('+', '_')
+        if basename.count('(') :
+            basename = basename.replace('(', '_')
+        if basename.count(')') :
+            basename = basename.replace(')', '_')
+        if basename.count(':') :
+            basename = basename.replace(':', '_')
+
+        if basename in self.used_names :
+            for i in range( 0, 1000000  ) :
+                outname = '%s_%d' %(basename, i)
+                if outname not in self.used_names :
+                    self.used_names.append(outname)
+                    break
+        else :
+            outname = basename
+            self.used_names.append(basename)
+
+        return outname
+
 
     def get_hist_declarations( self ) :
 
@@ -404,6 +430,11 @@ class DrawConfig :
         return hist_decs
 
     def create_hist_configs( self, branches=None ) :
+        """  Fills hist_configs ordered dictionary
+        Each sample gets one dictionary entry with var, selection, sample, color ,legend entry according to order of input
+        Argument:
+            branches: ??
+        """
 
         if branches is None :
             if len( self.var ) == 1 : # make one name for each selection
@@ -620,6 +651,13 @@ class DrawConfig :
             return self.selection[0]
 
     def init_hist( self, name ) :
+        """
+        Initialize histogram
+        Parameters:
+            name: histogram name
+        Returns:
+            TH1-3, depending on length of histpars
+        """
 
         hist = None
         histname = str(uuid.uuid4())
@@ -652,6 +690,3 @@ class DrawConfig :
             hist.Sumw2()
 
         return hist
-
-    
-
