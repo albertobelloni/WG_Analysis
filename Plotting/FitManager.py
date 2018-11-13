@@ -24,29 +24,23 @@ class FitManager :
                "dcb_alpha1" ,"dcb_power1",
                "dcb_alpha2" ,"dcb_power2"]
     setuparray = {
-                    #Setup(pdf ="cb",pt=100): 
                     "cb":
                         [("cb_mass"  ,"Mass"  ,90,80,100),
                          ("cb_sigma" ,"Sigma" ,1,0.1,100),
                          ("cb_alpha" ,"Alpha" ,-1,-10,10),
                          ("cb_power" ,"Power" ,2,0,10),
                         ],
-                    #Setup(pdf ="dcb",pt=100): 
-                    "dcb":
+                    "dcbp": # reparametrize IC
                         [
                         ("x"         ,20,200),
                         ("dcb_mass"  ,91,87,95),
-                        #("dcb_mass"  ,91),
                         ("dcb_sigma" ,3,1,10),
-                        #("dcb_sigma" ,2.5),
-                        #("dcb_alpha1",1.5),
                         ("dcb_alpha1",1,0.5,3),
                         ("dcb_power1",1,1,50),
-                        #("dcb_alpha2",1.5),
                         ("dcb_alpha2",1,0.5,3),
                         ("dcb_power2",2,0.5,8),
                         ],
-                    "dcbo":
+                    "dcb":
                         [
                         ("x"         ,20,200),
                         ("dcb_mass"  ,91,87,95),
@@ -720,6 +714,45 @@ class FitManager :
 
         self.func_pdf = cb 
 
+    def init_dcb_reparam(self,icond="dcbp"):
+        #------------------------------
+        # double crystal ball reparametrized
+        #------------------------------
+        valsar = FitManager.setuparray[icond] ##FIXME
+        factstr = self.make_factory_string("DoubleCB","pdf",valsar) 
+        print factstr
+        if not self.loaded:
+                self.loaded = ROOT.gROOT.ProcessLineSync(".x DoubleCB.cxx+") 
+
+        # make factory
+        self.wk = ROOT.RooWorkspace("doublecb")
+        # make ordinary double crystal ball
+        self.wk.factory(factstr) 
+        # define reparametrization
+        self.wk.factory("expr::scaled_power1('dcb_power1/dcb_alpha1', dcb_power1, dcb_alpha1)")
+        self.wk.factory("expr::scaled_power2('dcb_power2/dcb_alpha2', dcb_power2, dcb_alpha2)")
+        self.wk.factory("DoubleCB::pdfnew(x,dcb_mass,dcb_sigma,"
+                           "dcb_alpha1,scaled_power1, dcb_alpha2, scaled_power2)")
+        self.func_pdf = self.wk.pdf("pdfnew")
+        # retrieve parameters
+        for v in valsar:
+            name = v[0] 
+            if name!="x": self.defs[name] = self.wk.var(name)
+        self.xvardata = self.wk.var("x") #update xvardata
+        self.xvardata.SetTitle(xname)
+        self.xvardata.setUnit("GeV")
+        # initial step sizes: set them to be reasonably small
+        # ballparking only and need no change for the same category of fits
+        self.defs["dcb_mass"]  .setError( 0.1 )
+        self.defs["dcb_sigma"] .setError( 0.1 )
+        self.defs["dcb_alpha1"].setError( 0.01 )
+        self.defs["dcb_power1"].setError( 0.1 )
+        self.defs["dcb_alpha2"].setError( 0.01 )
+        self.defs["dcb_power2"].setError( 0.1 )
+        # explicitly require fit range in case of factory function
+        self.pdfplotrange = True 
+
+
     def init_dcb(self,icond="dcb"):
         #------------------------------
         # double crystal ball
@@ -777,6 +810,8 @@ class FitManager :
         self.wk.factory(factstr3) 
         ## print current factory setup
         self.wk.Print()
+        self.retrieve_param(valsar1)
+        self.retrieve_param(valsar2)
 
 
         
