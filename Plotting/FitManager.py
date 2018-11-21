@@ -2,12 +2,19 @@ import ROOT
 from ROOT import RooFit
 from uncertainties import ufloat
 import uuid
+import re
+import random
 from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
+from pprint import pprint
 
 
 ROOT.gStyle.SetPalette(ROOT.kBird) 
+
+tColor_Off="\033[0m"       # Text Reset
+tPurple="\033[0;35m%s"+tColor_Off       # Purple
+
 
 def f_Obsolete(f):
         @wraps(f)
@@ -50,7 +57,53 @@ class FitManager :
                         ("dcb_alpha2",1,0.2,3),
                         ("dcb_power2",2,0.5,8),
                         ],
+                    "expo":
+                        [
+                        ('x',),#no redefinition
+                        ('expo_c',0,-0.1,0.01)
+                        #('expo_c',0,), # const
+                        ],
+                    "gauzz": # gaussian modelling Z peak
+                        [
+                        ("x",20,200),
+                        ('gauzz_mean',90,80,100),
+                        ('gauzz_sig' ,3,0.5,10),
+                        ],
+                    "gauszg": # model Z gamma
+                        [
+                        ('x',),#no redefinition
+                        ('gauszg_mean', 85,60,90),
+                        ('gauszg_sig' , 6,5,15),
+                        ],
+                    "gaus":
+                        [
+                        ('x',),#no redefinition
+                        ('gaus_mean',100,-100,200),
+                        ('gaus_sig' , 40,30,200),
+                        ],
+                    "simul2": # with z gamma
+                        [
+                        ("Nsig",100000,10000,10000000),
+                        ("Nbkg", 10000,    0,10000000),
+                        ("Nzg" , 10000,    0,  100000),
+                        ],
+                    "simul":
+                        [
+                        ("Nsig",100000,10000,10000000),
+                        ("Nbkg", 10000, 1000,10000000),
+                        ],
+                    "simulzg":
+                        [
+                        ("Nz"  ,100000,  100,10000000),
+                        ("Nzg", 100000,  100,10000000),
+                        ]
                  }
+    LineDefs = [ 
+            [RooFit.LineColor(ROOT.kRed)],
+            [RooFit.LineColor(ROOT.kBlue),   RooFit.LineStyle(ROOT.kDashed),],
+            [RooFit.LineColor(ROOT.kCyan+1), RooFit.LineStyle(ROOT.kDashed),],
+            [RooFit.LineColor(ROOT.kTeal-2), RooFit.LineStyle(ROOT.kDashed),],
+               ]
     def __init__(self, fname, hist=None, xvardata = None, #,xvarfit=None,
                     label="", sample_params={}) :
 
@@ -62,6 +115,7 @@ class FitManager :
         self.fitrange = None
         self.loaded = 0
         self.curr_decorations = []
+        self.frame=self.subframe=None
 
         # copy input arguments
         self.func_name = fname
@@ -85,23 +139,37 @@ class FitManager :
         self.curr_canvases = {}
         self.objs = []
         self.addhist(hist) #default hist
+        self.wk = None
 
-    def addhist(self,hist,name="datahist"):
+    def addhist(self,hist,name="datahist", bkgd = False):
         if hist:
             assert isinstance(hist,ROOT.TH1)
-            self.hist = hist.Clone()
+            his = hist.Clone()
             # histogram style
-            self.hist.SetLineColor( ROOT.kBlack )
-            self.hist.SetMarkerColor( ROOT.kBlack )
-            self.hist.SetMarkerStyle( 20 )
-            self.hist.SetMarkerSize( 1.0 )
-            # make datahist
-            self.datahist = ROOT.RooDataHist( '%s%s' %(self.label,name), 'data', 
-                            ROOT.RooArgList(self.xvardata), self.hist )
-            ROOT.SetOwnership( self.datahist, False )
+            his.SetMarkerStyle( 20 )
+            his.SetMarkerSize( 1.0 )
+            if bkgd == False:
+                his.SetLineColor( ROOT.kBlack )
+                his.SetMarkerColor( ROOT.kBlack )
+                self.hist = his
+                # make datahist
+                self.datahist = ROOT.RooDataHist( '%s%s' %(self.label,name), 'data', 
+                            ROOT.RooArgList(self.xvardata), his )
+
+                self.datahistlist['data'] = self.datahist
+                ROOT.SetOwnership( self.datahist, False )
+            else:
+                his.SetLineColor( ROOT.kBlue-10 )
+                his.SetMarkerColor( ROOT.kBlue-10 )
+                self.histlist[bkgd] = his
+                self.datahistlist[bkgd] = ROOT.RooDataHist( '%s%s' %(self.label,name), 'bkgd', 
+                                        ROOT.RooArgList(self.xvardata), his )
+                ROOT.SetOwnership(self.datahistlist[bkgd], False )
         else: 
             self.hist = None #ROOT.TH1F()
             self.datahist = None
+            self.histlist={}
+            self.datahistlist={}
 
     def MakeROOTObj( self, root_obj, *args ) :
         """ Generic function for making ROOT objects."""  
@@ -120,6 +188,7 @@ class FitManager :
             raise
 
 
+    @f_Obsolete ## FIXME
     def Integral( self ) :
 
         err = ROOT.Double()
@@ -221,29 +290,28 @@ class FitManager :
         self.calculate_func_pdf()
         return self.get_results( workspace )
 
-    def create_standard_ratio_canvas(self) :
+    def create_standard_ratio_canvas(self,name="",xsize=800,ysize=750) :
         """ ported from SampleManager: setup canvas with ratio inset"""
-        xsize = 800 
-        ysize = 750
-        self.curr_canvases['base'] = ROOT.TCanvas('basecan', 'basecan', xsize, ysize)
+        self.curr_canvases['base'+name] = ROOT.TCanvas('basecan'+name, 'basecan', xsize, ysize)
 
-        self.curr_canvases['bottom'] = ROOT.TPad('bottompad', 'bottompad', 0.01, 0.01, 0.99, 0.34)
-        self.curr_canvases['top'] = ROOT.TPad('toppad', 'toppad', 0.01, 0.34, 0.99, 0.99)
-        self.curr_canvases['top'].SetTopMargin(0.08)
+        self.curr_canvases['bottom'+name] = ROOT.TPad('bottompad'+name, 'bottompad', 0.01, 0.01, 0.99, 0.34)
+        self.curr_canvases['top'+name] = ROOT.TPad('toppad'+name, 'toppad', 0.01, 0.34, 0.99, 0.99)
+        self.curr_canvases['top'+name].SetTopMargin(0.08)
         # so that the ratio plot touches main plot, ie no gaps in btwn
-        self.curr_canvases['top'].SetBottomMargin(0.0)
-        self.curr_canvases['top'].SetLeftMargin(0.1)
-        self.curr_canvases['top'].SetRightMargin(0.05)
-        self.curr_canvases['bottom'].SetTopMargin(0.00) #no gaps
-        self.curr_canvases['bottom'].SetBottomMargin(0.3)
-        self.curr_canvases['bottom'].SetLeftMargin(0.1)
-        self.curr_canvases['bottom'].SetRightMargin(0.05)
-        self.curr_canvases['base'].cd()
-        self.curr_canvases['bottom'].Draw()
-        self.curr_canvases['top'].Draw()
+        self.curr_canvases['top'+name].SetBottomMargin(0.0)
+        self.curr_canvases['top'+name].SetLeftMargin(0.1)
+        self.curr_canvases['top'+name].SetRightMargin(0.05)
+        self.curr_canvases['bottom'+name].SetTopMargin(0.00) #no gaps
+        self.curr_canvases['bottom'+name].SetBottomMargin(0.3)
+        self.curr_canvases['bottom'+name].SetLeftMargin(0.1)
+        self.curr_canvases['bottom'+name].SetRightMargin(0.05)
+        self.curr_canvases['base'+name].cd()
+        self.curr_canvases['bottom'+name].Draw()
+        self.curr_canvases['top'+name].Draw()
 
     def fitrangehelper(self,fitrange):
         """ Convert fit range to tuples """
+        if not fitrange: return
         if isinstance(fitrange,tuple) and len(fitrange)==2:
                 return fitrange
         #if isinstance(fitrange,ROOT.RooRealVar):
@@ -255,7 +323,7 @@ class FitManager :
         xmax = fitrange.getMax()
         return (xmin,xmax)
 
-    def setup_fit(self ,fitrange = None, dofit=False) : 
+    def setup_fit(self ,fitrange = None, dofit=False, **setupargs) : 
         """ fitter using RooFit package """
         # get fit function string if it is simple
         func_str = self.get_fit_function() 
@@ -271,7 +339,9 @@ class FitManager :
 
         if self.func_name == 'bwxcb' : self.init_bwxcb()
         elif self.func_name == 'cb'  : self.init_cb()
-        elif self.func_name == 'dcb' : self.init_dcb()
+        elif self.func_name == 'dcb' : self.init_dcb(reparam=False, **setupargs)
+        elif self.func_name == 'dcbp' : self.init_dcb(**setupargs)
+        elif self.func_name == 'dcbexpo' : self.init_dcbexpo(**setupargs)
         else :
              # generic function maker
              self.func_pdf = self.MakeROOTObj('RooGenericPdf', '%s_%s'
@@ -285,11 +355,15 @@ class FitManager :
     def run_fit(self, fitrange = None):
         """ run RooFit Fitter """
         self.fitrange = self.fitrangehelper(fitrange)
+        self.xvardata.setRange("runfit",*self.fitrange)
         self.fitresult = self.func_pdf.fitTo( self.datahist,
-                     ROOT.RooFit.Range(*self.fitrange),
-                     #ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 1) ,
-                     ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) ,
-                     ROOT.RooFit.Save(ROOT.kTRUE))
+                                         RooFit.Range("runfit"),
+                                         RooFit.SumCoefRange("runfit"),
+                                         #ROOT.RooFit.Range(*self.fitrange),
+                                         #ROOT.RooFit.Extended(),
+                                         RooFit.SumW2Error(True), 
+                                         ROOT.RooCmdArg( 'Strategy', 3 ) ,
+                                         RooFit.Save(ROOT.kTRUE))
         return
 
     def run_fit_chi2(self, fitrange = None):
@@ -305,7 +379,6 @@ class FitManager :
                      #ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) ,
                      #ROOT.RooFit.Save(ROOT.kTRUE))
         return
-
 
     def run_simplefit(self):
         """ simple fitter """
@@ -332,7 +405,7 @@ class FitManager :
     def get_parameter_values(self):
         plist = {}
         for name, parm in self.get_parameters():
-            plist[name] = ufloat(parm.getVal(),parm.getError())
+                plist[name] = ufloat(parm.getVal(),parm.getError()) if parm else None
         return plist
 
 
@@ -468,7 +541,13 @@ class FitManager :
         return self.curr_canvases["corr"]
         
 
-    def draw(self,title=" ",yrange=None,subplot="",**kw):
+    def draw(self,title=" ",yrange=None,subplot="",component=False,**kw):
+        """ 
+            component: True: take default component list from self.component
+                       list: list of component names to be drawn
+                       default is false, not drawing components
+            subplot  : pull or residue
+        """
         # Make canvas
         dology = kw.get("logy",0)
         if subplot:
@@ -476,22 +555,31 @@ class FitManager :
             self.curr_canvases["top"].SetLogy(dology)
             self.curr_canvases["top"].cd()
         elif not subplot:
-            self.canvas = ROOT.TCanvas("cfit%s"%self.label,"Fitter",800,500)
+            self.canvas = ROOT.TCanvas("cfit%s"%self.label,"Fitter",800,500) #FIXME: change canvas
             self.canvas.SetLogy(dology)
             self.canvas.cd()
 
         # make frame
         self.frame = self.xvardata.frame(RooFit.Title(title)) 
         # plot data histogram
+        if component: 
+            hlist = [h for h in self.datahistlist.values() if h!= self.datahist]
+            for h in hlist: 
+                h.plotOn(self.frame,RooFit.DataError(ROOT.RooAbsData.SumW2),
+                    RooFit.DrawOption("B"),RooFit.DataError(ROOT.RooAbsData.None),
+                        RooFit.XErrorSize(0),RooFit.FillColor(ROOT.kBlue-10))
         self.datahist.plotOn(self.frame,RooFit.DataError(ROOT.RooAbsData.SumW2))
 
         # plotting fitted function
         if self.func_pdf:
-            plotparm = [self.frame,RooFit.LineColor(2),
-                            RooFit.NormRange('myrange')]
-            if  self.pdfplotrange and self.fitrange:
-                plotparm.append(RooFit.Range(*self.fitrange))
-            self.func_pdf.plotOn(*plotparm)
+            plotparm   = [self.frame,]
+            plotparm+=[RooFit.NormRange("runfit"),RooFit.Range("runfit")]
+            if component == True:
+                component = self.components
+            if isinstance(component,list):
+                for i,comp in enumerate(map(RooFit.Components,component)):
+                    self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[i+1]+[comp,]))
+            self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[0]))
             pmlayout = kw.get("paramlayout",(0.65,0.9,0.8))
             ## toggle off parameters with None in layout
             if  pmlayout: 
@@ -532,6 +620,7 @@ class FitManager :
             self.line.SetLineStyle(3)
             self.line.SetLineWidth(2)
             self.line.Draw()
+            self.subframe.addObject(self.line)
             return self.curr_canvases["base"]
         return self.canvas
 
@@ -569,63 +658,6 @@ class FitManager :
         self.subframe.addPlotable(hresd,"P")
         self.subframe.SetYTitle("Residual")
         return
-
-    @f_Obsolete
-    def get_defaults( self, sample, var, ieta ) :
-    
-        self.set_vals('dijet', 1, ( -10.5, -20, 0 ) )
-        self.set_vals('dijet', 2, (-2.03, -10, 0) )
-        self.set_vals('dijet', 3, ( 0.0, -10, 10) )
-        self.set_vals('dijet', 4, (0.0, -10 ,10 ) )
-        self.set_vals('dijet', 5, (0.0, -10 ,10 ) )
-    
-        self.set_vals('power_coef', 1, ( 1000, 0, 10000000 ) )
-        self.set_vals('power_coef', 2, (1000, 0, 100000000) )
-        self.set_vals('power_coef', 3, ( 0.0, 0, 10) )
-        self.set_vals('power_coef', 4, (0.0, 0 ,10 ) )
-        self.set_vals('power_coef', 5, (0.0, 0 ,10 ) )
-    
-        self.set_vals('power_pow', 1, ( -9.9, -100, 100 ) )
-        self.set_vals('power_pow', 2, (-0.85, -10, 10) )
-        self.set_vals('power_pow', 3, ( 0.0, -10, 10) )
-        self.set_vals('power_pow', 4, (0.0, -10 ,10 ) )
-        self.set_vals('power_pow', 5, (0.0, -10 ,10 ) )
-    
-        self.set_vals('atlas_num_power', 1, ( -9.9, -100, 100 ) )
-        self.set_vals('atlas_den_power', 1, ( -9.9, -100, 100 ) )
-        self.set_vals('atlas_den_logcoef', 1, ( -9.9, -100, 100 ) )
-        self.set_vals('atlas_den_logcoef', 2, ( -9.9, -100, 100 ) )
-
-        #self.set_vals('cb_sigma', 450, ( 26.41, 15., 35. ) )
-        #self.set_vals('cb_power', 450, ( 2.15, 1., 4. ) )
-        #self.set_vals('cb_mass',  450, ( -18.1, -30., -10. ) )
-        
-        #self.set_vals('cb_sigma', 450, ( 28., 1., 100. ) )
-        #self.set_vals('cb_power', 450, ( 30., 0., 130. ) )
-        #self.set_vals('cb_mass',  450, ( -18, -100, 0 ) )
-    
-        self.set_vals('cb_sigma', 500, ( 28., 1., 100. ) )
-        self.set_vals('cb_power', 500, ( 2.15, 0., 10. ) )
-        self.set_vals('cb_mass',  500, ( -18, -100, 0 ) )
-        
-        self.set_vals('cb_sigma', 450, ( 28., 1., 100. ) )
-        self.set_vals('cb_power', 450, ( 2.15, 0., 10. ) )
-        self.set_vals('cb_mass',  450, ( -18, -100, 0 ) )
-        
-        self.set_vals('cb_sigma', 400, ( 28., 1., 100. ) )
-        self.set_vals('cb_power', 400, ( 2.15, 0., 10. ) )
-        self.set_vals('cb_mass',  400, ( -18, -100, 0 ) )
-
-        self.set_vals('cb_sigma', 90, ( 28., 1., 100. ) )
-        self.set_vals('cb_power', 90, ( 2.15, 0., 10. ) )
-        self.set_vals('cb_mass',  90, ( -18, -100, 0 ) )
-        
-        self.set_vals('cb_sigma', 0, ( 2.8, 1., 100. ) )
-        self.set_vals('cb_power', 0, ( 2.15, 0., 10. ) )
-        self.set_vals('cb_mass',  0, ( 90, 0, 100 ) )
-        self.set_vals('cb_alpha', 0, ( -1, -10, 10,"" ) )
-
-    
 
 
     def init_bwxcb(self):
@@ -676,7 +708,7 @@ class FitManager :
         self.fit_params['cb_mass'] = cb_m0
         #self.fit_params['cb'] = cb
 
-    def make_factory_string(self, classname, pdfname, valsar):
+    def make_factory_string(self, classname, pdfname, valsar, norange=False):
         """ input string for RooFactory custom pdf
         
             valsar   : list of tuples of the format
@@ -687,10 +719,38 @@ class FitManager :
         factstr = []
         for v in valsar:
             name = v[0] 
-            vrange = ",".join(map(str,v[1:]))
-            factstr.append("%s[%s]" %(v[0],vrange))
+            if not norange and v[1:]:
+                vrange = ",".join(map(str,v[1:]))
+                factstr.append("%s[%s]" %(name,vrange))
+            else:
+                factstr.append(name)
+
         argstr = ",".join(factstr)
         return "%s::%s(%s)" %(classname,pdfname,argstr)
+
+    def make_expression_string(self, varname, varexp):
+        """ make factory expression with name and formula of expression """
+        varlist = re.split('[+-*/() ]',varexp)
+        varlist = [v for v in varlist if v]
+        varlist = ','.join(list(set(varlist)))
+        return "expr::%s('%s',%s)" %(varname, varexp, varlist)
+
+    def fact(self,factstring):
+        print tPurple %factstring
+        self.wk.factory(factstring)
+
+    def retrieve_param(self,valsar):
+        # retrieve parameters
+        for v in valsar:
+            name = v[0] 
+            if isinstance(v, str): 
+                name = v
+            if name!="x":
+                ## if variable is already registered
+                #if name in self.defs: 
+                #    print "already registered: ",name, self.defs[name], self.wk.var(name)
+                self.defs[name] = self.wk.var(name)
+        self.xvardata = self.wk.var("x") #update xv
 
     def init_cb(self,icond = "cb"):
         #------------------------------
@@ -714,118 +774,132 @@ class FitManager :
 
         self.func_pdf = cb 
 
-    def init_dcb_reparam(self,icond="dcbp"):
+    def init_dcb(self,icond="dcbp", pdflabel = "", 
+            makenewfactory = True, reparam = True, seterr = True):
+        """ reparam: reparametrize by rooFactory expr
+            makenewfactory: replace existing factory object
+        """
         #------------------------------
         # double crystal ball reparametrized
         #------------------------------
-        valsar = FitManager.setuparray[icond] ##FIXME
-        factstr = self.make_factory_string("DoubleCB","pdf",valsar) 
+        if pdflabel:
+            pdflabel = "_"+pdflabel
+            makenewfactory = False
+        if isinstance(icond, list):
+            valsar = icond
+        elif isinstance(icond,str):
+            valsar = FitManager.setuparray[icond] 
+        factstr = self.make_factory_string("DoubleCB","doublecb"+pdflabel,valsar) 
         print factstr
         if not self.loaded:
                 self.loaded = ROOT.gROOT.ProcessLineSync(".x DoubleCB.cxx+") 
 
         # make factory
-        self.wk = ROOT.RooWorkspace("doublecb")
+        if makenewfactory or not self.wk: self.wk = ROOT.RooWorkspace("doublecb")
         # make ordinary double crystal ball
-        self.wk.factory(factstr) 
-        # define reparametrization
-        self.wk.factory("expr::scaled_power1('dcb_power1/dcb_alpha1', dcb_power1, dcb_alpha1)")
-        self.wk.factory("expr::scaled_power2('dcb_power2/dcb_alpha2', dcb_power2, dcb_alpha2)")
-        self.wk.factory("DoubleCB::pdfnew(x,dcb_mass,dcb_sigma,"
-                           "dcb_alpha1,scaled_power1, dcb_alpha2, scaled_power2)")
-        self.func_pdf = self.wk.pdf("pdfnew")
-        # retrieve parameters
-        for v in valsar:
-            name = v[0] 
-            if name!="x": self.defs[name] = self.wk.var(name)
+        self.fact(factstr) 
+        #self.wk.factory(factstr) 
+        if reparam:
+            # define reparametrization
+            #self.wk.factory("expr::scaled_power1('dcb_power1/dcb_alpha1', 
+            #dcb_power1, dcb_alpha1)")
+            #self.wk.factory("expr::scaled_power2('dcb_power2/dcb_alpha2',
+            #dcb_power2, dcb_alpha2)")
+            exprstr1 = self.make_expression_string('scaled_power1',
+                    'dcb_power1/dcb_alpha1')
+            exprstr2 = self.make_expression_string('scaled_power2',
+                    'dcb_power2/dcb_alpha2')
+            self.fact(exprstr1)
+            self.fact(exprstr2)
+            if reparam == 2: # also parametrize shift of mass
+                exprstr3 = "expr::mass_real('dcb_mass+dcb_mass_shift',dcb_mass,dcb_mass_shift[0,-10,10])" ##FIXME later
+                self.fact(exprstr3)
+                self.fact("DoubleCB::dcbp2%s(x,mass_real,dcb_sigma,"
+                                   "dcb_alpha1,scaled_power1, dcb_alpha2, scaled_power2)" %pdflabel)
+            else:
+                self.fact("DoubleCB::dcbp%s(x,dcb_mass,dcb_sigma,"
+                                   "dcb_alpha1,scaled_power1, dcb_alpha2, scaled_power2)" %pdflabel)
+            self.func_pdf = self.wk.pdf("dcbp"+pdflabel)
+        else:
+            self.func_pdf = self.wk.pdf("doublecb"+pdflabel)
+        self.retrieve_param(valsar)
+        if seterr: self.dcbseterr()
         self.xvardata = self.wk.var("x") #update xvardata
         self.xvardata.SetTitle(xname)
         self.xvardata.setUnit("GeV")
+        # explicitly require fit range in case of factory function
+        self.pdfplotrange = True 
+
+    def dcbseterr(self):
         # initial step sizes: set them to be reasonably small
         # ballparking only and need no change for the same category of fits
+        pprint(self.defs)
         self.defs["dcb_mass"]  .setError( 0.1 )
         self.defs["dcb_sigma"] .setError( 0.1 )
         self.defs["dcb_alpha1"].setError( 0.01 )
         self.defs["dcb_power1"].setError( 0.1 )
         self.defs["dcb_alpha2"].setError( 0.01 )
         self.defs["dcb_power2"].setError( 0.1 )
-        # explicitly require fit range in case of factory function
-        self.pdfplotrange = True 
 
 
-    def init_dcb(self,icond="dcb"):
-        #------------------------------
-        # double crystal ball
-        #------------------------------
-        valsar = FitManager.setuparray[icond] ##FIXME
-        factstr = self.make_factory_string("DoubleCB","pdf",valsar) 
-        print factstr
-        if not self.loaded:
-                self.loaded = ROOT.gROOT.ProcessLineSync(".x DoubleCB.cxx+") 
+    def init_dcbexpo(self, sig = "dcbp", bkgd = "gaus", bkgd2 = None, ext='simul', icparm = None):
+        """ icond: initial condition for dcb """
+        self.wk = ROOT.RooWorkspace("dcb_bkgd") 
+        name = [""]*3
+        ## step 1: Double CB shape
+        name[0] = sig
+        if   sig == "dcbp": # redefined cutoff alpha
+            valsar1 = FitManager.ParamDCB #NOTE contain no initial values
+            self.init_dcb(icond = icparm.get("dcbp"), makenewfactory = False, seterr = False)
+        elif  sig == "dcbp2":  #added mass shift term
+            valsar1 = FitManager.ParamDCB 
+            self.init_dcb(icond = icparm.get("dcbp"), makenewfactory = False, seterr = False, reparam = 2)
+        elif sig == "gauzz":
+            valsar1 = icparm.get(sig,FitManager.setuparray[sig])
+            factstr1 = self.make_factory_string("Gaussian"   ,sig,valsar1) 
+            self.fact(factstr1) 
+        ## step 2: prepare background
+        name[1]   = "bkgd"
+        valsar2 = icparm.get(bkgd,FitManager.setuparray[bkgd])
+        if   "expo" in bkgd:
+            factstr2 = self.make_factory_string("Exponential",name[1],valsar2) 
+        elif "gaus" in bkgd:
+            factstr2 = self.make_factory_string("Gaussian"   ,name[1],valsar2) 
 
-        # make factory
-        self.wk = ROOT.RooWorkspace("doublecb")
-        self.wk.factory(factstr) 
-        self.func_pdf = self.wk.pdf("pdf")
-        # retrieve parameters
-        for v in valsar:
-            name = v[0] 
-            if name!="x": self.defs[name] = self.wk.var(name)
-        self.xvardata = self.wk.var("x") #update xvardata
-        self.xvardata.SetTitle(xname)
-        self.xvardata.setUnit("GeV")
-        # initial step sizes: set them to be reasonably small
-        # ballparking only and need no change for the same category of fits
-        self.defs["dcb_mass"]  .setError( 0.1 )
-        self.defs["dcb_sigma"] .setError( 0.1 )
-        self.defs["dcb_alpha1"].setError( 0.01 )
-        self.defs["dcb_power1"].setError( 0.1 )
-        self.defs["dcb_alpha2"].setError( 0.01 )
-        self.defs["dcb_power2"].setError( 0.1 )
-        # explicitly require fit range in case of factory function
-        self.pdfplotrange = True 
+        ## step 3: prepare optional z gamma gaussian
+        factstr3 = ""
+        if bkgd2 is not None:
+            name[2] = "bkgd2"
+            if "gaus" in bkgd2: valsar3  = list( icparm.get("gauszg"))
+            if bkgd2=="gauszg2": # also parametrize shift of mass
+                exprstr3 = "expr:zgmean_real('gauszg_mean+dcb_mass_shift',gauszg_mean[%g],dcb_mass_shift)" %valsar3[1][1]
+                self.fact(exprstr3)
+                valsar3[1]= ('zgmean_real',)
+            if "gaus" in bkgd2:
+                factstr3 = self.make_factory_string("Gaussian", name[2], valsar3)
 
-    def retrieve_param(self,valsar):
-        # retrieve parameters
-        for v in valsar:
-            name = v[0] 
-            if name!="x":
-                ## if variable is already registered
-                if name in self.defs: 
-                    print "already registered: ", self.defs[name], self.wk.var(name)
-                self.defs[name] = self.wk.var(name)
-        self.xvardata = self.wk.var("x") #update xvardata
-
-    def init_dcb_expo(self):
-        factstr1 = self.make_factory_string("DoubleCB","dcb",valsar1)
-        factstr2 = self.make_factory_string("Exponential","bkgd",valsar2)
-        factstr3 = "SUM::simul(Nsig[5000,0,100000]*dcb,Nbkg[10,0,10000]*bkgd)"
-        if not self.loaded:
-            self.loaded = ROOT.gROOT.ProcessLineSync(".x DoubleCB.cxx+")
+        ## step 4: extended pdf
+        ## SUM for pdf instead of functions
+        valsarex = icparm.get(ext,FitManager.setuparray[ext])
+        pprint(valsarex)
+        f = lambda nlist, unc: tuple(round(i * random.normalvariate(1,unc)) if isinstance(i,(int,float)) else i for i in nlist)
+        factstrex = ["%s[%g,%g,%g]" %f(v,0.2) + "*%s" %name[i] for i,v in enumerate(valsarex)]
+        factstrex = ",".join(factstrex)
+        factstrex = "SUM::%s(%s)" %(ext,factstrex) 
+        ## fill component list
+        self.components=[n for n in name if n]
 
         #make factory
-        self.wk = ROOT.RooWorkspace("dcb_bkgd")
-        self.wk.factory(factstr1) 
-        self.wk.factory(factstr2) 
-        self.wk.factory(factstr3) 
+        self.fact(factstr2) 
+        if factstr3: self.fact(factstr3) 
+        self.fact(factstrex)
         ## print current factory setup
         self.wk.Print()
         self.retrieve_param(valsar1)
         self.retrieve_param(valsar2)
+        self.retrieve_param(valsar3)
+        self.retrieve_param(valsarex)
+        self.func_pdf = self.wk.pdf(ext)
+        print "DEFINED VARIABLES"
+        pprint(self.defs.items())
 
-
-        
-
-
-
-
-                
-        
-    @f_Obsolete
-    def set_vals(self, name, order, vals ) :
-        self.defs.setdefault( name, {} )
-        self.defs[name][order] = vals
-
-    @f_Obsolete
-    def get_vals( self, name, order ) :
-        return self.defs[name][order]
