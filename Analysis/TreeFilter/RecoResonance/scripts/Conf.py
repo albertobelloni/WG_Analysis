@@ -601,7 +601,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
 
     return filt
 
-def filter_photon( ph_pt = ' > 15 ', id_cut='None', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
+def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
 
     filt = Filter('FilterPhoton')
 
