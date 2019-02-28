@@ -2401,7 +2401,7 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
                 for( unsigned j = i+1 ; j < jet_lvs.size(); ++j ) {
 
                     float mass = ( jet_lvs[i] + jet_lvs[j] ).M();
-                    float diff = fabs( 91.2 - mass );
+                    float diff = fabs( _m_z - mass );
 
                     if( diff < min_mass ) {
                         min_mass = diff;
@@ -3470,12 +3470,15 @@ bool RunModule::FilterBlind( ModuleConfig & config ) const {
     bool pass_blind = true;
     if( OUT::ph_n > 0 ) {
         if( !config.PassFloat( "cut_ph_pt_lead", OUT::ph_pt->at(0)) ) pass_blind=false;
+        if( !config.PassBool(  "cut_ph_CSEV", OUT::ph_passEleVeto->at(0) )  // Blinded when it is strictly in signal region defined by both kinds of vetos
+            && !config.PassBool(  "cut_ph_Pixel", OUT::ph_hasPixSeed->at(0) ) 
+            && !config.PassFloat(  "cut_met", OUT::met_pt ) )         pass_blind=false;
     }
     if( !config.PassFloat( "cut_mt_lep_met_ph", OUT::mt_lep_met_ph) ) pass_blind=false;
     if( !config.PassFloat( "cut_mt_res", OUT::mt_res) ) pass_blind=false;
 
     if( OUT::jet_n > 1 ) {
-        if( !config.PassFloat( "cut_abs_dijet_m_from_z", fabs(OUT::leaddijet_m-91.2)) ) pass_blind=false;
+        if( !config.PassFloat( "cut_abs_dijet_m_from_z", fabs(OUT::leaddijet_m-_m_z)) ) pass_blind=false;
     }
 
     if( !pass_blind ) {
@@ -3797,21 +3800,17 @@ bool RunModule::HasTruthMatch( const TLorentzVector & objlv, const std::vector<i
 
 RunModule::RunModule() {
     _m_w = 80.385;
+    _m_z = 91.2;
     _isData = false;
-    
-    // Initialize the boolen data members
-    _eval_mu_tight = false;
-    _eval_mu_medium = false;
-    _eval_mu_loose = false;
-
-    _eval_ph_tight = false;
-    _eval_ph_medium = false;
-    _eval_ph_loose = false;
-
-    _eval_el_tight = false;
-    _eval_el_medium = false;
-    _eval_el_loose = false;
-    _eval_el_veryloose = false;
-
-    _needs_nlo_weght = false;
+    _eval_mu_loose    =false;
+    _eval_mu_medium   =false;
+    _eval_mu_tight    =false;
+    _eval_ph_tight    =false;
+    _eval_ph_medium   =false;
+    _eval_ph_loose    =false;
+    _eval_el_tight    =false;
+    _eval_el_medium   =false;
+    _eval_el_loose    =false;
+    _eval_el_veryloose=false;
+    _needs_nlo_weght  =false;
 }

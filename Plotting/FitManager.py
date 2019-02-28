@@ -171,6 +171,7 @@ class FitManager :
             self.histlist={}
             self.datahistlist={}
 
+    @f_Obsolete
     def MakeROOTObj( self, root_obj, *args ) :
         """ Generic function for making ROOT objects."""  
 
@@ -195,6 +196,22 @@ class FitManager :
         val = self.hist.IntegralAndError( self.hist.FindBin( self.xvar.getMin() ), self.hist.FindBin( self.xvar.getMax() ), err )
 
         return ufloat( val, err )
+
+    def MakeIntegral(self,intrange=None, pdfname = None):
+        """ make pdf integral that returns in range [0,1] """
+        if intrange is None:
+            intrange = self.fitrange
+        if pdfname is None:
+            pdf = self.func_pdf
+        else:
+            pdf = self.wk.pdf(pdfname)
+        self.integral = pdf.createIntegral(self.xvardata,RooFit.NormSet(self.xvardata),RooFit.Range(*intrange))
+        return self.integral
+
+    def get_integral_value(self, intrange=None, pdfname = None):
+        """ calculate pdf integral return [0,1] """
+        ### FIXME
+        pass
 
     def add_vars( self, arg_list) :
         if self.func_name == 'dijet' : 
@@ -540,6 +557,26 @@ class FitManager :
         self.hcorr.Draw("COLZ")
         return self.curr_canvases["corr"]
         
+    @f_Obsolete ## for testing purposes: doesn't seem to work
+    def updatedraw(self,subplot=""):
+        if subplot:
+            if "top" in self.curr_canvases:
+                self.curr_canvases["top"].cd()
+            else: 
+                print "cannot update"
+                return
+        elif self.canvas:
+            self.canvas.cd()
+        else: return
+        self.frame.Draw()
+        if subplot:
+            self.curr_canvases["bottom"].cd()
+            self.subframe.Draw()
+            return self.curr_canvases["base"]
+        else:
+            return self.canvas
+
+        
 
     def draw(self,title=" ",yrange=None,subplot="",component=False,**kw):
         """ 
@@ -561,6 +598,8 @@ class FitManager :
 
         # make frame
         self.frame = self.xvardata.frame(RooFit.Title(title)) 
+        print "initalised frame"
+        self.frame.Print()
         # plot data histogram
         if component: 
             hlist = [h for h in self.datahistlist.values() if h!= self.datahist]
@@ -568,18 +607,26 @@ class FitManager :
                 h.plotOn(self.frame,RooFit.DataError(ROOT.RooAbsData.SumW2),
                     RooFit.DrawOption("B"),RooFit.DataError(ROOT.RooAbsData.None),
                         RooFit.XErrorSize(0),RooFit.FillColor(ROOT.kBlue-10))
+                print "PLOTONN: ", h
         self.datahist.plotOn(self.frame,RooFit.DataError(ROOT.RooAbsData.SumW2))
 
         # plotting fitted function
         if self.func_pdf:
+            #plotparm   = [self.frame,RooFit.NormRange('myrange')]
             plotparm   = [self.frame,]
+            #if  self.pdfplotrange and self.fitrange:
+            #    plotparm.append(RooFit.Range(*self.fitrange))
+            #if True: ## FIXME
             plotparm+=[RooFit.NormRange("runfit"),RooFit.Range("runfit")]
             if component == True:
                 component = self.components
             if isinstance(component,list):
                 for i,comp in enumerate(map(RooFit.Components,component)):
                     self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[i+1]+[comp,]))
+                    print "PLOTONN2: ", i, comp, plotparm+FitManager.LineDefs[i+1]+[comp,]
             self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[0]))
+            print "plotparm"
+            print plotparm
             pmlayout = kw.get("paramlayout",(0.65,0.9,0.8))
             ## toggle off parameters with None in layout
             if  pmlayout: 
@@ -604,7 +651,8 @@ class FitManager :
             #if subplot == "pull": self.subframe.GetYaxis().SetRangeUser(-6,6)
             self.ratio_formatting()
             ROOT.gPad.SetTicks(1,1)
-            chi  =self.frame.chiSquare(6) #FIXME: dof
+            chi  =self.getchisquare()
+            print "Printed Chi: ",chi
             # print chi-sq
             self.latex = ROOT.TLatex()
             self.latex.SetTextSize(0.1) 
@@ -623,6 +671,11 @@ class FitManager :
             self.subframe.addObject(self.line)
             return self.curr_canvases["base"]
         return self.canvas
+
+    def getchisquare(self,dof = None):
+        if dof is None:
+            #return self.frame.chiSquare("simul2",6) #FIXME: dof
+            return self.frame.chiSquare(6) #FIXME: dof
 
     def draw_label(self,**kw):
         draw_config = DrawConfig("","","",**kw) 
@@ -730,7 +783,8 @@ class FitManager :
 
     def make_expression_string(self, varname, varexp):
         """ make factory expression with name and formula of expression """
-        varlist = re.split('[+-*/() ]',varexp)
+        print varexp
+        varlist = re.split('[+\-*/() ]',varexp) # minus needs escape
         varlist = [v for v in varlist if v]
         varlist = ','.join(list(set(varlist)))
         return "expr::%s('%s',%s)" %(varname, varexp, varlist)
@@ -824,6 +878,10 @@ class FitManager :
             self.func_pdf = self.wk.pdf("doublecb"+pdflabel)
         self.retrieve_param(valsar)
         if seterr: self.dcbseterr()
+        # retrieve parameters
+        #for v in valsar:
+        #    name = v[0] 
+        #    if name!="x": self.defs[name] = self.wk.var(name)
         self.xvardata = self.wk.var("x") #update xvardata
         self.xvardata.SetTitle(xname)
         self.xvardata.setUnit("GeV")
@@ -841,6 +899,32 @@ class FitManager :
         self.defs["dcb_alpha2"].setError( 0.01 )
         self.defs["dcb_power2"].setError( 0.1 )
 
+    @f_Obsolete
+    def init_dcb_old(self,icond="dcb"):
+        #------------------------------
+        # double crystal ball
+        #------------------------------
+        valsar = FitManager.setuparray[icond] ##FIXME
+        factstr = self.make_factory_string("DoubleCB","pdf",valsar) 
+        print factstr
+        if not self.loaded:
+                self.loaded = ROOT.gROOT.ProcessLineSync(".x DoubleCB.cxx+") 
+
+        # make factory
+        self.wk = ROOT.RooWorkspace("doublecb")
+        self.wk.factory(factstr) 
+        self.func_pdf = self.wk.pdf("pdf")
+        self.retrieve_param(valsar)
+        # retrieve parameters
+        #for v in valsar:
+        #    name = v[0] 
+        #    if name!="x": self.defs[name] = self.wk.var(name)
+        self.xvardata = self.wk.var("x") #update xvardata
+        self.xvardata.SetTitle(xname)
+        self.xvardata.setUnit("GeV")
+        self.dcbseterr()
+        # explicitly require fit range in case of factory function
+        self.pdfplotrange = True 
 
     def init_dcbexpo(self, sig = "dcbp", bkgd = "gaus", bkgd2 = None, ext='simul', icparm = None):
         """ icond: initial condition for dcb """
@@ -881,6 +965,8 @@ class FitManager :
         ## step 4: extended pdf
         ## SUM for pdf instead of functions
         valsarex = icparm.get(ext,FitManager.setuparray[ext])
+        #factstrex = "SUM::"+ext+"(%s[%g,%g,%g]"%valsar3[0]+ "*%s," %name1+\
+        #                      "%s[%g,%g,%g]"%valsar3[1]+ "*%s)" %name2 
         pprint(valsarex)
         f = lambda nlist, unc: tuple(round(i * random.normalvariate(1,unc)) if isinstance(i,(int,float)) else i for i in nlist)
         factstrex = ["%s[%g,%g,%g]" %f(v,0.2) + "*%s" %name[i] for i,v in enumerate(valsarex)]
@@ -897,9 +983,10 @@ class FitManager :
         self.wk.Print()
         self.retrieve_param(valsar1)
         self.retrieve_param(valsar2)
-        self.retrieve_param(valsar3)
+        if bkgd2 is not None: self.retrieve_param(valsar3)
         self.retrieve_param(valsarex)
         self.func_pdf = self.wk.pdf(ext)
         print "DEFINED VARIABLES"
         pprint(self.defs.items())
+        self.pdfplotrange = False ## FIXME: needed?
 
