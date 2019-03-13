@@ -46,6 +46,9 @@ class Sample :
         # Should not be filled for a sample group
         self.chain = kwargs.get('chain', None)
 
+        # link to the hosting sample manager
+        self.manager = kwargs.get('manager', None)
+
         # isActive determines if the sample will be drawn, default=True
         self.init_isActive = kwargs.get('isActive', True) 
         self.isActive      = self.init_isActive
@@ -111,12 +114,17 @@ class Sample :
             self.hist = hist
         self.InitHist()
 
+    def quietprint(self, msg = " "):
+            if self.manager and self.manager.quiet:
+                    return
+            print msg
+
     def InitHist(self) :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
         self.hist.SetTitle('')
         self.hist.Scale( self.scale )
-        #print 'Scale %s by %f' %( self.name, self.scale )
+        self.quietprint( 'Scale %s by %f' %( self.name, self.scale ))
         if self.isData :
             print self.name, " is DATA!!"
             self.hist.SetMarkerStyle( 20 )
@@ -307,6 +315,9 @@ class DrawConfig :
         return self.hist_config.get('logy', False )
     def get_normalize( self ) :
         return self.hist_config.get('normalize', False )
+
+    def get_blind( self ) :
+        return self.hist_config.get('blind', True )
 
     def save_stack( self, filename, dirname, canname ) :
 
@@ -920,13 +931,20 @@ class SampleManager :
 
             
     #--------------------------------
+    def quietprint(self,msg=""):
+            if self.quiet:
+                    return
+            print msg
+            return
+
+    #--------------------------------
     def create_sample( self, name, **kwargs ) :
 
         if name in self.get_sample_names() :
             print 'Sample with name %s already exists' %name
             return None
 
-        new_sample = Sample( name=name )
+        new_sample = Sample( name=name , manager = self)
         new_sample.hist = kwargs.pop('hist', None)
         for arg, val in kwargs.iteritems() :
             if hasattr( new_sample, arg ) :
@@ -2271,9 +2289,9 @@ class SampleManager :
                     thisscale *= self.weightMap[xsname]['scale']
                     thisxs = self.weightMap[xsname]['cross_section']
                     totevt = self.weightMap[xsname]['n_evt']
-                    print 'Update scale for %s' %name
+                    self.quietprint( 'Update scale for %s' %name)
 
-            thisSample = Sample(name, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, total_events=totevt, legendName=legend_name)
+            thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, total_events=totevt, legendName=legend_name)
             thisSample.AddFiles( input_files, self.treeName, self.readHists )
 
             self.samples.append(thisSample)
@@ -2373,7 +2391,7 @@ class SampleManager :
             thisscale *= scale
         
         print 'Grouping %s' %name
-        thisSample = Sample(name, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name, averageSamples=averageSamples)
+        thisSample = Sample(name, manager = self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name, averageSamples=averageSamples)
 
         for samp in available_samples :
 
@@ -2402,7 +2420,7 @@ class SampleManager :
             thisscale *= scale
         
         print 'Grouping %s' %name
-        thisSample = Sample(name, isActive=isActive, isData=isData, isSignal=isSignal, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name)
+        thisSample = Sample(name, manager = self, isActive=isActive, isData=isData, isSignal=isSignal, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name)
 
         for samp in input_samples :
             is_a_grouped_sample = ( name in self.get_grouped_sample_names() )
@@ -2442,7 +2460,7 @@ class SampleManager :
             if scale is not None :
                 thisscale *= scale
 
-            thisSample = Sample(name, color=plotColor, scale=thisscale, legend_name=legend_name)
+            thisSample = Sample(name, manager = self, color=plotColor, scale=thisscale, legend_name=legend_name)
             thisSample.AddFiles( self.treeNameModel, input_files )
             self.modelSamples.append(thisSample)
 
@@ -2894,7 +2912,7 @@ class SampleManager :
         legend_entries = []
         #sig_legend_entries = []
 
-        if data_samp and data_samp[0].isActive :
+        if data_samp and data_samp[0].isActive and not draw_config.get_blind() :
             tmp_legend_entries.append(  (data_samp[0].hist, data_samp[0].legendName, 'PE') )
 
         for samp in drawn_samples :
@@ -3158,8 +3176,6 @@ class SampleManager :
         # Group draw parallelization
         # wait for draws to finish
         #self.wait_on_draws()
-
-    #def draw_hist( self, sample, varexp, histname, selection, draw_opt='' ) :
 
     def create_hist_new( self, draw_config, sample=None, isModel=False ) :
 
@@ -3425,6 +3441,8 @@ class SampleManager :
         failed_samples = []
         success_samples = []
         for sample in self.samples :
+            if sample.isData and draw_config.get_blind():
+                 continue
             if sample.isActive :
                 self.create_hist_new( draw_config, sample )
                 if sample.failed_draw :
@@ -3786,6 +3804,12 @@ class SampleManager :
         self.curr_canvases[name].SetRightMargin(0.05)
         self.curr_canvases[name].SetTitle('')
 
+    def get_stack_aggregate(self):
+           if hasattr(self,"curr_stack") and isinstance(self.curr_stack, ROOT.THStack):
+                   return self.curr_stack.GetStack().Last().Clone()
+           else: 
+                   print "No stack found"
+           return
 
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
 
@@ -3837,7 +3861,10 @@ class SampleManager :
 
         # draw the data
         for dsamp in self.get_samples( name=datahists, isActive=True ):
-            dsamp.hist.SetMarkerStyle(20)
+            print "draw data:", dsamp.name
+            if draw_config.get_blind() and dsamp.isData:
+                    print "skipped ",dsamp
+                    continue
             if normalize :
                 dsamp.hist.DrawNormalized('PE same')
             else :
