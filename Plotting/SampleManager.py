@@ -25,6 +25,7 @@ import core
 import subprocess
 import multiprocessing
 import collections
+from DrawConfig import DrawConfig, LegendConfig, LabelConfig, HistConfig
 
 ROOT.gROOT.SetBatch(False)
 
@@ -126,6 +127,7 @@ class Sample :
         self.hist.Scale( self.scale )
         self.quietprint( 'Scale %s by %f' %( self.name, self.scale ))
         if self.isData :
+            self.quietprint(self.name+" is DATA!!")
             self.hist.SetMarkerStyle( 20 )
             self.hist.SetMarkerSize( 1.15 )
             self.hist.SetStats(0)
@@ -167,6 +169,7 @@ class Sample :
 
 
     def enable_parsed_branches( self, brstr ) :
+        """ Set Branch status to 1 """
         if self.chain is not None :
             for br in self.chain.GetListOfBranches() :
                 if brstr.count( br.GetName() ) > 0 and self.chain.GetBranchStatus( br.GetName() ) == 0 :
@@ -894,6 +897,7 @@ class SampleManager :
         # in the configuration module.  The samples
         # are stacked in this order
         self.stack_order                 = []
+        self.stack_order_original_active = []
 
         # if the cross section file is given, open it
         # and grab the cross section map out of it
@@ -945,7 +949,7 @@ class SampleManager :
 
             
     #--------------------------------
-    def quietprint(self,msg=""):
+    def quietprint(self,*msg):
             if self.quiet:
                     return
             print msg
@@ -1220,7 +1224,7 @@ class SampleManager :
         for idx, samp in enumerate(self.samples) :
             samp.hist=None
             if samp.temporary :
-                print 'removing sample %s' %samp.name
+                self.quietprint( 'removing sample %s' %samp.name)
                 rm_samples.append(samp)
 
         for samp in rm_samples:
@@ -1650,7 +1654,7 @@ class SampleManager :
             else :
                 self.variable_rebinning(threshold=draw_config.histpars[3], samples=created_samples) 
 
-        if draw_config.doRatio() :
+        if draw_config.get_doratio() :
             self.create_top_canvas_for_ratio('same')
         else :
             self.create_standard_canvas('same')
@@ -1659,7 +1663,7 @@ class SampleManager :
 
         self.DrawSameCanvas( self.curr_canvases['same'], created_samples, draw_config )
 
-        if draw_config.doRatio() :
+        if draw_config.get_doratio() :
             #rname = created_samples[0].name + '_ratio'
             for samp, hc in zip(created_samples[1:], draw_config.hist_configs.values()[1:]) :
 
@@ -1684,7 +1688,7 @@ class SampleManager :
         self.DrawCanvas(self.curr_canvases['same'], draw_config)
 
         if draw_config.stack_dump_params :
-            self.DumpStack( draw_config.stack_dump_params['dirname'], draw_config.stack_dump_params['filename'], doRatio=draw_config.doRatio() )
+            self.DumpStack( draw_config.stack_dump_params['dirname'], draw_config.stack_dump_params['filename'], doRatio=draw_config.get_doratio() )
         if draw_config.stack_save_params :
             self.SaveStack( draw_config.stack_save_params['filename'], draw_config.stack_save_params['dirname'], draw_config.stack_save_params['canname'] )
             
@@ -2046,7 +2050,7 @@ class SampleManager :
 
         if doRatio is None :
             if self.draw_commands :
-                doRatio = self.draw_commands[-1].doRatio()
+                doRatio = self.draw_commands[-1].get_doratio()
 
         # store the signal and stack entries
         stack_entries  = {}
@@ -2316,6 +2320,7 @@ class SampleManager :
 
             # keep the order that this sample was added
             self.stack_order.append(name)
+            if isActive: self.stack_order_original_active.append(name)
 
         if not input_files and required :
             print '***********************************************' 
@@ -2323,8 +2328,7 @@ class SampleManager :
             print self.base_path
             print '***********************************************' 
             sys.exit(-1)
-
-        print_prefix = "Reading %s (%s) " %(name, path )
+        print_prefix = "AddSample: Reading %s " %( path[0] )
         print_prefix = print_prefix.ljust(60)
         if not input_files :
             print print_prefix + " [ \033[1;31mFailed\033[0m  ]"
@@ -2402,6 +2406,7 @@ class SampleManager :
 
         # keep the order that this sample was added
         self.stack_order.append(name)
+        if isActive: self.stack_order_original_active.append(name)
 
         thisscale = 1.0
         # multply by scale provided to this function (MCweight is applied to input samples)
@@ -2648,9 +2653,6 @@ class SampleManager :
 
         topcan = self.curr_stack
 
-        active_samps = self.get_samples( isActive=True )
-        self.curr_legend = self.create_standard_legend(len(active_samps), draw_config=draw_config )
-
         self.DrawCanvas(topcan, draw_config, datahists=datahists, sighists=self.get_signal_samples(), errhists=['err_band']  )
 
         if xmin is not None and xmax is not None :
@@ -2664,19 +2666,19 @@ class SampleManager :
             # but we still need to create a legend
 
             # first find the active samples
-            #active_samps = self.get_samples( isActive=True )
-            #self.curr_legend = self.create_standard_legend( len( active_samps ), draw_config=draw_config)
+            active_samps = self.get_samples( isActive=True )
+            self.curr_legend = self.create_standard_legend( len( active_samps ), draw_config=draw_config)
 
-            #legendOrder = legend_config.get( 'legendOrder', [] )
+            legendOrder = legend_config.get( 'legendOrder', [] )
 
-            #if legendOrder :
-            #    active_samps = []
+            if legendOrder :
+                active_samps = []
 
-            #    for entry in legendOrder :
-            #        active_samps.append( self.get_samples( name = entry )[0] )
-            #        
-            #    
-            #self.create_same_legend(legend_entries=legendOrder, created_samples=active_samps)
+                for entry in legendOrder :
+                    active_samps.append( self.get_samples( name = entry )[0] )
+                    
+                
+            self.create_same_legend(legend_entries=legendOrder, created_samples=active_samps)
 
             self.curr_legend.Draw()
 
@@ -2697,14 +2699,17 @@ class SampleManager :
             self.add_draw_config( varexp, selection, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
             return
 
-        config = DrawConfig( varexp, selection, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
+        draw_config = DrawConfig( varexp, selection, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
 
         
         command = 'samples.Draw(\'%s\',  \'%s\', %s )' %( varexp, selection, str( histpars ) )
         self.transient_data['command'] = command 
 
-        self.draw_and_configure( config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
+        self.draw_and_configure( draw_config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
 
+        doratio = draw_config.get_doratio()
+        if doratio:
+            return self.curr_canvases["base"]
         return self.curr_canvases["top"]
 
     def draw_and_configure( self, draw_config, generate_data_from_sample=None, useModel=False, treeHist=None, treeSelection=None ) :
@@ -2879,16 +2884,20 @@ class SampleManager :
             for samp in stack_samples[1:] :
                 sum_hist.Add(samp.hist)
 
+            stack_sum = sum_hist.Integral()
             self.create_sample( bkg_name, isActive=False, hist=sum_hist, temporary=True )
 
+        print "stack_sum", stack_sum
         doratio = draw_config.get_doratio()
+        normalize = draw_config.get_normalize()
 
         if doratio :
             # when stacking, the ratio is made with respect to the data.  Find the sample that
             # is labeled as data.  Throw an error if one data sample is not found
-            data_samples = self.get_samples(isData=True)
+            data_samples = self.get_samples(isData=True, isActive=True)
             if not data_samples :
                 print 'MakeStack - ERROR : No data samples found!'
+            assert len(data_samples)>=1
 
             self.create_ratio_sample( 'ratio', num_sample=data_samples[0], den_sample='__AllStack__' )
 
@@ -2912,7 +2921,7 @@ class SampleManager :
             samp.hist.SetFillColor( samp.color )
             samp.hist.SetLineColor( ROOT.kBlack )
             samp.hist.SetLineWidth( 1 )
-
+            if normalize: samp.hist.Scale(1./stack_sum)
             self.curr_stack.Add(samp.hist, 'HIST')
 
         # additional formatting
@@ -2952,11 +2961,7 @@ class SampleManager :
             else:
                tmp_legend_entries.append( ( samp.hist, samp.legendName,  'F') )
 
-<<<<<<< HEAD
-        #print '********************NOT FILLING SIGNAL ENTRY IN LEGEND**********************'
-=======
         self.quietprint( '********************NOT FILLING SIGNAL ENTRY IN LEGEND**********************')
->>>>>>> unblind method improvement
         #for samp in self.get_signal_samples() :
         #    if samp.isActive :
         #        tmp_legend_entries.append( ( samp.hist, samp.legendName, 'L') )
@@ -3225,7 +3230,6 @@ class SampleManager :
                 print 'Located multiple samples with name %s' %sample
             sample = slist[0]
 
-        if not self.quiet : print 'Creating hist for %s' %sample.name
 
         # enable branches for all variables matched in the varexp and selection
 
@@ -3240,7 +3244,10 @@ class SampleManager :
                 selection = "(%s)*%s" %(selection,sweight)
         
 
+<<<<<<< HEAD
         #if not self.quiet : print selection
+=======
+>>>>>>> Reorganize DrawConfig and Add stack counter to SampleManager
 
         sample.enable_parsed_branches( varexp+selection ) 
 
@@ -3748,16 +3755,19 @@ class SampleManager :
         
         calcymax = 0
         calcymin = 0.5
-        for samp in ( self.get_samples(isActive=True ) + self.get_samples( name='__AllStack__' ) )  :
+        samplist = self.get_samples(isActive=True ) 
+        normalize = draw_config.get_normalize()
+        if not normalize: samplist+=self.get_samples( name='__AllStack__' )   
+        for samp in samplist:
             if samp.hist == None :
                 continue
-            max = samp.hist.GetMaximum()
-            min = samp.hist.GetMaximum()
+            nmax = samp.hist.GetMaximum()
+            nmin = samp.hist.GetMaximum()
 
-            if max > calcymax :
-                calcymax = max
-            if min < ymin :
-                calcymin = min
+            if nmax > calcymax :
+                calcymax = nmax
+            if nmin < ymin :
+                calcymin = nmin
 
         if ymax is None :
             ymax = calcymax 
@@ -3848,6 +3858,20 @@ class SampleManager :
         self.curr_canvases[name].SetRightMargin(0.05)
         self.curr_canvases[name].SetTitle('')
 
+    def get_stack_pdf(self,method=1):
+        """ extract unit normalized pdf after Draw command """ 
+        if method==1:
+            samp= self.get_samples(name='__AllStack__')
+            if not (samp and samp[0].hist):
+                print "no stack saved"
+                return
+            h2 =samp[0].hist.Clone()
+        if method==2:
+            h2=self.get_stack_aggregate()
+            if h2==None: return
+        h2.Scale(1./h2.Integral())
+        return h2
+
     def get_stack_aggregate(self):
            if hasattr(self,"curr_stack") and isinstance(self.curr_stack, ROOT.THStack):
                  h1 = self.curr_stack.GetStack().Last().Clone()
@@ -3855,20 +3879,30 @@ class SampleManager :
                  h1.SetMarkerColor(1)
                  h1.SetMarkerSize(.75)
                  h1.SetLineWidth(2)
+                 xtitle = self.curr_stack.GetXaxis().GetTitle()
+                 ytitle = self.curr_stack.GetYaxis().GetTitle()
+                 h1.GetXaxis().SetTitle(xtitle)
+                 h1.GetYaxis().SetTitle(ytitle)
                  return h1
            else: 
                    print "No stack found"
            return
-    def get_stack_count(self):
+    def get_stack_count(self, integralrange = None):
+        """ integralrange: ntuple: x bin range to be integrated """
         err = array('d',[0])
-        result = [(s.name,s.hist.IntegralAndError(0,s.hist.GetNbinsX(),err),err[0])for s in self.get_samples(isActive=True,isData=False)]
+        ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
+        if integralrange and isinstance(integralrange,(list,tuple)) and len(integralrange)==2:
+            print "use range %g, %g" %integralrange
+            ranger  = lambda h, e, r: map(h.FindBin, r)+[e]
+        result = [(s.name,s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0])for s in self.get_samples(isActive=True,isData=False)]
         result.sort(key=lambda x: -x[1])
         htotal = self.get_stack_aggregate()
-        result.append(("TOTAL",htotal.IntegralAndError(0,htotal.GetNbinsX(),err), err[0]))
+        #result.append(("TOTAL",htotal.IntegralAndError(0,htotal.GetNbinsX(),err), err[0]))
+        result.append(("TOTAL",htotal.IntegralAndError(*ranger(htotal,err,integralrange)), err[0]))
         return result
 
-    def print_stack_count(self):
-        result = self.get_stack_count()
+    def print_stack_count(self, integralrange = None):
+        result = self.get_stack_count(integralrange)
         for line in result[:-1]: print "%15s %8.3g +/- %5.3g" %line
         print "="*35+"\n%15s %8.3g +/- %5.3g" %result[-1]
         return
@@ -3897,6 +3931,7 @@ class SampleManager :
         ylabel = draw_config.get_ylabel()
         ticksx = draw_config.get_tick_x_format()
         ticksy = draw_config.get_tick_y_format()
+        normalize = draw_config.get_normalize()
 
         # in what cases is topcan 
         # an already filled TCanvas?
@@ -3923,7 +3958,6 @@ class SampleManager :
             topcan.SetMaximum(ymax)
             self.set_stack_default_formatting( topcan, doratio, logy=draw_config.get_logy())
 
-        normalize = draw_config.get_normalize()
 
         # draw the data
         for dsamp in self.get_samples( name=datahists, isActive=True ):
@@ -4072,15 +4106,15 @@ class SampleManager :
         calcymax = 0
         calcymin = 0.5
         for samp in samples :
-            max = samp.hist.GetMaximum()
-            min = samp.hist.GetMaximum()
+            hmax = samp.hist.GetMaximum()
+            hmin = samp.hist.GetMaximum()
             if normalize and samp.hist.Integral() != 0 :
-                max = max / samp.hist.Integral()
-                min = min / samp.hist.Integral()
-            if max > calcymax :
-                calcymax = max
-            if min < calcymin :
-                calcymin = min
+                hmax = hmax / samp.hist.Integral()
+                hmin = hmin / samp.hist.Integral()
+            if hmax > calcymax :
+                calcymax = hmax
+            if hmin < calcymin :
+                calcymin = hmin
 
         if ymax is None :
             ymax = calcymax
@@ -4116,12 +4150,18 @@ class SampleManager :
                 if not draw_config.get_doratio()  :
                     draw_samp.hist.GetXaxis().SetTitle( draw_config.get_xlabel() )
 
+                draw_samp.hist.GetYaxis().SetTitleOffset(1.1)
+                draw_samp.hist.GetYaxis().SetTitleSize(0.045)
+                draw_samp.hist.GetYaxis().SetLabelSize(0.03)
                 draw_samp.hist.SetLineColor( hist_config['color'] )
                 draw_samp.hist.SetLineWidth( 2 )
-                draw_samp.hist.SetMarkerSize( 1.1 )
-                draw_samp.hist.SetMarkerStyle( 20 )
+                draw_samp.hist.SetMarkerSize( 0 )
+                draw_samp.hist.SetMarkerStyle( 7 )
                 draw_samp.hist.SetMarkerColor(hist_config['color'])
                 draw_samp.hist.SetStats(0)
+                if draw_samp.isSignal  :
+                    draw_samp.hist.SetMarkerSize( 1 )
+                    draw_samp.hist.SetMarkerStyle(20)
 
                 if normalize and draw_samp.hist.Integral() != 0  :
                     draw_samp.hist.Scale(1.0/draw_samp.hist.Integral())
@@ -4138,16 +4178,20 @@ class SampleManager :
             if len(hist_config['colors']) < len( selections ) :
                 print 'Size of colors input does not match size of vars input!'
                 reqnum = len(hist_config['colors']) - len( selections ) 
-                hist_config['colors'].extend([ self.get_samples(name=s)[0].color for s in reqsamples[reqnum:] ])
+                hist_config['colors'].extend([ self.get_samples(name=s)[0].color 
+                                                for s in reqsamples[reqnum:] ])
 
         if self.collect_commands :
-            self.add_compare_config( varexp, selections, reqsamples, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config)
+            self.add_compare_config( varexp, selections, reqsamples, histpars,
+                       hist_config=hist_config, label_config=label_config, legend_config=legend_config)
             return
 
         if not same :
             self.clear_all()
-
-        config = DrawConfig( varexp, selections, histpars, samples=reqsamples, hist_config=hist_config, label_config=label_config, legend_config=legend_config )
+	
+		# initialize DrawConfig
+        config = DrawConfig( varexp, selections, histpars, samples=reqsamples, 
+                      hist_config=hist_config, label_config=label_config, legend_config=legend_config )
         config.create_hist_configs()
 
         self.draw_commands.append(config)
@@ -4809,7 +4853,7 @@ class SampleManager :
         self.legendLimits['x2'] = leg.GetX2NDC()
         self.legendLimits['y2'] = leg.GetY2NDC()
 
-        print self.legendLimits
+        print "legendlimits:", self.legendLimits
         
     # ----------------------------------------------------------------------------
     def outputExists(self, name, dir) :
