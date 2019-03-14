@@ -56,7 +56,8 @@ def main() :
     sampManMuMu.outputs = {}
     sampManElEl.outputs = {}
 
-    sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 110. && m_ll > 70. && mu_hasTrigMatch[0] && mu_passTight[0]'
+    #sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 96.2 && m_ll > 86.2 && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
+    sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 110. && m_ll > 70. && (m_llph + m_ll < 180) && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
 
     #eta_cuts = ['EB', 'EE']
     eta_cuts = ['EB']
@@ -81,11 +82,11 @@ def main() :
         for ch, seldic in chdic.iteritems() : 
             for et in eta_cuts :
                 print 'WJets fit for MC'
-                make_wjets_matrix( sampManMuMu, 'Zgamma', seldic['selection'], et, 'chIso', 'sigmaIEIE', suffix='mc_%s_%s_%s' %( ch,et,seltag ) )
-                make_wjets_matrix( sampManMuMu, 'Z+jets', seldic['selection'], et, 'chIso', 'sigmaIEIE', suffix='mc_%s_%s_%s' %( ch,et,seltag ) )
+                make_wjets_matrix( sampManMuMu, 'Zgamma', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
+                make_wjets_matrix( sampManMuMu, 'Z+jets', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 
                 print 'WJets fit for data'
-                make_wjets_matrix( sampManMuMu, 'Data', seldic['selection'], et, 'chIso', 'sigmaIEIE', suffix='data_%s_%s_%s' %(ch,et,seltag), workspace=wjets)
+                make_wjets_matrix( sampManMuMu, 'Data', seldic['selection'], et, True, suffix='data_%s' %(et), workspace=wjets)
 
 
     if options.outputDir is not None :
@@ -101,7 +102,7 @@ def main() :
 
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
-        outputFile = ROOT.TFile('%s/outfile_matrix_%s.root' %( options.outputDir, wjets.GetName() ),'recreate')
+        outputFile = ROOT.TFile('%s/outfile_matrix_Pt15To25_%s.root' %( options.outputDir, wjets.GetName() ),'recreate') #set pt cut here
         for key, can in sampManMuMu.outputs.iteritems() :
             can.Write( '%s' %(key) )
         for can in sampManElEl.outputs.iteritems() :
@@ -115,75 +116,53 @@ def main() :
 
 
 
-def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, shape_var, num_var, suffix='', workspace=None) :
+def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix='', workspace=None) :
 
     #---------------------------------------
     # Get the base selection for each region
     #---------------------------------------
-    ph_selection_loose    = '%s==1' %defs.get_phid_selection('loose')
-    ph_selection_medium    = '%s==1' %defs.get_phid_selection('medium')
-    ph_selection_num   = '%s==1' %defs.get_phid_selection( num_var )
-    ph_selection_shape = '%s==1' %defs.get_phid_selection( shape_var )
-    ph_selection_incl  = 'ph_n==1'
+    ph_sel_basic  = 'ph_n==1 && ph_Is%s[0]' %( eta_cut )
+    ph_pt_15To25 = 'ph_pt[0] > 15.'# && ph_pt[0] < 25.'
+    ph_pt_25To40 = 'ph_pt[0] > 25. && ph_pt[0] < 40.'
+    ph_pt_40To70 = 'ph_pt[0] > 40. && ph_pt[0] < 70.'
+    ph_pt_70Up = 'ph_pt[0] > 70.'
+    ph_sel_preid = 'ph_passHOverEMedium[0]'# && ph_passNeuIsoCorrMedium[0] && ph_passPhoIsoCorrMedium[0]'
+    ph_sel_chiso_incl = 'ph_passSIEIEMedium[0]'
+    ph_sel_sieie_incl = 'ph_passChIsoCorrMedium[0]'
 
-    deltaR_sel         = 'dr_lep_ph>1.'
-
-    ph_idx_loose =  defs.get_phid_idx( 'loose' )
-    ph_idx_medium =  defs.get_phid_idx( 'medium' )
-    ph_idx_num = defs.get_phid_idx( num_var )
-    ph_idx_shape = defs.get_phid_idx( shape_var )
-
-    #---------------------------------------
-    # Add eta cuts, (IsEB, IsEE)
-    #---------------------------------------
-    eta_str_loose = 'ph_Is%s[%s]' %( eta_cut, ph_idx_loose )
-    eta_str_medium = 'ph_Is%s[%s]' %( eta_cut, ph_idx_medium )
-    eta_str_shape = 'ph_Is%s[%s]' %( eta_cut, ph_idx_shape )
-    eta_str_num = 'ph_Is%s[%s]' %( eta_cut, ph_idx_num )
-    eta_str_incl = 'ph_Is%s[0]' %( eta_cut )
-
-    #---------------------------------------
-    # Add additional cuts, mainly restricting
-    # the fitted variable to the plotting limits
-    #---------------------------------------
-    addtl_cuts_loose = 'ph_pt[%s] > 25'     %( ph_idx_loose )#50
-    addtl_cuts_medium = 'ph_pt[%s] > 25'     %( ph_idx_medium )#50
-    addtl_cuts_num = 'ph_pt[%s] > 25'   %( ph_idx_num )#50
-    addtl_cuts_shape = 'ph_pt[%s] > 25' %( ph_idx_shape )#50
-    addtl_cuts_incl = 'ph_pt[0] > 25'
-
-
-    #---------------------------------------
-    # Get the cuts that define the photon
-    # sideband regions
-    #---------------------------------------
-    cut_str_base = ' {var}[{idx}] > {val_low} && {var}[{idx}] < {val_high}'
-    cut_var_shape = defs.get_phid_cut_var( shape_var )
-    cut_var_num = defs.get_phid_cut_var( num_var )
-
-    cut_vals_shape = get_cut_defaults( shape_var, eta_cut )
-    cut_vals_num = get_cut_defaults( num_var, eta_cut )
-
-    cut_str_shape = cut_str_base.format(var=cut_var_shape, idx=ph_idx_shape, val_low=cut_vals_shape[0], val_high=cut_vals_shape[1] )
-    cut_str_num = cut_str_base.format(var=cut_var_num, idx=ph_idx_num, val_low=cut_vals_num[0], val_high=cut_vals_num[1] )
+    deltaR_real_sel         = 'min(dr_lep_ph, dr_lep2_ph) > 0.1 && min(dr_lep_ph, dr_lep2_ph) < 0.8'
+    deltaR_fake_sel         = 'min(dr_lep_ph, dr_lep2_ph) > 1.'
 
     #---------------------------------------
     # put the cuts together
     #---------------------------------------
-    full_sel_loose    = ' && '.join( [sel_base, ph_selection_loose, eta_str_loose, addtl_cuts_loose, deltaR_sel] )
-    full_sel_loose = '(' + full_sel_loose + ')*(NLOWeight*PUWeight + isData)'
 
-    full_sel_medium    = ' && '.join( [sel_base, ph_selection_medium, eta_str_medium, addtl_cuts_medium, deltaR_sel] )
-    full_sel_medium = '(' + full_sel_medium + ')*(NLOWeight*PUWeight + isData)'
+    myweight = ''
+    if isdata :
+        myweight = '(isData)'
+    else :
+        myweight = '(NLOWeight*PUWeight*mu_trigSF*mu_idSF*mu_isoSF)'
 
-    full_sel_shape = ' && '.join( [sel_base, ph_selection_shape, eta_str_shape, addtl_cuts_shape, cut_str_shape, deltaR_sel] )
-    full_sel_shape = '(' + full_sel_shape + ')*(NLOWeight*PUWeight + isData)'
 
-    full_sel_num   = ' && '.join( [sel_base, ph_selection_num, eta_str_num, addtl_cuts_num, cut_str_num, deltaR_sel] )
-    full_sel_num = '(' + full_sel_num + ')*(NLOWeight*PUWeight + isData)'
+    real_sel_sieie_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_sieie_incl, deltaR_real_sel] ) #set pt cut here
+    real_sel_sieie_incl = '(' + real_sel_sieie_incl + ')*' + myweight
 
-    incl_sel    = ' && '.join( [sel_base, ph_selection_incl, eta_str_incl, addtl_cuts_incl, deltaR_sel] )
-    incl_sel = '(' + incl_sel + ')*(NLOWeight*PUWeight + isData)'
+    real_sel_chiso_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_chiso_incl, deltaR_real_sel] ) #set pt cut here
+    real_sel_chiso_incl = '(' + real_sel_chiso_incl + ')*' + myweight
+
+    fake_sel_sieie_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_sieie_incl, deltaR_fake_sel] ) #set pt cut here
+    fake_sel_sieie_incl = '(' + fake_sel_sieie_incl + ')*' + myweight
+
+    fake_sel_chiso_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_chiso_incl, deltaR_fake_sel] ) #set pt cut here
+    fake_sel_chiso_incl = '(' + fake_sel_chiso_incl + ')*' + myweight
+
+
+    predR_sel = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid] ) #set pt cut here
+    predR_sel = '(' + predR_sel + ')*' + myweight
+
+    zpeak_sel = sel_base
+    zpeak_sel =  '(' + zpeak_sel + ')*' + myweight
+
 
     if workspace is None :
         ws = ROOT.RooWorkspace( 'ws') 
@@ -199,57 +178,43 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, shape_var, num_var, s
     binning_sigIEIE = (50,0.,0.05)
     binning_chIso = (90,0.,45.)
     binning_pt = (300,0.,750.)
+    binning_sigIEIE_FR = [0.,0.01022,0.1]
+    binning_chIso_FR = [0.,0.441,5.]
+    binning_mll = (16, 70., 110.)
+    binning_dr = (40, 0., 4.)
 
-    chIso_B_var = 'ph_chIsoCorr[ptSorted_ph_mediumNoChIso_idx[0]]'
-    sigIEIE_B_var = 'ph_sigmaIEIEFull5x5[ptSorted_ph_mediumNoChIso_idx[0]]'
-    chIso_C_var = 'ph_chIsoCorr[ptSorted_ph_mediumNoSIEIE_idx[0]]'
-    sigIEIE_C_var = 'ph_sigmaIEIEFull5x5[ptSorted_ph_mediumNoSIEIE_idx[0]]'
+    chIso_var = 'ph_chIsoCorr[0]'
+    sigIEIE_var = 'ph_sigmaIEIEFull5x5[0]'
+    mll_var = 'm_ll'
+    dr_var = 'min(dr_lep_ph,dr_lep2_ph)'
+
+    hist_real_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE )
+    hist_real_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso )
+
+    hist_real_sigmaIEIE_FR = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE_FR )
+    hist_real_chIso_FR = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso_FR )
+
+    hist_fake_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, fake_sel_sieie_incl, binning_sigIEIE )
+    hist_fake_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, fake_sel_chiso_incl, binning_chIso )
+
+    hist_fake_sigmaIEIE_FR = clone_sample_and_draw( sampMan, sample, sigIEIE_var, fake_sel_sieie_incl, binning_sigIEIE_FR )
+    hist_fake_chIso_FR = clone_sample_and_draw( sampMan, sample, chIso_var, fake_sel_chiso_incl, binning_chIso_FR )
+
+    hist_mll = clone_sample_and_draw( sampMan, sample, mll_var, zpeak_sel, binning_mll )
+    hist_dr = clone_sample_and_draw( sampMan, sample, dr_var, predR_sel, binning_dr )
     
-    chIso_Am_var = 'ph_chIsoCorr[ptSorted_ph_medium_idx[0]]'
-    sigIEIE_Am_var = 'ph_sigmaIEIEFull5x5[ptSorted_ph_medium_idx[0]]'
-    chIso_Al_var = 'ph_chIsoCorr[ptSorted_ph_loose_idx[0]]'
-    sigIEIE_Al_var = 'ph_sigmaIEIEFull5x5[ptSorted_ph_loose_idx[0]]'
+    sampMan.outputs['%s_sigmaIEIE_real_%s' %(sample,suffix)] = hist_real_sigmaIEIE
+    sampMan.outputs['%s_chIso_real_%s' %(sample,suffix)] = hist_real_chIso
+    sampMan.outputs['%s_sigmaIEIE_real_FR_%s' %(sample,suffix)] = hist_real_sigmaIEIE_FR
+    sampMan.outputs['%s_chIso_real_FR_%s' %(sample,suffix)] = hist_real_chIso_FR
 
-    chIso_incl_var = 'ph_chIsoCorr[0]'
-    sigIEIE_incl_var = 'ph_sigmaIEIEFull5x5[0]'
+    sampMan.outputs['%s_sigmaIEIE_fake_%s' %(sample,suffix)] = hist_fake_sigmaIEIE
+    sampMan.outputs['%s_chIso_fake_%s' %(sample,suffix)] = hist_fake_chIso
+    sampMan.outputs['%s_sigmaIEIE_fake_FR_%s' %(sample,suffix)] = hist_fake_sigmaIEIE_FR
+    sampMan.outputs['%s_chIso_fake_FR_%s' %(sample,suffix)] = hist_fake_chIso_FR
 
-    pt_Al_var = 'ph_pt[ptSorted_ph_loose_idx[0]]'
-    pt_Am_var = 'ph_pt[ptSorted_ph_medium_idx[0]]'
-    pt_B_var = 'ph_pt[ptSorted_ph_mediumNoChIso_idx[0]]'
-    pt_C_var = 'ph_pt[ptSorted_ph_mediumNoSIEIE_idx[0]]'
-    pt_incl_var = 'ph_pt[0]'
-
-
-    hist_sigmaIEIE_B = clone_sample_and_draw( sampMan, sample, sigIEIE_B_var, full_sel_shape, binning_sigIEIE )
-    hist_chIso_B = clone_sample_and_draw( sampMan, sample, chIso_B_var, full_sel_shape, binning_chIso )
-    #hist_phpt_B = clone_sample_and_draw( sampMan, sample, pt_B_var, full_sel_shape, binning_pt )
-
-    hist_sigmaIEIE_C = clone_sample_and_draw( sampMan, sample, sigIEIE_C_var, full_sel_num, binning_sigIEIE )
-    hist_chIso_C = clone_sample_and_draw( sampMan, sample, chIso_C_var, full_sel_num, binning_chIso )
-    #hist_phpt_C = clone_sample_and_draw( sampMan, sample, pt_C_var, full_sel_num, binning_pt )
-
-    hist_sigmaIEIE_Al = clone_sample_and_draw( sampMan, sample, sigIEIE_Al_var, full_sel_loose, binning_sigIEIE )
-    hist_chIso_Al = clone_sample_and_draw( sampMan, sample, chIso_Al_var, full_sel_loose, binning_chIso )
-    #hist_phpt_Al = clone_sample_and_draw( sampMan, sample, pt_Al_var, full_sel_loose, binning_pt )
-
-    hist_sigmaIEIE_Am = clone_sample_and_draw( sampMan, sample, sigIEIE_Am_var, full_sel_medium, binning_sigIEIE )
-    hist_chIso_Am = clone_sample_and_draw( sampMan, sample, chIso_Am_var, full_sel_medium, binning_chIso )
-    #hist_phpt_Am = clone_sample_and_draw( sampMan, sample, pt_Am_var, full_sel_medium, binning_pt )
-
-    hist_sigmaIEIE_incl = clone_sample_and_draw( sampMan, sample, sigIEIE_incl_var, incl_sel, binning_sigIEIE )
-    hist_chIso_incl = clone_sample_and_draw( sampMan, sample, chIso_incl_var, incl_sel, binning_chIso )
-    #hist_phpt_incl = clone_sample_and_draw( sampMan, sample, pt_incl_var, incl_sel, binning_pt )
-    
-    sampMan.outputs['%s_sigmaIEIE_Al_%s' %(sample,suffix)] = hist_sigmaIEIE_Al
-    sampMan.outputs['%s_sigmaIEIE_Am_%s' %(sample,suffix)] = hist_sigmaIEIE_Am
-    sampMan.outputs['%s_sigmaIEIE_B_%s' %(sample,suffix)] = hist_sigmaIEIE_B
-    sampMan.outputs['%s_sigmaIEIE_C_%s' %(sample,suffix)] = hist_sigmaIEIE_C
-    sampMan.outputs['%s_sigmaIEIE_incl_%s' %(sample,suffix)] = hist_sigmaIEIE_incl
-    sampMan.outputs['%s_chIso_Al_%s' %(sample,suffix)] = hist_chIso_Al
-    sampMan.outputs['%s_chIso_Am_%s' %(sample,suffix)] = hist_chIso_Am
-    sampMan.outputs['%s_chIso_B_%s' %(sample,suffix)] = hist_chIso_B
-    sampMan.outputs['%s_chIso_C_%s' %(sample,suffix)] = hist_chIso_C
-    sampMan.outputs['%s_chIso_incl_%s' %(sample,suffix)] = hist_chIso_incl
+    sampMan.outputs['%s_mll_%s' %(sample,suffix)] = hist_mll
+    sampMan.outputs['%s_dr_%s' %(sample,suffix)] = hist_dr
 
     #sampMan.outputs['%s_phpt_Al_%s' %(sample,suffix)] = hist_phpt_Al
     #sampMan.outputs['%s_phpt_Am_%s' %(sample,suffix)] = hist_phpt_Am

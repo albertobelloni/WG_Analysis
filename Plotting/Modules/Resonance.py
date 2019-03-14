@@ -10,6 +10,10 @@ def config_samples(samples) :
                       path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
                       isActive=False, useXSFile=True )
 
+    samples.AddSample('DYJetsToLL_M-50-amcatnloFXFX', 
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+                      isActive=False, useXSFile=True )
+
     samples.AddSample('ZGTo2LG', 
                       path='ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
                       isActive=False, useXSFile=True )
@@ -285,7 +289,8 @@ def config_samples(samples) :
                           )
 
     samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
-                           input_samples = ['DYJetsToLL_M-50'],
+                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
+                           #input_samples = ['DYJetsToLL_M-50'],
                            plotColor = ROOT.kCyan-2,
                           )
 

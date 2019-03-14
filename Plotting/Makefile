@@ -1,4 +1,4 @@
-OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2018_10_18
+OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_02_15
 
 DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2018_03_28
 DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2018_03_28
@@ -7,7 +7,7 @@ DIR_ELGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_elg_2018_03_28
 #DIR_MU=/data/users/jkunkle/Resonances/SingleLepNoPhID_mu_2018_03_28
 DIR_MU=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2018_09_06
 DIR_EL=/data/users/jkunkle/Resonances/SingleLepNoPhID_el_2018_03_28
-DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2018_10_12
+DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2018_11_30/WithSF
 DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2018_08_13
 
 DIR_SIGTruth=/data/users/friccita/WGamma/WG_Analysis/Resonances/SigNoFilt_2018_02_02
