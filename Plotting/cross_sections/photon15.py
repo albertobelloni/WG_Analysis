@@ -29,7 +29,16 @@
  'WJetsToLNu_HT-800To1200'       : { 'n_evt' : 1544513, 'cross_section' :  7.4843, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
  'WJetsToLNu_HT-1200To2500'      : { 'n_evt' : 244532, 'cross_section' :  1.7937, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
  'WJetsToLNu_HT-2500ToInf'       : { 'n_evt' : 253561, 'cross_section' :  0.040381, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
- 'WJetsToLNu_Pt-100To250'        : { 'n_evt' : 3644567, 'cross_section' : 676.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 10089661
+ #'WJetsToLNu_Pt-100To250'        : { 'n_evt' : 3644567, 'cross_section' : 676.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 10089661
+ 'WJetsToLNu_Wpt-0To50'        : { 'n_evt' : 99983076, 'cross_section' : 56306.4, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 99983076
+ 'WJetsToLNu_Wpt-50To100'        : { 'n_evt' : 67082709, 'cross_section' : 3241.33, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 67082709
+ 'WJetsToLNu_Pt-100To250'        : { 'n_evt' : 99945850, 'cross_section' : 677.82, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 99945850
+ 'WJetsToLNu_Pt-250To400'        : { 'n_evt' : 10021205, 'cross_section' : 24.083, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 10021205
+ 'WJetsToLNu_Pt-400To600'        : { 'n_evt' : 988234, 'cross_section' : 3.0563, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 988234
+ 'WJetsToLNu_Pt-600ToInf'        : { 'n_evt' : 985127, 'cross_section' : 0.4602, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 985127
+ 'WToLNu_0J_13TeV-amcatnloFXFX-pythia8'     : { 'n_evt' : 49142195, 'cross_section' : 49264.92, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 49142195
+ 'WToLNu_1J_13TeV-amcatnloFXFX-pythia8'     : { 'n_evt' : 92024405, 'cross_section' : 8280.36, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 92024405
+ 'WToLNu_2J_13TeV-amcatnloFXFX-pythia8'     : { 'n_evt' : 102093848, 'cross_section' : 3118.08, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 102093848
 
  'GJets_HT-40To100'             : { 'n_evt' : 4467985, 'cross_section' : 20730., 'gen_eff' : 1.0, 'k_factor' : 1.0 },
  'GJets_HT-100To200'             : { 'n_evt' : 5131873, 'cross_section' : 9226., 'gen_eff' : 1.0, 'k_factor' : 1.0 },

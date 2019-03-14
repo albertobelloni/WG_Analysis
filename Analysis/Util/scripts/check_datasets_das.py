@@ -172,10 +172,8 @@ def main() :
     else:	
         for samp in found_samples :
 
-            if options.vetofail: 
-                  tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME, vetoes='failed' )
-            else:
-                  tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME)
+            tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME, vetoes='failed' )
+            #tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME)
 
             local_events[samp] = tree_counts
     

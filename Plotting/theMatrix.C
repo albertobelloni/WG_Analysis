@@ -17,8 +17,9 @@ void theMatrix()
   
   TString plot_var("sigmaIEIE_");
   //TString plot_var("chIso_");
+  //TString plot_var("phpt_");
   
-  TFile* file = new TFile("Plots/Resonance/Plots_2018_10_13/WJetsWS/outfile_matrix_workspace_wjets.root","READ");
+  TFile* file = new TFile("Plots/Resonance/Plots_2018_10_16/WJetsWS/outfile_matrix_workspace_wjets.root","READ");
 
   // get histograms
   
@@ -36,16 +37,17 @@ void theMatrix()
   
   
   //TString selprefix("B_");
-  //TString selprefix("C_");
+  TString selprefix("C_");
+  //TString selprefix("Al_");
+  //TString selprefix("Am_");
   //TString selprefix("A_");
-  TString selprefix("incl_");
+  //TString selprefix("incl_");
   
   
   // get data histogram
   TString datahistname = dataprefix + plot_var + selprefix + datasuffix;
-  cout << datahistname << endl;
   TH1F* data_hist = static_cast<TH1F*>(file->Get(datahistname)->Clone());
-  cout << "Here!" << endl;
+  //data_hist->Rebin(5);
 
   // legend
   TLegend* leg = new TLegend(0.4,0.5,0.8,0.9);
@@ -56,12 +58,13 @@ void theMatrix()
   TString name = sampleprefix.at(0) + plot_var + selprefix + mcsuffix;
   cout << name << endl;
   TH1F* totalMC_hist = static_cast<TH1F*>(file->Get(name)->Clone());
+  //totalMC_hist->Rebin(5);
 
   for (unsigned int i = 0; i < sampleprefix.size(); i++)
     { // loop over MC samples
-      cout << "Loop: i = " << i << endl;
       TString histname_mc = sampleprefix.at(i) + plot_var + selprefix + mcsuffix;
       TH1F* stack_hist = static_cast<TH1F*>(file->Get(histname_mc)->Clone());
+      //stack_hist->Rebin(5);
       if (i != 0)
 	totalMC_hist->Add(stack_hist);
       stackMC->Add(stack_hist);
@@ -72,11 +75,13 @@ void theMatrix()
       leg->AddEntry(stack_hist,sampleprefix.at(i),"lp");
     } // loop over MC samples
 
+  cout << "Total number of data events = " << data_hist->Integral() << endl;
+  cout << "Total number of MC events = " << totalMC_hist->Integral() << endl;
 
   TH1F* ratio_hist = static_cast<TH1F*>(data_hist->Clone());
   ratio_hist->Divide(totalMC_hist);
   ratio_hist->GetYaxis()->SetTitle("Data/MC");
-  ratio_hist->GetYaxis()->SetRangeUser(0.,2.);
+  ratio_hist->GetYaxis()->SetRangeUser(0.,3.);
 
   TCanvas* canv = new TCanvas("dataVsMC_canv", "dataVsMC_canv", 600, 600);
   canv->cd();
