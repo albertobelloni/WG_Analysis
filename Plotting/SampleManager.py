@@ -3244,10 +3244,7 @@ class SampleManager :
                 selection = "(%s)*%s" %(selection,sweight)
         
 
-<<<<<<< HEAD
         #if not self.quiet : print selection
-=======
->>>>>>> Reorganize DrawConfig and Add stack counter to SampleManager
 
         sample.enable_parsed_branches( varexp+selection ) 
 
@@ -3909,14 +3906,10 @@ class SampleManager :
 
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
 
-<<<<<<< HEAD
         ## TDR Style
         tdr.setTDRStyle()
 
         doratio=draw_config.doRatio()
-=======
-        doratio=draw_config.get_doratio()
->>>>>>> unblind method improvement
         if doratio == True or doratio == 1 :
             self.create_standard_ratio_canvas()
         elif doratio == 2 :

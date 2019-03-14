@@ -198,13 +198,7 @@ if options.test :
     options.batch = False
     options.local = True
 
-<<<<<<< HEAD
-output_base = '/data/users/fengyb/WGammaNtuple/Legacy2016/'
-=======
-#output_base = '/data/users/jkunkle/Resonances/'
 output_base = '/data/users/friccita/WGammaNtuple/'
->>>>>>> changes up to Oct 20 2018
-#output_base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/'
 
 args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
 configs = [
