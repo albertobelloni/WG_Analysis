@@ -474,7 +474,6 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
 
     #filt.cut_tight     = ' == True '
     #filt.cut_vid_medium     = ' == True '
-    filt.cut_vid_tight      = ' == True '
     filt.cut_muon_dr    = ' > 0.4 '
     filt.add_var( 'triggerMatchBits', '60' )
     filt.cut_d0_barrel = ' < 0.05 '
@@ -601,7 +600,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
 
     return filt
 
-def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
+def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='None' ) :
 
     filt = Filter('FilterPhoton')
 
