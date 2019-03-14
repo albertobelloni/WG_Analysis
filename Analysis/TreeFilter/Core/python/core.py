@@ -1177,8 +1177,8 @@ def create_job_desc_file(command_info, kwargs) :
                     'log = stdlog.txt',
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
-                    '# Copy output files when done.  REQUIRED to run in a protected directory',
-                    'when_to_transfer_output = ON_EXIT_OR_EVICT',
+                    #'# Copy output files when done.  REQUIRED to run in a protected directory',
+                    #'when_to_transfer_output = ON_EXIT_OR_EVICT',
                     'priority=%d' %priority
                     ]
 

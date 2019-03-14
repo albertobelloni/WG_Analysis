@@ -19,7 +19,7 @@ else :
 
 options.batch = ( not options.local )
 
-base = '/data/users/fengyb/WGammaNtuple/Legacy2016/'
+base = '/data/users/friccita/WGammaNtuple/'
 
 
 jobs = [
@@ -153,7 +153,6 @@ jobs = [
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M700_width0p01' ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width0p01' ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width0p01' ),
-
 ]
 
 options.nFilesPerJob = 1

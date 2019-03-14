@@ -611,7 +611,11 @@ void RunModule::AddPhotonSF( ModuleConfig & /*config*/ ) const {
 
         // in the ID histogram, the x axis is signed eta, y is pt
         float pt = OUT::ph_pt->at(idx);
+<<<<<<< HEAD
         float eta = OUT::ph_sc_eta->at(idx);
+=======
+        float eta = OUT::ph_eta->at(idx);
+>>>>>>> bringing things back up to date
 
         ValWithErr res_id   = GetVals2D( _sfhist_ph_id, eta, pt );
         ValWithErr res_psv  = GetVals2D( _sfhist_ph_psv, fabs(eta), pt );
