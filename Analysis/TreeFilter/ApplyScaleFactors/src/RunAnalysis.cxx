@@ -163,7 +163,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                 if( _sffile_mu_iso_bcdef->IsOpen() ) {
                     TH2D * thishist =  dynamic_cast<TH2D*>(_sffile_mu_iso_bcdef->Get( "NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt" ));
                     if( !thishist ) {
-                        std::cout << "could not get hist from file " << _sffile_mu_iso_bcdef->GetName() << std::endl;
+		      std::cout << "could not get hist from file " << _sffile_mu_iso_bcdef->GetName() << std::endl;
                     }
                     _sfhists_mu_iso.push_back(std::make_pair(int_lumi_bcdef,  thishist));
                 }
@@ -217,6 +217,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_trig_bcdef = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_trig_bcdef->IsOpen() ) {
+		  //TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_bcdef->Get( "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ));
                     TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_bcdef->Get( "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_trig_bcdef->GetName() << std::endl;
@@ -231,6 +232,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_trig_gh = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_trig_gh->IsOpen() ) {
+		  //TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_gh->Get( "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ));
                     TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_gh->Get( "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_trig_gh->GetName() << std::endl;
@@ -611,11 +613,7 @@ void RunModule::AddPhotonSF( ModuleConfig & /*config*/ ) const {
 
         // in the ID histogram, the x axis is signed eta, y is pt
         float pt = OUT::ph_pt->at(idx);
-<<<<<<< HEAD
-        float eta = OUT::ph_sc_eta->at(idx);
-=======
         float eta = OUT::ph_eta->at(idx);
->>>>>>> bringing things back up to date
 
         ValWithErr res_id   = GetVals2D( _sfhist_ph_id, eta, pt );
         ValWithErr res_psv  = GetVals2D( _sfhist_ph_psv, fabs(eta), pt );
@@ -815,10 +813,10 @@ template<class HIST> ValWithErr RunModule::GetValsRunRange2D( const std::vector<
     float total_lumi = 0;
     float sum_cv = 0;
     float sum_err = 0;
-    //for( std::vector<std::pair<float, HIST*> >::const_iterator itr = range_hists.begin();
+    //for( std::vector<std::pair<float, TH2D*> >::const_iterator itr = range_hists.begin();
+    //
     for( auto itr = range_hists.begin();
-            itr != range_hists.end(); ++itr ) {
-
+        itr != range_hists.end(); ++itr ) {
         if( !itr->second ) {
             std::cout << "GetValsRunRange2D -- ERROR : hist does not exist " << std::endl;
         }
