@@ -3906,10 +3906,7 @@ class SampleManager :
 
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
 
-        ## TDR Style
-        tdr.setTDRStyle()
-
-        doratio=draw_config.doRatio()
+        doratio=draw_config.get_doratio()
         if doratio == True or doratio == 1 :
             self.create_standard_ratio_canvas()
         elif doratio == 2 :
