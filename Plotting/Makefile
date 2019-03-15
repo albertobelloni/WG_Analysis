@@ -1,5 +1,6 @@
+### ATTENTION: Set OUTPUTMAIN to the folder in your Plotting directory where you want to save your output
 OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_02_15
-
+### ATTENTION: Make sure that these DIR_* strings specify the directories containing the processed ntuples that you want to run over
 DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2018_03_28
 DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2018_03_28
 DIR_MUGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_mug_2018_03_28

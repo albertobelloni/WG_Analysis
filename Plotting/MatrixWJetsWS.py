@@ -126,7 +126,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     ph_pt_25To40 = 'ph_pt[0] > 25. && ph_pt[0] < 40.'
     ph_pt_40To70 = 'ph_pt[0] > 40. && ph_pt[0] < 70.'
     ph_pt_70Up = 'ph_pt[0] > 70.'
-    ph_sel_preid = 'ph_passHOverEMedium[0]'# && ph_passNeuIsoCorrMedium[0] && ph_passPhoIsoCorrMedium[0]'
+    ph_sel_preid = 'ph_passHOverEMedium[0] && ph_passNeuIsoCorrMedium[0] && ph_passPhoIsoCorrMedium[0]'
     ph_sel_chiso_incl = 'ph_passSIEIEMedium[0]'
     ph_sel_sieie_incl = 'ph_passChIsoCorrMedium[0]'
 
@@ -173,6 +173,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     #---------------------------------------
     # plot sigmaIEIE in regions A and B(shape)
     # plot chIso in regions A and C(num)
+    # and whatever else you want...
     #---------------------------------------
 
     binning_sigIEIE = (50,0.,0.05)
@@ -216,11 +217,6 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     sampMan.outputs['%s_mll_%s' %(sample,suffix)] = hist_mll
     sampMan.outputs['%s_dr_%s' %(sample,suffix)] = hist_dr
 
-    #sampMan.outputs['%s_phpt_Al_%s' %(sample,suffix)] = hist_phpt_Al
-    #sampMan.outputs['%s_phpt_Am_%s' %(sample,suffix)] = hist_phpt_Am
-    #sampMan.outputs['%s_phpt_B_%s' %(sample,suffix)] = hist_phpt_B
-    #sampMan.outputs['%s_phpt_C_%s' %(sample,suffix)] = hist_phpt_C
-    #sampMan.outputs['%s_phpt_incl_%s' %(sample,suffix)] = hist_phpt_incl
 
 
 
