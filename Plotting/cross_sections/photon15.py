@@ -3,12 +3,13 @@
  # https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV [1]
  # TTBar total cros section is 815.96 pb, taken from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO
  # https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
- 'DYJetsToLL_M-50'               : { 'n_evt' : 49144274, 'cross_section' : 5765.4 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # NNLO cross section from [1]
+ 'DYJetsToLL_M-50'               : { 'n_evt' : 49144274, 'cross_section' : 5765.4, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # NNLO cross section from [1]
+ 'DYJetsToLL_M-50-amcatnloFXFX'  : { 'n_evt' : 122055288, 'cross_section' : 6225.42, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # NNLO cross section from [1]
  'ZGTo2LG'                       : { 'n_evt' : 9321494, 'cross_section' : 117.864, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # NNLO cross section from [1], total events = 13626718
  'TTJets_DiLept'                 : { 'n_evt' : 6094476, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # TTbar cross section times dilepton branching fraction
  'TTJets_SingleLeptFromT'        : { 'n_evt' : 11957043, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # TTbar cross section times semileptonic branching fraction divided by 2 for charge
- 'TTJets_SingleLeptFromTbar'     : { 'n_evt' : 46455353, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # TTbar cross section times semileptonic branching fraction divided by 2 for charge
- 'TTGJets'                       : { 'n_evt' : 1577833, 'cross_section' : 3.697, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section taken from McM
+ 'TTJets_SingleLeptFromTbar'     : { 'n_evt' : 49018175, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # TTbar cross section times semileptonic branching fraction divided by 2 for charge
+ 'TTGJets'                       : { 'n_evt' : 1577833, 'cross_section' : 3.697, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section taken from McM, total events = 4870911
  'WWTo2L2Nu'                      : { 'n_evt' : 1, 'cross_section' : (118.7-3.974)*0.1086*0.1086*9, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section taken from WW AN
  'WGToLNuG-amcatnloFXFX'         : { 'n_evt' : 3235156, 'cross_section' : 821.7, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section taken from McM (489.0) from gridpack, 8.217e+02 .  #total events = 5048470
  'WGToLNuG-madgraphMLM'         : { 'n_evt' : 6103817, 'cross_section' : 405.271, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section taken from McM (405.271, from gridpack 1025.9
@@ -18,7 +19,8 @@
  'WGToLNuG_PtG-500-madgraphMLM'  : { 'n_evt' : 1393505, 'cross_section' : 0.0117887*0.72, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section taken from gridpack
  'WWG'                           : { 'n_evt' : 827630, 'cross_section' : 0.2147, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section taken from McM.  # total events = 999400
  'WJetsToLNu-madgraphMLM'        : { 'n_evt' : 29705748, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },# NNLO cross section from [1]
- 'WJetsToLNu-amcatnloFXFX'       : { 'n_evt' : 12965572, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 24120319
+ #'WJetsToLNu-amcatnloFXFX'       : { 'n_evt' : 12965572, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 24120319
+ 'WJetsToLNu-amcatnloFXFX'       : { 'n_evt' : 15915992, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 23271570
  #'WJetsToLNu_HT-100To200'        : { 'n_evt' : 10235198, 'cross_section' : 1345., 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
  #'WJetsToLNu_HT-200To400'        : { 'n_evt' : 4950373, 'cross_section' :  359.7, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
  'WJetsToLNu_HT-100To200'        : { 'n_evt' : 10235198, 'cross_section' : 1325.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
@@ -28,42 +30,76 @@
  'WJetsToLNu_HT-800To1200'       : { 'n_evt' : 1544513, 'cross_section' :  7.4843, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
  'WJetsToLNu_HT-1200To2500'      : { 'n_evt' : 244532, 'cross_section' :  1.7937, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
  'WJetsToLNu_HT-2500ToInf'       : { 'n_evt' : 253561, 'cross_section' :  0.040381, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
- 'WJetsToLNu_Pt-100To250'        : { 'n_evt' : 3644567, 'cross_section' : 676.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 10089661
+ #'WJetsToLNu_Pt-100To250'        : { 'n_evt' : 3644567, 'cross_section' : 676.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 10089661
+ 'WJetsToLNu_Wpt-0To50'        : { 'n_evt' : 99983076, 'cross_section' : 56306.4, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 99983076
+ 'WJetsToLNu_Wpt-50To100'        : { 'n_evt' : 67082709, 'cross_section' : 3241.33, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 67082709
+ 'WJetsToLNu_Pt-100To250'        : { 'n_evt' : 99945850, 'cross_section' : 677.82, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 99945850
+ 'WJetsToLNu_Pt-250To400'        : { 'n_evt' : 10021205, 'cross_section' : 24.083, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 10021205
+ 'WJetsToLNu_Pt-400To600'        : { 'n_evt' : 988234, 'cross_section' : 3.0563, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 988234
+ 'WJetsToLNu_Pt-600ToInf'        : { 'n_evt' : 985127, 'cross_section' : 0.4602, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 985127
+ 'WToLNu_0J_13TeV-amcatnloFXFX-pythia8'     : { 'n_evt' : 49142195, 'cross_section' : 49264.92, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 49142195
+ 'WToLNu_1J_13TeV-amcatnloFXFX-pythia8'     : { 'n_evt' : 92024405, 'cross_section' : 8280.36, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 92024405
+ 'WToLNu_2J_13TeV-amcatnloFXFX-pythia8'     : { 'n_evt' : 102093848, 'cross_section' : 3118.08, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, # total events = 102093848
 
  'GJets_HT-40To100'             : { 'n_evt' : 4467985, 'cross_section' : 20730., 'gen_eff' : 1.0, 'k_factor' : 1.0 },
  'GJets_HT-100To200'             : { 'n_evt' : 5131873, 'cross_section' : 9226., 'gen_eff' : 1.0, 'k_factor' : 1.0 },
  'GJets_HT-200To400'             : { 'n_evt' : 10036487, 'cross_section' : 2300, 'gen_eff' : 1.0, 'k_factor' : 1.0 },
  'GJets_HT-400To600'             : { 'n_evt' : 2529729, 'cross_section' : 277.4, 'gen_eff' : 1.0, 'k_factor' : 1.0 },
  'GJets_HT-600ToInf'             : { 'n_evt' : 2463946, 'cross_section' : 93.38, 'gen_eff' : 1.0, 'k_factor' : 1.0 },
- 'DiPhoton'                      : { 'n_evt' : 19410854, 'cross_section' : 248., 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section from HGG AN, total events = 35505641
+ #'DiPhoton'                      : { 'n_evt' : 19625401, 'cross_section' : 248., 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section from HGG AN, total events = 35617475
+  'DiPhoton'                      : { 'n_evt' : 19625401, 'cross_section' : 84.4, 'gen_eff' : 1.0, 'k_factor' : 1.0 }, # cross section from HGG AN, total events = 35617475
 
 
 
 
- 'ResonanceMass200'        : { 'n_evt' : 50000, 'cross_section' : 0.001*21.927083486735327, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass250'        : { 'n_evt' : 50000, 'cross_section' : 0.001*7.726802969290064, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass300'        : { 'n_evt' : 50000, 'cross_section' : 0.001*3.0727556146293016, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass350'        : { 'n_evt' : 50000, 'cross_section' : 0.001*1.4696457294297705, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass400'        : { 'n_evt' : 50000, 'cross_section' : 0.001*0.6793675228919609, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass450'        : { 'n_evt' : 50000, 'cross_section' : 0.01*0.4289159543374145, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass500'        : { 'n_evt' : 50000, 'cross_section' : 0.01*0.24201678069837862, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass600'        : { 'n_evt' : 50000, 'cross_section' : 0.01*0.09504308646628319, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass700'        : { 'n_evt' : 50000, 'cross_section' : 0.01*0.04716196186523957, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass800'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.03730856115592406, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass900'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.011314780843008422, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass1000'       : { 'n_evt' : 50000, 'cross_section' : 0.1*0.007476947024553767, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass1200'       : { 'n_evt' : 50000, 'cross_section' : 0.1*0.002624063647895483, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass1400'       : { 'n_evt' : 50000, 'cross_section' : 0.1*0.0011705907560498234, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass1600'       : { 'n_evt' : 50000, 'cross_section' : 0.1*0.0005423464788953168, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass1800'       : { 'n_evt' : 50000, 'cross_section' : 1.0*0.00025189913384697943, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass2000'       : { 'n_evt' : 50000, 'cross_section' : 1.0*0.00017248982785599164, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass2200'       : { 'n_evt' : 50000, 'cross_section' : 1.0*5.991636805639029e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass2400'       : { 'n_evt' : 50000, 'cross_section' : 1.0*4.683635776571481e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass2600'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.299282334311407e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass2800'       : { 'n_evt' : 50000, 'cross_section' : 10.0*1.3560045437305779e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass3000'       : { 'n_evt' : 50000, 'cross_section' : 10.0*7.1220417778967944e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass3500'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.3028947133131246e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
- 'ResonanceMass4000'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.3028947133131246e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass200'        : { 'n_evt' : 50000, 'cross_section' : 0.001*21.927083486735327, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass250'        : { 'n_evt' : 50000, 'cross_section' : 0.001*7.726802969290064, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass300'        : { 'n_evt' : 50000, 'cross_section' : 0.001*3.0727556146293016, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass350'        : { 'n_evt' : 50000, 'cross_section' : 0.001*1.4696457294297705, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass400'        : { 'n_evt' : 50000, 'cross_section' : 0.001*0.6793675228919609, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass450'        : { 'n_evt' : 50000, 'cross_section' : 0.01*0.4289159543374145, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass500'        : { 'n_evt' : 50000, 'cross_section' : 0.01*0.24201678069837862, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass600'        : { 'n_evt' : 50000, 'cross_section' : 0.01*0.09504308646628319, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass700'        : { 'n_evt' : 50000, 'cross_section' : 0.01*0.04716196186523957, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass800'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.03730856115592406, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass900'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.011314780843008422, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass1000'       : { 'n_evt' : 50000, 'cross_section' : 0.1*0.007476947024553767, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass1200'       : { 'n_evt' : 50000, 'cross_section' : 0.1*0.002624063647895483, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass1400'       : { 'n_evt' : 50000, 'cross_section' : 0.1*0.0011705907560498234, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass1600'       : { 'n_evt' : 50000, 'cross_section' : 0.1*0.0005423464788953168, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass1800'       : { 'n_evt' : 50000, 'cross_section' : 1.0*0.00025189913384697943, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass2000'       : { 'n_evt' : 50000, 'cross_section' : 1.0*0.00017248982785599164, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass2200'       : { 'n_evt' : 50000, 'cross_section' : 1.0*5.991636805639029e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass2400'       : { 'n_evt' : 50000, 'cross_section' : 1.0*4.683635776571481e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass2600'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.299282334311407e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass2800'       : { 'n_evt' : 50000, 'cross_section' : 10.0*1.3560045437305779e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass3000'       : { 'n_evt' : 50000, 'cross_section' : 10.0*7.1220417778967944e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass3500'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.3028947133131246e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ #'ResonanceMass4000'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.3028947133131246e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+ 'ResonanceMass200'        : { 'n_evt' : 50000, 'cross_section' : 0.001*21.927083486735327, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass250'        : { 'n_evt' : 50000, 'cross_section' : 0.001*7.726802969290064, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass300'        : { 'n_evt' : 50000, 'cross_section' : 0.05*3.0727556146293016, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass350'        : { 'n_evt' : 50000, 'cross_section' : 0.05*1.4696457294297705, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass400'        : { 'n_evt' : 50000, 'cross_section' : 0.05*0.6793675228919609, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass450'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.4289159543374145, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass500'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.24201678069837862, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass600'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.09504308646628319, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass700'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.04716196186523957, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass800'        : { 'n_evt' : 50000, 'cross_section' : 0.1*0.03730856115592406, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass900'        : { 'n_evt' : 50000, 'cross_section' : 1.0*0.011314780843008422, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass1000'       : { 'n_evt' : 50000, 'cross_section' : 1.0*0.007476947024553767, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass1200'       : { 'n_evt' : 50000, 'cross_section' : 0.5*0.002624063647895483, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass1400'       : { 'n_evt' : 50000, 'cross_section' : 0.4*0.0011705907560498234, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass1600'       : { 'n_evt' : 50000, 'cross_section' : 0.4*0.0005423464788953168, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass1800'       : { 'n_evt' : 50000, 'cross_section' : 3.0*0.00025189913384697943, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass2000'       : { 'n_evt' : 50000, 'cross_section' : 3.0*0.00017248982785599164, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass2200'       : { 'n_evt' : 50000, 'cross_section' : 1.0*5.991636805639029e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass2400'       : { 'n_evt' : 50000, 'cross_section' : 1.0*4.683635776571481e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass2600'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.299282334311407e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass2800'       : { 'n_evt' : 50000, 'cross_section' : 10.0*1.3560045437305779e-05, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass3000'       : { 'n_evt' : 50000, 'cross_section' : 10.0*7.1220417778967944e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass3500'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.3028947133131246e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
+ 'ResonanceMass4000'       : { 'n_evt' : 50000, 'cross_section' : 10.0*2.3028947133131246e-06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
 
                   'Zg'                     : { 'n_evt' : 3044343, 'cross_section' : 124.5 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
                   'Wg'                     : { 'n_evt' : 2183649, 'cross_section' : 505.8 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 },

@@ -126,9 +126,9 @@ namespace OUT {
     std::vector<float>  *el_truthMatchEl_dr;
     std::vector<float>  *el_truthMatchEl_pt;
 
-    std::vector<float> *ph_chIsoCorr;
-    std::vector<float> *ph_neuIsoCorr;
-    std::vector<float> *ph_phoIsoCorr;
+    //std::vector<float> *ph_chIsoCorr;
+    //std::vector<float> *ph_neuIsoCorr;
+    //std::vector<float> *ph_phoIsoCorr;
     std::vector<float> *ph_min_el_dr;
     std::vector<Bool_t> *ph_IsEB;
     std::vector<Bool_t> *ph_IsEE;
@@ -174,6 +174,7 @@ namespace OUT {
     float mt_lep_ph;
     float dphi_lep_ph;
     float dr_lep_ph;
+    float dr_lep2_ph;
     float mt_lep_met;
     float m_lep_met;
     float pt_lep_met;
@@ -189,6 +190,7 @@ namespace OUT {
     float recoW_eta;
     float recoW_phi;
     float m_ll;
+    float m_llph;
     Bool_t nu_z_solution_success;
    
     float leadjet_pt;
@@ -311,9 +313,17 @@ namespace OUT {
 
     Int_t truenu_n;
 
+    Int_t trueW_n;
+    std::vector<float> *trueW_pt;
+    std::vector<float> *trueW_eta;
+    std::vector<float> *trueW_phi;
+    std::vector<Int_t> *trueW_motherPID;
+    std::vector<Int_t> *trueW_status;
+
     float truelepnu_m;
     float truelepnuph_m;
     float truelepph_dr;
+    float truemt_lep_met;
     float truemt_lep_met_ph;
     float truemt_res;
     float truemt_res_l23;
