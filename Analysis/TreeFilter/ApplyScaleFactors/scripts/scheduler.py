@@ -19,12 +19,13 @@ else :
 
 options.batch = ( not options.local )
 
+### ATTENTION! Here you specify the directory containing the ntuples that you want to run over.
 base = '/data/users/friccita/WGammaNtuple/'
 
 
 jobs = [
         #--------------------------
-        #JobConf(base, 'SingleMuon', isData=True            ),
+        JobConf(base, 'SingleMuon', isData=True            ),
         #JobConf(base, 'SingleElectron', isData=True        ),
         #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                                 ),
         #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                         ),
@@ -40,8 +41,8 @@ jobs = [
         #JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  ), 
         #JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' ),
         #JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  ), 
-        #JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'               ),
-        #JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , tags=['NLO']       ),
+        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap'               ),
+        JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' ),
         #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', tags=['NLO']     ),
         #JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                 ),
         #JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'     ),
@@ -57,9 +58,9 @@ jobs = [
         #JobConf( base, 'WWTo2L2Nu_13TeV-powheg'    ),
         #JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', tags=['NLO']     ),
         #JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', tags=['NLO']     ),
-        ###JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', tags=['NLO']),
+        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap' ),
 
-        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5'     ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width5'    ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width5'    ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width5'    ),
@@ -163,16 +164,19 @@ options.exename='RunAnalysis'
 options.copyInputFiles=True
 options.enableKeepFilter=False
 
-input_dirs = ['LepGamma_mug_2018_10_11', 'LepGamma_elg_2018_10_11']
+### ATTENTION! Here you specify the type of ntuple you want to run over.
+input_dirs = ['LepLep_mumu_2019_03_14']
 
 configs = []
 
+### ATTENTION! Here you specify the types of scale factors you want to calculate and save.
+### In the data folder and in scripts/Conf.py, make sure that the scale factor files you use are correct and up to date!
 for input_dir in input_dirs:
     configs.append(
                     {
                      'module'      : 'Conf.py',
                      #'args'        : {'functions' : 'get_muon_sf,get_electron_sf,get_photon_sf,get_pileup_sf' },
-                     'args'        : {'functions' : 'get_muon_sf,get_photon_sf,get_electron_sf'},
+                     'args'        : {'functions' : 'get_muon_sf,get_photon_sf'},
                      'input'       : input_dir,
                      'output'      : base + input_dir + '/WithSF',
                      'tag'         : 'FinalSF'
