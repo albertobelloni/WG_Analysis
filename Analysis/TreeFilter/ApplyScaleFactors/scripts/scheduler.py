@@ -55,7 +55,6 @@ jobs = [
         JobConf( base, 'GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'       ),
         JobConf( base, 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'      ),
         JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8' ),
-
         JobConf( base, 'WWTo2L2Nu_13TeV-powheg'    ),
         JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8'  ),
         JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8'  ),

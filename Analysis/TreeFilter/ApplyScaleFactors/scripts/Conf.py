@@ -84,7 +84,7 @@ def get_photon_sf(options) :
     photon_sf = Filter( 'AddPhotonSF' )
 
     photon_sf.add_var( 'FilePathId', '%s/2016LegacyReReco_PhotonCutBasedMedium.root' %base_path )
-    photon_sf.add_var( 'FilePathEveto', '%s/2016/ScalingFactors_80X_Summer16.root' %base_path )
+    photon_sf.add_var( 'FilePathEveto', '%s/2016/PhotonEVeto_ScalingFactors_80X_Summer16.root' %base_path )
     
     return photon_sf
 
