@@ -43,14 +43,19 @@ def get_muon_sf(options) :
 
     muon_sf = Filter( 'AddMuonSF' )
 
-    muon_sf.add_var( 'FilePathTrigBCDEF', '%s/TrigEfficienciesAndSF_RunBtoF.root' %base_path )
-    muon_sf.add_var( 'FilePathTrigGH', '%s/TrigEfficienciesAndSF_Period4.root' %base_path )
+    ### For 2016
+    muon_sf.add_var( 'FilePathTrigBCDEF', '%s/2016/MuTrigEfficienciesAndSF_RunBtoF.root' %base_path )
+    muon_sf.add_var( 'FilePathTrigGH', '%s/2016/MuTrigEfficienciesAndSF_Period4.root' %base_path )
 
-    muon_sf.add_var( 'FilePathIdBCDEF', '%s/EfficienciesStudies_2016_legacy_rereco_rootfiles_RunBCDEF_SF_ID.root' %base_path )
-    muon_sf.add_var( 'FilePathIdGH', '%s/EfficienciesStudies_2016_legacy_rereco_rootfiles_RunGH_SF_ID.root' %base_path )
+    muon_sf.add_var( 'FilePathIdBCDEF', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunBCDEF_SF_ID.root' %base_path )
+    muon_sf.add_var( 'FilePathIdGH', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunGH_SF_ID.root' %base_path )
 
-    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/EfficienciesStudies_2016_legacy_rereco_rootfiles_RunBCDEF_SF_ISO.root' %base_path )
-    muon_sf.add_var( 'FilePathIsoGH', '%s/EfficienciesStudies_2016_legacy_rereco_rootfiles_RunGH_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunBCDEF_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoGH', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunGH_SF_ISO.root' %base_path )
+
+    ### For 2017
+
+    ### For 2018
 
     return muon_sf
 
@@ -60,10 +65,15 @@ def get_electron_sf(options) :
 
     electron_sf = Filter( 'AddElectronSF' )
 
+    ### For 2016
     #electron_sf.add_var( 'FilePathDiTrig', '%s/triggerSummary_ee_rereco198fb.root' %base_path )
-    electron_sf.add_var( 'FilePathRecoHighPt', '%s/EGM2D_BtoH_GT20GeV_RecoSF_Legacy2016.root'%base_path)
-    electron_sf.add_var( 'FilePathRecoLowPt',  '%s/EGM2D_BtoH_low_RecoSF_Legacy2016.root'%base_path)
-    electron_sf.add_var( 'FilePathCutID',      '%s/2016LegacyReReco_ElectronTight.root'%base_path)
+    electron_sf.add_var( 'FilePathRecoHighPt', '%s/2016/EGM2D_BtoH_GT20GeV_RecoSF_Legacy2016.root'%base_path)
+    electron_sf.add_var( 'FilePathRecoLowPt',  '%s/2016/EGM2D_BtoH_low_RecoSF_Legacy2016.root'%base_path)
+    electron_sf.add_var( 'FilePathCutID',      '%s/2016/2016LegacyReReco_ElectronTight.root'%base_path)
+
+    ### For 2017
+
+    ### For 2018
 
     return electron_sf
 
@@ -74,7 +84,7 @@ def get_photon_sf(options) :
     photon_sf = Filter( 'AddPhotonSF' )
 
     photon_sf.add_var( 'FilePathId', '%s/2016LegacyReReco_PhotonCutBasedMedium.root' %base_path )
-    photon_sf.add_var( 'FilePathEveto', '%s/ScalingFactors_80X_Summer16.root' %base_path )
+    photon_sf.add_var( 'FilePathEveto', '%s/2016/ScalingFactors_80X_Summer16.root' %base_path )
     
     return photon_sf
 
