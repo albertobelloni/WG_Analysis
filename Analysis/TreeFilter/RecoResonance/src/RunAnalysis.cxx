@@ -70,9 +70,9 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::el_truthMatchEl_dr                     = 0;
     OUT::el_truthMatchEl_pt                     = 0;
 
-    OUT::ph_chIsoCorr                           = 0;
-    OUT::ph_neuIsoCorr                          = 0;
-    OUT::ph_phoIsoCorr                          = 0;
+    //OUT::ph_chIsoCorr                           = 0;
+    //OUT::ph_neuIsoCorr                          = 0;
+    //OUT::ph_phoIsoCorr                          = 0;
     OUT::ph_min_el_dr                          = 0;
     OUT::ph_IsEB                                = 0;
     OUT::ph_IsEE                                = 0;
@@ -306,9 +306,9 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("el_truthMatchEl_dr", &OUT::el_truthMatchEl_dr   );
     outtree->Branch("el_truthMatchEl_pt", &OUT::el_truthMatchEl_pt      );
 
-    outtree->Branch("ph_chIsoCorr", &OUT::ph_chIsoCorr);
-    outtree->Branch("ph_neuIsoCorr", &OUT::ph_neuIsoCorr);
-    outtree->Branch("ph_phoIsoCorr", &OUT::ph_phoIsoCorr);
+   // outtree->Branch("ph_chIsoCorr", &OUT::ph_chIsoCorr);
+   // outtree->Branch("ph_neuIsoCorr", &OUT::ph_neuIsoCorr);
+   // outtree->Branch("ph_phoIsoCorr", &OUT::ph_phoIsoCorr);
     outtree->Branch("ph_min_el_dr", &OUT::ph_min_el_dr);
     outtree->Branch("ph_IsEB", &OUT::ph_IsEB );
     outtree->Branch("ph_IsEE", &OUT::ph_IsEE );
@@ -1526,9 +1526,9 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
 void RunModule::FilterPhoton( ModuleConfig & config ) {
 
     OUT::ph_n          = 0;
-    OUT::ph_chIsoCorr            -> clear();
-    OUT::ph_neuIsoCorr           -> clear();
-    OUT::ph_phoIsoCorr           -> clear();
+   // OUT::ph_chIsoCorr            -> clear();
+   // OUT::ph_neuIsoCorr           -> clear();
+   // OUT::ph_phoIsoCorr           -> clear();
     OUT::ph_min_el_dr           -> clear();
     OUT::ph_IsEB                 -> clear();
     OUT::ph_IsEE                 -> clear();
@@ -1874,9 +1874,9 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         if( !config.PassFloat( "cut_electron_dr", min_el_dr ) ) continue;
 
 
-        OUT::ph_chIsoCorr            -> push_back(pfChIsoPtRhoCorr);
-        OUT::ph_neuIsoCorr           -> push_back(pfNeuIsoPtRhoCorr);
-        OUT::ph_phoIsoCorr           -> push_back(pfPhoIsoPtRhoCorr);
+      //  OUT::ph_chIsoCorr            -> push_back(pfChIsoPtRhoCorr);
+      //  OUT::ph_neuIsoCorr           -> push_back(pfNeuIsoPtRhoCorr);
+      //  OUT::ph_phoIsoCorr           -> push_back(pfPhoIsoPtRhoCorr);
 
         OUT::ph_min_el_dr            -> push_back( min_el_dr );
 

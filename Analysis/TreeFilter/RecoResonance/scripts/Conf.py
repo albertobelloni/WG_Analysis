@@ -19,8 +19,8 @@ def get_keep_filter(tag=None) :
         If both filters are used, all branches in keep_filter are used
         except for those in remove_filter """
 
-    mu_basic = ['mu_n','mu_pt', 'mu_eta', 'mu_phi', 'mu_e', 'mu_charge']
-    el_basic = ['el_n', 'el_phi', 'el_eta', 'el_e', 'el_pt', 'el_charge']
+    mu_basic = ['mu_n','mu_pt', 'mu_eta', 'mu_phi', 'mu_e', 'mu_charge','mu_d0']
+    el_basic = ['el_n', 'el_phi', 'el_eta', 'el_e', 'el_pt', 'el_charge','el_d0']
     el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig', 
                 'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose', 
                 'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']

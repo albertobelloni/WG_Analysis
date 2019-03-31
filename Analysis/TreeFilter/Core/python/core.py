@@ -1165,6 +1165,7 @@ def create_job_desc_file(command_info, kwargs) :
                     '# Filename for stdout, otherwise it is lost',
                     'output = stdout.txt',
                     'error = stderr.txt',
+                    'log = condorlog.txt',
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
                     '# Copy output files when done.  REQUIRED to run in a protected directory',
