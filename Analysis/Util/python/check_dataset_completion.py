@@ -136,6 +136,10 @@ def get_dataset_counts( dataset, fileKey, treeName=None, histName=None, vetoes=[
                     if match_veto :
                         continue
 
+                if top.count('failed') > 0:
+                   print "WARNING!! Skip the file %s/%s as it (might) belongs to the failed files from crab"%(top, file)
+                   continue
+
                 if fileKey is not None and not file.count(fileKey) : continue
 
                 ofile = ROOT.TFile.Open( filepath  )

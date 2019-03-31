@@ -18,6 +18,9 @@ import time
 import analysis_utils
 from functools import wraps
 
+sys.path.append('/data/users/fengyb/CMSPLOTS/')
+import tdrstyle as tdr
+
 from uncertainties import ufloat
 from uncertainties import umath
 import pickle
@@ -274,6 +277,7 @@ class SampleManager :
         self.curr_canvases         = {}
         self.curr_stack            = None
         self.curr_legend           = None
+        self.curr_sig_legend       = None
 
         self.legendLimits          = None
 
@@ -576,6 +580,7 @@ class SampleManager :
         self.legendTranslateX=0.0
         self.legendTranslateY=0.0
         self.entryWidth = 0.052
+        self.siglegPos = 'bottom'
 
         self.transient_data= {}
         self.stored_command=''
@@ -1373,6 +1378,7 @@ class SampleManager :
 
             #histnameeps = outputDir + '/' + filenamestrip+'.eps'
             histnameeps = outputDir + '/' + filenamestrip+'.C'
+            histnamepng = outputDir + '/' + filenamestrip+'.png'
             if not (filename.count( '.pdf' ) or filename.count('.png') ):
                 histnamepdf = outputDir + '/' + filenamestrip+'.pdf'
             else :
@@ -1383,6 +1389,7 @@ class SampleManager :
             elif len( self.curr_canvases ) == 1  :
                 self.curr_canvases.values()[0].SaveAs(histnamepdf)
                 self.curr_canvases.values()[0].SaveAs(histnameeps)
+                self.curr_canvases.values()[0].SaveAs(histnamepng)
             else :
                 if canname is not None :
                     if canname not in self.curr_canvases :
@@ -1390,6 +1397,7 @@ class SampleManager :
                     else :
                         self.curr_canvases[canname].SaveAs(histnamepdf)
                         self.curr_canvases[canname].SaveAs(histnameeps)
+                        self.curr_canvases[canname].SaveAs(histnamepng)
 
                 else :
     
@@ -1401,10 +1409,11 @@ class SampleManager :
                     selkey = keys[selidx]
                     self.curr_canvases[selkey].SaveAs(histnamepdf)
                     self.curr_canvases[selkey].SaveAs(histnameeps)
+                    self.curr_canvases[selkey].SaveAs(histnamepng)
 
     
     #---------------------------------------
-    def DumpStack( self, outputDir=None, txtname=None, doRatio=None, details=False ) :
+    def DumpStack( self, outputDir=None, txtname=None, doRatio=None, details=False , cut = None) :
     
         if self.collect_commands :
             self.add_dump_stack( txtname, outputDir )
@@ -1419,7 +1428,7 @@ class SampleManager :
         signal_entries = {}
         ratio_entries  = {}
         detail_entries = {}
-    
+
         # get samples with the MC stack, data, and signal samples
         samp_list = self.get_samples(name=self.get_stack_order()) + self.get_samples(isData=True) + self.get_samples(isSignal=True)
     
@@ -1427,8 +1436,17 @@ class SampleManager :
         for samp in samp_list :
             if samp.hist == None :
                 continue
+            if cut:
+               try:
+                 icut = float(cut)
+               except ValueError:
+                 print "Input cut {cut} is not a float. Please check".format(cut = cut)
+               ifirst = samp.hist.FindBin( icut )
+            else:
+               ifirst = 1
             err = ROOT.Double()
-            integral = samp.hist.IntegralAndError( 1, samp.hist.GetNbinsX(), err )
+            integral = samp.hist.IntegralAndError( ifirst, samp.hist.GetNbinsX(), err )
+
             if samp.isSignal : 
                 signal_entries[samp.name] = ufloat(integral, err)
             else :
@@ -1450,22 +1468,24 @@ class SampleManager :
             sig_sum += vals
     
         latex_lines = []
-        latex_lines.append( r'\begin{tabular}{| l | c |} ' )
-        latex_lines.append( r'Sample & Events \\ \hline ' )
+        latex_lines.append( r'\begin{tabular}{ll} ' )
+        latex_lines.append( r'\hline Process & Events \\ \hline ' )
     
         lines = []
+        lines.append('Process \t Events')
         for nm in order :
             if nm in stack_entries :
-                lines.append('%s : \t %s' %( nm, stack_entries[nm] ))
-                latex_lines.append( '%s & %s ' %( nm, stack_entries[nm] ) + r'\\')
+                lines.append('{nm}  \t {val:.0f}'.format( nm=nm, val=stack_entries[nm] ))
+                latex_lines.append( '{nm} & {val:.0f} '.format( nm=nm, val=stack_entries[nm] ) + r'\\')
     
         for sig in signal_entries :
-            lines.append('%s : \t %s' %( sig, signal_entries[sig] ))
-            latex_lines.append( '%s & %s ' %( sig, signal_entries[sig] )  + r'\\')
+            lines.append('{nm}  \t {val:.0f}'.format( nm=sig, val=signal_entries[sig] ))
+            latex_lines.append( '{nm} & {val:.0f} '.format( nm=sig, val=signal_entries[sig] )  + r'\\')
     
-        lines.append('Stack Sum : \t %s' %(bkg_sum))
-        latex_lines.append('Stack Sum & %s ' %(bkg_sum) + r'\\')
-    
+        lines.append('{{Stack Sum}}  \t {val:.0f}'.format(val=bkg_sum))
+        latex_lines.append('\hline Stack Sum & {val:.0f} '.format(val=bkg_sum) + r'\\')
+     
+        ''' 
         for sig in signal_entries :
             den = umath.sqrt(signal_entries[sig] + bkg_sum )
             if den != 0 :
@@ -1484,6 +1504,7 @@ class SampleManager :
                 else :
                     lines.append('S/sqrt(S+B) (S=%s,B=%s) : NAN +- NAN' %( sig, st  ))
                     #latex_lines.append('S/sqrt(S+B) (S=%s,B=%s) & NAN' %( sig, st  ) + r'\\')
+        '''
     
         if doRatio is not None and doRatio :
             rsamps = self.get_samples( isRatio=True )
@@ -1527,9 +1548,11 @@ class SampleManager :
         for line in lines :
             print line
     
-        latex_lines.append( r'\end{tabular}' )
+        latex_lines.append( r'\hline\hline\end{tabular}' )
 
         if txtname is not None and outputDir is not None  :
+            if cut:
+               txtname += "_cut" + cut
 
             if txtname.count('.txt') == 0 :
                 latexname = txtname + '.tex'
@@ -1542,18 +1565,18 @@ class SampleManager :
             if not os.path.isdir(outputDir ) :
                 os.makedirs( outputDir )
 
-            ##txtfile = open( outputDir + '/' + txtname, 'w')
+            txtfile = open( outputDir + '/' + txtname, 'w')
             #txtfile = open( txtname, 'w')
-            #for line in lines :
-            #    txtfile.write( line + '\n' )
-            #txtfile.close()
+            for line in lines :
+                txtfile.write( line + '\n' )
+            txtfile.close()
             #os.system( 'mv %s %s' %( txtname, outputDir ) )
 
-            ##latexfile = open(outputDir + '/' + latexname, 'w')
+            latexfile = open(outputDir + '/' + latexname, 'w')
             #latexfile = open(latexname, 'w')
-            #for line in latex_lines  :
-            #    latexfile.write( line + '\n' )
-            #latexfile.close()
+            for line in latex_lines  :
+                latexfile.write( line + '\n' )
+            latexfile.close()
             #os.system( 'mv %s %s' %( latexname, outputDir ) )
 
             # write a pickle file
@@ -2285,17 +2308,29 @@ class SampleManager :
 
         self.curr_legend = self.create_standard_legend( step, draw_config=draw_config)
 
+        if self.get_signal_samples():
+           ## neeed to plot signal distributions
+           self.curr_sig_legend = self.create_standard_legend(step, draw_config=draw_config, isSignalLegend = True)
+        else:
+           self.curr_sig_legend = None
+
         legendTextSize = draw_config.legend_config.get('legendTextSize', 0.04 )
+        #legendTextSize = 0.04
 
         # format the entries
         tmp_legend_entries = []
+        #tmp_sig_legend_entries = []
         legend_entries = []
+        #sig_legend_entries = []
 
         if data_samp and data_samp[0].isActive and draw_config.get_unblind() :
             tmp_legend_entries.append(  (data_samp[0].hist, data_samp[0].legendName, 'PE') )
 
         for samp in drawn_samples :
-            tmp_legend_entries.append( ( samp.hist, samp.legendName,  'F') )
+            if samp.isSignal:
+               tmp_sig_legend_entries.append( (samp.hist, samp.legendName, 'L')) 
+            else:
+               tmp_legend_entries.append( ( samp.hist, samp.legendName,  'F') )
 
         self.quietprint( '********************NOT FILLING SIGNAL ENTRY IN LEGEND**********************')
         #for samp in self.get_signal_samples() :
@@ -2329,10 +2364,16 @@ class SampleManager :
 
         else :
             legend_entries = tmp_legend_entries
+        #sig_legend_entries = tmp_sig_legend_entries
         for le in legend_entries :
             entry = self.curr_legend.AddEntry(le[0], le[1], le[2])
             if legendTextSize is not None :
                 entry.SetTextSize(legendTextSize)
+
+        #for le in sig_legend_entries :
+        #    entry = self.curr_sig_legend.AddEntry(le[0], le[1], le[2])
+        #    if legendTextSize is not None :
+        #        entry.SetTextSize(legendTextSize)
 
 
     #----------------------------------------------------
@@ -2494,8 +2535,7 @@ class SampleManager :
                     return
                 sample.hist= ROOT.TH3F( histname, '',histpars[0], histpars[1], histpars[2], histpars[3], histpars[4], histpars[5], histpars[6], histpars[7], histpars[8] )
             else : # 1-d histogram
-
-                sample.hist= ROOT.TH1F( histname, '', histpars[0], histpars[1], histpars[2])
+                sample.hist= ROOT.TH1F( histname, '', int(histpars[0]), histpars[1], histpars[2])
 
         elif type( histpars ) is list :
             sample.hist = ROOT.TH1F( histname, '', len(histpars)-1, array('f', histpars))
@@ -2577,6 +2617,7 @@ class SampleManager :
                 selection = "(%s)*%s" %(selection,sweight)
         
 
+        #if not self.quiet : print selection
 
         sample.enable_parsed_branches( varexp+selection ) 
 
@@ -2830,6 +2871,9 @@ class SampleManager :
                     failed_samples.append( sample.name )
                 else :
                     success_samples.append( sample.name )
+                    #print "Sample : %s; Total Events: %f"%(sample.name, sample.hist.Integral())
+                    #print "Histogram min: %d max :%d"%(sample.hist.GetBinLowEdge(1), sample.hist.GetXaxis().GetBinUpEdge( sample.hist.GetNbinsX() ))
+                    #print "first bin: %d %d content %d"%(sample.hist.GetBinLowEdge(1), sample.hist.GetXaxis().GetBinUpEdge(1), sample.hist.GetBinContent(1))
 
         for samp in failed_samples :
             print 'Failed to draw sample %s' %samp
@@ -2981,8 +3025,8 @@ class SampleManager :
                     prim.GetYaxis().SetTitleSize(0.06)
                     prim.GetYaxis().SetTitleOffset(offset)
                     prim.GetYaxis().SetLabelSize(0.06)
-                    prim.GetXaxis().SetLabelSize(0.06)
-                    prim.GetXaxis().SetTitleSize(0.06)
+                    prim.GetXaxis().SetLabelSize(0.0)
+                    prim.GetXaxis().SetTitleSize(0.0)
                 elif doratio == 2 : 
                     prim.GetYaxis().SetTitleSize(0.06)
                     prim.GetYaxis().SetTitleOffset(offset)
@@ -3007,8 +3051,9 @@ class SampleManager :
                     topcan.GetHistogram().GetYaxis().SetTitleSize(0.06)
                     topcan.GetHistogram().GetYaxis().SetTitleOffset(offset)
                     topcan.GetHistogram().GetYaxis().SetLabelSize(0.06)
-                    topcan.GetHistogram().GetXaxis().SetLabelSize(0.06)
-                    topcan.GetHistogram().GetXaxis().SetTitleSize(0.06)
+                    topcan.GetHistogram().GetXaxis().SetLabelSize(0.0)
+                    topcan.GetHistogram().GetXaxis().SetTitleSize(0.0)
+                    topcan.GetHistogram().GetXaxis().SetTitleOffset(1.1)
                 else :
                     topcan.GetHistogram().GetYaxis().SetTitleSize(0.045)
                     topcan.GetHistogram().GetYaxis().SetTitleOffset(0.9)
@@ -3055,7 +3100,9 @@ class SampleManager :
                 ratiosamp.hist.SetMarkerSize(0.1)
                 ratiosamp.hist.SetTitle('')
                 ratiosamp.hist.GetYaxis().CenterTitle()
-                ratiosamp.hist.GetYaxis().SetNdivisions(506, True)
+                #ratiosamp.hist.GetYaxis().SetNdivisions(506, True)
+                ratiosamp.hist.GetYaxis().SetNdivisions(506)
+                #ratiosamp.hist.GetYaxis().SetNdivisions(8)
                 if rlabel is not None :
                     ratiosamp.hist.GetYaxis().SetTitle(rlabel)
                 if rmin is not None and rmax is not None :
@@ -3139,11 +3186,12 @@ class SampleManager :
         self.curr_canvases['bottom'] = ROOT.TPad('bottompad', 'bottompad', 0.01, 0.01, 0.99, 0.34)
         self.curr_canvases['top'] = ROOT.TPad('toppad', 'toppad', 0.01, 0.35, 0.99, 0.99)
         self.curr_canvases['top'].SetTopMargin(0.08)
-        self.curr_canvases['top'].SetBottomMargin(0.06)
+        #self.curr_canvases['top'].SetBottomMargin(0.06)
+        self.curr_canvases['top'].SetBottomMargin(0.02)
         self.curr_canvases['top'].SetLeftMargin(0.15)
         self.curr_canvases['top'].SetRightMargin(0.05)
-        #self.curr_canvases['bottom'].SetTopMargin(0.05)
-        self.curr_canvases['bottom'].SetTopMargin(0.00)
+        self.curr_canvases['bottom'].SetTopMargin(0.05)
+        #self.curr_canvases['bottom'].SetTopMargin(0.00)
         self.curr_canvases['bottom'].SetBottomMargin(0.3)
         self.curr_canvases['bottom'].SetLeftMargin(0.15)
         self.curr_canvases['bottom'].SetRightMargin(0.05)
@@ -3300,9 +3348,9 @@ class SampleManager :
         legendTextSize = draw_config.legend_config.get('legendTextSize', 0.04 )
         #print legendTextSize
         if sighists :
-            sigsamps = self.get_samples(name=sighists)
+            #sigsamps = self.get_samples(name=sighists)
             for samp in sighists : 
-                print samp.isActive
+                #print samp.isActive
                 if samp.isActive :
                     print 'Draw Signal hist ', samp.name
                     #samp.hist.SetLineWidth(3)
@@ -3312,7 +3360,8 @@ class SampleManager :
                         samp.hist.DrawNormalized('HIST same')
                     else :
                         samp.hist.Draw('HIST same')
-                    entry = self.curr_legend.AddEntry( samp.hist, samp.legendName, 'L')
+                    #entry = self.curr_legend.AddEntry( samp.hist, samp.legendName, 'L')
+                    entry = self.curr_sig_legend.AddEntry( samp.hist, samp.legendName, 'L')
                     entry.SetTextSize(legendTextSize)
 
         if errhists :
@@ -3339,6 +3388,7 @@ class SampleManager :
                     drawopt += 'HIST'
 
                 samp.hist.Draw(drawopt)
+ 
 
         self.curr_canvases['top'].cd()
 
@@ -3351,6 +3401,9 @@ class SampleManager :
         # draw the legend
         if self.curr_legend is not None :
             self.curr_legend.Draw()
+
+        if self.curr_sig_legend is not None:
+            self.curr_sig_legend.Draw()
 
         # draw the plot status label
         labels = draw_config.get_labels()
@@ -3808,7 +3861,8 @@ class SampleManager :
 
     # ----------------------------------------------------------------------------
     # TLegend is initialized
-    def create_standard_legend(self, nentries,draw_config=None ) :
+#    def create_standard_legend(self, nentries,draw_config=None ) :
+    def create_standard_legend(self, nentries,draw_config=None , isSignalLegend = False) :
 
         legend_config = {}
         if draw_config is not None :
@@ -3823,6 +3877,8 @@ class SampleManager :
         legendLoc        = legend_config.get('legendLoc', self.legendLoc )
 
         entryWidth       = legend_config.get('entryWidth', self.entryWidth )
+
+        siglegPos        = legend_config.get('siglegPos',  self.siglegPos)
         
 
         if legendLoc == 'TopLeft' :
@@ -3831,6 +3887,7 @@ class SampleManager :
             #legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.90+0.1-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
             legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.6+legendTranslateY ,
                               'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
+            #legend_limits = { 'x1' : 0.9-0.35*legendWiden+legendTranslateX, 'y1' : 0.90-legendCompress*entryWidth/2.0*nentries+legendTranslateY, 'x2' : 0.9+legendTranslateX, 'y2' : 0.90+legendTranslateY }
         else :
             legend_limits = { 'x1' : 0.9-0.25*legendWiden+legendTranslateX, 'y1' : 0.85-legendCompress*entryWidth*nentries+legendTranslateY,
                               'x2' : 0.90+legendTranslateX,                 'y2' : 0.85+legendTranslateY }
@@ -3844,16 +3901,24 @@ class SampleManager :
         if self.legendLimits :
             legend_limits = self.legendLimits
 
+        if isSignalLegend:
+            if siglegPos == 'right':
+                legend_sig_temp = {'x1': legend_limits['x2'], 'y1': legend_limits['y1'], 'x2': legend_limits['x2']+0.3*legendWiden, 'y2': legend_limits['y2']}
+            elif siglegPos == 'bottom':
+                legend_sig_temp = {'x1': legend_limits['x1'], 'y1': legend_limits['y1']-legendCompress*entryWidth*4.0, 'x2': legend_limits['x2'], 'y2': legend_limits['y1']}
+            legend_limits = legend_sig_temp
+
         leg = ROOT.TLegend(legend_limits['x1'], legend_limits['y1'],
                            legend_limits['x2'], legend_limits['y2'])
+
         leg.SetFillColor(ROOT.kWhite)
         leg.SetBorderSize(0)
 
-        if legendLoc == 'Double' :
+        if legendLoc == 'Double' and not isSignalLegend:
             leg.SetNColumns(2)
-        
-
+ 
         return leg
+
     
     # ----------------------------------------------------------------------------
     def store_current_legend_placement(self) :
