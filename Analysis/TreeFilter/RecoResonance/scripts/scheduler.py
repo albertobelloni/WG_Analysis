@@ -36,40 +36,6 @@ version_reminiAOD = 'UMDNTuple_1114'
 
 jobs = [
         #--------------------------
-<<<<<<< HEAD
-#        JobConf(base, 'SingleMuon', isData=True, version=version_reminiAOD),
-#        JobConf(base, 'SingleElectron', isData=True, version=version_reminiAOD),
-        JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                     ),
-        JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
-        JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
-        JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version, tags=['NLO']                        ),
-        JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version, tags=['NLO']                         ),
-        JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version, tags=['NLO']                         ),
-        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
-        JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf(base, 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
-        JobConf(base, 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
-        JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),  
-        JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version), 
-        JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version), 
-        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                         ),
-        JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , version=version, tags=['NLO']       ),
-        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version, tags=['NLO']     ),
-        JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version     ),
-        JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version     ),
-        JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , version=version    ),
-        JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', version=version     ),
-        JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', version=version     ),
-        JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap' , version=version    ),
-        JobConf(base, 'TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', version=version, tags=['NLO'] ),
-        JobConf( base, 'GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf( base, 'GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf( base, 'GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf( base, 'GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version ),
-        JobConf( base, 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version),
-        JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', version=version, tags=['NLO']),
-=======
         JobConf(base, 'SingleMuon', isData=True, version=version_reminiAOD),
         #JobConf(base, 'SingleElectron', isData=True, version=version_reminiAOD),
         #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version                     ),
@@ -103,8 +69,6 @@ jobs = [
         #JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', version=version, tags=['NLO']     ),
         #JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', version=version, tags=['NLO']     ),
         JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version_reminiAOD, tags=['NLO']),
->>>>>>> 1dd153988fc2db3ec5818bcaa6d84efc8db6ff5a
-
         #JobConf( base, 'WJetsToLNu_Wpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version),
         #JobConf( base, 'WJetsToLNu_Wpt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version),
         #JobConf( base, 'WJetsToLNu_Pt-100To250_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version),
@@ -235,14 +199,8 @@ if options.test :
     options.batch = False
     options.local = True
 
-<<<<<<< HEAD
-#output_base = '/data/users/fengyb/WGammaNtuple/test/'
-#output_base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple/'
-output_base = '/data/users/kakw/Resonances/'
-=======
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
 output_base = '/data/users/friccita/WGammaNtuple/'
->>>>>>> 1dd153988fc2db3ec5818bcaa6d84efc8db6ff5a
 
 args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
 ### ATTENTION! Choose (uncomment and modify as necessary) the type of ntuple you want to make. Single lepton, dilepton, single lepton plus gamma, etc.
@@ -268,7 +226,6 @@ configs = [
     #    'keepSelection': 'tight',
     #    'tag'    : 'mu',
     #},
-<<<<<<< HEAD
     #{
     #    'module' : 'Conf.py',
     #    'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
@@ -279,18 +236,6 @@ configs = [
     #    'keepSelection': 'muglph',
     #    'dataset': 'SingleMuon',
     #},
-=======
-    {
-        'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepLep_mumu_2019_03_14',
-        'tag'    : 'mumu',
-        'keepSelection': 'tight',
-        'dataset': 'SingleMuon',
-    },
->>>>>>> 1dd153988fc2db3ec5818bcaa6d84efc8db6ff5a
     #{
     #    'module' : 'Conf.py',
     #    'args'   : { 'function' : 'make_final_mu', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'False' },
@@ -339,26 +284,6 @@ configs = [
     #    'keepSelection': 'tight',
     #    'dataset': 'SingleElectron',
     #},
-<<<<<<< HEAD
-    {
-        'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'True' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepGamma_mug_2018_09_18',
-        'tag'    : 'mug',
-        'dataset': 'SingleMuon',
-    },
-    {
-        'module' : 'Conf.py',
-        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True'},
-        'args_tag_NLO' : args_nlo,
-        'input'  : '' ,
-        'output' : output_base+'LepGamma_elg_2018_09_18',
-        'tag'    : 'elg',
-        'dataset': 'SingleElectron',
-    },
-=======
     #{
     #    'module' : 'Conf.py',
     #    'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'False' },
@@ -377,7 +302,6 @@ configs = [
     #    'tag'    : 'elg',
     #    'dataset': 'SingleElectron',
     #},
->>>>>>> 1dd153988fc2db3ec5818bcaa6d84efc8db6ff5a
     #{
     #    'module' : 'Conf.py',
     #    'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True', 'eleOlap' : 'False'},

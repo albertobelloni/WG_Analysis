@@ -69,6 +69,7 @@ class RunModule : public virtual RunModuleBase {
     private :
 
         float _m_w;
+        float _m_z;
         bool _isData;
 
         bool _eval_mu_loose    ;
