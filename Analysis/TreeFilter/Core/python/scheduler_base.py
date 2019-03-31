@@ -243,6 +243,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
         missing_ds = []
         bad_ds = []
         for ds, res in check_results.iteritems() :
+            print "%s dataset has %d events"%(ds, check_results[ds]['res'][0])
 
             if res['res'][0] == 0 :
                 missing_ds.append(ds)

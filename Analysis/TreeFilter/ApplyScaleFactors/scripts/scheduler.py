@@ -1,6 +1,9 @@
 import os
 from argparse import ArgumentParser
 
+import scheduler_base
+from scheduler_base import JobConf
+
 p = ArgumentParser()
 p.add_argument( '--run'     , dest='run'     , default=False, action='store_true', help='Run filtering'              )
 p.add_argument( '--check'   , dest='check'   , default=False, action='store_true', help='Run check of completion'    )
@@ -9,136 +12,177 @@ p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true
 p.add_argument( '--local'   , dest='local'   , default=True , action='store_true', help='Run locally'                )
 options = p.parse_args()
 
-if not options.run and not options.check :
+if not options.check :
     options.run = True
-
-base = '/data/users/jkunkle/Resonances'
-
-class JobConf( ) :
-
-    def __init__( self, base, name, suffix='') :
-        self.base = base
-        self.name = name
-        self.suffix = suffix
-
-jobs_data = [
-        #JobConf(base, base_orig, 'job_muon_2012a_Jan22rereco'),
-        #JobConf(base, base_orig, 'job_muon_2012b_Jan22rereco'),
-        #JobConf(base, base_orig, 'job_muon_2012c_Jan22rereco'),
-        #JobConf(base, base_orig, 'job_muon_2012d_Jan22rereco'),
-        #JobConf(base, base_orig, 'job_electron_2012a_Jan22rereco'),
-        #JobConf(base, base_orig, 'job_electron_2012b_Jan22rereco'),
-        #JobConf(base, base_orig, 'job_electron_2012c_Jan2012rereco'),
-        #JobConf(base, base_orig, 'job_electron_2012d_Jan22rereco'),
-]
-jobs_mc = [
-        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width0p01' ),
-]
-
-if options.local :
-    #--------------------
-    # not batch
-    #--------------------
-    #command_base = 'python scripts/filter.py  --filesDir %(base)s/%(input)s/%(job)s --outputDir %(base)s/%(output)s/%(job)s --outputFile tree.root --treeName %(treename)s --fileKey tree.root --module scripts/%(module)s --confFileName %(job)s.txt --nFilesPerJob %(nFilesPerJob)d --nproc %(nproc)d --exeName %(exename)s --moduleArgs "%(moduleArgs)s" '
-    command_base = 'python scripts/filter.py  --filesDir %(base)s/%(input)s/%(job)s --outputDir %(output)s --outputFile tree.root --treeName %(treename)s --fileKey tree.root --module scripts/%(module)s --confFileName %(job)s.txt --nFilesPerJob %(nFilesPerJob)d --nproc %(nproc)d --exeName %(exename)s --moduleArgs "%(moduleArgs)s" '
-    
 else :
-    #--------------------
-    # for batch submission
-    #--------------------
-    #command_base = 'python scripts/filter.py  --filesDir %(base)s/%(input)s/%(job)s --outputDir %(base)s/%(output)s/%(job)s --outputFile tree.root --treeName %(treename)s --fileKey tree.root --module scripts/%(module)s --batch --confFileName %(job)s.txt --nFilesPerJob %(nFilesPerJob)d --exeName %(exename)s_%(job)s  --moduleArgs "%(moduleArgs)s"'
-    command_base = 'python scripts/filter.py  --filesDir %(base)s/%(input)s/%(job)s --outputDir %(output)s --outputFile tree.root --treeName %(treename)s --fileKey tree.root --module scripts/%(module)s --batch --confFileName %(job)s.txt --nFilesPerJob %(nFilesPerJob)d --exeName %(exename)s_%(job)s  --moduleArgs "%(moduleArgs)s"'
+    options.run = False
 
-if options.resubmit :
-    command_base += ' --resubmit '
+options.batch = ( not options.local )
 
-module = 'Conf.py'
-nFilesPerJob = 1
-nProc = 6
-exename='RunAnalysis'
-treename='tupel/EventTree'
+### ATTENTION! Here you specify the directory containing the ntuples that you want to run over.
+base = '/data/users/friccita/WGammaNtuple/'
 
-top_configs = [
-    {   
-     'module'      : 'Conf.py', 
-     #'args'        : {'functions' : 'get_muon_sf,get_electron_sf,get_photon_sf,get_pileup_sf' },
-     'args'        : {'functions' : 'get_muon_sf,get_photon_sf' },
-     'input_name'  : 'LepGamma_mug_2017_09_05',
-     'output_tag'  : 'TESTSF',
-     'tag'         : 'muFinalSF'
-    },
 
+jobs = [
+        #--------------------------
+        JobConf(base, 'SingleMuon', isData=True            ),
+        #JobConf(base, 'SingleElectron', isData=True        ),
+        #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                                 ),
+        #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                         ),
+        #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                         ),
+        #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', tags=['NLO']                  ),
+        #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', tags=['NLO']          ),
+        #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', tags=['NLO']          ),
+        #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'               ),
+        #JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   ),
+        #JobConf(base, 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   ),  
+        #JobConf(base, 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   ),  
+        #JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   ),  
+        #JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  ), 
+        #JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' ),
+        #JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  ), 
+        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap'               ),
+        JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' ),
+        #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', tags=['NLO']     ),
+        #JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                 ),
+        #JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'     ),
+        #JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'        ),
+        #JobConf(base, 'TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', tags=['NLO'] ),
+        #JobConf( base, 'GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'      ),
+        #JobConf( base, 'GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'      ),
+        #JobConf( base, 'GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'      ),
+        #JobConf( base, 'GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'       ),
+        #JobConf( base, 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'      ),
+        #JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', tags=['NLO']  ),
+
+        #JobConf( base, 'WWTo2L2Nu_13TeV-powheg'    ),
+        #JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', tags=['NLO']     ),
+        #JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', tags=['NLO']     ),
+        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap' ),
+
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width5'    ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width5'     ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width5'     ),
+
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3000_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width0p01' ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width0p01'  ),
+        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width0p01'  ),
+
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1000_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1200_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1400_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1600_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1800_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2000_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M200_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2200_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2400_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M250_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2800_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M300_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M3500_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M350_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M4000_width5'   ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M400_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M450_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M500_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M600_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M700_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width5'    ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1000_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1200_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1400_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1600_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M1800_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2000_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M200_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2200_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2400_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M250_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2600_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M2800_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M3000_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M300_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M3500_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M350_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M4000_width0p01'),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M400_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M450_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M500_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M600_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M700_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width0p01' ),
+        #JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width0p01' ),
 ]
 
-if options.run :
-    for config in top_configs :
-        first = True
-        for job_conf in jobs_data :
-            base      = job_conf.base
-            job       = job_conf.name
-            suffix    = job_conf.suffix
+options.nFilesPerJob = 1
 
-            if options.local :
-                job_exename = exename+'Data'
-            else :
-                job_exename = exename
+options.nproc = 4
+options.treename='UMDNTuple/EventTree'
+options.exename='RunAnalysis'
+options.copyInputFiles=True
+options.enableKeepFilter=False
 
-            module_arg = config['args']
-            module_arg['isData'] = ' == True '
+### ATTENTION! Here you specify the type of ntuple you want to run over.
+input_dirs = ['LepLep_mumu_2019_03_14']
 
-            module_str = '{ '
-            for key, val in module_arg.iteritems() :
-                module_str += '\'%s\' : \'%s\',' %( key, val)
-            module_str += '}'
+configs = []
 
-            if 'output_name' in config :
-                output = '%s/%s/%s%s' %(base,config['output_name'],job, suffix)
-            else :
-                output = '%s/%s/%s%s%s' %(base, config['input_name'], job, suffix,config['output_tag'])
-            
+### ATTENTION! Here you specify the types of scale factors you want to calculate and save.
+### In the data folder and in scripts/Conf.py, make sure that the scale factor files you use are correct and up to date!
+for input_dir in input_dirs:
+    configs.append(
+                    {
+                     'module'      : 'Conf.py',
+                     #'args'        : {'functions' : 'get_muon_sf,get_electron_sf,get_photon_sf,get_pileup_sf' },
+                     'args'        : {'functions' : 'get_muon_sf,get_photon_sf'},
+                     'input'       : input_dir,
+                     'output'      : base + input_dir + '/WithSF',
+                     'tag'         : 'FinalSF'
+                    },
 
-            command = command_base %{ 'base' : base, 'job' : job+suffix, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input_name'], 'output' : output, 'nproc' : nProc, 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str }
-
-            if not first :
-                command += ' --noCompileWithCheck '
-            print command
-            os.system(command)
-            if first :
-                first = False
-
-        first = True
-        for job_conf in jobs_mc :
-
-            base      = job_conf.base
-            job       = job_conf.name
-            suffix    = job_conf.suffix
-
-            if options.local :
-                job_exename = exename+'MC'
-            else :
-                job_exename = exename
-
-            module_arg = config['args']
-
-            module_str = '{ '
-            for key, val in module_arg.iteritems() :
-                module_str += '\'%s\' : \'%s\',' %( key, val)
-
-            module_str += '}'
-
-            if 'output_name' in config :
-                output = '%s/%s/%s%s' %(base,config['output_name'],job, suffix)
-            else :
-                output = '%s/%s/%s%s%s' %(base, config['input_name'], job, suffix, config['output_tag'])
-            
-
-            command = command_base %{ 'base' : base, 'job' : job+suffix, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input_name'], 'output' : output, 'nproc' : nProc, 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str }
-            if not first :
-                command += ' --noCompileWithCheck '
-
-            print command
-            os.system(command)
-            if first :
-                first = False
+                  )
 
 
+scheduler_base.RunJobs( jobs, configs, options)
