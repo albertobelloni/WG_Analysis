@@ -117,6 +117,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mt_lep_ph  = 0;
     OUT::dphi_lep_ph                            = 0;
     OUT::dr_lep_ph                              = 0;
+    OUT::dr_lep2_ph                             = 0;
     OUT::mt_lep_met                             = 0;
     OUT::m_lep_met                              = 0;
     OUT::pt_lep_met                             = 0;
@@ -132,6 +133,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::recoW_eta                              = 0;
     OUT::recoW_phi                              = 0;
     OUT::m_ll                                   = 0;
+    OUT::m_llph                                 = 0;
     OUT::nu_z_solution_success                  = 0;
    
     OUT::leadjet_pt                             = 0;
@@ -362,6 +364,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mt_lep_ph"        , &OUT::mt_lep_ph        , "mt_lep_ph/F"  );
     outtree->Branch("dphi_lep_ph"        , &OUT::dphi_lep_ph        , "dphi_lep_ph/F"  );
     outtree->Branch("dr_lep_ph"        , &OUT::dr_lep_ph        , "dr_lep_ph/F"  );
+    outtree->Branch("dr_lep2_ph"       , &OUT::dr_lep2_ph       , "dr_lep2_ph/F"  );
     outtree->Branch("mt_lep_met"      , &OUT::mt_lep_met      , "mt_lep_met/F" );
     outtree->Branch("m_lep_met"       , &OUT::m_lep_met       , "m_lep_met/F" );
     outtree->Branch("pt_lep_met"      , &OUT::pt_lep_met      , "pt_lep_met/F" );
@@ -377,6 +380,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("recoW_eta" , &OUT::recoW_eta, "recoW_eta/F");
     outtree->Branch("recoW_phi" , &OUT::recoW_phi, "recoW_phi/F");
     outtree->Branch("m_ll" , &OUT::m_ll, "m_ll/F");
+    outtree->Branch("m_llph" , &OUT::m_llph, "m_llph/F");
     outtree->Branch("nu_z_solution_success" , &OUT::nu_z_solution_success, "nu_z_solution_success/O");
 
 
@@ -2273,6 +2277,7 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::mt_lep_ph = 0;
     OUT::dphi_lep_ph = 0;
     OUT::dr_lep_ph = 0;
+    OUT::dr_lep2_ph = 0;
     OUT::m_lep_met = 0;
     OUT::mt_lep_met = 0;
     OUT::pt_lep_met = 0;
@@ -2286,6 +2291,7 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::recoW_eta= 0;
     OUT::recoW_phi= 0;
     OUT::m_ll = 0;
+    OUT::m_llph = 0;
 
     OUT::leadjet_pt = 0;
     OUT::subljet_pt = 0;
@@ -2357,6 +2363,10 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             OUT::m_lep_met_ph = ( leptons[0] + photons[0] + metlvOrig ).M();
             OUT::dphi_lep_ph = leptons[0].DeltaPhi(photons[0] );
             OUT::dr_lep_ph = leptons[0].DeltaR(photons[0] );
+	    if (leptons.size() > 1) {
+	      OUT::m_llph = (leptons[0] + leptons[1] + photons[0]).M();
+	      OUT::dr_lep2_ph = leptons[1].DeltaR(photons[0] );
+	    }
             OUT::recoM_lep_nu_ph = ( leptons[0] + metlv + photons[0] ).M();
             OUT::recoMet_eta = metlv.Eta() ;
             OUT::mt_lep_met_ph = Utils::calc_mt( leptons[0] + metlvOrig, photons[0]);

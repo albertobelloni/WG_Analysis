@@ -1177,8 +1177,8 @@ def create_job_desc_file(command_info, kwargs) :
                     'log = stdlog.txt',
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
-                    '# Copy output files when done.  REQUIRED to run in a protected directory',
-                    'when_to_transfer_output = ON_EXIT_OR_EVICT',
+                    #'# Copy output files when done.  REQUIRED to run in a protected directory',
+                    #'when_to_transfer_output = ON_EXIT_OR_EVICT',
                     'priority=%d' %priority
                     ]
 
@@ -1192,7 +1192,11 @@ def create_job_desc_file(command_info, kwargs) :
         desc_entries += [
                          'Executable = %s' %args[0],
                          'Initialdir = %s' %initialdir,
-                         '# This is the argument line to the Executable'
+                         '# This is the argument line to the Executable',
+                         'MINUTE = 60',
+                         'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 120*$(MINUTE)',
+                         'periodic_release = NumbJobStarts<5',
+                         'Requirements = TARGET.Machine =!= "siab-1.umd.edu"'
                         ]
         # assemble the argument command
         arg_command = ['arguments = "',

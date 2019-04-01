@@ -1,15 +1,17 @@
-OUTPUTMAIN=~/Plots/Resonance/Plots_2018_01_22
+### ATTENTION: Set OUTPUTMAIN to the folder in your Plotting directory where you want to save your output
+OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_02_15
+### ATTENTION: Make sure that these DIR_* strings specify the directories containing the processed ntuples that you want to run over
+DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2018_03_28
+DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2018_03_28
+DIR_MUGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_03_17/WithSF
+DIR_ELGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_03_17/WithSF
+#DIR_MU=/data/users/jkunkle/Resonances/SingleLepNoPhID_mu_2018_03_28
+DIR_MU=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_03_17/WithSF
+DIR_EL=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_03_17/WithSF
+DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2018_11_30/WithSF
+DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2018_08_13
 
-DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2018_01_21
-DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2018_01_21
-DIR_MUGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_mug_2018_01_21
-DIR_ELGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_elg_2018_01_21
-DIR_MU=/data/users/jkunkle/Resonances/SingleLepNoPhID_mu_2018_01_21
-DIR_EL=/data/users/jkunkle/Resonances/SingleLepNoPhID_el_2018_01_21
-DIR_MUMU=/data/users/jkunkle/Resonances/LepLep_mumu_2018_01_21
-DIR_ELEL=/data/users/jkunkle/Resonances/LepLep_elel_2018_01_21
-
-DIR_SIGTruth=/data/users/jkunkle/Resonances/SigNoFilt_2018_01_21
+DIR_SIGTruth=/data/users/friccita/WGamma/WG_Analysis/Resonances/SigNoFilt_2018_02_02
 
 
 all : plots workspaces limits
@@ -21,8 +23,15 @@ plots :
 
 wjets : 
 
-	#python MakeWJetsWS.py --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doClosure  --outputDir ${OUTPUTMAIN}/WJetsWS
-	python MakeWJetsWS.py --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --outputDir ${OUTPUTMAIN}/WJetsWS
+	python MakeWJetsWS.py --baseDirMuNoG ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doClosure  --outputDir ${OUTPUTMAIN}/WJetsWS
+	#python MakeWJetsWS.py --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --outputDir ${OUTPUTMAIN}/WJetsWS
+
+kfactor:
+
+	python KFactorWS.py --baseDirMuNoG ${DIR_MU} --baseDirElNoG ${DIR_EL} --outputDir ${OUTPUTMAIN}/WJetsWS
+
+matrix:
+	python MatrixWJetsWS.py --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --outputDir ${OUTPUTMAIN}/WJetsWS
 
 signal : 
 
@@ -42,10 +51,10 @@ workspaces :
 	#python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId}  --doSignal --doWGamma --doTop --doZGamma  --outputDir ${OUTPUTMAIN}/Workspaces
 	#python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doWJets --doEleFake --doClosure  --outputDir ${OUTPUTMAIN}/Workspaces
 	#python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doWGamma --outputDir ${OUTPUTMAIN}/Workspaces
-	python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
+	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
 fits :
-	python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/jkunkle/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
+	python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
 	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod MaxLikelihoodFit
 	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod HybridNew
 	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/jkunkle/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod Asymptotic   --useToySignal --useToyBackground

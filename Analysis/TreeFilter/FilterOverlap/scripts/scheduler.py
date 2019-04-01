@@ -18,9 +18,9 @@ else :
 
 options.batch = ( not options.local )
 
-
-#base = '/afs/cern.ch/work/y/yofeng/public/WGamma/Ntuple'
-base = '/data/users/fengyb/WGammaNtuple'
+### ATTENTION! Here you specify the directory containing the processed ntuples, on which you want to run FilterOverlap.
+#base = '/data/users/fengyb/WGammaNtuple'
+base = '/data/users/friccita/WGammaNtuple/'
 
 # ----------------------------
 # The suffix that appears on the 
@@ -41,6 +41,7 @@ args_mtMin400Max1200  = { 'function' : 'filter_mtres' , 'mtres_cut' : ' >= 400 &
 args_mtMin1200        = { 'function' : 'filter_mtres' , 'mtres_cut' : ' >= 1200 ' }
 
 jobs = [
+    ### 1. FIRST UNCOMMENT AND RUN OVER THIS BLOCK
     #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', tags=['HT'], suffix='TrueHTOlap'),
     #JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , tags=['pholap']  , suffix = 'PhOlap'  ),
@@ -50,7 +51,9 @@ jobs = [
     #JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'               , tags=['pholap']  , suffix = 'PhOlap'  ),
+    #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'               , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ),
+    #JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'            , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap'  ),
@@ -61,10 +64,12 @@ jobs = [
     #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'        , tags=['PtMin500'], suffix = 'PhCutMin'),
     #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , tags=['PtMin500'], suffix = 'PhCutMin'),
 
+    ### 2. WHEN STEP 1 IS DONE, COMMENT THAT BLOCK, AND UNCOMMENT AND RUN OVER THIS BLOCK
     JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', tags=['PtMin130'], suffix = 'PhCutMin'),
     JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , tags=['PtMin130'], suffix = 'PhCutMin'),
     JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlap'     , tags=['pholap']  , suffix = 'PhOlap'  ),
 
+    ### 3. DON'T RUN OVER THESE; AS FAR AS I KNOW, I DON'T THINK WE NEED THESE
     ##JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax'                , tags=['mtMax600']       , suffix = 'MTResCut'),
     ##JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin', tags=['mtMax1300']      , suffix = 'MTResCut'),
     ##JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax'                 , tags=['mtMax500']       , suffix = 'MTResCut'),
@@ -84,19 +89,11 @@ options.exename='RunAnalysis'
 options.copyInputFiles=True
 options.enableKeepFilter=False
 
-#input_dirs = ['SingleLepNoPhID_el_2017_02_03', 'SingleLepNoPhID_mu_2017_02_03']
-#input_dirs = ['SingleLepNoPhID_mu_2017_04_12', 'SingleLepNoPhID_el_2017_04_12','LepGamma_mug_2017_04_12', 'LepGamma_elg_2017_04_12', 'LepLep_mumu_2017_04_12', 'LepLep_elel_2017_04_12', 'LepLep_muel_2017_04_12']
-input_dirs =[ 
-              
-              #'LepGammaNoEleOlap_elg_2018_03_28',
-              #'SingleLepNoPhID_mu_2018_03_28', 'SingleLepNoPhID_el_2018_03_28', 
-              #'LepLep_mumu_2018_03_28', 'LepLep_muel_2018_03_28', 'LepLep_elel_2018_03_28',
-              #'LepGamma_mug_2018_03_28','LepGamma_elg_2018_03_28', 
-              #'LepGammaNoPhId_mug_2018_03_28',
-              #'LepGammaNoPhId_elg_2018_03_28', 
-              #'LepGammaNoEleOlap_elg_2018_04_10', 
-              #'LepGamma_mug_2018_07_12', 'LepGamma_elg_2018_07_12',
-              'LepLep_mumu_2018_08_13', 'LepLep_elel_2018_08_13', 
+### ATTENTION! Here you list the ntuple types (from RecoResonance) that you want to process, which is also the name of the subdirectory containing them.
+input_dirs =[               
+              #'LepLep_mumu_2019_03_14',#'LepLep_elel_2018_08_13',
+              'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
+              'SingleLepNoPhId_el_2019_03_17','SingleLepNoPhId_mu_2019_03_17',
 ]
 
 module = 'Conf.py'

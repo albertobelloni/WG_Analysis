@@ -13,6 +13,7 @@ import random
 from array import array
 import time
 import analysis_utils
+from functools import wraps
 
 sys.path.append('/data/users/fengyb/CMSPLOTS/')
 import tdrstyle as tdr
@@ -24,6 +25,7 @@ import core
 import subprocess
 import multiprocessing
 import collections
+from DrawConfig import DrawConfig, LegendConfig, LabelConfig, HistConfig
 
 ROOT.gROOT.SetBatch(False)
 
@@ -46,6 +48,9 @@ class Sample :
         # Should not be filled for a sample group
         self.chain = kwargs.get('chain', None)
 
+        # link to the hosting sample manager
+        self.manager = kwargs.get('manager', None)
+
         # isActive determines if the sample will be drawn, default=True
         self.init_isActive = kwargs.get('isActive', True) 
         self.isActive      = self.init_isActive
@@ -53,8 +58,7 @@ class Sample :
 
         # if isData is true the sample will be drawn as points with an error bar, default=False
         self.isData   = kwargs.get('isData', False)
-
-        # if isSignal is true the sample will be drawn as a line and not stacked, default=False
+        #if isSignal is true the sample will be drawn as a line and not stacked, default=False
         self.isSignal = kwargs.get('isSignal', False)
         self.lineStyle = kwargs.get('sigLineStyle', 7 )
         self.lineWidth = kwargs.get('sigLineWidth', 2 )
@@ -111,14 +115,19 @@ class Sample :
             self.hist = hist
         self.InitHist()
 
+    def quietprint(self, msg = " "):
+            if self.manager and self.manager.quiet:
+                    return
+            print msg
+
     def InitHist(self) :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
         self.hist.SetTitle('')
         self.hist.Scale( self.scale )
-        #print 'Scale %s by %f' %( self.name, self.scale )
+        self.quietprint( 'Scale %s by %f' %( self.name, self.scale ))
         if self.isData :
-            print self.name, " is DATA!!"
+            self.quietprint(self.name+" is DATA!!")
             self.hist.SetMarkerStyle( 20 )
             self.hist.SetMarkerSize( 1.15 )
             self.hist.SetStats(0)
@@ -160,6 +169,7 @@ class Sample :
 
 
     def enable_parsed_branches( self, brstr ) :
+        """ Set Branch status to 1 """
         if self.chain is not None :
             for br in self.chain.GetListOfBranches() :
                 if brstr.count( br.GetName() ) > 0 and self.chain.GetBranchStatus( br.GetName() ) == 0 :
@@ -237,20 +247,24 @@ class DrawConfig :
 
         self.samp_man_id = None
 
-    def doRatio(self) :
+    def get_doratio(self) :
+        """ return doratio key value set in hist_config """
         return self.hist_config.get('doratio', False)
 
-    def reverseRatio(self) :
+    def get_reverseratio(self) :
+        """ return reverseratio key value set in hist_config """
         return self.hist_config.get('reverseratio', False)
 
-    def binomunc(self) :
+    def get_binomunc(self) :
+        """ return binomunc key value set in hist_config, default is False """
         return self.hist_config.get('binomunc', False)
 
     def get_drawhist(self) :
         return self.hist_config.get('drawhist', False)
 
-    def get_ylabel(self ) :
-        #FIX
+    def get_ylabel(self) :
+        """ return y axis label set in hist_config
+            if not set, returns Events/ x GeV with bin width calculated from histpars"""
         ylabel = self.hist_config.get('ylabel', None) 
         if ylabel is None :
             if isinstance( self.histpars, tuple ) :
@@ -307,6 +321,20 @@ class DrawConfig :
         return self.hist_config.get('logy', False )
     def get_normalize( self ) :
         return self.hist_config.get('normalize', False )
+
+    def get_weight( self ) :
+        """ defaults to empty string: no weights
+            string: Apply weights
+        """
+        return self.hist_config.get('weight', "")
+
+    def get_unblind( self ) :
+        """ defaults to False: skipping Data
+            1, True: show Data
+            string: Apply blinding selection
+            This setting only has effect on Data
+        """
+        return self.hist_config.get('unblind', False)
 
     def save_stack( self, filename, dirname, canname ) :
 
@@ -869,6 +897,7 @@ class SampleManager :
         # in the configuration module.  The samples
         # are stacked in this order
         self.stack_order                 = []
+        self.stack_order_original_active = []
 
         # if the cross section file is given, open it
         # and grab the cross section map out of it
@@ -920,13 +949,20 @@ class SampleManager :
 
             
     #--------------------------------
+    def quietprint(self,*msg):
+            if self.quiet:
+                    return
+            print msg
+            return
+
+    #--------------------------------
     def create_sample( self, name, **kwargs ) :
 
         if name in self.get_sample_names() :
             print 'Sample with name %s already exists' %name
             return None
 
-        new_sample = Sample( name=name )
+        new_sample = Sample( name=name , manager = self)
         new_sample.hist = kwargs.pop('hist', None)
         for arg, val in kwargs.iteritems() :
             if hasattr( new_sample, arg ) :
@@ -996,7 +1032,8 @@ class SampleManager :
             tmp_sample = den_sample 
             den_sample = num_sample
             num_sample = tmp_sample
-			
+        
+        ratio_hist = num_sample.hist.Clone( name )
         divoptn = ""
         if binomunc:
                 divoptn += "b"
@@ -1058,9 +1095,8 @@ class SampleManager :
 
         common_results = list( reduce( lambda x,y : set(x) & set(y), each_results ) ) 
         if not common_results :
-            print 'WARNING : Found zero samples matching criteria!  Sample matching criteria were : '
+            self.quietprint( 'WARNING : Found zero samples matching criteria!  Sample matching criteria were : ', kwargs)
             #assert( '' )
-            print kwargs
             #for s in self.get_samples() :
             #    print s.name
             return []
@@ -1108,6 +1144,10 @@ class SampleManager :
 
     #--------------------------------
     def activate_sample(self, samp_name) :
+        if isinstance(samp_name, list):
+                for s in samp_name:
+                        self.activate_sample(s)
+                return
         
         name = samp_name
         if not isinstance( samp_name, str ) :
@@ -1184,7 +1224,7 @@ class SampleManager :
         for idx, samp in enumerate(self.samples) :
             samp.hist=None
             if samp.temporary :
-                print 'removing sample %s' %samp.name
+                self.quietprint( 'removing sample %s' %samp.name)
                 rm_samples.append(samp)
 
         for samp in rm_samples:
@@ -1614,7 +1654,7 @@ class SampleManager :
             else :
                 self.variable_rebinning(threshold=draw_config.histpars[3], samples=created_samples) 
 
-        if draw_config.doRatio() :
+        if draw_config.get_doratio() :
             self.create_top_canvas_for_ratio('same')
         else :
             self.create_standard_canvas('same')
@@ -1623,7 +1663,7 @@ class SampleManager :
 
         self.DrawSameCanvas( self.curr_canvases['same'], created_samples, draw_config )
 
-        if draw_config.doRatio() :
+        if draw_config.get_doratio() :
             #rname = created_samples[0].name + '_ratio'
             for samp, hc in zip(created_samples[1:], draw_config.hist_configs.values()[1:]) :
 
@@ -1648,7 +1688,7 @@ class SampleManager :
         self.DrawCanvas(self.curr_canvases['same'], draw_config)
 
         if draw_config.stack_dump_params :
-            self.DumpStack( draw_config.stack_dump_params['dirname'], draw_config.stack_dump_params['filename'], doRatio=draw_config.doRatio() )
+            self.DumpStack( draw_config.stack_dump_params['dirname'], draw_config.stack_dump_params['filename'], doRatio=draw_config.get_doratio() )
         if draw_config.stack_save_params :
             self.SaveStack( draw_config.stack_save_params['filename'], draw_config.stack_save_params['dirname'], draw_config.stack_save_params['canname'] )
             
@@ -2010,7 +2050,7 @@ class SampleManager :
 
         if doRatio is None :
             if self.draw_commands :
-                doRatio = self.draw_commands[-1].doRatio()
+                doRatio = self.draw_commands[-1].get_doratio()
 
         # store the signal and stack entries
         stack_entries  = {}
@@ -2271,15 +2311,16 @@ class SampleManager :
                     thisscale *= self.weightMap[xsname]['scale']
                     thisxs = self.weightMap[xsname]['cross_section']
                     totevt = self.weightMap[xsname]['n_evt']
-                    print 'Update scale for %s' %name
+                    self.quietprint( 'Update scale for %s' %name)
 
-            thisSample = Sample(name, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, total_events=totevt, legendName=legend_name)
+            thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, total_events=totevt, legendName=legend_name)
             thisSample.AddFiles( input_files, self.treeName, self.readHists )
 
             self.samples.append(thisSample)
 
             # keep the order that this sample was added
             self.stack_order.append(name)
+            if isActive: self.stack_order_original_active.append(name)
 
         if not input_files and required :
             print '***********************************************' 
@@ -2287,8 +2328,7 @@ class SampleManager :
             print self.base_path
             print '***********************************************' 
             sys.exit(-1)
-
-        print_prefix = "Reading %s (%s) " %(name, path )
+        print_prefix = "AddSample: Reading %s " %( path[0] )
         print_prefix = print_prefix.ljust(60)
         if not input_files :
             print print_prefix + " [ \033[1;31mFailed\033[0m  ]"
@@ -2366,6 +2406,7 @@ class SampleManager :
 
         # keep the order that this sample was added
         self.stack_order.append(name)
+        if isActive: self.stack_order_original_active.append(name)
 
         thisscale = 1.0
         # multply by scale provided to this function (MCweight is applied to input samples)
@@ -2373,7 +2414,7 @@ class SampleManager :
             thisscale *= scale
         
         print 'Grouping %s' %name
-        thisSample = Sample(name, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name, averageSamples=averageSamples)
+        thisSample = Sample(name, manager = self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name, averageSamples=averageSamples)
 
         for samp in available_samples :
 
@@ -2402,7 +2443,7 @@ class SampleManager :
             thisscale *= scale
         
         print 'Grouping %s' %name
-        thisSample = Sample(name, isActive=isActive, isData=isData, isSignal=isSignal, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name)
+        thisSample = Sample(name, manager = self, isActive=isActive, isData=isData, isSignal=isSignal, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name)
 
         for samp in input_samples :
             is_a_grouped_sample = ( name in self.get_grouped_sample_names() )
@@ -2442,7 +2483,7 @@ class SampleManager :
             if scale is not None :
                 thisscale *= scale
 
-            thisSample = Sample(name, color=plotColor, scale=thisscale, legend_name=legend_name)
+            thisSample = Sample(name, manager = self, color=plotColor, scale=thisscale, legend_name=legend_name)
             thisSample.AddFiles( self.treeNameModel, input_files )
             self.modelSamples.append(thisSample)
 
@@ -2612,9 +2653,6 @@ class SampleManager :
 
         topcan = self.curr_stack
 
-        active_samps = self.get_samples( isActive=True )
-        self.curr_legend = self.create_standard_legend(len(active_samps), draw_config=draw_config )
-
         self.DrawCanvas(topcan, draw_config, datahists=datahists, sighists=self.get_signal_samples(), errhists=['err_band']  )
 
         if xmin is not None and xmax is not None :
@@ -2628,38 +2666,54 @@ class SampleManager :
             # but we still need to create a legend
 
             # first find the active samples
-            #active_samps = self.get_samples( isActive=True )
-            #self.curr_legend = self.create_standard_legend( len( active_samps ), draw_config=draw_config)
+            active_samps = self.get_samples( isActive=True )
+            self.curr_legend = self.create_standard_legend( len( active_samps ), draw_config=draw_config)
 
-            #legendOrder = legend_config.get( 'legendOrder', [] )
+            legendOrder = legend_config.get( 'legendOrder', [] )
 
-            #if legendOrder :
-            #    active_samps = []
+            if legendOrder :
+                active_samps = []
 
-            #    for entry in legendOrder :
-            #        active_samps.append( self.get_samples( name = entry )[0] )
-            #        
-            #    
-            #self.create_same_legend(legend_entries=legendOrder, created_samples=active_samps)
+                for entry in legendOrder :
+                    active_samps.append( self.get_samples( name = entry )[0] )
+                    
+                
+            self.create_same_legend(legend_entries=legendOrder, created_samples=active_samps)
 
             self.curr_legend.Draw()
 
-    def Draw(self, varexp, selection, histpars, hist_config={}, label_config={}, legend_config={}, treeHist=None, treeSelection=None, generate_data_from_sample=None, replace_selection_for_sample={} , useModel=False ) :
-
-        if not self.quiet: print " \n\n Selections applied: ", selection
+    def Draw(self, varexp, selection, histpars, hist_config={}, legend_config={}, label_config={}, treeHist=None, treeSelection=None, generate_data_from_sample=None, replace_selection_for_sample={} , useModel=False ) :
+        """ Draw 1D histogram with all active samples  """
+        """ 
+            Arguments:
+                    - varexp: plot variable
+                    - selection: selection passed to all samples
+                    - histpars: for 1D histogram, a tuple with (Nbins, lower bound, upper bound)
+                                for variable bins use a list [] of bin boundaries
+                                for 2D histogram, either a 6-tuple, or a tuple with two lists"""
+        """ Returns nothing but produces a histogram and displayed through a TCanvas"""
+        
+        if self.quiet : print "%s :\033[1;36m %s\033[0m" %(varexp,selection)
+        
         if self.collect_commands :
             self.add_draw_config( varexp, selection, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
             return
 
-        config = DrawConfig( varexp, selection, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
+        draw_config = DrawConfig( varexp, selection, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
 
         
         command = 'samples.Draw(\'%s\',  \'%s\', %s )' %( varexp, selection, str( histpars ) )
         self.transient_data['command'] = command 
 
-        self.draw_and_configure( config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
+        self.draw_and_configure( draw_config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
+
+        doratio = draw_config.get_doratio()
+        if doratio:
+            return self.curr_canvases["base"]
+        return self.curr_canvases["top"]
 
     def draw_and_configure( self, draw_config, generate_data_from_sample=None, useModel=False, treeHist=None, treeSelection=None ) :
+        """  calls makestack, implment option to imitate data, helper function for SampleManager.Draw """
 
         self.clear_all()
 
@@ -2830,16 +2884,20 @@ class SampleManager :
             for samp in stack_samples[1:] :
                 sum_hist.Add(samp.hist)
 
+            stack_sum = sum_hist.Integral()
             self.create_sample( bkg_name, isActive=False, hist=sum_hist, temporary=True )
 
-        doratio = draw_config.doRatio()
+        print "stack_sum", stack_sum
+        doratio = draw_config.get_doratio()
+        normalize = draw_config.get_normalize()
 
         if doratio :
             # when stacking, the ratio is made with respect to the data.  Find the sample that
             # is labeled as data.  Throw an error if one data sample is not found
-            data_samples = self.get_samples(isData=True)
+            data_samples = self.get_samples(isData=True, isActive=True)
             if not data_samples :
                 print 'MakeStack - ERROR : No data samples found!'
+            assert len(data_samples)>=1
 
             self.create_ratio_sample( 'ratio', num_sample=data_samples[0], den_sample='__AllStack__' )
 
@@ -2863,7 +2921,7 @@ class SampleManager :
             samp.hist.SetFillColor( samp.color )
             samp.hist.SetLineColor( ROOT.kBlack )
             samp.hist.SetLineWidth( 1 )
-
+            if normalize: samp.hist.Scale(1./stack_sum)
             self.curr_stack.Add(samp.hist, 'HIST')
 
         # additional formatting
@@ -2894,7 +2952,7 @@ class SampleManager :
         legend_entries = []
         #sig_legend_entries = []
 
-        if data_samp and data_samp[0].isActive :
+        if data_samp and data_samp[0].isActive and draw_config.get_unblind() :
             tmp_legend_entries.append(  (data_samp[0].hist, data_samp[0].legendName, 'PE') )
 
         for samp in drawn_samples :
@@ -2903,7 +2961,7 @@ class SampleManager :
             else:
                tmp_legend_entries.append( ( samp.hist, samp.legendName,  'F') )
 
-        #print '********************NOT FILLING SIGNAL ENTRY IN LEGEND**********************'
+        self.quietprint( '********************NOT FILLING SIGNAL ENTRY IN LEGEND**********************')
         #for samp in self.get_signal_samples() :
         #    if samp.isActive :
         #        tmp_legend_entries.append( ( samp.hist, samp.legendName, 'L') )
@@ -2984,7 +3042,7 @@ class SampleManager :
             else :
                 self.variable_rebinning(threshold=draw_config.histpars[3], samples=created_samples, useStoredBinning=useStoredBinning) 
 
-        if draw_config.doRatio() :
+        if draw_config.get_doratio() :
             self.create_top_canvas_for_ratio('same')
         else :
             self.create_standard_canvas('same')
@@ -2993,7 +3051,7 @@ class SampleManager :
 
         self.DrawSameCanvas( self.curr_canvases['same'], created_samples, draw_config )
 
-        if draw_config.doRatio() :
+        if draw_config.get_doratio() :
             #rname = created_samples[0].name + '_ratio'
             for hist_name in draw_config.hist_configs.keys()[1:] :
                 hist_config = draw_config.hist_configs[hist_name]
@@ -3011,9 +3069,9 @@ class SampleManager :
                         rname = 'ratio%s_%d' %(samp, i)
                         if rname not in self.get_sample_names() :
                             break
-                reverseratio = draw_config.reverseRatio()
-                binomunc = draw_config.binomunc()
-                rsamp = self.create_ratio_sample( rname, num_sample = draw_config.hist_configs.keys()[0], den_sample=hist_name, color=rcolor)
+                reverseratio = draw_config.get_reverseratio()
+                binomunc = draw_config.get_binomunc()
+                rsamp = self.create_ratio_sample( rname, num_sample = draw_config.hist_configs.keys()[0], den_sample=hist_name, color=rcolor, reverseratio=reverseratio,binomunc=binomunc)
                 rsamp.legend_entry = hist_config.get('legend_entry', None )
 
         return created_samples
@@ -3159,8 +3217,6 @@ class SampleManager :
         # wait for draws to finish
         #self.wait_on_draws()
 
-    #def draw_hist( self, sample, varexp, histname, selection, draw_opt='' ) :
-
     def create_hist_new( self, draw_config, sample=None, isModel=False ) :
 
         if sample is None :
@@ -3174,13 +3230,19 @@ class SampleManager :
                 print 'Located multiple samples with name %s' %sample
             sample = slist[0]
 
-        if not self.quiet : print 'Creating hist for %s' %sample.name
 
         # enable branches for all variables matched in the varexp and selection
 
         sample.hist = draw_config.init_hist(sample.name)
         selection = draw_config.get_selection_string( sample.name )
         varexp    = draw_config.var[0]
+        sblind  = draw_config.get_unblind()
+        sweight = draw_config.get_weight()
+        if sample.isData and isinstance(sblind,str):
+                selection = "(%s)&&(%s)" %(selection,sblind)
+        if isinstance(sweight,str) and sweight:
+                selection = "(%s)*%s" %(selection,sweight)
+        
 
         #if not self.quiet : print selection
 
@@ -3211,6 +3273,7 @@ class SampleManager :
 
         else :
             if sample.chain is not None :
+                if not self.quiet or sample.isData: print 'Make %s hist %s : \033[1;31m %s\033[0m' %(sample.name, varexp,selection)
                 res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
                 if res < 0 :
                     sample.failed_draw=True
@@ -3425,6 +3488,9 @@ class SampleManager :
         failed_samples = []
         success_samples = []
         for sample in self.samples :
+            if sample.isData: 
+                 if not draw_config.get_unblind() :
+                     continue
             if sample.isActive :
                 self.create_hist_new( draw_config, sample )
                 if sample.failed_draw :
@@ -3624,7 +3690,7 @@ class SampleManager :
 
             canvas.cd()
                 
-            doratio = draw_config.doRatio()
+            doratio = draw_config.get_doratio()
             rlabel = draw_config.get_rlabel()
             rmin   = draw_config.get_rmin()
             rmax   = draw_config.get_rmax()
@@ -3686,16 +3752,19 @@ class SampleManager :
         
         calcymax = 0
         calcymin = 0.5
-        for samp in ( self.get_samples(isActive=True ) + self.get_samples( name='__AllStack__' ) )  :
+        samplist = self.get_samples(isActive=True ) 
+        normalize = draw_config.get_normalize()
+        if not normalize: samplist+=self.get_samples( name='__AllStack__' )   
+        for samp in samplist:
             if samp.hist == None :
                 continue
-            max = samp.hist.GetMaximum()
-            min = samp.hist.GetMaximum()
+            nmax = samp.hist.GetMaximum()
+            nmin = samp.hist.GetMaximum()
 
-            if max > calcymax :
-                calcymax = max
-            if min < ymin :
-                calcymin = min
+            if nmax > calcymax :
+                calcymax = nmax
+            if nmin < ymin :
+                calcymin = nmin
 
         if ymax is None :
             ymax = calcymax 
@@ -3786,13 +3855,58 @@ class SampleManager :
         self.curr_canvases[name].SetRightMargin(0.05)
         self.curr_canvases[name].SetTitle('')
 
+    def get_stack_pdf(self,method=1):
+        """ extract unit normalized pdf after Draw command """ 
+        if method==1:
+            samp= self.get_samples(name='__AllStack__')
+            if not (samp and samp[0].hist):
+                print "no stack saved"
+                return
+            h2 =samp[0].hist.Clone()
+        if method==2:
+            h2=self.get_stack_aggregate()
+            if h2==None: return
+        h2.Scale(1./h2.Integral())
+        return h2
+
+    def get_stack_aggregate(self):
+           if hasattr(self,"curr_stack") and isinstance(self.curr_stack, ROOT.THStack):
+                 h1 = self.curr_stack.GetStack().Last().Clone()
+                 h1.SetMarkerStyle(15)
+                 h1.SetMarkerColor(1)
+                 h1.SetMarkerSize(.75)
+                 h1.SetLineWidth(2)
+                 xtitle = self.curr_stack.GetXaxis().GetTitle()
+                 ytitle = self.curr_stack.GetYaxis().GetTitle()
+                 h1.GetXaxis().SetTitle(xtitle)
+                 h1.GetYaxis().SetTitle(ytitle)
+                 return h1
+           else: 
+                   print "No stack found"
+           return
+    def get_stack_count(self, integralrange = None):
+        """ integralrange: ntuple: x bin range to be integrated """
+        err = array('d',[0])
+        ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
+        if integralrange and isinstance(integralrange,(list,tuple)) and len(integralrange)==2:
+            print "use range %g, %g" %integralrange
+            ranger  = lambda h, e, r: map(h.FindBin, r)+[e]
+        result = [(s.name,s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0])for s in self.get_samples(isActive=True,isData=False)]
+        result.sort(key=lambda x: -x[1])
+        htotal = self.get_stack_aggregate()
+        #result.append(("TOTAL",htotal.IntegralAndError(0,htotal.GetNbinsX(),err), err[0]))
+        result.append(("TOTAL",htotal.IntegralAndError(*ranger(htotal,err,integralrange)), err[0]))
+        return result
+
+    def print_stack_count(self, integralrange = None):
+        result = self.get_stack_count(integralrange)
+        for line in result[:-1]: print "%15s %8.3g +/- %5.3g" %line
+        print "="*35+"\n%15s %8.3g +/- %5.3g" %result[-1]
+        return
 
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
 
-        ## TDR Style
-        tdr.setTDRStyle()
-
-        doratio=draw_config.doRatio()
+        doratio=draw_config.get_doratio()
         if doratio == True or doratio == 1 :
             self.create_standard_ratio_canvas()
         elif doratio == 2 :
@@ -3807,6 +3921,7 @@ class SampleManager :
         ylabel = draw_config.get_ylabel()
         ticksx = draw_config.get_tick_x_format()
         ticksy = draw_config.get_tick_y_format()
+        normalize = draw_config.get_normalize()
 
         # in what cases is topcan 
         # an already filled TCanvas?
@@ -3833,11 +3948,12 @@ class SampleManager :
             topcan.SetMaximum(ymax)
             self.set_stack_default_formatting( topcan, doratio, logy=draw_config.get_logy())
 
-        normalize = draw_config.get_normalize()
 
         # draw the data
         for dsamp in self.get_samples( name=datahists, isActive=True ):
-            dsamp.hist.SetMarkerStyle(20)
+            if not draw_config.get_unblind() and dsamp.isData:
+                    print "skipped ",dsamp
+                    continue
             if normalize :
                 dsamp.hist.DrawNormalized('PE same')
             else :
@@ -3980,15 +4096,15 @@ class SampleManager :
         calcymax = 0
         calcymin = 0.5
         for samp in samples :
-            max = samp.hist.GetMaximum()
-            min = samp.hist.GetMaximum()
+            hmax = samp.hist.GetMaximum()
+            hmin = samp.hist.GetMaximum()
             if normalize and samp.hist.Integral() != 0 :
-                max = max / samp.hist.Integral()
-                min = min / samp.hist.Integral()
-            if max > calcymax :
-                calcymax = max
-            if min < calcymin :
-                calcymin = min
+                hmax = hmax / samp.hist.Integral()
+                hmin = hmin / samp.hist.Integral()
+            if hmax > calcymax :
+                calcymax = hmax
+            if hmin < calcymin :
+                calcymin = hmin
 
         if ymax is None :
             ymax = calcymax
@@ -4021,15 +4137,21 @@ class SampleManager :
             if draw_samp is not None :
 
                 draw_samp.hist.GetYaxis().SetTitle( draw_config.get_ylabel() )
-                if not draw_config.doRatio()  :
+                if not draw_config.get_doratio()  :
                     draw_samp.hist.GetXaxis().SetTitle( draw_config.get_xlabel() )
 
+                draw_samp.hist.GetYaxis().SetTitleOffset(1.1)
+                draw_samp.hist.GetYaxis().SetTitleSize(0.045)
+                draw_samp.hist.GetYaxis().SetLabelSize(0.03)
                 draw_samp.hist.SetLineColor( hist_config['color'] )
                 draw_samp.hist.SetLineWidth( 2 )
-                draw_samp.hist.SetMarkerSize( 1.1 )
-                draw_samp.hist.SetMarkerStyle( 20 )
+                draw_samp.hist.SetMarkerSize( 0 )
+                draw_samp.hist.SetMarkerStyle( 7 )
                 draw_samp.hist.SetMarkerColor(hist_config['color'])
                 draw_samp.hist.SetStats(0)
+                if draw_samp.isSignal  :
+                    draw_samp.hist.SetMarkerSize( 1 )
+                    draw_samp.hist.SetMarkerStyle(20)
 
                 if normalize and draw_samp.hist.Integral() != 0  :
                     draw_samp.hist.Scale(1.0/draw_samp.hist.Integral())
@@ -4046,16 +4168,20 @@ class SampleManager :
             if len(hist_config['colors']) < len( selections ) :
                 print 'Size of colors input does not match size of vars input!'
                 reqnum = len(hist_config['colors']) - len( selections ) 
-                hist_config['colors'].extend([ self.get_samples(name=s)[0].color for s in reqsamples[reqnum:] ])
+                hist_config['colors'].extend([ self.get_samples(name=s)[0].color 
+                                                for s in reqsamples[reqnum:] ])
 
         if self.collect_commands :
-            self.add_compare_config( varexp, selections, reqsamples, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config)
+            self.add_compare_config( varexp, selections, reqsamples, histpars,
+                       hist_config=hist_config, label_config=label_config, legend_config=legend_config)
             return
 
         if not same :
             self.clear_all()
-
-        config = DrawConfig( varexp, selections, histpars, samples=reqsamples, hist_config=hist_config, label_config=label_config, legend_config=legend_config )
+	
+		# initialize DrawConfig
+        config = DrawConfig( varexp, selections, histpars, samples=reqsamples, 
+                      hist_config=hist_config, label_config=label_config, legend_config=legend_config )
         config.create_hist_configs()
 
         self.draw_commands.append(config)
@@ -4679,7 +4805,7 @@ class SampleManager :
             legend_limits = { 'x1' : 0.9-0.25*legendWiden+legendTranslateX, 'y1' : 0.90-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.90+legendTranslateX, 'y2' : 0.90+legendTranslateY }
 
         # modify for different canvas size
-        if draw_config.doRatio():
+        if draw_config.get_doratio():
             legend_limits['y1'] = legend_limits['y1']*0.90
             #legend_limits['y2'] = legend_limits['y2']*1.05
 
@@ -4717,7 +4843,7 @@ class SampleManager :
         self.legendLimits['x2'] = leg.GetX2NDC()
         self.legendLimits['y2'] = leg.GetY2NDC()
 
-        print self.legendLimits
+        print "legendlimits:", self.legendLimits
         
     # ----------------------------------------------------------------------------
     def outputExists(self, name, dir) :

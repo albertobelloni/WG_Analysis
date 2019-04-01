@@ -174,6 +174,7 @@ namespace OUT {
     float mt_lep_ph;
     float dphi_lep_ph;
     float dr_lep_ph;
+    float dr_lep2_ph;
     float mt_lep_met;
     float m_lep_met;
     float pt_lep_met;
@@ -189,6 +190,7 @@ namespace OUT {
     float recoW_eta;
     float recoW_phi;
     float m_ll;
+    float m_llph;
     Bool_t nu_z_solution_success;
    
     float leadjet_pt;
