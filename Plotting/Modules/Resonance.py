@@ -6,12 +6,13 @@ def config_samples(samples) :
     samples.AddSample('SingleElectron'                       , path='SingleElectron'    ,  isActive=False)
 
     samples.AddSample('DYJetsToLL_M-50', 
-                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
-                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('DYJetsToLL_M-50-amcatnloFXFX', 
-                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
+                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('ZGTo2LG', 

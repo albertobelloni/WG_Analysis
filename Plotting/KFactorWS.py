@@ -114,15 +114,13 @@ def main() :
             for name, vardata in kine_vars.iteritems() :
                                     
                 print 'MC background k-factor calculation'
-                make_kfactor_calc( sampManMuNoG, 'WjetsSMPIncl', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'WjetsSMPPt', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'WjetsSMPJet', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Wjets', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Wgamma', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Zgamma', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'AllTop', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Z+jets', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Data', seldic['selection'], suffix='wjets_%s' %(ch), workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'WjetsSMPIncl', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Wjets', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Wgamma', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Zgamma', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'AllTop', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Z+jets', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Data', seldic['selection'], suffix='wjets_%s' %(ch), True, workspace=wjets)
 
 
     if options.outputDir is not None :
@@ -153,7 +151,7 @@ def main() :
 
 
 #def make_kfactor_calc( sampMan, sample, sel_base, plot_var, binning, suffix='', workspace=None) :
-def make_kfactor_calc( sampMan, sample, sel_base, suffix='', workspace=None) :
+def make_kfactor_calc( sampMan, sample, sel_base, suffix='', isdata=False, workspace=None) :
 
     #---------------------------------------
     # W selection for lepton
@@ -179,13 +177,18 @@ def make_kfactor_calc( sampMan, sample, sel_base, suffix='', workspace=None) :
     # put the cuts together
     #---------------------------------------
 
+    if isdata :
+        myweight = '(isData)'
+    else:
+        myweight = '(NLOWeight*PUWeight*mu_trigSF*mu_idSF*mu_isoSF)'
+
     full_sel = ' && '.join( [sel_base, w_selection, jet_selection ] )
-    full_sel = '(' + full_sel + ')*(NLOWeight*PUWeight + isData)'
+    full_sel = '(' + full_sel + ')*' + mwyweight
     
     almostfull_sel = ' && '.join( [sel_base, w_selection, jet_non_selection ] )
-    almostfull_sel = '(' + almostfull_sel + ')*(NLOWeight*PUWeight + isData)'
+    almostfull_sel = '(' + almostfull_sel + ')*' + myweight
 
-    smp_sel = '(' + smpvj_selection + ')*(NLOWeight*PUWeight + isData)'
+    smp_sel = '(' + smpvj_selection + ')*' + myweight
 
     if workspace is None :
         ws = ROOT.RooWorkspace( 'ws') 
