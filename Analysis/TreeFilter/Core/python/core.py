@@ -1194,7 +1194,7 @@ def create_job_desc_file(command_info, kwargs) :
                          'Initialdir = %s' %initialdir,
                          '# This is the argument line to the Executable',
                          'MINUTE = 60',
-                         'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 120*$(MINUTE)',
+                         'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 600*$(MINUTE)',
                          'periodic_release = NumbJobStarts<5',
                          'Requirements = TARGET.Machine =!= "siab-1.umd.edu"'
                         ]

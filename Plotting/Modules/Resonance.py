@@ -104,11 +104,11 @@ def config_samples(samples) :
 
 
     samples.AddSample('WJetsToLNu-madgraphMLM', 
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WJetsToLNu-amcatnloFXFX',
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WWG', 
@@ -323,6 +323,7 @@ def config_samples(samples) :
 
     samples.AddSampleGroup(  'Wjets', legend_name='W+Jets',
                            #input_samples = ['WJetsToLNu-madgraphMLM'],
+                           #input_samples = ['WJetsToLNu-amcatnloFXFX'],
                            input_samples = [
                                             'WJetsToLNuTrueHTOlap',
                                             'WJetsToLNu_HT-100To200',

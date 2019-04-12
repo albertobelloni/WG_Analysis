@@ -29,9 +29,11 @@ jobs = [
         JobConf(base, 'SingleElectron', isData=True        ),
         JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                  ),
         JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          ),
+        JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin'          ),
         JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          ),
         JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap'           ),
         JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'         ),
+        JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin'         ),
         JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 '        ),
         JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlapPhOlap'     ),
         JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap'        ),
@@ -165,9 +167,10 @@ options.enableKeepFilter=False
 
 ### ATTENTION! Here you specify the type of ntuple you want to run over.
 input_dirs = [
-              #'LepLep_mumu_2019_03_14'
-              'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
-              'SingleLepNoPhId_el_2019_03_17','SingleLepNoPhId_mu_2019_03_17',
+              #'LepLep_elel_2019_04_11','LepLep_mumu_2019_04_11',
+              #'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
+              #'LepGamma_elg_2019_04_11','LepGamma_mug_2019_04_11',
+              'SingleLepNoPhId_el_2019_04_11','SingleLepNoPhId_mu_2019_04_11',
 ]
 
 configs = []

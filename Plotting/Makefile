@@ -1,15 +1,14 @@
 ### ATTENTION: Set OUTPUTMAIN to the folder in your Plotting directory where you want to save your output
-OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_02_15
+OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_04_02
 ### ATTENTION: Make sure that these DIR_* strings specify the directories containing the processed ntuples that you want to run over
-DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2018_03_28
-DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2018_03_28
+DIR_MUG=/data/users/friccita/WGammaNtuple/LepGamma_mug_2019_04_11/WithSF
+DIR_ELG=/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/WithSF
 DIR_MUGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_03_17/WithSF
-DIR_ELGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_03_17/WithSF
-#DIR_MU=/data/users/jkunkle/Resonances/SingleLepNoPhID_mu_2018_03_28
-DIR_MU=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_03_17/WithSF
-DIR_EL=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_03_17/WithSF
-DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2018_11_30/WithSF
-DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2018_08_13
+DIR_ELGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_elg_2019_03_17/WithSF
+DIR_MU=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_04_11/WithSF
+DIR_EL=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_el_2019_04_11/WithSF
+DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2019_04_11/WithSF
+DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2019_04_11/WithSF
 
 DIR_SIGTruth=/data/users/friccita/WGamma/WG_Analysis/Resonances/SigNoFilt_2018_02_02
 
