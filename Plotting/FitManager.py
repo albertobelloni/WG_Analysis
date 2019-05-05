@@ -1,5 +1,5 @@
 import ROOT
-from ROOT import RooFit
+from ROOT import RooFit, gROOT, gSystem
 from uncertainties import ufloat
 import uuid
 import re
@@ -8,6 +8,8 @@ from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
 from pprint import pprint
+gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
+from ROOT import RooDoubleCB
 
 
 ROOT.gStyle.SetPalette(ROOT.kBird) 
@@ -156,6 +158,8 @@ class FitManager :
                 self.datahist = ROOT.RooDataHist( '%s%s' %(self.label,name), 'data', 
                             ROOT.RooArgList(self.xvardata), his )
 
+                if not hasattr(self, 'datahistlist'):
+                   self.datahistlist = {}
                 self.datahistlist['data'] = self.datahist
                 ROOT.SetOwnership( self.datahist, False )
             else:
@@ -337,7 +341,8 @@ class FitManager :
         # arglist is passed to take new variables
         #self.add_vars( arg_list)
 
-        if self.func_name == 'bwxcb' : self.init_bwxcb()
+        #if self.func_name == 'bwxcb' : self.init_bwxcb()
+        if self.func_name == 'dscb'  : self.init_dscb()
         elif self.func_name == 'cb'  : self.init_cb()
         elif self.func_name == 'dcb' : self.init_dcb(reparam=False, **setupargs)
         elif self.func_name == 'dcbp' : self.init_dcb(**setupargs)
@@ -379,6 +384,43 @@ class FitManager :
                      #ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) ,
                      #ROOT.RooFit.Save(ROOT.kTRUE))
         return
+
+    def run_fit_minuit(self, fitrange= None, debug = True ):
+        """
+        run the RooFit Fitter and MIGRAD, HESSE and MINOS
+        """
+        self.fitrange = self.fitrangehelper(fitrange)
+        self.xvardata.setRange("runfit",*self.fitrange)
+        self.func_pdf.fitTo( self.datahist, 
+                             RooFit.Save(), 
+                             RooFit.Range("runfit"), 
+                             ROOT.RooFit.SumW2Error(True), 
+                             ROOT.RooCmdArg( 'Strategy', 3 ) )
+        if debug: 
+           print "\n**************************"
+           print "***** finished fitTo in RooFit ******"
+           print "*********************\n"
+
+        # construct the Log(Likelihood)
+        nll = self.func_pdf.createNLL(self.datahist) ;
+        m = ROOT.RooMinimizer(nll)
+
+        m.migrad()        
+        if debug:
+           print "\n*************************************"
+           print "************ finished MIGRAD ****************"
+           print "***************************************\n"
+        m.hesse()
+        if debug:
+           print "\n*************************************"
+           print "************ finished HESSE *****************"
+           print "***************************************\n"
+        m.minos()
+        if debug:
+           print "\n*************************************"
+           print "************ finished MINOS *****************"
+           print "***************************************\n"
+        self.roofitresult = m.save()
 
     def run_simplefit(self):
         """ simple fitter """
@@ -517,14 +559,14 @@ class FitManager :
         #int_res   = ufloat( integral, math.sqrt( integral ) )
 
 
-        results['integral'] = self.Integral( )
-        integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', results['integral'].n )
-        integral_var.setError( results['integral'].s )
+        #results['integral'] = self.Integral( )
+        #integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', results['integral'].n )
+        #integral_var.setError( results['integral'].s )
 
         if workspace is not None :
             getattr( workspace , 'import' ) ( self.datahist )
             getattr( workspace , 'import' ) ( self.func_pdf )
-            getattr( workspace , 'import' ) ( integral_var )
+            #getattr( workspace , 'import' ) ( integral_var )
 
 
         return results
@@ -659,8 +701,9 @@ class FitManager :
         self.subframe.SetYTitle("Residual")
         return
 
-
+    @f_Obsolete 
     def init_bwxcb(self):
+        """ old function used for signal fitting. Not used anymore """
         mass =  self.sample_params['mass']
         width = self.sample_params['width']
 
@@ -707,6 +750,44 @@ class FitManager :
         self.fit_params['cb_power'] = cb_power
         self.fit_params['cb_mass'] = cb_m0
         #self.fit_params['cb'] = cb
+
+    def init_dscb(self):
+        mass =  self.sample_params['mass']
+        width = self.sample_params['width']
+
+        # TODO: this can be updated and merged to setuparray
+        cut1_vals   = (  0.3,       0.1,      0.6  ) 
+        sigma_vals  = ( 28. ,       1. ,      200. )
+        power1_vals = (  2.0,       1.4,      4.6  ) if width==1e-4 else ( 3.0,        2.4,       4.0 ) 
+        mass_vals   = ( mass,  0.5*mass,  1.1*mass)
+        cut2_vals   = (  1.5,       1.,       2.5  )
+        power2_vals = (  4.0,       0.,       5.0  )
+
+        cb_cut1   = self.MakeROOTObj('RooRealVar', 'cb_cut1_%s'   %self.label,   'Cut1'  ,  cut1_vals[0],   cut1_vals[1],   cut1_vals[2],   '')
+        cb_sigma  = self.MakeROOTObj('RooRealVar', 'cb_sigma_%s'  %self.label,   'Width' ,  sigma_vals[0],  sigma_vals[1],  sigma_vals[2],  'GeV')
+        cb_power1 = self.MakeROOTObj('RooRealVar', 'cb_power1_%s' %self.label,   'Power' ,  power1_vals[0], power1_vals[1], power1_vals[2], '')
+        cb_m0     = self.MakeROOTObj('RooRealVar', 'cb_mass_%s'   %self.label,   'mass'  ,  mass_vals[0],   mass_vals[1],   mass_vals[2],   'GeV')
+        cb_cut2   = self.MakeROOTObj('RooRealVar', 'cb_cut2_%s'   %self.label,   'Cut2'  ,  cut2_vals[0],   cut2_vals[1],   cut2_vals[2],   '')
+        cb_power2 = self.MakeROOTObj('RooRealVar', 'cb_power2_%s' %self.label,   'Power' ,  power2_vals[0], power2_vals[1], power2_vals[2], '')
+
+        # fix a few params in the signal fit
+        cb_cut2.setConstant()
+        cb_cut2.setError(0.0)
+
+        cb_power2.setConstant()
+        cb_power2.setError(0.0)
+
+        cb_power1.setConstant()
+        cb_power1.setError(0.0)
+
+        self.func_pdf = self.MakeROOTObj('RooDoubleCB', 'cb_%s'%self.label, 'Double Sided Crystal Ball Lineshape', self.xvardata, cb_m0, cb_sigma, cb_cut1, cb_power1, cb_cut2, cb_power2)
+
+        self.fit_params['cb_cut1'] = cb_cut1
+        self.fit_params['cb_sigma'] = cb_sigma
+        self.fit_params['cb_power1'] = cb_power1
+        self.fit_params['cb_mass'] = cb_m0
+        self.fit_params['cb_cut2'] = cb_cut2
+        self.fit_params['cb_power2'] = cb_power2
 
     def make_factory_string(self, classname, pdfname, valsar, norange=False):
         """ input string for RooFactory custom pdf
