@@ -65,7 +65,7 @@ class RunModule : public virtual RunModuleBase {
 
         ValWithErr GetValsFromGraph( const TGraphAsymmErrors *, float pt, bool debug=true ) const;
         template<class HIST> ValWithErr GetVals2D( const HIST*, float pt, float eta) const;
-        template<class HIST> ValWithErr GetValsRunRange2D( const std::vector<std::pair<float, HIST*> >, float pt, float eta) const;
+        template<class HIST> ValWithErr GetValsRunRange2D( const std::vector<std::pair<float, HIST*> > range_hists, float pt, float eta) const;
         float calc_pu_weight( float puval, float mod=1.0 ) const;
         float get_ele_cutid_syst( float pt, float eta) const;
 
@@ -79,26 +79,22 @@ class RunModule : public virtual RunModuleBase {
         TFile *_sffile_mu_id_gh;
         TFile *_sffile_mu_trig_bcdef;
         TFile *_sffile_mu_trig_gh;
-        TFile *_sffile_mu_trk;
+
         TFile *_sffile_pileup_data;
         TFile *_sffile_pileup_mc;
 
-        std::vector<std::pair<float, TH2F* > > _sfhists_mu_iso;
-        std::vector<std::pair<float, TH2F* > > _sfhists_mu_id;
+        std::vector<std::pair<float, TH2D* > > _sfhists_mu_iso;
+        std::vector<std::pair<float, TH2D* > > _sfhists_mu_id;
         std::vector<std::pair<float, TH2F* > > _sfhists_mu_trig;
 
-        TGraphAsymmErrors *_sfgraph_mu_trk;
-
         TFile *_sffile_el_id;
-        TFile *_sffile_el_cutid;
         TFile *_sffile_el_trig;
-        TFile *_sffile_el_ditrig;
-
+        TFile *_sffile_el_recohighpt;
+        TFile *_sffile_el_recolowpt;
 
         TH2F *_sfhist_el_id;
-        TH2D *_sfhist_el_looseid;
-        TH2D *_sfhist_el_ditrig;
-
+        TH2F *_sfhist_el_recohighpt;
+        TH2F *_sfhist_el_recolowpt;
 
         TFile *_sffile_ph_id;
         TFile *_sffile_ph_ev;
@@ -124,12 +120,12 @@ namespace OUT {
     float el_trigSF;
     float el_trigSFUP;
     float el_trigSFDN;
-    float el_mvaIDSF;
-    float el_mvaIDSFUP;
-    float el_mvaIDSFDN;
-    float el_looseIDSF;
-    float el_looseIDSFUP;
-    float el_looseIDSFDN;
+    float el_idSF;
+    float el_idSFUP;
+    float el_idSFDN;
+    float el_recoSF;
+    float el_recoSFUP;
+    float el_recoSFDN;
 #endif
 
 #ifdef MODULE_AddPhotonSF

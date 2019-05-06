@@ -45,13 +45,12 @@ def get_muon_sf(options) :
 
     muon_sf.add_var( 'FilePathTrigBCDEF', '%s/TrigEfficienciesAndSF_RunBtoF.root' %base_path )
     muon_sf.add_var( 'FilePathTrigGH', '%s/TrigEfficienciesAndSF_Period4.root' %base_path )
-    muon_sf.add_var( 'FilePathIdBCDEF', '%s/IDEfficienciesAndSF_BCDEF.root' %base_path )
-    muon_sf.add_var( 'FilePathIdGH', '%s/IDEfficienciesAndSF_GH.root' %base_path )
 
-    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/IsoEfficienciesAndSF_BCDEF.root' %base_path )
-    muon_sf.add_var( 'FilePathIsoGH', '%s/IsoEfficienciesAndSF_GH.root' %base_path )
+    muon_sf.add_var( 'FilePathIdBCDEF', '%s/EfficienciesStudies_2016_legacy_rereco_rootfiles_RunBCDEF_SF_ID.root' %base_path )
+    muon_sf.add_var( 'FilePathIdGH', '%s/EfficienciesStudies_2016_legacy_rereco_rootfiles_RunGH_SF_ID.root' %base_path )
 
-    muon_sf.add_var( 'FilePathTrk', '%s/Tracking_EfficienciesAndSF_BCDEFGH.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/EfficienciesStudies_2016_legacy_rereco_rootfiles_RunBCDEF_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoGH', '%s/EfficienciesStudies_2016_legacy_rereco_rootfiles_RunGH_SF_ISO.root' %base_path )
 
     return muon_sf
 
@@ -61,9 +60,10 @@ def get_electron_sf(options) :
 
     electron_sf = Filter( 'AddElectronSF' )
 
-    electron_sf.add_var( 'FilePathID', '%s/electrons_scale_factors.root' %base_path )
-    electron_sf.add_var( 'FilePathDiTrig', '%s/triggerSummary_ee_rereco198fb.root' %base_path )
-    electron_sf.add_var( 'FilePathCutID', '%s/CutBasedIdScaleFactors.root' %base_path )
+    #electron_sf.add_var( 'FilePathDiTrig', '%s/triggerSummary_ee_rereco198fb.root' %base_path )
+    electron_sf.add_var( 'FilePathRecoHighPt', '%s/EGM2D_BtoH_GT20GeV_RecoSF_Legacy2016.root'%base_path)
+    electron_sf.add_var( 'FilePathRecoLowPt',  '%s/EGM2D_BtoH_low_RecoSF_Legacy2016.root'%base_path)
+    electron_sf.add_var( 'FilePathCutID',      '%s/2016LegacyReReco_ElectronTight.root'%base_path)
 
     return electron_sf
 
@@ -73,8 +73,8 @@ def get_photon_sf(options) :
 
     photon_sf = Filter( 'AddPhotonSF' )
 
-    photon_sf.add_var( 'FilePathId', '%s/egammaEffi_PhMediumID_EGM2D.root' %base_path )
-    photon_sf.add_var( 'FilePathEveto', '%s/PhoEleVetoSF_80X_Summer16.root' %base_path )
+    photon_sf.add_var( 'FilePathId', '%s/2016LegacyReReco_PhotonCutBasedMedium.root' %base_path )
+    photon_sf.add_var( 'FilePathEveto', '%s/ScalingFactors_80X_Summer16.root' %base_path )
     
     return photon_sf
 
