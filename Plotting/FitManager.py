@@ -107,7 +107,8 @@ class FitManager :
             [RooFit.LineColor(ROOT.kTeal-2), RooFit.LineStyle(ROOT.kDashed),],
                ]
     def __init__(self, fname, hist=None, xvardata = None, #,xvarfit=None,
-                    label="", sample_params={}) :
+                    label="", sample_params={},
+                    norders = 2 ) :
 
         # initialize object container
         self.defs = OrderedDict()          # store RooRealVar for fit functions
@@ -136,6 +137,10 @@ class FitManager :
 
         # toggles and extra parameters
         self.sample_params = sample_params
+
+        # set the function orders
+        # only useful for dijet, power, atlas functions, etc
+        self.func_norders = norders
 
         self.canvas = None
         self.curr_canvases = {}
@@ -192,13 +197,16 @@ class FitManager :
             raise
 
 
-    @f_Obsolete ## FIXME
     def Integral( self ) :
 
         err = ROOT.Double()
-        val = self.hist.IntegralAndError( self.hist.FindBin( self.xvar.getMin() ), self.hist.FindBin( self.xvar.getMax() ), err )
+        val = self.hist.IntegralAndError( self.hist.FindBin( self.xvardata.getMin() ), self.hist.FindBin( self.xvardata.getMax() ), err )
 
         return ufloat( val, err )
+
+    def get_vals( self, name, order ) :
+
+        return self.defs[name][order]
 
     def add_vars( self, arg_list) :
         if self.func_name == 'dijet' : 
@@ -263,6 +271,13 @@ class FitManager :
             
             function = 'TMath::Power( @0/13000., @1 + ' + '+'.join( order_entries) + ')'
 
+            self.defs['dijet'] = {}
+            self.defs['dijet'][1] = (-16.0,  -20.0,  -10.0)
+            self.defs['dijet'][2] = (-5.0,    -9.0,  -3.0 )
+            self.defs['dijet'][3] = (-1.5,    -5.0,  -1.0 )
+
+            print "function: ", function
+
 
         if self.func_name == 'atlas' : 
 
@@ -282,11 +297,15 @@ class FitManager :
 
             function = '+'.join( order_entries )
 
-        mod_function = function.replace( '@0', 'x' )
-        mod_function = '[0]*' + mod_function
-        for i in range( 0, 9 ) :
-            mod_function = mod_function.replace( '@%d' %i, '[%d]' %i )
-        return mod_function
+        if forceUseRooFit :
+            # different syntax for ROOT and RooFit
+            return function
+        else :
+            mod_function = function.replace( '@0', 'x' )
+            mod_function = '[0]*' + mod_function
+            for i in range( 0, 9 ) :
+                mod_function = mod_function.replace( '@%d' %i, '[%d]' %i )
+            return mod_function
 
     @f_Obsolete
     def fit_histogram( self, workspace=None ) :
@@ -422,12 +441,12 @@ class FitManager :
            print "***************************************\n"
         self.roofitresult = m.save()
 
-    def run_simplefit(self):
-        """ simple fitter """
+    def run_rootfit(self, fitrange=None ):
+        """  fit in ROOT """
         fitrange = self.fitrangehelper(fitrange)
         func_str = self.get_fit_function() 
 
-        self.func = self.MakeROOTObj( 'TF1', 'tf1_%s' %self.label, func_str, xmin, xmax )
+        self.func = self.MakeROOTObj( 'TF1', 'tf1_%s' %self.label, func_str, fitrange[0], fitrange[1] )
 
         if self.func_name == 'dijet' : 
 
@@ -437,7 +456,17 @@ class FitManager :
                 this_def = self.get_vals( self.func_name, i )
                 self.func.SetParameter( param, this_def[0] )
                 param += 1
-        self.hist.Fit( self.func, 'R' )
+
+        self.hist.Fit( self.func, 'REM' )
+        # do it a few times 
+        print "********** fit again *****************"
+        for iparam in xrange( 1, self.func_norders+1 ):
+            self.func.SetParameter( iparam, self.func.GetParameter(iparam))
+        self.hist.Fit( self.func, 'REM' )
+        print "********** fit again *****************"
+        for iparam in xrange( 1, self.func_norders+1 ):
+            self.func.SetParameter( iparam, self.func.GetParameter(iparam))
+        self.hist.Fit( self.func, 'REM' )
         return self.func
 
 
@@ -495,8 +524,10 @@ class FitManager :
             ##// value and error back propagated from MINUIT
             ##sigma_g2.Print() ;
 
-    @f_Obsolete
     def calculate_func_pdf( self ) :
+        """ 
+        cast a TF1 into RooGenericPdf in RooFit. So that it can be saved in RooWorkspace for the HiggsCombine
+        """
 
         if self.func_pdf is not None : 
             print 'The PDF Function already exists.  It will be overwritten'
@@ -509,7 +540,7 @@ class FitManager :
                 self.defs['dijet'][i] = ( fitted_result, fitted_result - fitted_error, fitted_result + fitted_error )
 
             arg_list = self.MakeROOTObj( 'RooArgList' )
-            arg_list.add( self.xvar )
+            arg_list.add( self.xvardata )
             self.add_vars( arg_list )
 
             for i in range( 1, arg_list.getSize() )  :
@@ -559,9 +590,9 @@ class FitManager :
         #int_res   = ufloat( integral, math.sqrt( integral ) )
 
 
-        #results['integral'] = self.Integral( )
-        #integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', results['integral'].n )
-        #integral_var.setError( results['integral'].s )
+        results['integral'] = self.Integral( )
+        integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', results['integral'].n )
+        integral_var.setError( results['integral'].s )
 
         if workspace is not None :
             getattr( workspace , 'import' ) ( self.datahist )
