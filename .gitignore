@@ -1,13 +1,10 @@
 *.oa
 *~
 *.pyc
-*.root
 *.o
 *.so
 *.exe
 *.swp
-core.*
-!core.py
 *Dict.cxx
 *Dict.h
 *BranchInit.cxx
