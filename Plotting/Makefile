@@ -56,10 +56,8 @@ workspaces :
 	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
 fits :
-	python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod MaxLikelihoodFit
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod HybridNew
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/jkunkle/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod Asymptotic   --useToySignal --useToyBackground
+	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
+	python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir /data/users/fengyb/CMSSW_8_1_0/src/HiggsAnalysis/CombinedLimit --outputDir /data/users/fengyb/CMSSW_8_1_0/src/TEST --doVarOptimization
 
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits

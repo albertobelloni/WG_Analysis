@@ -597,7 +597,7 @@ class FitManager :
         if workspace is not None :
             getattr( workspace , 'import' ) ( self.datahist )
             getattr( workspace , 'import' ) ( self.func_pdf )
-            #getattr( workspace , 'import' ) ( integral_var )
+            getattr( workspace , 'import' ) ( integral_var )
 
 
         return results
