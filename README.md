@@ -105,3 +105,27 @@ Otherwise it would go into problem when compiling. Finally,
    python scripts/scheduler.py
    ```
 In theory the cuts should be the same so you don't need to change other settings.
+
+## To play with the Plots and limits
+
+Go to the Plotting directory first. Do
+```
+make signal
+```
+to fit the signal templates with double sided crystal ball function and save the fit results (pdfs, vars and norms) into the workspace. After this, a new directory will be created with some root files under:
+
+```
+~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_02_15
+```
+
+After the signal part, you can do
+```
+make mcbkg
+```
+to prepare the bkg templates for different backgrounds. The default is WGamma only. One could change this in the Makefile. New root files with workspaces for backgrounds will be created in the above directory as well.
+
+When the signal and bkg are all done, if you want to run the limit settings, first you have to get the Higgs Combine code compiled first. (TODO: add the link and instructions.) Asumming you have done it, change the directory after `combineDir` in the Makefile. Then
+```
+make fits
+```
+This will generate the datacard and the code to run combine, and submit the jobs to condor. It might take one minute to finish, and finally you will get the limit on the signal strength.

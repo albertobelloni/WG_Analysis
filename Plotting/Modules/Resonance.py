@@ -295,7 +295,7 @@ def config_samples(samples) :
                            plotColor = ROOT.kCyan-2,
                           )
 
-    samples.AddSampleGroup(  'Wgamma', legend_name='W#gamma',
+    samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
                            #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
@@ -394,14 +394,14 @@ def config_samples(samples) :
                           )
 
 
-    samples.AddSampleGroup( 'AllTop', legend_name='AllTop',
+    samples.AddSampleGroup( 'TTbar', legend_name='t#bar{t}',
                            input_samples = ['TTbar_DiLep', 'TTbar_SingleLep'],
                            plotColor = ROOT.kGreen+4,
                            isActive=False,
                           )
 
     samples.AddSampleGroup( 'MCBackground', legend_name='MC Background',
-                           input_samples = ['Wgamma', 'Wjets', 'TTbar_DiLep', 'TTbar_SingleLep'],
+                           input_samples = ['WGamma', 'Wjets', 'TTbar_DiLep', 'TTbar_SingleLep'],
                            isActive=False,
                           )
     samples.AddSampleGroup( 'MCBackgroundLO', legend_name='MC Background',
