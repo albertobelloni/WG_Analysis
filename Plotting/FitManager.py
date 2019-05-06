@@ -589,9 +589,8 @@ class FitManager :
         #log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
         #int_res   = ufloat( integral, math.sqrt( integral ) )
 
-
         results['integral'] = self.Integral( )
-        integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', results['integral'].n )
+        integral_var = ROOT.RooRealVar('%s_norm' %( self.func_pdf.GetName() ), 'normalization', results['integral'].n )
         integral_var.setError( results['integral'].s )
 
         if workspace is not None :
