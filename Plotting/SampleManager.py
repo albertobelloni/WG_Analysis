@@ -2081,7 +2081,8 @@ class SampleManager :
         doratio = draw_config.get_doratio()
         if doratio:
             return self.curr_canvases["base"]
-        return self.curr_canvases["top"]
+        print self.curr_canvases
+        #return self.curr_canvases["top"]
 
     def draw_and_configure( self, draw_config, generate_data_from_sample=None, useModel=False, treeHist=None, treeSelection=None ) :
         """  calls makestack, implment option to imitate data, helper function for SampleManager.Draw """
@@ -3157,8 +3158,8 @@ class SampleManager :
 
         return (ymin, ymax)
 
-    # kak: standard canvas maker
     def create_standard_canvas(self, name='base') :
+        print "create_standard_canvas"
 
         xsize = 800 
         #xsize = 650 
@@ -3286,7 +3287,7 @@ class SampleManager :
         print "="*35+"\n%30s %8.3g +/- %5.3g" %result[-1]
         return
 
-    # kak: draw data and legend for SampleManager.Draw()
+    # raw data and legend for SampleManager.Draw()
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
 
         doratio=draw_config.get_doratio()
