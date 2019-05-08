@@ -7,11 +7,12 @@ def config_samples(samples) :
 
     samples.AddSample('DYJetsToLL_M-50', 
                       path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
-		              #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('DYJetsToLL_M-50-amcatnloFXFX', 
-                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
+                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('ZGTo2LG', 
@@ -289,7 +290,7 @@ def config_samples(samples) :
                           )
 
 
-    samples.AddSampleGroup(  'Wgamma', legend_name='W#gamma',
+    samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
                            #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
@@ -414,7 +415,7 @@ def config_samples(samples) :
                           )
 
     samples.AddSampleGroup( 'MCBackground', legend_name='MC Background',
-                           input_samples = ['Wgamma', 'Wjets', 'TTbar_DiLep', 'TTbar_SingleLep'],
+                           input_samples = ['WGamma', 'Wjets', 'TTbar_DiLep', 'TTbar_SingleLep'],
                            isActive=False,
                           )
     samples.AddSampleGroup( 'MCBackgroundLO', legend_name='MC Background',

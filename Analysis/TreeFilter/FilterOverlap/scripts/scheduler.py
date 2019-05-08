@@ -41,6 +41,7 @@ args_mtMin400Max1200  = { 'function' : 'filter_mtres' , 'mtres_cut' : ' >= 400 &
 args_mtMin1200        = { 'function' : 'filter_mtres' , 'mtres_cut' : ' >= 1200 ' }
 
 jobs = [
+    ### 1. FIRST UNCOMMENT AND RUN OVER THIS BLOCK
     #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', tags=['HT'], suffix='TrueHTOlap'),
     #JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , tags=['pholap']  , suffix = 'PhOlap'  ),
@@ -50,8 +51,9 @@ jobs = [
     #JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'               , tags=['pholap']  , suffix = 'PhOlap'  ),
-    JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ),
-    JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ),
+    #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'               , tags=['pholap']  , suffix = 'PhOlap'  ),
+    #JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ),
+    #JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'            , tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', tags=['pholap']  , suffix = 'PhOlap'  ),
     #JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap'  ),
@@ -62,10 +64,12 @@ jobs = [
     #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'        , tags=['PtMin500'], suffix = 'PhCutMin'),
     #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , tags=['PtMin500'], suffix = 'PhCutMin'),
 
-    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', tags=['PtMin130'], suffix = 'PhCutMin'),
-    #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , tags=['PtMin130'], suffix = 'PhCutMin'),
-    #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlap'     , tags=['pholap']  , suffix = 'PhOlap'  ),
+    ### 2. WHEN STEP 1 IS DONE, COMMENT THAT BLOCK, AND UNCOMMENT AND RUN OVER THIS BLOCK
+    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', tags=['PtMin130'], suffix = 'PhCutMin'),
+    JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax' , tags=['PtMin130'], suffix = 'PhCutMin'),
+    JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlap'     , tags=['pholap']  , suffix = 'PhOlap'  ),
 
+    ### 3. DON'T RUN OVER THESE; AS FAR AS I KNOW, I DON'T THINK WE NEED THESE
     ##JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax'                , tags=['mtMax600']       , suffix = 'MTResCut'),
     ##JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin', tags=['mtMax1300']      , suffix = 'MTResCut'),
     ##JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax'                 , tags=['mtMax500']       , suffix = 'MTResCut'),
@@ -87,7 +91,9 @@ options.enableKeepFilter=False
 
 ### ATTENTION! Here you list the ntuple types (from RecoResonance) that you want to process, which is also the name of the subdirectory containing them.
 input_dirs =[               
-              'LepLep_mumu_2019_03_14',#'LepLep_elel_2018_08_13', 
+              #'LepLep_mumu_2019_03_14',#'LepLep_elel_2018_08_13',
+              'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
+              'SingleLepNoPhId_el_2019_03_17','SingleLepNoPhId_mu_2019_03_17',
 ]
 
 module = 'Conf.py'
