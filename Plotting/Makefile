@@ -1,5 +1,5 @@
 ### ATTENTION: Set OUTPUTMAIN to the folder in your Plotting directory where you want to save your output
-OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_02_15
+OUTPUTMAIN=/home/kakw/efake/WG_Analysis/Plotting/Plots/Resonance/
 ### ATTENTION: Make sure that these DIR_* strings specify the directories containing the processed ntuples that you want to run over
 DIR_MUG=/data/users/fengyb/WGammaNtuple/Legacy2016/LepGamma_mug_2018_10_11
 DIR_ELG=/data/users/fengyb/WGammaNtuple/Legacy2016/LepGamma_elg_2018_10_11
