@@ -94,7 +94,7 @@ def make_final_mumu( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -122,7 +122,7 @@ def make_final_elel( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -176,7 +176,7 @@ def make_final_mu( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -184,7 +184,7 @@ def make_final_el( alg_list, args) :
 
     mu_pt = args.get( 'mu_pt', ' > 10 ' )
     el_pt = args.get( 'el_pt', ' > 10 ' )
-    ph_pt = args.get( 'ph_pt', ' > 15 ' )
+    ph_pt = args.get( 'ph_pt', ' > 10 ' )
     phot_vars = args.get( 'phot_vars', 'False' )
     phot_id = args.get( 'phot_id', 'medium' )
     ph_eta = args.get( 'ph_eta', None )
@@ -210,7 +210,7 @@ def make_final_el( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -218,7 +218,7 @@ def make_final_elg( alg_list, args) :
 
     mu_pt = args.get( 'mu_pt', ' > 10 ' )
     el_pt = args.get( 'el_pt', ' > 10 ' )
-    ph_pt = args.get( 'ph_pt', ' > 15 ' )
+    ph_pt = args.get( 'ph_pt', ' > 10 ' )
     phot_vars = args.get( 'phot_vars', 'False' )
     phot_id = args.get( 'phot_id', 'medium' )
     ph_eta = args.get( 'ph_eta', None )
@@ -273,7 +273,7 @@ def make_final_mug( alg_list, args) :
 
     el_pt = args.get( 'el_pt', ' > 10 ' )
     mu_pt = args.get( 'mu_pt', ' > 10 ' )
-    ph_pt = args.get( 'ph_pt', ' > 15 ' )
+    ph_pt = args.get( 'ph_pt', ' > 10 ' )
     muphtrig = args.get( 'muphtrig', 'False' )
     phot_vars = args.get( 'phot_vars', ' False ' )
     phot_id = args.get( 'phot_id', 'medium' )
@@ -382,7 +382,7 @@ def make_nofilt( alg_list, args ) :
         alg_list.append( filter_muon( mu_pt = ' > 10 ' ) )
         alg_list.append( filter_electron( el_pt = ' > 10 ' ) )
 
-    alg_list.append( filter_photon( ph_pt = ' > 15 ', id_cut = 'medium'   )  )
+    alg_list.append( filter_photon( ph_pt = ' > 10 ', id_cut = 'medium'   )  )
 
     alg_list.append( filter_trigger() )
     alg_list.append( filter_met() )

@@ -316,9 +316,9 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("el_truthMatchEl_dr", &OUT::el_truthMatchEl_dr   );
     outtree->Branch("el_truthMatchEl_pt", &OUT::el_truthMatchEl_pt      );
 
-   // outtree->Branch("ph_chIsoCorr", &OUT::ph_chIsoCorr);
-   // outtree->Branch("ph_neuIsoCorr", &OUT::ph_neuIsoCorr);
-   // outtree->Branch("ph_phoIsoCorr", &OUT::ph_phoIsoCorr);
+    //outtree->Branch("ph_chIsoCorr", &OUT::ph_chIsoCorr);
+    //outtree->Branch("ph_neuIsoCorr", &OUT::ph_neuIsoCorr);
+    //outtree->Branch("ph_phoIsoCorr", &OUT::ph_phoIsoCorr);
     outtree->Branch("ph_min_el_dr", &OUT::ph_min_el_dr);
     outtree->Branch("ph_IsEB", &OUT::ph_IsEB );
     outtree->Branch("ph_IsEE", &OUT::ph_IsEE );
@@ -824,7 +824,7 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
 
     // loop over configured modules
     bool save_event = true;
-    bool printevent = true;
+    bool printevent = false;
     if( IN::eventNumber== 25 || IN::eventNumber==15 || IN::eventNumber==164 ) printevent = true;
     if( printevent ) std::cout << " eventNumber " << IN::eventNumber << std::endl;
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
@@ -1586,9 +1586,9 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
 void RunModule::FilterPhoton( ModuleConfig & config ) {
 
     OUT::ph_n          = 0;
-   // OUT::ph_chIsoCorr            -> clear();
-   // OUT::ph_neuIsoCorr           -> clear();
-   // OUT::ph_phoIsoCorr           -> clear();
+    //OUT::ph_chIsoCorr            -> clear();
+    //OUT::ph_neuIsoCorr           -> clear();
+    //OUT::ph_phoIsoCorr           -> clear();
     OUT::ph_min_el_dr           -> clear();
     OUT::ph_IsEB                 -> clear();
     OUT::ph_IsEE                 -> clear();
@@ -1938,9 +1938,9 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         if( !config.PassFloat( "cut_electron_dr", min_el_dr ) ) continue;
 
 
-      //  OUT::ph_chIsoCorr            -> push_back(pfChIsoPtRhoCorr);
-      //  OUT::ph_neuIsoCorr           -> push_back(pfNeuIsoPtRhoCorr);
-      //  OUT::ph_phoIsoCorr           -> push_back(pfPhoIsoPtRhoCorr);
+        //OUT::ph_chIsoCorr            -> push_back(pfChIsoPtRhoCorr);
+        //OUT::ph_neuIsoCorr           -> push_back(pfNeuIsoPtRhoCorr);
+        //OUT::ph_phoIsoCorr           -> push_back(pfPhoIsoPtRhoCorr);
 
         OUT::ph_min_el_dr            -> push_back( min_el_dr );
 
@@ -3774,7 +3774,7 @@ float RunModule::calc_pu_weight( float puval, float mod ) const {
 
     float weight = num/den;
 
-    std::cout << "puval = " << puval << " data_val = " << val_data << " sample_val = " << val_sample << " num = " << num << " den = " << den << " weight = " << weight << std::endl;
+    //std::cout << "puval = " << puval << " data_val = " << val_data << " sample_val = " << val_sample << " num = " << num << " den = " << den << " weight = " << weight << std::endl;
 
     if( weight < 0.00000005 ) {
 
