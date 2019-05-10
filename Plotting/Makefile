@@ -1,13 +1,13 @@
 ### ATTENTION: Set OUTPUTMAIN to the folder in your Plotting directory where you want to save your output
-OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_02_15
+OUTPUTMAIN=/home/kakw/efake/WG_Analysis/Plotting/Plots/Resonance/
 ### ATTENTION: Make sure that these DIR_* strings specify the directories containing the processed ntuples that you want to run over
-DIR_MUG=/data/users/jkunkle/Resonances/LepGamma_mug_2018_03_28
-DIR_ELG=/data/users/jkunkle/Resonances/LepGamma_elg_2018_03_28
-DIR_MUGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_mug_2018_03_28
-DIR_ELGNoId=/data/users/jkunkle/Resonances/LepGammaNoPhId_elg_2018_03_28
+DIR_MUG=/data/users/fengyb/WGammaNtuple/Legacy2016/LepGamma_mug_2018_10_11
+DIR_ELG=/data/users/fengyb/WGammaNtuple/Legacy2016/LepGamma_elg_2018_10_11
+DIR_MUGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_03_17/WithSF
+DIR_ELGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_03_17/WithSF
 #DIR_MU=/data/users/jkunkle/Resonances/SingleLepNoPhID_mu_2018_03_28
-DIR_MU=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2018_09_06
-DIR_EL=/data/users/jkunkle/Resonances/SingleLepNoPhID_el_2018_03_28
+DIR_MU=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_03_17/WithSF
+DIR_EL=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_03_17/WithSF
 DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2018_11_30/WithSF
 DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2018_08_13
 
@@ -39,7 +39,9 @@ signal :
 
 mcbkg : 
 
-	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS
+	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS
+	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doTopGamma --doTop --doZGamma --doWJets --doWGamma --doGammaGamma --doAll
+	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doWGamma
 
 efake : 
 
@@ -54,10 +56,8 @@ workspaces :
 	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
 fits :
-	python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod MaxLikelihoodFit
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod HybridNew
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/jkunkle/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod Asymptotic   --useToySignal --useToyBackground
+	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
+	python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir /data/users/fengyb/CMSSW_8_1_0/src/HiggsAnalysis/CombinedLimit --outputDir /data/users/fengyb/CMSSW_8_1_0/src/TEST --doVarOptimization
 
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits
