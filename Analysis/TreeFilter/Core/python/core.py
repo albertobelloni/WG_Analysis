@@ -16,6 +16,7 @@ import filecmp
 import uuid
 from argparse import ArgumentParser
 import eos_utilities as eosutil
+import xrootd_utilities as xrdutil
 
 def ParseArgs() :
 
@@ -80,7 +81,11 @@ def ParseArgs() :
 
     parser.add_argument('--condor', dest='condor', action='store_true', default=False, help='Submit jobs to condor (UMD)')
 
+    parser.add_argument('--usexrd', dest='usexrd', action='store_true', default=False, help='Use xrootd service')
+
     parser.add_argument('--resubmit', dest='resubmit', action='store_true', default=False, help='Only submit jobs whose output does not exist')
+
+    parser.add_argument('--year', dest='year', type=int, default=2016, help='Year of dataset (2016,2017,2018)')
     
     #-----------------------------
     # Filter flags
@@ -126,14 +131,15 @@ def ParseArgs() :
     
     return parser.parse_args()
 
-class JobConfig :
-
-    def __init__(self) :
-
-        self.jobid        = None
-        self.storage_path = None
-        self.output_dir   = None
-        self.run_command  = None
+#FIXME: lone definition
+#class JobConfig :
+#
+#    def __init__(self) :
+#
+#        self.jobid        = None
+#        self.storage_path = None
+#        self.output_dir   = None
+#        self.run_command  = None
 
 
 def config_and_run( options, package_name ) :
@@ -171,9 +177,12 @@ def config_and_run( options, package_name ) :
         else :
             input_files = options.files.split(',')
             input_files = filter( lambda s: os.path.isfile( s ), input_files )
+
+    ### default option: a directory is given, and one walks through the root files in it
     elif options.filesDir is not None :
         for eachdir in options.filesDir.split(',') :
-            input_files += collect_input_files( eachdir, options.fileKey, write_file_list=options.write_file_list, read_file_list=options.read_file_list )
+            input_files += collect_input_files( eachdir, options.fileKey, write_file_list=options.write_file_list, 
+                                                read_file_list=options.read_file_list, usexrd=options.usexrd )
 
     # remove any blank entries
     while '' in input_files :
@@ -426,7 +435,7 @@ def config_and_run( options, package_name ) :
         if command_info:
             ## check if command_info is zero length, i.e., all jobs have been finished
             ## this is used for resubmitting
-            job_desc_file = create_job_desc_file( command_info, {})
+            job_desc_file = create_job_desc_file( command_info, {'usexrd':options.usexrd})
 
             condor_command = 'condor_submit %s ' % job_desc_file 
             logging.info('********************************')
@@ -462,10 +471,13 @@ def config_and_run( options, package_name ) :
     print 'Output written to %s' %(options.outputDir)
 
 
-def collect_input_files( filesDir, filekey='.root', write_file_list=False, read_file_list=False ) :
+def collect_input_files( filesDir, filekey='.root', write_file_list=False, read_file_list=False , usexrd = False) :
     input_files = []
     if filesDir.count('root://') > 0 :
-        input_files = collect_input_files_eos( filesDir, filekey, write_file_list=write_file_list, read_file_list=read_file_list )
+        if usexrd:
+            input_files = collect_input_files_xrd( filesDir, filekey, write_file_list=write_file_list, read_file_list=read_file_list )
+        else:
+            input_files = collect_input_files_eos( filesDir, filekey, write_file_list=write_file_list, read_file_list=read_file_list )
     else :
         input_files = collect_input_files_local( filesDir, filekey )
 
@@ -483,6 +495,50 @@ def collect_input_files_local( filesDir, filekey='.root' ) :
                    input_files.append(top+'/'+f)
 
     return input_files
+
+def collect_input_files_xrd( filesDir, filekey='.root', write_file_list=False, read_file_list=False ) :
+
+    proctlstr = filesDir.split("//")
+    
+    assert proctlstr[0]=="root:", "error: not an xrootd url"
+    assert '.' in proctlstr[1], "error: not an xrootd url"
+    url = proctlstr[1]
+    assert len(proctlstr)==3
+    path = proctlstr[2]
+    
+    logging.info('Getting list of input files from eos in %s' %path)
+    if read_file_list :
+        logging.info('Will read file list ' )
+        tmpfile = '/tmp/filelist.txt'
+        xrdutil.copy_xrd_to_local(url, '%s/filelist.txt' %path, tmpfile )
+
+        input_files = []
+        file = open( tmpfile, 'r' )
+        for line in file :
+            input_files.append( line.rstrip('\n') )
+
+        file.close()
+
+        return input_files 
+
+    else :
+
+        input_files = []
+        for top, dirs, files, sizes in xrdutil.walk_xrd(url, path) :
+            for f in files :
+                if f.count(filekey) > 0 :
+                    input_files.append("root://"+url+'/'+f)
+
+        if write_file_list :
+            logging.info('Write files to file list' )
+            ofile = open( '/tmp/filelist.txt', 'w' )
+            for line in input_files :
+                ofile.write(line+'\n')
+            ofile.close()
+            xrdutil.copy_local_to_xrd( url, '%s/filelist.txt' %(path), '/tmp/filelist.txt'  )
+
+
+        return input_files
 
 def collect_input_files_eos( filesDir, filekey='.root', write_file_list=False, read_file_list=False ) :
     
@@ -1164,6 +1220,7 @@ def write_config( alg_list, filename, treeName, outputDir, outputFile, files_lis
 def create_job_desc_file(command_info, kwargs) :
 
     priority              = kwargs.get('priority', 0)
+    usexrd                = kwargs.get('usexrd', False)
 
     # the header of the job description file
     desc_entries = [
@@ -1189,6 +1246,11 @@ def create_job_desc_file(command_info, kwargs) :
                     #'when_to_transfer_output = ON_EXIT_OR_EVICT',
                     'priority=%d' %priority
                     ]
+    if usexrd:
+        x509path = xrdutil.x509()
+        homepath = os.getenv("HOME")
+        os.system('cp %s %s' %(x509path, homepath))
+        desc_entries.append('X509USERPROXY = %s' %homepath+'/'+os.path.basename(x509path))
 
     for job_index, args in command_info :
 

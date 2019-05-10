@@ -23,7 +23,8 @@ options.batch = ( not options.local )
 ### Also specify the version number of the raw ntuples with the version_* variables below.
 #base = '/store/user/jkunkle'
 #base = '/store/user/yofeng/WGamma'
-base = '/store/user/kawong/WGamma'
+#base = '/store/user/kawong/WGamma'
+base = 'root://eoscms.cern.ch:1094///store/group/phys_exotica/Wgamma'
 options.nFilesPerJob = 50
 
 options.nproc = 1
@@ -38,6 +39,7 @@ options.filekey = 'ntuple'
 #options.PUPath='/data/users/kakw/Resonances2017/pileuptest/' ## testonly
 options.PUPath='/data/users/kakw/Resonances2017/pileup3'
 options.year = 2017
+options.usexrd = True
 
 if options.test : 
     options.nproc = 1
@@ -47,8 +49,8 @@ if options.test :
     options.local = True
 
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
-output_base = '/data2/users/kakw/Resonances%i/' %year
-jobtag = '_2019_05_02_test'
+output_base = '/data2/users/kakw/Resonances%i/' %options.year
+jobtag = '_2019_05_10_test'
 
 #version = 'UMDNTuple_0620'
 version_sig = ''
@@ -57,6 +59,7 @@ version_py = 'UMDNTuple_20190329testc'
 version_data = 'UMDNTuple_20190404data17test'
 version_madgraph = 'UMDNTuple_20190329test'
 version_g = 'UMDNTuple_20190329testg'
+version_reminiAOD=''
 
 jobs2017 = [
         #--------------------------
@@ -89,7 +92,7 @@ jobs2017 = [
         #JobConf(base, 'WZG_TuneCP5_13TeV-amcatnlo-pythia8', version=version, tags=['NLO']     ),
 
         #JobConf( base, 'ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8', version=version_madgraph ,tags=['NLO']),
-        JobConf( base, 'WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8',        version=version_madgraph ),
+        JobConf( base, 'WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8',        version='UMDNTuple_0503', year=2017),
         #JobConf( base, 'MadGraphChargedResonance_WGToLNuG_M900_width5',     version=version_madgraph ),
         #JobConf( base, 'MadGraphChargedResonance_WGToLNuG_M900_width0p01',  version=version_madgraph ),
         #JobConf( base, 'MadGraphChargedResonance_WGToLNuG_M800_width5',     version=version_madgraph ),
