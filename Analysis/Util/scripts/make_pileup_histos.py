@@ -1,3 +1,4 @@
+#! /usr/bin/python
 import os
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -7,31 +8,36 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 
-parser.add_argument('--version', dest='version', required=True, help='Name of version directory (Resonances_v10)' )
-parser.add_argument('--outputDir', dest='outputDir', required=True, help='output path' )
+#parser.add_argument('--version', dest='version', required=True, help='Name of version directory (Resonances_v10)' )
+#parser.add_argument('--outputDir', dest='outputDir', required=True, help='output path' )
 parser.add_argument('--fileKey', dest='fileKey', default=None, help='key to match files' )
 parser.add_argument('--treeName', dest='treeName', default='UMDNTuple/EventTree', help='tree name' )
 
 options = parser.parse_args()
 
-_NTUPLE_DIR = '/store/user/yofeng/WGamma'
+_NTUPLE_DIR = '/store/user/kawong/WGamma'
+options.version = 'UMDNTuple_20190329test'
+options.outputDir = '/data/users/kakw/Resonances2017/pileup3'
 
 def main() :
 
     data_samples = ['SingleElectron', 'SingleMuon', 'SinglePhoton', 'DoubleMuon', 'DoubleElectron']
 
-    mc_samples = []
+#    mc_samples = [  "TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8", "TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8", "TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8",]
+    mc_samples=[]
+    mc_samples=['WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8']
 
-    for samp in os.listdir( _NTUPLE_DIR ) :
+    if not mc_samples:
+        for samp in os.listdir( _NTUPLE_DIR ) :
 
-        if samp in data_samples :
-            continue
+            if samp in data_samples :
+                continue
 
-        if os.path.isfile( '%s/%s/hist.root' %( options.outputDir, samp ) ) :
-            continue
+            if os.path.isfile( '%s/%s/hist.root' %( options.outputDir, samp ) ) :
+                continue
 
-        if os.path.isdir( '%s/%s/%s' %( _NTUPLE_DIR, samp, options.version ) ) :
-            mc_samples.append( samp )
+            if os.path.isdir( '%s/%s/%s' %( _NTUPLE_DIR, samp, options.version ) ) :
+                mc_samples.append( samp )
 
     for samp in mc_samples :
 
@@ -71,7 +77,7 @@ def get_histograms(files, outfile) :
 
     outfile.cd()
 
-    chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '1 * ( EventWeights[0] > 0 ) - 1* ( EventWeights[0] < 0 ) ' )
+    chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '1 * ( Alt$(EventWeights[0],1) > 0 ) - 1* ( Alt$(EventWeights[0],1) < 0 ) ' )
 
     hist = outfile.Get('pileup_true')
 

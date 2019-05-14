@@ -110,6 +110,11 @@ In theory the cuts should be the same so you don't need to change other settings
 
 Go to the Plotting directory first. Do
 ```
+root -l My_double_CB/RooDoubleCB.cc+
+```
+to compile Double Crystal Ball
+
+```
 make signal
 ```
 to fit the signal templates with double sided crystal ball function and save the fit results (pdfs, vars and norms) into the workspace. After this, a new directory will be created with some root files under:

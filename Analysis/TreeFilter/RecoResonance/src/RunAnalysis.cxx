@@ -1082,6 +1082,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
     OUT::el_passTight->clear();
     OUT::el_hasTrigMatch->clear();
     OUT::el_trigMatch_dr->clear();
+    float rho = IN::rho;
 
     ClearOutputPrefix("el_");
 
@@ -1105,6 +1106,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
         float hovere = IN::el_hOverE->at(idx);
         float ooEmooP = IN::el_ooEmooP->at(idx);
         float iso_rho = IN::el_pfIsoRho->at(idx);
+        float el_esc  = IN::el_e->at(idx); //FIXME: change to SC Energy
         bool passConvVeto = IN::el_passConvVeto->at(idx);
         int misshits = IN::el_expectedMissingInnerHits->at(idx);
 
@@ -1140,7 +1142,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_barrel_tight"    , hovere       ) ) {
+                //if( !config.PassFloat( "cut_hovere_barrel_tight"    , hovere       ) ) {
+                if(  hovere > 0.026+1.15/el_esc+0.0324*rho/el_esc       ) { // hard-coded H/E cut
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
@@ -1148,7 +1151,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
-                if( !config.PassFloat( "cut_isoRho_barrel_tight"   , iso_rho   ) ) {
+                //if( !config.PassFloat( "cut_isoRho_barrel_tight"   ,iso_rho  ) ) {
+                if( iso_rho  > 0.0287+0.506 / pt ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
@@ -1184,7 +1188,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_barrel_medium"    , hovere       ) ) {
+                //if( !config.PassFloat( "cut_hovere_barrel_medium"    , hovere       ) ) {
+                if(  hovere > 0.046+1.16/el_esc+0.0324*rho/el_esc       ) { // hard-coded H/E cut
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
@@ -1192,7 +1197,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
-                if( !config.PassFloat( "cut_isoRho_barrel_medium"   , iso_rho   ) ) {
+                //if( !config.PassFloat( "cut_isoRho_barrel_medium"   ,iso_rho  ) ) {
+                if( iso_rho  > 0.0478+0.506 / pt ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
@@ -1228,7 +1234,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_barrel_loose"    , hovere       ) ) {
+                //if( !config.PassFloat( "cut_hovere_barrel_loose"    , hovere       ) ) {
+                if(  hovere > 0.05 +1.16/el_esc+0.0324*rho/el_esc       ) { // hard-coded H/E cut
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
@@ -1236,7 +1243,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
-                if( !config.PassFloat( "cut_isoRho_barrel_loose"   , iso_rho ) ) {
+                //if( !config.PassFloat( "cut_isoRho_barrel_loose"   ,iso_rho) ) {
+                if( iso_rho  > 0.112+0.506 / pt ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
@@ -1272,7 +1280,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_barrel_veryloose"    , hovere       ) ) {
+                //if( !config.PassFloat( "cut_hovere_barrel_veryloose"    , hovere       ) ) {
+                if(  hovere > 0.05 +1.16/el_esc+0.0324*rho/el_esc       ) { // hard-coded H/E cut
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
@@ -1280,7 +1289,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
-                if( !config.PassFloat( "cut_isoRho_barrel_veryloose"   , iso_rho   ) ) {
+                //if( !config.PassFloat( "cut_isoRho_barrel_veryloose"   ,iso_rho  ) ) {
+                if( iso_rho  > 0.198+0.506 / pt ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
@@ -1320,7 +1330,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_endcap_tight"    , hovere       ) ) {
+                //if( !config.PassFloat( "cut_hovere_endcap_tight"    , hovere       ) ) {
+                if(  hovere > 0.0188+2.06/el_esc+0.183*rho/el_esc       ) { // hard-coded H/E cut
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
@@ -1328,7 +1339,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
-                if( !config.PassFloat( "cut_isoRho_endcap_tight"   , iso_rho   ) ) {
+                //if( !config.PassFloat( "cut_isoRho_endcap_tight"   ,iso_rho  ) ) {
+                if( iso_rho  > 0.0445+0.963/ pt ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
@@ -1365,7 +1377,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_endcap_medium"    , hovere       ) ) {
+                //if( !config.PassFloat( "cut_hovere_endcap_medium"    , hovere       ) ) {
+                if(  hovere > 0.0275+2.52/el_esc+0.183*rho/el_esc       ) { // hard-coded H/E cut
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
@@ -1373,7 +1386,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
-                if( !config.PassFloat( "cut_isoRho_endcap_medium"   , iso_rho   ) ) {
+                //if( !config.PassFloat( "cut_isoRho_endcap_medium"   ,iso_rho  ) ) {
+                if( iso_rho  > 0.0658+0.963/ pt ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
@@ -1409,7 +1423,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_endcap_loose"    , hovere       ) ) {
+                //if( !config.PassFloat( "cut_hovere_endcap_loose"    , hovere       ) ) {
+                if(  hovere > 0.0441+2.54/el_esc+0.183*rho/el_esc       ) { // hard-coded H/E cut
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
@@ -1417,7 +1432,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
-                if( !config.PassFloat( "cut_isoRho_endcap_loose"   , iso_rho   ) ) {
+                //if( !config.PassFloat( "cut_isoRho_endcap_loose"   ,iso_rho  ) ) {
+                if( iso_rho  > 0.108+0.963 / pt ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
@@ -1453,7 +1469,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_endcap_veryloose"    , hovere       ) ) {
+                //if( !config.PassFloat( "cut_hovere_endcap_veryloose"    , hovere       ) ) {
+                if(  hovere > 0.05+2.54/el_esc+0.183*rho/el_esc       ) { // hard-coded H/E cut
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
@@ -1461,7 +1478,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
-                if( !config.PassFloat( "cut_isoRho_endcap_veryloose"   , iso_rho   ) ) {
+                //if( !config.PassFloat( "cut_isoRho_endcap_veryloose"   ,iso_rho  ) ) {
+                if( iso_rho  > 0.203+0.963 / pt ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
@@ -1639,14 +1657,14 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         // taken from https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Recommended_Working_points_for_2
         // Updated Dec 2016
         if( iseb ) {
-            p1_neu = 0.0148;
-            p2_neu = 0.000017;
-            p1_pho = 0.0047;
+            p1_neu = 0.01512;
+            p2_neu = 2.259e-5;
+            p1_pho = 0.004017;
         }
         else {
-            p1_neu = 0.0163;
-            p2_neu = 0.000014;
-            p1_pho = 0.0034;
+            p1_neu = 0.0117;
+            p2_neu = 2.3e-5;
+            p1_pho = 0.0037;
         }
 
         float pfChIsoPtRhoCorr  = pfChIsoRhoCorr;
@@ -1967,39 +1985,39 @@ void RunModule::calc_corr_iso( float chIso, float phoIso, float neuIso, float rh
     float ea_neu=0.0;
 
     if( fabs( eta ) < 1.0 ) {
-        ea_ch = 0.0360;
-        ea_neu = 0.0597;
-        ea_pho = 0.1210;
+        ea_ch = 0.0112;
+        ea_neu = 0.0668;
+        ea_pho = 0.1113;
     }
     else if( fabs(eta) >= 1.0 && fabs( eta ) < 1.479 ) {
-        ea_ch = 0.0377;
-        ea_neu = 0.0807;
-        ea_pho = 0.1107;
+        ea_ch = 0.0108;
+        ea_neu = 0.1054;
+        ea_pho = 0.0953;
     }
     else if( fabs(eta) >= 1.479 && fabs( eta ) < 2.0 ) {
-        ea_ch = 0.0306;
-        ea_neu = 0.0629;
-        ea_pho = 0.0699;
+        ea_ch = 0.0106;
+        ea_neu = 0.0786;
+        ea_pho = 0.0619;
     }
     else if( fabs(eta) >= 2.0 && fabs( eta ) < 2.2 ) {
-        ea_ch = 0.0283;
-        ea_neu = 0.0197;
-        ea_pho = 0.1056;
+        ea_ch = 0.01002;
+        ea_neu = 0.0233;
+        ea_pho = 0.0837;
     }
     else if( fabs(eta) >= 2.2 && fabs( eta ) < 2.3 ) {
-        ea_ch = 0.0254;
-        ea_neu = 0.0184;
-        ea_pho = 0.1457;
+        ea_ch = 0.0098;
+        ea_neu = 0.0078;
+        ea_pho = 0.1070;
     }
     else if( fabs(eta) >= 2.3 && fabs( eta ) < 2.4 ) {
-        ea_ch = 0.0217;
-        ea_neu = 0.0284;
-        ea_pho = 0.1719;
+        ea_ch = 0.0089;
+        ea_neu = 0.0028;
+        ea_pho = 0.1212;
     }
     else if( fabs(eta) >= 2.4 ) {
-        ea_ch = 0.0167;
-        ea_neu = 0.0591;
-        ea_pho = 0.1998;
+        ea_ch = 0.0087;
+        ea_neu = 0.0137;
+        ea_pho = 0.1466;
     }
 
     chIsoCorr  = chIso  - rho*ea_ch;
@@ -2455,7 +2473,7 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
                 for( unsigned j = i+1 ; j < jet_lvs.size(); ++j ) {
 
                     float mass = ( jet_lvs[i] + jet_lvs[j] ).M();
-                    float diff = fabs( 91.2 - mass );
+                    float diff = fabs( _m_z - mass );
 
                     if( diff < min_mass ) {
                         min_mass = diff;
@@ -3562,12 +3580,15 @@ bool RunModule::FilterBlind( ModuleConfig & config ) const {
     bool pass_blind = true;
     if( OUT::ph_n > 0 ) {
         if( !config.PassFloat( "cut_ph_pt_lead", OUT::ph_pt->at(0)) ) pass_blind=false;
+        if( !config.PassBool(  "cut_ph_CSEV", OUT::ph_passEleVeto->at(0) )  // Blinded when it is strictly in signal region defined by both kinds of vetos
+            && !config.PassBool(  "cut_ph_Pixel", OUT::ph_hasPixSeed->at(0) ) 
+            && !config.PassFloat(  "cut_met", OUT::met_pt ) )         pass_blind=false;
     }
     if( !config.PassFloat( "cut_mt_lep_met_ph", OUT::mt_lep_met_ph) ) pass_blind=false;
     if( !config.PassFloat( "cut_mt_res", OUT::mt_res) ) pass_blind=false;
 
     if( OUT::jet_n > 1 ) {
-        if( !config.PassFloat( "cut_abs_dijet_m_from_z", fabs(OUT::leaddijet_m-91.2)) ) pass_blind=false;
+        if( !config.PassFloat( "cut_abs_dijet_m_from_z", fabs(OUT::leaddijet_m-_m_z)) ) pass_blind=false;
     }
 
     if( !pass_blind ) {
@@ -3889,21 +3910,17 @@ bool RunModule::HasTruthMatch( const TLorentzVector & objlv, const std::vector<i
 
 RunModule::RunModule() {
     _m_w = 80.385;
+    _m_z = 91.2;
     _isData = false;
-    
-    // Initialize the boolen data members
-    _eval_mu_tight = false;
-    _eval_mu_medium = false;
-    _eval_mu_loose = false;
-
-    _eval_ph_tight = false;
-    _eval_ph_medium = false;
-    _eval_ph_loose = false;
-
-    _eval_el_tight = false;
-    _eval_el_medium = false;
-    _eval_el_loose = false;
-    _eval_el_veryloose = false;
-
-    _needs_nlo_weght = false;
+    _eval_mu_loose    =false;
+    _eval_mu_medium   =false;
+    _eval_mu_tight    =false;
+    _eval_ph_tight    =false;
+    _eval_ph_medium   =false;
+    _eval_ph_loose    =false;
+    _eval_el_tight    =false;
+    _eval_el_medium   =false;
+    _eval_el_loose    =false;
+    _eval_el_veryloose=false;
+    _needs_nlo_weght  =false;
 }
