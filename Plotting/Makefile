@@ -13,6 +13,8 @@ DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2018_08_13
 
 DIR_SIGTruth=/data/users/friccita/WGamma/WG_Analysis/Resonances/SigNoFilt_2018_02_02
 
+DIR_Combine=/data/users/fengyb/CMSSW_8_1_0/src
+
 
 all : plots workspaces limits
 
@@ -57,7 +59,7 @@ workspaces :
 
 fits :
 	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
-	python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir /data/users/fengyb/CMSSW_8_1_0/src/HiggsAnalysis/CombinedLimit --outputDir /data/users/fengyb/CMSSW_8_1_0/src/TEST --doVarOptimization
+	python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir ${DIR_Combine}/HiggsAnalysis/CombinedLimit --outputDir ${DIR_Combine}/TEST --doVarOptimization
 
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits

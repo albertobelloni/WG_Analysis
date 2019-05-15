@@ -108,29 +108,42 @@ In theory the cuts should be the same so you don't need to change other settings
 
 ## To play with the Plots and limits
 
-Go to the Plotting directory first. Do
+Go to the Plotting directory first. Open the Makefile, change the `OUTPUTMAIN` to wherever you want to save the results. 
+
+Do
 ```
 root -l My_double_CB/RooDoubleCB.cc+
 ```
-to compile Double Crystal Ball
+to compile Double Crystal Ball. (This function is taken from the HiggsCombine code ([Here](https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/blob/master/src/HZZ2L2QRooPdfs.cc#L73).))
 
 ```
 make signal
 ```
-to fit the signal templates with double sided crystal ball function and save the fit results (pdfs, vars and norms) into the workspace. After this, a new directory will be created with some root files under:
+to fit the signal templates with double sided crystal ball function and save the fit results (pdfs, vars and norms) into the workspace. After this, a new directory will be created with some root files containing the signal workspaces and fitting plots under the `OUTPUTMAIN` directory you just set.
 
-```
-~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_02_15
-```
-
-After the signal part, you can do
+After preparing the signal workspaces, you can do
 ```
 make mcbkg
 ```
-to prepare the bkg templates for different backgrounds. The default is WGamma only. One could change this in the Makefile. New root files with workspaces for backgrounds will be created in the above directory as well.
+to prepare the bkg templates for different backgrounds. The default is WGamma only. One could change this in the Makefile. Similarly, new root files with workspaces for backgrounds and fitting plots will be created in the `OUTPUTMAIN` directory as well.
 
-When the signal and bkg are all done, if you want to run the limit settings, first you have to get the Higgs Combine code compiled first. (TODO: add the link and instructions.) Asumming you have done it, change the directory after `combineDir` in the Makefile. Then
+When the signal and bkg are all done, if you want to run the limit settings, first you have to set up and compile the Higgs Combine code.
+Create a new directory wherever you like and follow the instructions from 
+
+[https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/)
+
+(For now we are using the CMSSW_8_1_X version. So you could follow the instructions starting from 
+
+[https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#slc6cc7-release-cmssw_8_1_x](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#slc6cc7-release-cmssw_8_1_x)
+
+) 
+
+(In the last step, instead of `scramv1 b`, you may want to do `scramv1 b -j 6` or `scramv1 b -j 8` to increase the number of CPUs used for compiling, in order to speed things up.)
+
+After compiling the HiggsCombine code, change the `DIR_Combine` in the Makefile to the src location of the CMSSW_8_1_X you just set. Then do
 ```
 make fits
 ```
-This will generate the datacard and the code to run combine, and submit the jobs to condor. It might take one minute to finish, and finally you will get the limit on the signal strength.
+This will collect the signal and background workspaces, generate the datacard and the code to run combine, and submit the jobs to condor. All these will be saved in the subdirectory under the `DIR_Combine/TEST`. It might take a few mintues to finish, and after that you will get a few json files with limits for different signal widths and masses, saved in the same directory.
+
+Finally you can load the json file and plot the limits. [CombineHarvester](https://cms-analysis.github.io/CombineHarvester/limits.html) has provided some functions and scripts for that. Search 'Plotting' from the above link and you will find some useful information.
