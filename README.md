@@ -134,7 +134,11 @@ Follow the instructions from
 
 [https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/)
 
-( For now we are using the CMSSW_8_1_X version.) 
+( For now we are using the CMSSW_8_1_X version. So you could follow the instructions starting from 
+
+[https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#slc6cc7-release-cmssw_8_1_x](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/#slc6cc7-release-cmssw_8_1_x)
+
+) 
 
 After compiled the HiggsCombine code, change the `DIR_Combine` in the Makefile to the src location of the CMSSW_8_1_X you just set. Then do
 ```
