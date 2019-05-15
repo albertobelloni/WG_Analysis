@@ -146,4 +146,4 @@ make fits
 ```
 This will collect the signal and background workspaces, generate the datacard and the code to run combine, and submit the jobs to condor. All these will be saved in the subdirectory under the `DIR_Combine/TEST`. It might take a few mintues to finish, and after that you will get a few json files with limits for different signal widths and masses, saved in the same directory.
 
-Finally you can load the json file and plot the limits. [CombineHarvester](https://cms-analysis.github.io/CombineHarvester/limits.html) has provided some functions and scripts for that. Search 'Plotting' from the above link and you will find some usefuly information.
+Finally you can load the json file and plot the limits. [CombineHarvester](https://cms-analysis.github.io/CombineHarvester/limits.html) has provided some functions and scripts for that. Search 'Plotting' from the above link and you will find some useful information.
