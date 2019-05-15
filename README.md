@@ -129,7 +129,14 @@ make mcbkg
 ```
 to prepare the bkg templates for different backgrounds. The default is WGamma only. One could change this in the Makefile. New root files with workspaces for backgrounds will be created in the above directory as well.
 
-When the signal and bkg are all done, if you want to run the limit settings, first you have to get the Higgs Combine code compiled first. (TODO: add the link and instructions.) Asumming you have done it, change the directory after `combineDir` in the Makefile. Then
+When the signal and bkg are all done, if you want to run the limit settings, first you have to get the Higgs Combine code compiled first.
+Follow the instructions from 
+
+[https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/](https://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/)
+
+( For now we are using the CMSSW_8_1_X version.) 
+
+After compiled the HiggsCombine code, change the `DIR_Combine` in the Makefile to the src location of the CMSSW_8_1_X you just set. Then do
 ```
 make fits
 ```
