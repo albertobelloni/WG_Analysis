@@ -190,44 +190,44 @@ def main() :
 
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch], 'WGamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'WGamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
             if options.doTopGamma : 
 
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch], 'TTG',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttg,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'TTG',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttg,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots")
 
             if options.doTop :
 
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch], 'TTbar',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttbar,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'TTbar',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttbar,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
             if options.doZGamma: 
 
 
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch], 'Zgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_zgamma,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'Zgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_zgamma,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots")
 
             if options.doWJets:
  
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch], 'Wjets', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wjets,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'Wjets', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wjets,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
             if options.doGammaGamma:
 
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch], 'GammaGamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_gammagamma,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch], 'GammaGamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_gammagamma,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
             if options.doAll:
                
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch],  [ 'WGamma', 'TTG', 'TTbar', 'Zgamma', 'Wjets', 'GammaGamma' ], seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_backgrounds,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ) )
+                    get_mc_fit( lepg_samps[ch],  [ 'WGamma', 'TTG', 'TTbar', 'Zgamma', 'Wjets', 'GammaGamma' ], seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_backgrounds,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
 
     if options.outputDir is not None :
@@ -267,7 +267,10 @@ def main() :
         #    result.Print()
 
 
-def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning, workspace, extra_label = "Muon Channel", suffix='' ) :
+def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning, workspace, extra_label = "Muon Channel", suffix='' , plots_dir = "plots") :
+
+    if not os.path.isdir( plots_dir ) :
+       os.makedirs( plots_dir )
 
     print "\n *****************\n calling get_mc_fit for, ", sampnames, "\n *********************\n"
 
@@ -317,7 +320,7 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
     #results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
     #fitManager.save_fit( sampMan, workspace, logy = True, stats_pos='right', extra_label = extra_label)
     canv = fitManager.draw( subplot = "pull" )
-    canv.Print("plots/%s.pdf"%label )
+    canv.Print("%s/%s.pdf"%(plots_dir, label) )
 
     return results
 
