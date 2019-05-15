@@ -1035,11 +1035,11 @@ class MakeLimits( ) :
                             combine_results[var][pt] = 0
 
         if not os.path.isdir( self.outputDir+'/Results' ) :
-               print "creating directory %s/results"%self.outputDir
+               print "creating directory %s/Results"%self.outputDir
                os.makedirs( self.outputDir+'/Results' ) 
 
         for width in self.widthpoints:
-            print "limits on the cross section for signals with %s width saved to %s/Results"%( width, self.outputDir )
+            print "\033[1;31m limits on the cross section for signals with %s width saved to %s/Results \033[0m"%( width, self.outputDir )
             with open('%s/Results/result_%s_%s.json'%(self.outputDir, width, self.bins[0]['channel']), 'w') as fp:
                  json.dump(combine_results[width], fp)
 
