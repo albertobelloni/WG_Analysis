@@ -152,7 +152,7 @@ def make_final_mu( alg_list, args) :
 
     el_pt = args.get( 'el_pt', ' > 10 ' )
     mu_pt = args.get( 'mu_pt', ' > 10 ' )
-    ph_pt = args.get( 'ph_pt', ' > 10 ' )
+    ph_pt = args.get( 'ph_pt', ' > 15 ' )
     muphtrig = args.get( 'muphtrig', 'False' )
     phot_vars = args.get( 'phot_vars', ' False ' )
     phot_id = args.get( 'phot_id', 'medium' )
@@ -184,7 +184,7 @@ def make_final_el( alg_list, args) :
 
     mu_pt = args.get( 'mu_pt', ' > 10 ' )
     el_pt = args.get( 'el_pt', ' > 10 ' )
-    ph_pt = args.get( 'ph_pt', ' > 10 ' )
+    ph_pt = args.get( 'ph_pt', ' > 15 ' )
     phot_vars = args.get( 'phot_vars', 'False' )
     phot_id = args.get( 'phot_id', 'medium' )
     ph_eta = args.get( 'ph_eta', None )
@@ -218,7 +218,7 @@ def make_final_elg( alg_list, args) :
 
     mu_pt = args.get( 'mu_pt', ' > 10 ' )
     el_pt = args.get( 'el_pt', ' > 10 ' )
-    ph_pt = args.get( 'ph_pt', ' > 10 ' )
+    ph_pt = args.get( 'ph_pt', ' > 15 ' )
     phot_vars = args.get( 'phot_vars', 'False' )
     phot_id = args.get( 'phot_id', 'medium' )
     ph_eta = args.get( 'ph_eta', None )
@@ -273,7 +273,7 @@ def make_final_mug( alg_list, args) :
 
     el_pt = args.get( 'el_pt', ' > 10 ' )
     mu_pt = args.get( 'mu_pt', ' > 10 ' )
-    ph_pt = args.get( 'ph_pt', ' > 10 ' )
+    ph_pt = args.get( 'ph_pt', ' > 15 ' )
     muphtrig = args.get( 'muphtrig', 'False' )
     phot_vars = args.get( 'phot_vars', ' False ' )
     phot_id = args.get( 'phot_id', 'medium' )
@@ -382,7 +382,7 @@ def make_nofilt( alg_list, args ) :
         alg_list.append( filter_muon( mu_pt = ' > 10 ' ) )
         alg_list.append( filter_electron( el_pt = ' > 10 ' ) )
 
-    alg_list.append( filter_photon( ph_pt = ' > 10 ', id_cut = 'medium'   )  )
+    alg_list.append( filter_photon( ph_pt = ' > 15 ', id_cut = 'medium'   )  )
 
     alg_list.append( filter_trigger() )
     alg_list.append( filter_met() )
@@ -396,7 +396,6 @@ def filter_trigger() :
     filter_trigger = Filter('FilterTrigger')
 
     # this will store branches for only these triggers
-    #filter_trigger.add_var( 'triggerBits', '23:HLT_IsoMu24,31:HLT_IsoTkMu24,60:HLT_Ele27_eta2p1_WPTight_Gsf' )
     filter_trigger.add_var( 'triggerBits', '9:HLT_IsoMu24,28:HLT_Ele35_WPTight_Gsf,10:HLT_IsoMu27,48:HLT_Photon200,27:HLT_Ele32_WPTight_Gsf_L1DoubleEG')
     # this will store branches for all triggers found in the provided tree
     filter_trigger.add_var( 'AuxTreeName', 'UMDNTuple/TrigInfoTree' )
