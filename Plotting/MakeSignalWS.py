@@ -185,7 +185,7 @@ def main() :
                                     
             for name, vardata in kine_vars.iteritems() :
 
-                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspaces_to_save, suffix='%s_%s_%s'%(ch,name,seltag ))
+                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspaces_to_save, suffix='%s_%s_%s'%(ch,name,seltag ), plots_dir = options.outputDir + "/plots")
 
     if options.outputDir is not None :
 
@@ -207,9 +207,12 @@ def main() :
     #    result.Print()
 
 
-def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspaces_to_save,  suffix) : 
+def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspaces_to_save,  suffix, plots_dir = 'plots') : 
 
     sampMan.clear_hists()
+
+    if not os.path.isdir( plots_dir ) :
+       os.makedirs( plots_dir )
 
     for samp in sampMan.get_samples(isSignal=True ) :
 
@@ -339,7 +342,8 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             fitManager.get_results( workspace )
             #fitManager.save_fit( sampMan, workspace, stats_pos='left' , extra_label = extra_label , plotParam =True)
             canv = fitManager.draw( subplot = "pull" )
-            canv.Print("plots/%s.pdf"%full_suffix )
+
+            canv.Print("%s/%s.pdf"%(plots_dir, full_suffix) )
             print "************"
             print " RooFitResult Status: %d"%fitManager.roofitresult.status()
             print "************"
