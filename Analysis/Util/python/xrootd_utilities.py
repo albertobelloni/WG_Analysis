@@ -36,10 +36,15 @@ def walk_xrd(url,path) :
 
     dirs, files, sizes = parse_xrd_dir(url,path)
     yield path, dirs, files, sizes
-    if len(dirs) > 0 :
-        for d in dirs :
-            for new_path, new_dirs, new_files, new_sizes in walk_xrd(url,d) :
-                yield new_path, new_dirs, new_files, new_sizes
+    for d in dirs :
+        for new_path, new_dirs, new_files, new_sizes in walk_xrd(url,d) :
+            yield new_path, new_dirs, new_files, new_sizes
+    for f,s in zip(files,sizes):
+      if s<500 and s>10 and ".root" not in f and ".txt" not in f:
+        ## possibly a soft link
+        for new_path, new_dirs, new_files, new_sizes in walk_xrd(url,f) :
+            yield new_path, new_dirs, new_files, new_sizes
+
 
 #---------------------------------------------------------
 def parse_xrd_dir(url, path, DEBUG=False) :
