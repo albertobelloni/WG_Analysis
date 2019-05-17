@@ -129,7 +129,10 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     
                 print tPurple %command
                 if not dry_run :
-                    os.system(command)
+                    returncode = os.system(command)
+                    if returncode>=256:
+                         print returncode
+                         raise KeyboardInterrupt
                 if first_data :
                     first_data = False
     
@@ -200,7 +203,11 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     
                 print tPurple %command
                 if not dry_run :
-                    os.system(command)
+                     returncode=os.system(command)
+                     if returncode>=256:
+                         print returncode
+                         raise KeyboardInterrupt
+
                 if first_mc :
                     first_mc = False
     
