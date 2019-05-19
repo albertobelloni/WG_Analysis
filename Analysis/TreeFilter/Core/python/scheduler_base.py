@@ -44,6 +44,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     nproc              = options.get('nproc'              , 1             )
     resubmit           = options.get('resubmit'           , False         )
     enableKeepFilter   = options.get('enableKeepFilter'   , False         )
+    totalEvents        = options.get('totalEvents'        , False         )
     enableRemoveFilter = options.get('enableRemoveFilter' , False         ) 
     disableOutputTree  = options.get('disableOutputTree'  , False         )
     PUPath             = options.get('PUPath'             , None          )
@@ -94,6 +95,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 keepSelection   = config.get('keepSelection'  , None )
                 removeSelection = config.get('removeSelection', None )
 
+                if totalEvents :
+                    command += ' --totalEvents %i' %totalEvents
                 if enableKeepFilter :
                     command += ' --enableKeepFilter '
                     if keepSelection is not None :
@@ -168,6 +171,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 keepSelection   = config.get('keepSelection'  , None )
                 removeSelection = config.get('removeSelection', None )
 
+                if totalEvents :
+                    command += ' --totalEvents %i' %totalEvents
                 if enableKeepFilter :
                     command += ' --enableKeepFilter '
                     if keepSelection is not None :
