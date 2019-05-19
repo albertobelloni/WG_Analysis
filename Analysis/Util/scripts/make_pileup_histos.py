@@ -16,8 +16,8 @@ parser.add_argument('--treeName', dest='treeName', default='UMDNTuple/EventTree'
 options = parser.parse_args()
 
 _NTUPLE_DIR = '/store/user/kawong/WGamma'
-options.version = 'UMDNTuple_20190329test'
-options.outputDir = '/data/users/kakw/Resonances2017/pileup3'
+options.version = 'UMDNTuple_0506_2016'
+options.outputDir = '/data2/users/kakw/Resonances2016/pileup'
 
 def main() :
 

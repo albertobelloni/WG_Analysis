@@ -1240,7 +1240,7 @@ def create_job_desc_file(command_info, kwargs) :
                     #'notify_user = kakw@umd.edu',
                     'notification = Error',
                     'MINUTE      = 60',
-                    'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 600 * $(MINUTE)',
+                    'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60 * $(MINUTE)',
                     'periodic_release = NumJobStarts<5',
                     #'# Copy output files when done.  REQUIRED to run in a protected directory',
                     #'when_to_transfer_output = ON_EXIT_OR_EVICT',
@@ -1264,7 +1264,7 @@ def create_job_desc_file(command_info, kwargs) :
                          'Initialdir = %s' %initialdir,
                          '# This is the argument line to the Executable',
                          'MINUTE = 60',
-                         'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 120*$(MINUTE)',
+                         'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60*$(MINUTE)',
                          'periodic_release = NumbJobStarts<5',
                          'Requirements = TARGET.Machine =!= "siab-1.umd.edu"'
                         ]
