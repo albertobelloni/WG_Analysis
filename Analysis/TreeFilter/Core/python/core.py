@@ -485,7 +485,7 @@ def collect_input_files( filesDir, filekey='.root', write_file_list=False, read_
 
 def collect_input_files_local( filesDir, filekey='.root' ) :
     input_files = []
-    for top, dirs, files in os.walk(filesDir) :
+    for top, dirs, files in os.walk(filesDir, followlinks=True) :
         for f in files :
             if f.count(filekey) > 0 and os.path.isfile( top+'/'+f ) :
                 ## skip the failed directories

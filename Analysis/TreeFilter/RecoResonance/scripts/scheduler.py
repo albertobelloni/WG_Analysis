@@ -25,7 +25,8 @@ options.batch = ( not options.local )
 #base = '/store/user/jkunkle'
 #base = '/store/user/yofeng/WGamma'
 #base = '/store/user/kawong/WGamma'
-base = 'root://eoscms.cern.ch:1094///store/group/phys_exotica/Wgamma'
+#base = 'root://eoscms.cern.ch:1094///store/group/phys_exotica/Wgamma'
+base = '/eos/cms/store/group/phys_exotica/Wgamma'
 options.nFilesPerJob = 10
 
 options.nproc = 1
@@ -35,11 +36,12 @@ options.copyInputFiles=False
 options.enableKeepFilter=True
 options.enableRemoveFilter=False
 options.filekey = 'ntuple'
-options.year = 2016
+options.year = 2018
 #options.PUPath='/data/users/jkunkle/Resonances/PileupHistograms'
 #options.PUPath='/data/users/friccita/WGammaNtuple/Pileup'
 #options.PUPath='/data/users/kakw/Resonances2017/pileuptest/' ## testonly
-options.PUPath='/data/users/kakw/Resonances2017/pileup3'
+#options.PUPath='/data/users/kakw/Resonances2017/pileup3'
+if options.year==2018: options.PUPath='/afs/cern.ch/work/k/kawong/Resonances2018/pileup'
 if options.year==2016: options.PUPath='/data2/users/kakw/Resonances2016/pileup/'
 options.usexrd = True
 
@@ -51,7 +53,8 @@ if options.test :
     options.local = True
 
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
-output_base = '/data2/users/kakw/Resonances%i/' %options.year
+#output_base = '/data2/users/kakw/Resonances%i/' %options.year
+output_base = '/afs/cern.ch/work/k/kawong/Resonances%i/' %options.year
 jobtag = '_2019_05_15'
 
 #version = 'UMDNTuple_0620'
@@ -65,6 +68,39 @@ version_data = 'UMDNTuple_0506'
 #version_madgraph = 'UMDNTuple_20190329test'
 #version_g = 'UMDNTuple_20190329testg'
 #version_reminiAOD=''
+
+jobs2018 = [
+        #--------------------------
+
+        #JobConf(base,'EGamma',version=version2018,year=2018, isData=True),
+        #JobConf(base,'SingleMuon',version=version2018,year=2018, isData=True),
+        JobConf(base,'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8',version=version2018,year=2018, tags=['NLO']),
+        JobConf(base,'TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2018,year=2018, tags=['NLO']),
+        JobConf(base,'TTJets_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2018,year=2018, tags=['NLO']),
+        JobConf(base,'WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'WWG_TuneCP5_13TeV-amcatnlo-pythia8',version=version2018,year=2018, tags=['NLO']),
+        JobConf(base,'WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8',version=version2018,year=2018),
+        JobConf(base,'WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8',version=version2018,year=2018, tags=['NLO']),
+        JobConf(base,'ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2018,year=2018, tags=['NLO']),
+        ]
 
 jobs2017 = [
         #--------------------------
@@ -299,7 +335,7 @@ jobs2016 = [
 
 if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
-if options.year==2018: jobs=jobs2018 ## does not exist yet
+if options.year==2018: jobs=jobs2018 
 
 
 args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
