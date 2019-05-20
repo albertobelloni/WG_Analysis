@@ -48,6 +48,7 @@ options.usexrd = True
 if options.test : 
     options.nproc = 1
     options.nFilesPerJob = 1
+    options.totalEvents = 20001
     options.nJobs = 1
     options.batch = False
     options.local = True

@@ -114,7 +114,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                     if _AT_UMD :
                         command += ' --condor '
                     else :
-                        command += ' --batch '
+                        command += ' --condor '
+                    #    command += ' --batch '
 
                     if copyInputFiles :
                         command += ' --copyInputFiles '
@@ -193,7 +194,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                     if _AT_UMD :
                         command += ' --condor '
                     else :
-                        command += ' --batch '
+                        command += ' --condor '
+                        #command += ' --batch '
 
                     if copyInputFiles :
                         command += ' --copyInputFiles '

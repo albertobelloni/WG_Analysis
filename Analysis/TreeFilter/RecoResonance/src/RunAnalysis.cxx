@@ -826,7 +826,7 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
     bool save_event = true;
     printevent = false;
     if( IN::eventNumber== 25 || IN::eventNumber==15 || IN::eventNumber==164 ) printevent = true;
-    if( IN::eventNumber%1000 ==0 ) printevent = true;
+    if( IN::eventNumber%10000 ==0 ) printevent = true;
     if( printevent ) std::cout << " eventNumber " << IN::eventNumber << std::endl;
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
         save_event &= ApplyModule( mod_conf );

@@ -275,7 +275,7 @@ Cut::Cut( CutType::Op in_op, CutType::Type in_type, CutType::Comp in_comp,
     val_int ( in_val_int ),
     val_float( in_val_float )
 {
-  Print();
+  //Print();
 }
 
 void Cut::Print() const{ 
@@ -365,6 +365,7 @@ CutConfig::CutConfig( const std::string &cut_str ) {
         cut_comp = CutType::OR;
     }
     
+    //std::cout<< name << std::endl; 
     BOOST_FOREACH( const std::string & val_orig, each_cut ) {
       
         // copy the value string and set it to lower case (mainly for True/False -> true/false )
@@ -405,7 +406,6 @@ CutConfig::CutConfig( const std::string &cut_str ) {
         conf_cut.push_back( Cut(cut_op, cut_type, cut_comp, cut_val_bool, cut_val_int, cut_val_float) );
     }
 
-    std::cout<< name << std::endl; 
     SetName( name );
     SetCuts( conf_cut );
     SetIsInverted( should_invert );
