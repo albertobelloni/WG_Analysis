@@ -169,17 +169,15 @@ def main() :
 
     selections = { 'base'    : { 
                                  'mu' : {'selection' : sel_base_mu }, 
-                                 #'el' : { 'selection' : sel_base_el }, 
+                                 'el' : { 'selection' : sel_base_el }, 
                                },
                    #'jetVeto' : { 'mu' : {'selection' : sel_jetveto_mu }, 
                    #              'el' : { 'selection' : sel_jetveto_el } ,
                    #            },
                  }
 
-    #lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
-    lepg_samps = {'mu' : sampManMuG }
-
-    tf1file = ROOT.TFile("/home/fengyb/Plots/Resonance/Plots_2018_01_22/SignalWS/result.root")
+    lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
+    #lepg_samps = {'mu' : sampManMuG }
 
     for seltag, chdic in selections.iteritems() : 
 
@@ -187,7 +185,7 @@ def main() :
                                     
             for name, vardata in kine_vars.iteritems() :
 
-                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspaces_to_save, tf1file, suffix='%s_%s_%s'%(ch,name,seltag ))
+                make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspaces_to_save, suffix='%s_%s_%s'%(ch,name,seltag ), plots_dir = options.outputDir + "/plots")
 
     if options.outputDir is not None :
 
@@ -200,24 +198,21 @@ def main() :
 
             ws.writeToFile( '%s/%s.root' %( options.outputDir, fileid ) )
 
-        #for key, can in sampManMuG.outputs.iteritems() :
-        #    can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
+    #for key, result in sampManMuG.fitresults.iteritems():
+    #    print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManMuG.chi2[key])
+    #    result.Print()
 
-        #for key, can in sampManElG.outputs.iteritems() :
-        #    can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-
-    for key, result in sampManMuG.fitresults.iteritems():
-        print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManMuG.chi2[key])
-        result.Print()
-
-    for key, result in sampManElG.fitresults.iteritems():
-        print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManElG.chi2[key])
-        result.Print()
+    #for key, result in sampManElG.fitresults.iteritems():
+    #    print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManElG.chi2[key])
+    #    result.Print()
 
 
-def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspaces_to_save, tf1file, suffix) : 
+def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, workspaces_to_save,  suffix, plots_dir = 'plots') : 
 
     sampMan.clear_hists()
+
+    if not os.path.isdir( plots_dir ) :
+       os.makedirs( plots_dir )
 
     for samp in sampMan.get_samples(isSignal=True ) :
 
@@ -249,8 +244,8 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
            continue
         #if width != 0.05:
         #   continue
-        #if mass < 2000:
-        #   continue
+        if mass > 2000 or mass < 300:
+           continue
         #if mass != 1200:
         #   continue
 
@@ -321,234 +316,37 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
 
             #histpdf = ROOT.RooHistPdf( 'srhistpdf_%s' %(full_suffix), 'srhistpdf' , ROOT.RooArgSet( xvar), datahist, 3 )
 
-            #if width == 1e-4:
-            #   fit_max = mass*1.10
-            #   fit_min = mass*0.65
-            #   if mass >= 1000 :
-            #      fit_max = mass*1.05
-            #      fit_min = mass*0.7
-            #else:
-            #   fit_max = mass*1.15
-            #   fit_min = mass*0.48
+            assert "mu" in suffix or "el" in suffix, "suffix %s must contain the mu or el channel."%suffix
 
-            #fit_min = fit_min if fit_min > 200.0 else 200.0
-
-            workspace   = ROOT.RooWorkspace( 'workspace_signal_Mass_%d_Width_%s'%(mass, wid) )
-
-            if width == 1e-4:
-               fit_max = mass*1.15
-               fit_min = mass*0.60
-               if mass >= 1000 :
-                  fit_max = mass*1.10
-                  fit_min = mass*0.65
+            if 'mu' in suffix:
+               workspace  = ROOT.RooWorkspace( 'workspace_signal_Mass_%d_Width_%s_mu'%(mass, wid) )
             else:
-               fit_max = mass*1.20
-               fit_min = mass*0.45
+               workspace  = ROOT.RooWorkspace( 'workspace_signal_Mass_%d_Width_%s_el'%(mass, wid) )
 
-            fit_min = fit_min if fit_min > 200.0 else 200.0
+            fit_max = mass * 1.20
+            fit_min = max ( mass * 0.50,  200.0 )
 
             ## set the fit range
             xvar.setMin( fit_min )
             xvar.setMax( fit_max )
 
-
-            fitManager = FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
+            #fitManager = FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
+                                    #sample_params={'mass' : mass, 'width' : width}, )
+            fitManager = FitManager( 'dscb',  hist=hist_sr,  xvardata = xvar, label = full_suffix,
                                     sample_params={'mass' : mass, 'width' : width}, )
 
-            fitManager.make_func_pdf()
-            if width==1e-4:
-               ikey = "0p01"
-            else:
-               ikey = "5"
-            '''
-            fitManager.fit_params['cb_mass'].setVal(tf1file.Get("func_cb_mass_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_mass'].setConstant()
-            fitManager.fit_params['cb_mass'].setError(0.0)
-            fitManager.fit_params['cb_sigma'].setVal(tf1file.Get("func_cb_sigma_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_sigma'].setConstant()
-            fitManager.fit_params['cb_sigma'].setError(0.0)
-            fitManager.fit_params['cb_cut1'].setVal(tf1file.Get("func_cb_cut1_%s_MadGraph"%ikey).Eval(mass))
-            fitManager.fit_params['cb_cut1'].setConstant()
-            fitManager.fit_params['cb_cut1'].setError(0.0)
-            '''
-            fitManager.fit_histogram(workspace )
-            fitManager.save_fit( sampMan, workspace, stats_pos='left' , extra_label = None, plotParam =False)
+            #fitManager.make_func_pdf()
+            fitManager.setup_fit()
+            #fitManager.fit_histogram(workspace )
+            fitManager.run_fit_minuit( fitrange = (fit_min, fit_max) )
+            fitManager.get_results( workspace )
+            #fitManager.save_fit( sampMan, workspace, stats_pos='left' , extra_label = extra_label , plotParam =True)
+            canv = fitManager.draw( subplot = "pull" )
+
+            canv.Print("%s/%s.pdf"%(plots_dir, full_suffix) )
             print "************"
             print " RooFitResult Status: %d"%fitManager.roofitresult.status()
             print "************"
-            '''
-            iter_managers = []
-            iter_managers.append( fitManager )
-
-            saved_result = False
-            for i in range( 0, 4 ) :
-            #for i in [0.5, 0.3, 0.2, 0.1, 0.05] :
-
-                print 'GOTHERE1'
-                iter_managers.append(FitManager( 'bwxcb', 0, samp.name, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
-                                        sample_params={'mass' : mass, 'width' : width}, ))
-
-                print 'GOTHERE2'
-                cv_sigma = iter_managers[-2].fit_params['cb_sigma'].getValV()
-                lo_sigma = iter_managers[-2].fit_params['cb_sigma'].getErrorLo()
-                hi_sigma = iter_managers[-2].fit_params['cb_sigma'].getErrorHi()
-                cv_power = iter_managers[-2].fit_params['cb_power'].getValV()
-                lo_power = iter_managers[-2].fit_params['cb_power'].getErrorLo()
-                hi_power = iter_managers[-2].fit_params['cb_power'].getErrorHi()
-                cv_mass  = iter_managers[-2].fit_params['cb_mass'].getValV()
-                lo_mass  = iter_managers[-2].fit_params['cb_mass'].getErrorLo()
-                hi_mass  = iter_managers[-2].fit_params['cb_mass'].getErrorHi()
-
-                err_sigma = hi_sigma/cv_sigma
-                err_power = hi_power/cv_power
-                err_mass = hi_mass/cv_mass
-
-                #new_lim_sigma = ( cv_sigma, cv_sigma*(1-i), cv_sigma*(1+i)) 
-                #new_lim_power = ( cv_power, cv_power*(1-i), cv_power*(1+i) ) 
-                #new_lim_mass  = ( cv_mass, cv_mass*(1-i), cv_mass*(1+i)    ) 
-
-                new_lim_sigma = ( cv_sigma, cv_sigma+lo_sigma, cv_sigma+hi_sigma) 
-                new_lim_power = ( cv_power, cv_power+lo_power, cv_power+hi_power ) 
-                new_lim_mass  = ( cv_mass,  cv_mass+lo_mass, cv_mass+hi_mass    ) 
-
-                #if cv_sigma < 0 :
-                #    new_lim_sigma = ( new_lim_sigma[0], new_lim_sigma[2], new_lim_sigma[1]) 
-                #if cv_power < 0 :
-                #    new_lim_power = ( new_lim_power[0], new_lim_power[2], new_lim_power[1]) 
-                #if cv_mass < 0 :
-                #    new_lim_mass = ( new_lim_mass[0], new_lim_mass[2], new_lim_mass[1] ) 
-
-                print 'NEW DEFAULTS'
-                print new_lim_sigma
-                print new_lim_power
-                print new_lim_mass
-
-                iter_managers[-1].set_vals('cb_sigma', mass, new_lim_sigma )
-                iter_managers[-1].set_vals('cb_power', mass, new_lim_power )
-                iter_managers[-1].set_vals('cb_mass',  mass, new_lim_mass  )
-
-                print 'GOTHERE3'
-                iter_managers[-1].fit_histogram(  )
-                print 'GOTHERE4'
-
-                cv_sigma_new = iter_managers[-1].fit_params['cb_sigma'].getValV()
-                lo_sigma_new = iter_managers[-1].fit_params['cb_sigma'].getErrorLo()
-                hi_sigma_new = iter_managers[-1].fit_params['cb_sigma'].getErrorHi()
-                cv_power_new = iter_managers[-1].fit_params['cb_power'].getValV()
-                lo_power_new = iter_managers[-1].fit_params['cb_power'].getErrorLo()
-                hi_power_new = iter_managers[-1].fit_params['cb_power'].getErrorHi()
-                cv_mass_new  = iter_managers[-1].fit_params['cb_mass'].getValV()
-                lo_mass_new  = iter_managers[-1].fit_params['cb_mass'].getErrorLo()
-                hi_mass_new  = iter_managers[-1].fit_params['cb_mass'].getErrorHi()
-
-                err_sigma_new = hi_sigma_new/cv_sigma_new
-                err_power_new = hi_power_new/cv_power_new
-                err_mass_new = hi_mass_new/cv_mass_new
-
-                print 'Sigma : Previous error = %f, new error = %f' %( err_sigma, err_sigma_new )
-                print 'Power : Previous error = %f, new error = %f' %( err_power, err_power_new )
-                print 'Mass : Previous error = %f, new error = %f' %( err_mass, err_mass_new )
-
-                print 'GOTHERE5'
-                # if we get worse results with the new fit, then use the previous one
-                if math.fabs(err_sigma_new) > math.fabs(err_sigma) or math.fabs(err_power_new) > math.fabs(err_power) or math.fabs(err_mass_new) > math.fabs(err_mass) :
-                    print 'GOTHERE6'
-                    iter_managers[-2].save_fit( sampMan, workspace, stats_pos='left' )
-                    print 'GOTHERE7'
-                    saved_result = True
-                    break
-
-            # if we haven't saved the fit yet, then the best
-            # version is the latest
-            if not saved_result :
-                print 'GOTHERE8'
-                iter_managers[-1].save_fit(sampMan, workspace, stats_pos='left' )
-                print 'GOTHERE9'
-
-            '''
-
-
-
-            #cb_sigma.setVal( cb_sigma.getValV() )
-            #cb_sigma.setMin( cb_sigma.getValV() - cb_sigma.getErrorLo() )
-            #cb_sigma.setMin( cb_sigma.getValV() + cb_sigma.getErrorHi() )
-            #model.fitTo( datahist, ROOT.RooFit.Range( fit_min, fit_max) ,ROOT.RooFit.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) )
-
-            ## Construct unbinned likelihood of model w.r.t. data
-            #nll = model.createNLL(datahist) ;
-            #raw_input('cont1')
-            ##// I n t e r a c t i v e   m i n i m i z a t i o n ,   e r r o r   a n a l y s i s
-            ##// -------------------------------------------------------------------------------
-            ##// Create MINUIT interface object
-            #m = ROOT.RooMinimizer(nll) 
-            #raw_input('cont2')
-            ##// Activate verbose logging of MINUIT parameter space stepping
-            #m.setVerbose(ROOT.kTRUE) 
-            #raw_input('cont3')
-            ##// Call MIGRAD to minimize the likelihood
-            #m.migrad() 
-            #raw_input('cont4')
-            ##// Print values of all parameters, that reflect values (and error estimates)
-            ##// that are back propagated from MINUIT
-            #model.getParameters(ROOT.RooArgSet(xvar)).Print("s") 
-            #raw_input('cont5')
-            ##// Disable verbose logging
-            #m.setVerbose(ROOT.kFALSE) 
-            #raw_input('cont6')
-            ##// Run HESSE to calculate errors from d2L/dp2
-            #m.hesse() 
-            #raw_input('cont7')
-            ##// Print value (and error) of sigma_g2 parameter, that reflects
-            ##// value and error back propagated from MINUIT
-            #cb.Print() 
-            #raw_input('cont8')
-            #bw.Print() 
-            #raw_input('cont9')
-            #cb_cut.Print()
-            #raw_input('cont10')
-            #cb_sigma.Print()
-            #raw_input('cont11')
-            #cb_power.Print()
-            #raw_input('cont12')
-            #cb_m0.Print()
-            #raw_input('cont13')
-            ##// Run MINOS on sigma_g2 parameter only
-            #m.minos(ROOT.RooArgSet(cb_power)) 
-            #raw_input('cont14')
-            #cb_power.Print()
-            #raw_input('cont15')
-            ##// Print value (and error) of sigma_g2 parameter, that reflects
-            ##// value and error back propagated from MINUIT
-            #sigma_g2.Print() ;
-
-
-            #can = ROOT.TCanvas( 'signal_can_%s' %( full_suffix ), '' )
-            #frame = xvar.frame(fit_min, fit_max) 
-            #datahist.plotOn(frame)
-            #model.plotOn( frame )
-            #model.paramOn(frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(0.1,0.5,0.9), ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(3)));
-            #frame.Draw()
-
-            #frame = xvar.frame()
-
-            #datahist.plotOn( frame )
-            #histpdf.plotOn( frame )
-
-            ##frame.Draw()
-            #sampMan.outputs[can.GetName()] = can
-
-            #norm_var = ROOT.RooRealVar( 'srhist_%s_norm' %( full_suffix ), 'signal normalization', integral )
-
-            #xs_var = ROOT.RooRealVar( 'cross_section_%s' %full_suffix, 'Cross section', samp.cross_section )
-            #tot_evt = ROOT.RooRealVar( 'total_events_%s' %full_suffix, 'Total Events', samp.total_events)
-            #scale = ROOT.RooRealVar( 'scale_%s' %full_suffix, 'Scale', samp.scale)
-
-            #getattr(workspace, 'import' )(model)
-            #getattr(workspace, 'import' )(datahist)
-            #getattr(workspace, 'import' )(norm_var)
-            #getattr(workspace, 'import' )(xs_var)
-            #getattr(workspace, 'import' )(tot_evt)
-            #getattr(workspace, 'import' )(scale)
 
         workspaces_to_save.update( { workspace.GetName() : workspace} )
 

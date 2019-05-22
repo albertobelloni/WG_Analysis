@@ -14,6 +14,8 @@ DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2019_04_11/WithSF
 
 DIR_SIGTruth=/data/users/friccita/WGammaNtuple/SigNoFilt_2019_04_15/WithSF
 
+DIR_Combine=/data/users/fengyb/CMSSW_8_1_0/src
+
 
 all : plots workspaces limits
 
@@ -39,7 +41,9 @@ signal :
 
 mcbkg : 
 
-	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS
+	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS
+	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doTopGamma --doTop --doZGamma --doWJets --doWGamma --doGammaGamma --doAll
+	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doWGamma
 
 efake : 
 
@@ -54,10 +58,8 @@ workspaces :
 	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
 fits :
-	python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod MaxLikelihoodFit
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir ~/usercode/Plotting/LimitSetting/CMSSW_7_4_7/ --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod HybridNew
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/jkunkle/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization  --limitMethod Asymptotic   --useToySignal --useToyBackground
+	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
+	python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir ${DIR_Combine}/HiggsAnalysis/CombinedLimit --outputDir ${DIR_Combine}/TEST --doVarOptimization
 
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits

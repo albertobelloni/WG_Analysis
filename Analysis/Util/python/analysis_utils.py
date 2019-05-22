@@ -40,7 +40,8 @@ def read_xsfile( file, lumi, print_values=False ) :
     ofile = open( file )
     xsdict = eval( ofile.read() )
     xs_printer = Printer()
-    for name, values in xsdict.iteritems() :
+    #for name, values in xsdict.iteritems() :
+    for name, values in xsdict :
 
         lumi_sample_den = values['cross_section']*values['gen_eff']*values['k_factor']
         if lumi_sample_den == 0 :
