@@ -7,8 +7,8 @@ parser = ArgumentParser()
 
 parser.add_argument( '--dir', dest='dir', default=None, required=True, help='Path to directory containing ntuples' )
 parser.add_argument( '--fileKey', dest='fileKey', default='ntuple', required=False, help='key to match files' )
-parser.add_argument( '--treeName', dest='treeName', default='tupel/EventTree', required=False, help='name of tree in files' )
-parser.add_argument( '--weightBranch', dest='weightBranch', default='EvtWeights', required=False, help='name of branch containing event weights' )
+parser.add_argument( '--treeName', dest='treeName', default='UMDNTuple/EventTree', required=False, help='name of tree in files' )
+parser.add_argument( '--weightBranch', dest='weightBranch', default='EventWeights', required=False, help='name of branch containing event weights' )
 
 options = parser.parse_args()
 
@@ -22,11 +22,14 @@ def main () :
     for fname in os.listdir( options.dir ) :
         if fname.count( options.fileKey ) :
             ntuple_files.append( '%s/%s' %( options.dir, fname ) )
-
+            
     n_raw = []
     n_total = []
     n_weighted = []
 
+
+    total_events = 0
+    weighted_events = 0
 
     mychain = ROOT.TChain( options.treeName )
     for f in ntuple_files :

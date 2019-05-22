@@ -16,31 +16,28 @@ void theMatrix()
   TString mcsuffix("mc_EB");
   
   //TString plot_var("sigmaIEIE_real_");
-  TString plot_var("chIso_real_");
+  //TString plot_var("chIso_real_");
   //TString plot_var("sigmaIEIE_FR_");
   //TString plot_var("chIso_FR_");
   //TString plot_var("mll_");
   //TString plot_var("dr_");
+  TString plot_var("vtxn_");
   
-  //TFile* file = new TFile("Plots/Resonance/Plots_2019_01_07/WJetsWS/outfile_matrix_fake_workspace_wjets.root","READ");
-  TFile* file = new TFile("Plots/Resonance/Plots_2019_02_15/WJetsWS/outfile_matrix_Pt15To25_workspace_wjets.root","READ");
+  TFile* file = new TFile("Plots/Resonance/Plots_2019_04_19/WJetsWS/outfile_matrix_Pt15To25_workspace_wjets.root","READ");
 
   // get histograms
   
   TString dataprefix("Data_");
   TString zjetsprefix("Z+jets_");
   TString zgamprefix("Zgamma_");
-  //TString wzprefix("WZG_");
   
   vector<TString> sampleprefix;
   sampleprefix.push_back(zjetsprefix);
-  //sampleprefix.push_back(zgamprefix);
-  //sampleprefix.push_back(wzprefix);
+  sampleprefix.push_back(zgamprefix);
 
   vector<Color_t> colorsMC;
   colorsMC.push_back(kBlue-7);
-  //colorsMC.push_back(kOrange);
-  //colorsMC.push_back(kGreen);
+  colorsMC.push_back(kOrange);
   
   TString selprefix("FR_");
   
@@ -48,6 +45,8 @@ void theMatrix()
   // get data histogram
   TString datahistname = dataprefix + plot_var /*+ selprefix */+ datasuffix;
   TH1F* data_hist = static_cast<TH1F*>(file->Get(datahistname)->Clone());
+  data_hist->GetXaxis()->SetTitle("Number of vertices");
+  data_hist->GetYaxis()->SetTitle("Events");
   //data_hist->Rebin(5);
   //data_hist->GetXaxis()->SetRangeUser(0.,0.025)
 
@@ -59,7 +58,6 @@ void theMatrix()
   THStack* stackMC = new THStack("MCstack", "MCstack");
   TString name = sampleprefix.at(0) + plot_var /*+ selprefix */+ mcsuffix;
   TH1F* totalMC_hist = static_cast<TH1F*>(file->Get(name)->Clone());
-  //totalMC_hist->Scale(1.3);
   
   for (unsigned int i = 0; i < sampleprefix.size(); i++)
     { // loop over MC samples
@@ -67,7 +65,6 @@ void theMatrix()
       TH1F* stack_hist = static_cast<TH1F*>(file->Get(histname_mc)->Clone());
 
       cout << histname_mc << ": " << stack_hist->Integral() << " events" << endl;
-      //stack_hist->Scale(1.3);
       if (i != 0)
 	totalMC_hist->Add(stack_hist);
       stackMC->Add(stack_hist);

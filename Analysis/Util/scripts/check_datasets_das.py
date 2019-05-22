@@ -20,7 +20,8 @@ parser.add_argument( '--vetofail', dest='vetofail',default =False, action='store
 
 options = parser.parse_args()
 
-BASE_DIR   = '/store/user/friccita/'
+BASE_DIR   = '/store/user/yofeng/WGamma'
+#BASE_DIR   = '/store/user/friccita/'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_SAMPLES = ['SingleElectron', 'SingleMuon', 'HLT']
 #DATA_SAMPLES = ['SingleElectron']
