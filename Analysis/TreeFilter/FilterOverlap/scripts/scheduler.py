@@ -20,7 +20,8 @@ options.batch = ( not options.local )
 
 ### ATTENTION! Here you specify the directory containing the processed ntuples, on which you want to run FilterOverlap.
 #base = '/data/users/fengyb/WGammaNtuple'
-base = '/data/users/friccita/WGammaNtuple/'
+#base = '/data/users/friccita/WGammaNtuple/'
+base = '/data2/users/kakw/Resonances2016/'
 
 # ----------------------------
 # The suffix that appears on the 
@@ -92,9 +93,9 @@ options.enableKeepFilter=False
 ### ATTENTION! Here you list the ntuple types (from RecoResonance) that you want to process, which is also the name of the subdirectory containing them.
 input_dirs =[               
 #              'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
-#              'LepGamma_elg_2019_04_11','LepGamma_mug_2019_04_11',
-#              'LepLep_elel_2019_04_11','LepLep_mumu_2019_04_11',
-              'SingleLepNoPhId_el_2019_04_11','SingleLepNoPhId_mu_2019_04_11',
+              'LepGamma_elg_2019_05_16','LepGamma_mug_2019_05_16',
+              'LepLep_elel_2019_05_15','LepLep_mumu_2019_05_15',
+#              'SingleLepNoPhId_el_2019_04_11','SingleLepNoPhId_mu_2019_04_11',
 ]
 
 module = 'Conf.py'
