@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 import os
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -12,20 +12,19 @@ parser = ArgumentParser()
 #parser.add_argument('--outputDir', dest='outputDir', required=True, help='output path' )
 parser.add_argument('--fileKey', dest='fileKey', default=None, help='key to match files' )
 parser.add_argument('--treeName', dest='treeName', default='UMDNTuple/EventTree', help='tree name' )
+parser.add_argument('--skipDone', dest='skipDone', default=False, action = "store_true", help='skip pileup histograms already made' )
 
 options = parser.parse_args()
 
-_NTUPLE_DIR = '/store/user/kawong/WGamma'
-options.version = 'UMDNTuple_0506_2016'
-options.outputDir = '/data2/users/kakw/Resonances2016/pileup'
+_NTUPLE_DIR = '/eos/cms/store/group/phys_exotica/Wgamma'
+options.version = 'UMDNTuple_0506_2018'
+options.outputDir = '/afs/cern.ch/work/k/kawong/Resonances2018/pileup'
 
 def main() :
 
-    data_samples = ['SingleElectron', 'SingleMuon', 'SinglePhoton', 'DoubleMuon', 'DoubleElectron']
+    data_samples = ['SingleElectron', 'SingleMuon', 'SinglePhoton', 'DoubleMuon', 'DoubleElectron', 'EGamma']
 
-#    mc_samples = [  "TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8", "TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8", "TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8",]
     mc_samples=[]
-    mc_samples=['WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8']
 
     if not mc_samples:
         for samp in os.listdir( _NTUPLE_DIR ) :
@@ -33,7 +32,7 @@ def main() :
             if samp in data_samples :
                 continue
 
-            if os.path.isfile( '%s/%s/hist.root' %( options.outputDir, samp ) ) :
+            if options.skipDone and os.path.isfile( '%s/%s/hist.root' %( options.outputDir, samp ) ) :
                 continue
 
             if os.path.isdir( '%s/%s/%s' %( _NTUPLE_DIR, samp, options.version ) ) :
@@ -43,7 +42,7 @@ def main() :
 
         samp_files = []
 
-        for top, dirs, files in os.walk( _NTUPLE_DIR + '/' + samp + '/' + options.version ) :
+        for top, dirs, files in os.walk( _NTUPLE_DIR + '/' + samp + '/' + options.version ,followlinks=True) :
             for f in files :
                 if options.fileKey is None or f.count( options.fileKey ) > 0 :
                     samp_files.append('%s/%s' %(top, f ) ) 
@@ -53,11 +52,14 @@ def main() :
         if not os.path.isdir(samp_dir ) :
             os.makedirs( samp_dir )
 
+        if options.skipDone and os.path.isfile('%s/hist.root' %samp_dir):
+            continue
         outfile = ROOT.TFile.Open( '%s/hist.root' %samp_dir , 'RECREATE' )
 
         print 'Make histogram for %s' %samp
 
-        get_histograms( samp_files, outfile )
+
+        if samp_files: get_histograms( samp_files, outfile )
 
         outfile.Close()
 

@@ -824,8 +824,9 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
 
     // loop over configured modules
     bool save_event = true;
-    bool printevent = false;
+    printevent = false;
     if( IN::eventNumber== 25 || IN::eventNumber==15 || IN::eventNumber==164 ) printevent = true;
+    if( IN::eventNumber%10000 ==0 ) printevent = true;
     if( printevent ) std::cout << " eventNumber " << IN::eventNumber << std::endl;
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
         save_event &= ApplyModule( mod_conf );
@@ -2207,16 +2208,35 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
 bool RunModule::FilterEvent( ModuleConfig & config ) const {
 
     bool keep_event = true;
-    bool printevent = false;
-    if( IN::eventNumber== 25 || IN::eventNumber==15 || IN::eventNumber==164 ) printevent = true;
 
-    if( !config.PassInt( "cut_el_n"     , OUT::el_n        ) ) { keep_event=false; if( printevent ) std::cout << " fail cut_el_n "      << OUT::el_n      << std::endl;}
-    if( !config.PassInt( "cut_el_pt30_n", OUT::el_pt30_n   ) ) { keep_event=false; if( printevent ) std::cout << " fail cut_el_pt30_n " << OUT::el_pt30_n << std::endl;} 
-    if( !config.PassInt( "cut_mu_n"     , OUT::mu_n        ) ) { keep_event=false; if( printevent ) std::cout << " fail cut_mu_n "      << OUT::mu_n      << std::endl;} 
-    if( !config.PassInt( "cut_mu_pt30_n", OUT::mu_pt30_n   ) ) { keep_event=false; if( printevent ) std::cout << " fail cut_mu_pt30_n " << OUT::mu_pt30_n << std::endl;} 
-    if( !config.PassInt( "cut_mu_pt20_n", OUT::mu_pt20_n   ) ) { keep_event=false; if( printevent ) std::cout << " fail cut_mu_pt20_n " << OUT::mu_pt20_n << std::endl;} 
-    if( !config.PassInt( "cut_ph_n"     , OUT::ph_n   ) )      { keep_event=false; if( printevent ) std::cout << " fail cut_ph_n "      << OUT::ph_n      << std::endl;} 
-    if( !config.PassInt( "cut_jet_n"    , OUT::jet_n  ) )      { keep_event=false; if( printevent ) std::cout << " fail cut_jet_n "     << OUT::jet_n     << std::endl;} 
+    if( !config.PassInt( "cut_el_n"     , OUT::el_n        ) ) { 
+        keep_event=false; 
+        if( printevent ) std::cout << " fail cut_el_n "      << OUT::el_n      << std::endl;
+    } 
+    if( !config.PassInt( "cut_el_pt30_n", OUT::el_pt30_n   ) ) {
+        keep_event=false;
+        if( printevent ) std::cout << " fail cut_el_pt30_n " << OUT::el_pt30_n << std::endl;
+    } 
+    if( !config.PassInt( "cut_mu_n"     , OUT::mu_n        ) ) {
+        keep_event=false;
+        if( printevent ) std::cout << " fail cut_mu_n "      << OUT::mu_n      << std::endl;
+    } 
+    if( !config.PassInt( "cut_mu_pt30_n", OUT::mu_pt30_n   ) ) { 
+        keep_event=false;
+        if( printevent ) std::cout << " fail cut_mu_pt30_n " << OUT::mu_pt30_n << std::endl;
+    } 
+    if( !config.PassInt( "cut_mu_pt20_n", OUT::mu_pt20_n   ) ) { 
+        keep_event=false;
+        if( printevent ) std::cout << " fail cut_mu_pt20_n " << OUT::mu_pt20_n << std::endl;
+    } 
+    if( !config.PassInt( "cut_ph_n"     , OUT::ph_n   ) )      { 
+        keep_event=false;
+        if( printevent ) std::cout << " fail cut_ph_n "      << OUT::ph_n      << std::endl;
+    } 
+    if( !config.PassInt( "cut_jet_n"    , OUT::jet_n  ) )      { 
+        keep_event=false;
+        if( printevent ) std::cout << " fail cut_jet_n "     << OUT::jet_n     << std::endl;
+    } 
     
     //if( !config.PassBool( "cut_trig_Ele27_eta2p1_tight", IN::passTrig_HLT_Ele27_eta2p1_WPTight_Gsf) ) keep_event=false;
     //if( !config.PassBool( "cut_trig_Mu27_IsoORIsoTk", (IN::passTrig_HLT_IsoMu27 | IN::passTrig_HLT_IsoTkMu27) ) ) keep_event=false;
@@ -2256,6 +2276,9 @@ bool RunModule::FilterTrigger( ModuleConfig & config ) {
 
 bool RunModule::FilterMET( ModuleConfig & config ) {
 
+    bool keep_event = true;
+
+#ifdef EXISTS_passedFilters
     std::vector<int> passed_ids;
     // for each configured metfilter, get its decision and store the result
     // in the output branch
@@ -2272,11 +2295,10 @@ bool RunModule::FilterMET( ModuleConfig & config ) {
         }
     }
 
-    bool keep_event = true;
 
 
     if( !config.PassAnyIntVector( "cut_metfilter_bits", passed_ids ) ) keep_event = false;
-
+#endif
     return keep_event;
 
 }
@@ -3089,9 +3111,13 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
             bool pass_ph_cuts = true;
 
             if( !config.PassInt( "cut_ph_mother", abs(IN::gen_motherPID->at(gidx) ) ) ) pass_ph_cuts = false;
+            //std::cout<<" ph_mother "<<IN::gen_motherPID->at(gidx)  <<" " << pass_ph_cuts;
             if( !config.PassInt( "cut_ph_status", IN::gen_status->at(gidx) ) ) pass_ph_cuts = false;
+            //std::cout<<" ph_status "<<IN::gen_status->at(gidx)  <<" " << pass_ph_cuts;
             if( !config.PassBool( "cut_ph_IsPromptFinalState", IN::gen_isPromptFinalState->at(gidx) ) ) pass_ph_cuts = false;
+            //std::cout<<" ph_prompt "<< IN::gen_isPromptFinalState->at(gidx) <<" " << pass_ph_cuts;
             if( !config.PassBool( "cut_ph_FromHardProcessFinalState", IN::gen_fromHardProcessFinalState->at(gidx) ) ) pass_ph_cuts = false;
+            //std::cout<<" ph_FHPFS "<<IN::gen_fromHardProcessFinalState->at(gidx) <<" " << pass_ph_cuts <<std::endl ;
 
 
             if( pass_ph_cuts ) {
