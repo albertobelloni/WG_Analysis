@@ -57,7 +57,7 @@ def main() :
     sampManElEl.outputs = {}
 
     #sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 96.2 && m_ll > 86.2 && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
-    sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 110. && m_ll > 70. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1] && jet_n == 0'
+    sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 110. && m_ll > 70. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
 
     #eta_cuts = ['EB', 'EE']
     eta_cuts = ['EB']
@@ -82,7 +82,7 @@ def main() :
         for ch, seldic in chdic.iteritems() : 
             for et in eta_cuts :
                 print 'WJets fit for MC'
-                #make_wjets_matrix( sampManMuMu, 'Zgamma', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
+                make_wjets_matrix( sampManMuMu, 'Zgamma', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 make_wjets_matrix( sampManMuMu, 'Z+jets', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 #make_wjets_matrix( sampManMuMu, 'WWG', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 #make_wjets_matrix( sampManMuMu, 'AllTop', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
@@ -104,7 +104,7 @@ def main() :
 
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
-        outputFile = ROOT.TFile('%s/outfile_matrix_Test_%s.root' %( options.outputDir, wjets.GetName() ),'recreate') #set pt cut here
+        outputFile = ROOT.TFile('%s/outfile_matrix_Pt15Up_%s.root' %( options.outputDir, wjets.GetName() ),'recreate') #set pt cut here
         for key, can in sampManMuMu.outputs.iteritems() :
             can.Write( '%s' %(key) )
         for can in sampManElEl.outputs.iteritems() :
@@ -195,32 +195,32 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     vtx_var = 'vtx_n'
     pu_var = 'pu_n'
 
-    #hist_real_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE )
-    #hist_real_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso )
+    hist_real_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE )
+    hist_real_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso )
 
-    #hist_real_sigmaIEIE_FR = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE_FR )
-    #hist_real_chIso_FR = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso_FR )
+    hist_real_sigmaIEIE_FR = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE_FR )
+    hist_real_chIso_FR = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso_FR )
 
-    #hist_fake_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, fake_sel_sieie_incl, binning_sigIEIE )
-    #hist_fake_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, fake_sel_chiso_incl, binning_chIso )
+    hist_fake_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, fake_sel_sieie_incl, binning_sigIEIE )
+    hist_fake_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, fake_sel_chiso_incl, binning_chIso )
 
-    #hist_fake_sigmaIEIE_FR = clone_sample_and_draw( sampMan, sample, sigIEIE_var, fake_sel_sieie_incl, binning_sigIEIE_FR )
-    #hist_fake_chIso_FR = clone_sample_and_draw( sampMan, sample, chIso_var, fake_sel_chiso_incl, binning_chIso_FR )
+    hist_fake_sigmaIEIE_FR = clone_sample_and_draw( sampMan, sample, sigIEIE_var, fake_sel_sieie_incl, binning_sigIEIE_FR )
+    hist_fake_chIso_FR = clone_sample_and_draw( sampMan, sample, chIso_var, fake_sel_chiso_incl, binning_chIso_FR )
 
     hist_mll = clone_sample_and_draw( sampMan, sample, mll_var, zpeak_sel, binning_mll )
     hist_dr = clone_sample_and_draw( sampMan, sample, dr_var, predR_sel, binning_dr )
     hist_nvtx = clone_sample_and_draw( sampMan, sample, vtx_var, zpeak_sel, binning_vtx )
     hist_npu = clone_sample_and_draw( sampMan, sample, pu_var, zpeak_sel, binning_vtx )
     
-    #sampMan.outputs['%s_sigmaIEIE_real_%s' %(sample,suffix)] = hist_real_sigmaIEIE
-    #sampMan.outputs['%s_chIso_real_%s' %(sample,suffix)] = hist_real_chIso
-    #sampMan.outputs['%s_sigmaIEIE_real_FR_%s' %(sample,suffix)] = hist_real_sigmaIEIE_FR
-    #sampMan.outputs['%s_chIso_real_FR_%s' %(sample,suffix)] = hist_real_chIso_FR
+    sampMan.outputs['%s_sigmaIEIE_real_%s' %(sample,suffix)] = hist_real_sigmaIEIE
+    sampMan.outputs['%s_chIso_real_%s' %(sample,suffix)] = hist_real_chIso
+    sampMan.outputs['%s_sigmaIEIE_real_FR_%s' %(sample,suffix)] = hist_real_sigmaIEIE_FR
+    sampMan.outputs['%s_chIso_real_FR_%s' %(sample,suffix)] = hist_real_chIso_FR
 
-    #sampMan.outputs['%s_sigmaIEIE_fake_%s' %(sample,suffix)] = hist_fake_sigmaIEIE
-    #sampMan.outputs['%s_chIso_fake_%s' %(sample,suffix)] = hist_fake_chIso
-    #sampMan.outputs['%s_sigmaIEIE_fake_FR_%s' %(sample,suffix)] = hist_fake_sigmaIEIE_FR
-    #sampMan.outputs['%s_chIso_fake_FR_%s' %(sample,suffix)] = hist_fake_chIso_FR
+    sampMan.outputs['%s_sigmaIEIE_fake_%s' %(sample,suffix)] = hist_fake_sigmaIEIE
+    sampMan.outputs['%s_chIso_fake_%s' %(sample,suffix)] = hist_fake_chIso
+    sampMan.outputs['%s_sigmaIEIE_fake_FR_%s' %(sample,suffix)] = hist_fake_sigmaIEIE_FR
+    sampMan.outputs['%s_chIso_fake_FR_%s' %(sample,suffix)] = hist_fake_chIso_FR
 
     sampMan.outputs['%s_mll_%s' %(sample,suffix)] = hist_mll
     sampMan.outputs['%s_dr_%s' %(sample,suffix)] = hist_dr
