@@ -682,6 +682,11 @@ class FitManager :
                 print "PLOTONN: ", h
         self.datahist.plotOn(self.frame,RooFit.DataError(ROOT.RooAbsData.SumW2))
 
+        #
+        # old setup fitted for the signal and MC bkg fits
+        #
+        useOldsetup = kw.get("useOldsetup", False)
+
         # plotting fitted function
         if self.func_pdf:
             #plotparm   = [self.frame,RooFit.NormRange('myrange')]
@@ -702,11 +707,17 @@ class FitManager :
             pmlayout = kw.get("paramlayout",(0.65,0.9,0.8))
             ## toggle off parameters with None in layout
             if  pmlayout: 
-                self.func_pdf.paramOn(self.frame,
+                if useOldsetup:
+                   # make the param names short
+                   for name, param in self.fit_params.iteritems() :
+                       param.SetName( name )
+                   self.func_pdf.paramOn( self.frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(*pmlayout), ROOT.RooFit.Format("NBNEU" , ROOT.RooFit.FixedPrecision(2)) )
+                   # to make the border size zero for the parameters
+                   # this seems like a dangerous way to do, but currrently can not find a better way
+                   self.frame.findObject("%s_paramBox"%self.func_pdf.GetName()).SetBorderSize(0)
+                else:
+                   self.func_pdf.paramOn(self.frame,
                             RooFit.Layout(*pmlayout)).Draw()
-                # to make the border size zero for the parameters
-                # this seems like a dangerous way to do, but currrently can not find a better way
-                self.frame.findObject("%s_paramBox"%self.func_pdf.GetName()).SetBorderSize(0)
         # set y axis range
         if dology:
            self.frame.SetMinimum(1e-5)
@@ -725,6 +736,11 @@ class FitManager :
             self.subframe.Draw()
             #if subplot == "pull": self.subframe.GetYaxis().SetRangeUser(-6,6)
             self.ratio_formatting()
+            if useOldsetup:
+               self.subframe.GetYaxis().SetNdivisions(205)
+               self.subframe.GetYaxis().CenterTitle()
+               self.subframe.GetYaxis().SetRangeUser(-5.0,5.0)
+               self.subframe.GetXaxis().SetTitle("m_{T} [GeV]")
             ROOT.gPad.SetTicks(1,1)
             chi  =self.getchisquare() ##FIXME
             print "Printed Chi: ",chi
