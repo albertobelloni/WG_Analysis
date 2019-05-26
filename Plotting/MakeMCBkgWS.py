@@ -319,7 +319,7 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
     fitManager.get_results( workspace )
     #results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
     #fitManager.save_fit( sampMan, workspace, logy = True, stats_pos='right', extra_label = extra_label)
-    canv = fitManager.draw( subplot = "pull" )
+    canv = fitManager.draw( subplot = "pull", paramlayout = (0.7,0.5,0.82), useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
     canv.Print("%s/%s.pdf"%(plots_dir, label) )
 
     return results
