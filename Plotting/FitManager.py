@@ -704,6 +704,9 @@ class FitManager :
             if  pmlayout: 
                 self.func_pdf.paramOn(self.frame,
                             RooFit.Layout(*pmlayout)).Draw()
+                # to make the border size zero for the parameters
+                # this seems like a dangerous way to do, but currrently can not find a better way
+                self.frame.findObject("%s_paramBox"%self.func_pdf.GetName()).SetBorderSize(0)
         # set y axis range
         if dology:
            self.frame.SetMinimum(1e-5)
