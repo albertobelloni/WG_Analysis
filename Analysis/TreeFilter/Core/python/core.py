@@ -485,7 +485,7 @@ def collect_input_files( filesDir, filekey='.root', write_file_list=False, read_
 
 def collect_input_files_local( filesDir, filekey='.root' ) :
     input_files = []
-    for top, dirs, files in os.walk(filesDir) :
+    for top, dirs, files in os.walk(filesDir, followlinks=True) :
         for f in files :
             if f.count(filekey) > 0 and os.path.isfile( top+'/'+f ) :
                 ## skip the failed directories
@@ -1234,14 +1234,15 @@ def create_job_desc_file(command_info, kwargs) :
                     'log = condorlog.txt',
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
-                    'Requirements = TARGET.Machine =!= "siab-1.umd.edu"',
+                    #'Requirements = TARGET.Machine =!= "siab-1.umd.edu"',
                     #'on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)',
                     #'next_job_start_delay=60',
-                    #'notify_user = kakw@umd.edu',
+                    'notify_user = kakw@umd.edu',
                     'notification = Error',
-                    'MINUTE      = 60',
-                    'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 600 * $(MINUTE)',
-                    'periodic_release = NumJobStarts<5',
+                    #'MINUTE      = 60',
+                    #'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60 * $(MINUTE)',
+                    #'periodic_release = NumJobStarts<5',
+                    '+JobFlavour = workday',
                     #'# Copy output files when done.  REQUIRED to run in a protected directory',
                     #'when_to_transfer_output = ON_EXIT_OR_EVICT',
                     'priority=%d' %priority
@@ -1263,10 +1264,10 @@ def create_job_desc_file(command_info, kwargs) :
                          'Executable = %s' %args[0],
                          'Initialdir = %s' %initialdir,
                          '# This is the argument line to the Executable',
-                         'MINUTE = 60',
-                         'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 120*$(MINUTE)',
-                         'periodic_release = NumbJobStarts<5',
-                         'Requirements = TARGET.Machine =!= "siab-1.umd.edu"'
+                         #'MINUTE = 60',
+                         #'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60*$(MINUTE)',
+                         #'periodic_release = NumbJobStarts<5',
+                         #'Requirements = TARGET.Machine =!= "siab-1.umd.edu"'
                         ]
         # assemble the argument command
         arg_command = ['arguments = "',

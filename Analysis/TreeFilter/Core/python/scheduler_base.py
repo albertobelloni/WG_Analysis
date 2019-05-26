@@ -44,6 +44,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     nproc              = options.get('nproc'              , 1             )
     resubmit           = options.get('resubmit'           , False         )
     enableKeepFilter   = options.get('enableKeepFilter'   , False         )
+    totalEvents        = options.get('totalEvents'        , False         )
     enableRemoveFilter = options.get('enableRemoveFilter' , False         ) 
     disableOutputTree  = options.get('disableOutputTree'  , False         )
     PUPath             = options.get('PUPath'             , None          )
@@ -94,6 +95,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 keepSelection   = config.get('keepSelection'  , None )
                 removeSelection = config.get('removeSelection', None )
 
+                if totalEvents :
+                    command += ' --totalEvents %i' %totalEvents
                 if enableKeepFilter :
                     command += ' --enableKeepFilter '
                     if keepSelection is not None :
@@ -111,7 +114,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                     if _AT_UMD :
                         command += ' --condor '
                     else :
-                        command += ' --batch '
+                        command += ' --condor '
+                    #    command += ' --batch '
 
                     if copyInputFiles :
                         command += ' --copyInputFiles '
@@ -129,7 +133,10 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     
                 print tPurple %command
                 if not dry_run :
-                    os.system(command)
+                    returncode = os.system(command)
+                    if returncode>=256:
+                         print returncode
+                         raise KeyboardInterrupt
                 if first_data :
                     first_data = False
     
@@ -165,6 +172,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 keepSelection   = config.get('keepSelection'  , None )
                 removeSelection = config.get('removeSelection', None )
 
+                if totalEvents :
+                    command += ' --totalEvents %i' %totalEvents
                 if enableKeepFilter :
                     command += ' --enableKeepFilter '
                     if keepSelection is not None :
@@ -185,7 +194,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                     if _AT_UMD :
                         command += ' --condor '
                     else :
-                        command += ' --batch '
+                        command += ' --condor '
+                        #command += ' --batch '
 
                     if copyInputFiles :
                         command += ' --copyInputFiles '
@@ -200,7 +210,11 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     
                 print tPurple %command
                 if not dry_run :
-                    os.system(command)
+                     returncode=os.system(command)
+                     if returncode>=256:
+                         print returncode
+                         raise KeyboardInterrupt
+
                 if first_mc :
                     first_mc = False
     

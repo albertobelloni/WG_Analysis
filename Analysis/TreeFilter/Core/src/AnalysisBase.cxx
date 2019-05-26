@@ -162,7 +162,9 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
                 if( n_evt % options.nPrint == 0 && n_evt > 0 ) {
                     boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
                     boost::posix_time::time_duration deltat = time_now - time_start;
-                    std::cout << "Processed " << n_evt << " entries in " << std::fixed << std::setprecision(2) << deltat.total_milliseconds()/1000. << " seconds" << std::endl;
+                    double dtins = deltat.total_milliseconds()/1000.;
+                    std::cout << "Processed " << n_evt << " entries in " << std::fixed << std::setprecision(2) <<dtins
+                        << " seconds. Expects to finish in "<<dtins/n_evt*(maxevt-minevt) <<"secs = "<<dtins/n_evt*(maxevt-minevt)/3600. << std::fixed << std::setprecision(2)<<"hours"<<  std::endl;
                     //time_start = boost::posix_time::microsec_clock::local_time();
                 }
 
@@ -273,6 +275,7 @@ Cut::Cut( CutType::Op in_op, CutType::Type in_type, CutType::Comp in_comp,
     val_int ( in_val_int ),
     val_float( in_val_float )
 {
+  //Print();
 }
 
 void Cut::Print() const{ 
@@ -362,6 +365,7 @@ CutConfig::CutConfig( const std::string &cut_str ) {
         cut_comp = CutType::OR;
     }
     
+    //std::cout<< name << std::endl; 
     BOOST_FOREACH( const std::string & val_orig, each_cut ) {
       
         // copy the value string and set it to lower case (mainly for True/False -> true/false )
@@ -685,6 +689,7 @@ bool ModuleConfig::PassInt( const std::string & cutname, const int cutval )
     }
     else {
         //if the cut doesn't exist then pass
+        //std::cout<< "no cut"<<cutname<<std::endl; 
         return true;
     }
 
@@ -705,6 +710,7 @@ bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval )
     }
     else {
         //if the cut doesn't exist then pass
+        //std::cout<< "no cut"<<cutname<<std::endl; 
         return true;
     }
 
