@@ -27,7 +27,7 @@ options.batch = ( not options.local )
 #base = '/store/user/kawong/WGamma'
 #base = 'root://eoscms.cern.ch:1094///store/group/phys_exotica/Wgamma'
 base = '/eos/cms/store/group/phys_exotica/Wgamma'
-options.nFilesPerJob = 10
+options.nFilesPerJob = 20
 
 options.nproc = 1
 options.treename='UMDNTuple/EventTree'
@@ -43,7 +43,7 @@ options.year = 2018
 #options.PUPath='/data/users/kakw/Resonances2017/pileup3'
 if options.year==2018: options.PUPath='/afs/cern.ch/work/k/kawong/Resonances2018/pileup'
 if options.year==2016: options.PUPath='/data2/users/kakw/Resonances2016/pileup/'
-options.usexrd = True
+#options.usexrd = True
 
 if options.test : 
     options.nproc = 1
@@ -56,7 +56,8 @@ if options.test :
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
 #output_base = '/data2/users/kakw/Resonances%i/' %options.year
 output_base = '/afs/cern.ch/work/k/kawong/Resonances%i/' %options.year
-jobtag = '_2019_05_15'
+#output_base = '/eos/cms/store/group/phys_exotica/Wgamma/Resonances%i/' %options.year
+jobtag = '_2019_05_29'
 
 #version = 'UMDNTuple_0620'
 version_sig = ''
@@ -73,9 +74,10 @@ version_data = 'UMDNTuple_0506'
 jobs2018 = [
         #--------------------------
 
-        #JobConf(base,'EGamma',version=version2018,year=2018, isData=True),
-        #JobConf(base,'SingleMuon',version=version2018,year=2018, isData=True),
+        JobConf(base,'EGamma',version=version2018,year=2018, isData=True),
+        JobConf(base,'SingleMuon',version=version2018,year=2018, isData=True),
         JobConf(base,'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
+        JobConf(base,'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2018,year=2018, tags=['NLO']),
         JobConf(base,'GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
         JobConf(base,'GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
         JobConf(base,'GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
@@ -381,44 +383,44 @@ configs = [
     #    'tag'    : 'el',
     #    'dataset': 'SingleElectron',
     #},
-   {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'True' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepGamma_mug'+jobtag,
-        'tag'    : 'mug',
-        'dataset': 'SingleMuon',
-    },
-    {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True'},
-        'args_tag_NLO' : args_nlo,
-        'input'  : '' ,
-        'output' : output_base+'LepGamma_elg'+jobtag,
-        'tag'    : 'elg',
-        'dataset': 'SingleElectron',
-    },
-    {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_elel', 'el_pt' : ' > 30 ' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepLep_elel'+jobtag,
-        'tag'    : 'elel',
-        'keepSelection': 'tight',
-        'dataset': 'SingleElectron',
-    },
-    {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepLep_mumu'+jobtag,
-        'tag'    : 'mumu',
-        'keepSelection': 'tight',
-        'dataset': 'SingleMuon',
-    },
+#   {
+#        'module' : 'Conf%i.py' %options.year,
+#        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'True' },
+#        'args_tag_NLO' : args_nlo,
+#        'input'  : '',
+#        'output' : output_base+'LepGamma_mug'+jobtag,
+#        'tag'    : 'mug',
+#        'dataset': 'SingleMuon',
+#    },
+#    {
+#        'module' : 'Conf%i.py' %options.year,
+#        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True'},
+#        'args_tag_NLO' : args_nlo,
+#        'input'  : '' ,
+#        'output' : output_base+'LepGamma_elg'+jobtag,
+#        'tag'    : 'elg',
+#        'dataset': 'EGamma',
+#    },
+#    {
+#        'module' : 'Conf%i.py' %options.year,
+#        'args'   : { 'function' : 'make_final_elel', 'el_pt' : ' > 30 ' },
+#        'args_tag_NLO' : args_nlo,
+#        'input'  : '',
+#        'output' : output_base+'LepLep_elel'+jobtag,
+#        'tag'    : 'elel',
+#        'keepSelection': 'tight',
+#        'dataset': 'EGamma',
+#    },
+#    {
+#        'module' : 'Conf%i.py' %options.year,
+#        'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
+#        'args_tag_NLO' : args_nlo,
+#        'input'  : '',
+#        'output' : output_base+'LepLep_mumu'+jobtag,
+#        'tag'    : 'mumu',
+#        'keepSelection': 'tight',
+#        'dataset': 'SingleMuon',
+#    },
     #{
     #    'module' : 'Conf%i.py' %options.year,
     #    'args'   : { 'function' : 'make_final_muel', 'el_pt' : ' > 30 ' },
@@ -438,24 +440,24 @@ configs = [
     #    'tag'    : 'elgnov',
     #    'dataset': 'SingleElectron',
     #},
-    #{
-    #    'module' : 'Conf%i.py' %options.year,
-    #    'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'true', 'phot_id' : 'None', 'unblind' : 'true' },
-    #    'args_tag_NLO' : args_nlo,
-    #    'input'  : '',
-    #    'output' : output_base+'LepGammaNoPhId_mug_2019_03_17',
-    #    'dataset': 'SingleMuon',
-    #    'tag'    : 'muglph',
-    #},
-    #{
-    #    'module' : 'Conf%i.py' %options.year,
-    #    'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'True', 'phot_id' : 'None', 'unblind' : 'True' },
-    #    'args_tag_NLO' : args_nlo,
-    #    'input'  : '',
-    #    'output' : output_base+'LepGammaNoPhId_elg_2019_03_17',
-    #    'dataset': 'SingleElectron',
-    #    'tag'    : 'elglph',
-    #},
+    {
+        'module' : 'Conf%i.py' %options.year,
+        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'true', 'phot_id' : 'None', 'unblind' : 'true' },
+        'args_tag_NLO' : args_nlo,
+        'input'  : '',
+        'output' : output_base+'LepGammaNoPhId_mug'+jobtag,
+        'dataset': 'SingleMuon',
+        'tag'    : 'muglph',
+    },
+    {
+        'module' : 'Conf%i.py' %options.year,
+        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'True', 'phot_id' : 'None', 'unblind' : 'True' },
+        'args_tag_NLO' : args_nlo,
+        'input'  : '',
+        'output' : output_base+'LepGammaNoPhId_elg'+jobtag,
+        'dataset': 'SingleElectron',
+        'tag'    : 'elglph',
+    },
     #{
     #    'module' : 'Conf%i.py' %options.year,
     #    'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 30 ', 'muphtrig' : 'True' },

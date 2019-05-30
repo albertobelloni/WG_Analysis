@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 
-parser.add_argument( '--dir', dest='dir', default=None, help='Path to directory containing ntuples' )
+parser.add_argument( '--dir', dest='directory', default=None, help='Path to directory containing ntuples' )
 parser.add_argument( '--fileKey', dest='fileKey', default='ntuple', required=False, help='key to match files' )
 parser.add_argument( '--treeName', dest='treeName', default='UMDNTuple/EventTree', required=False, help='name of tree in files' )
 parser.add_argument( '--weightBranch', dest='weightBranch', default='EventWeights', required=False, help='name of branch containing event weights' )
@@ -22,10 +22,10 @@ def main () :
 
     ntuple_files = []
 
-    for fname in os.listdir( options.dir ) :
+    for fname in os.listdir( options.directory ) :
         print fname
         if fname.count( options.fileKey ) :
-            ntuple_files.append( '%s/%s' %( options.dir, fname ) )
+            ntuple_files.append( '%s/%s' %( options.directory, fname ) )
 
     n_raw = []
     n_total = []
@@ -83,11 +83,12 @@ def main () :
     #print 'Total Events = %d, Weighted events = %d' %( totalEvents, weightedEvents )
 
 
-rejectlist = ["failed","SingleElectron","SingleMuon"]
+rejectlist = ["failed","SingleElectron","SingleMuon","EGamma"]
+includelist = ["UMDNTuple_0506_2016","UMDNTuple_0506_2017","UMDNTuple_0506_2018",]
 def submitjobs():
- #./get_weighted_events.py --dir /store/user/kawong/WGamma/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/UMDNTuple_20190329testb/190404_064343/0000/
-    basepath ="/store/user/kawong/WGamma/"
-    if options.dir: basepath = options.dir
+    basepath ="/eos/cms/store/group/phys_exotica/Wgamma"
+
+    if options.directory: basepath = options.directory
     dirlist = []
     desc_entries = ["universe = vanilla",
         "notify_user = kakw@umd.edu",
@@ -97,13 +98,14 @@ def submitjobs():
         "periodic_hold = (CurrentTime - JobCurrentStartDate) >= 600 * $(MINUTE)",
         "periodic_release = NumJobStarts<5",
         "priority=0", #"Initialdir = ",
-        "Executable = ./get_weighted_events.py", ]
+        "+jobFlavour=workday",
+        "Executable = get_weighted_events.py", ]
 
-    for b,d,f in os.walk(basepath):
+    for b,d,f in os.walk(basepath,followlinks=True):
       if max([b.count(r) for r in rejectlist]):
         continue
       for fname in f:
-         if fname.count(".root") :
+         if fname.count(".root") and sum([b.count(i) for i in includelist]):
             dirlist.append(b)
             print b
             tag = os.path.relpath(b,basepath).split("/")
@@ -113,7 +115,7 @@ def submitjobs():
 
 def makecondorjob(basedir,tag,desc_entries):
     tag = tuple(tag[:3])
-    tmpdir = "tmp/"+tag[0]
+    tmpdir = "weighted/"+tag[0]
     if not os.path.exists(tmpdir):
         if not os.path.isdir(tmpdir):
             os.makedirs(tmpdir)
@@ -121,9 +123,9 @@ def makecondorjob(basedir,tag,desc_entries):
             print tag[0], " already exists and is not directory. skipping"
             return
     desc_entries+=["",
-        "output = tmp/%s/stdout$(cluster)_$(process)_%s%s.txt" %tag,
-        "error = tmp/%s/stderr$(cluster)_$(process)_%s%s.txt"  %tag,
-        "log = tmp/%s/condor$(cluster)_$(process)_%s%s.txt" %tag,
+        "output = weighted/%s/stdout$(cluster)_$(process)_%s%s.txt" %tag,
+        "error = weighted/%s/stderr$(cluster)_$(process)_%s%s.txt"  %tag,
+        "log = weighted/%s/condor$(cluster)_$(process)_%s%s.txt" %tag,
         "arguments = --dir %s" %basedir,
         "queue",]
 

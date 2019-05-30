@@ -825,8 +825,7 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
     // loop over configured modules
     bool save_event = true;
     printevent = false;
-    if( IN::eventNumber== 25 || IN::eventNumber==15 || IN::eventNumber==164 ) printevent = true;
-    if( IN::eventNumber%10000 ==0 ) printevent = true;
+    if( IN::eventNumber%1000000 == 42 ) printevent = true;
     if( printevent ) std::cout << " eventNumber " << IN::eventNumber << std::endl;
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
         save_event &= ApplyModule( mod_conf );
@@ -1107,7 +1106,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
         float hovere = IN::el_hOverE->at(idx);
         float ooEmooP = IN::el_ooEmooP->at(idx);
         float iso_rho = IN::el_pfIsoRho->at(idx);
-        float el_esc  = IN::el_e->at(idx); //FIXME: change to SC Energy
+        float el_esc  = IN::el_sc_e->at(idx);
         bool passConvVeto = IN::el_passConvVeto->at(idx);
         int misshits = IN::el_expectedMissingInnerHits->at(idx);
 
