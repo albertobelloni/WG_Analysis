@@ -1242,7 +1242,7 @@ def create_job_desc_file(command_info, kwargs) :
                     #'MINUTE      = 60',
                     #'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60 * $(MINUTE)',
                     #'periodic_release = NumJobStarts<5',
-                    '+JobFlavour = workday',
+                    '+JobFlavour = longlunch',
                     #'# Copy output files when done.  REQUIRED to run in a protected directory',
                     #'when_to_transfer_output = ON_EXIT_OR_EVICT',
                     'priority=%d' %priority
