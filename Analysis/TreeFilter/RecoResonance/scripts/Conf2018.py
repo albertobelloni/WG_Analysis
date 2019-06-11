@@ -25,7 +25,7 @@ def get_keep_filter(tag=None) :
     #el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig', 
     #            'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose', 
     #            'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
-    el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
+    el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_sc_e','el_etaOrig', 'el_eOrig', 'el_ptOrig',
                 'el_passVIDHEEP', 'el_passVIDTight', 'el_passVIDVeryLoose',
                 'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
     ph_basic = ['ph_n', 'ph_phi', 'ph_eta', 'ph_pt','ph_e','ph_hasPixSeed', 'ph_passEleVeto.*', ]
@@ -81,7 +81,7 @@ def make_final_mumu( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 23 | == 31 '
+    filter_trig.cut_bits = ' == 9 | == 10 '
     alg_list.append( filter_trig )
 
     filtermet = filter_met()
@@ -94,7 +94,7 @@ def make_final_mumu( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -109,7 +109,7 @@ def make_final_elel( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 60 '
+    filter_trig.cut_bits = ' == 26 | == 48'
     alg_list.append( filter_trig )
 
     filtermet = filter_met()
@@ -122,7 +122,7 @@ def make_final_elel( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -167,7 +167,7 @@ def make_final_mu( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 23 | == 31 '
+    filter_trig.cut_bits = ' == 9 | == 10 '
     alg_list.append( filter_trig )
 
     filter_event = Filter('FilterEvent')
@@ -176,7 +176,7 @@ def make_final_mu( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -201,7 +201,7 @@ def make_final_el( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 60 '
+    filter_trig.cut_bits = ' == 26'
     alg_list.append( filter_trig )
 
     filter_event = Filter('FilterEvent')
@@ -210,7 +210,7 @@ def make_final_el( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -235,7 +235,7 @@ def make_final_elg( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 60 '
+    filter_trig.cut_bits = ' == 26'
     alg_list.append( filter_trig )
 
     #filtermet = filter_met()
@@ -288,7 +288,7 @@ def make_final_mug( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 23 | == 31 '
+    filter_trig.cut_bits = ' == 9 | == 10 '
     alg_list.append( filter_trig )
 
     #filtermet = filter_met()
@@ -396,7 +396,7 @@ def filter_trigger() :
     filter_trigger = Filter('FilterTrigger')
 
     # this will store branches for only these triggers
-    filter_trigger.add_var( 'triggerBits', '23:HLT_IsoMu24,31:HLT_IsoTkMu24,60:HLT_Ele27_eta2p1_WPTight_Gsf' )
+    filter_trigger.add_var( 'triggerBits', '9:HLT_IsoMu24,26:HLT_Ele32_WPTight_Gsf,10:HLT_IsoMu27,48:HLT_Photon200,27:HLT_Ele32_WPTight_Gsf_L1DoubleEG')
     # this will store branches for all triggers found in the provided tree
     filter_trigger.add_var( 'AuxTreeName', 'UMDNTuple/TrigInfoTree' )
 
@@ -424,7 +424,7 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
     filt.cut_pfiso_tight  = ' < 0.15 '
     filt.cut_trkiso_tight = ' < 0.05 '
 
-    filt.add_var( 'triggerMatchBits', '23,31' )
+    filt.add_var( 'triggerMatchBits', '9' )
 
     filt.cut_isPf_loose         = ' == True '
     filt.cut_isGlobalOrTk_loose = ' == True '
@@ -475,7 +475,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     #filt.cut_tight     = ' == True '
     #filt.cut_vid_medium     = ' == True '
     filt.cut_muon_dr    = ' > 0.4 '
-    filt.add_var( 'triggerMatchBits', '60' )
+    filt.add_var( 'triggerMatchBits', '26' )
     filt.cut_d0_barrel = ' < 0.05 '
     filt.cut_d0_endcap = ' < 0.10 '
     filt.cut_dz_barrel = ' < 0.10 '
@@ -779,7 +779,7 @@ def weight_event( args ) :
 
         workarea = os.getenv('WorkArea')
         filt.add_var( 'sample_file', args['sampleFile'])
-        filt.add_var( 'data_file', '%s/TreeFilter/RecoResonance/data/DataPileupHistogram2016.root' %workarea )
+        filt.add_var( 'data_file', '%s/TreeFilter/RecoResonance/data/DataPileupHistogram2018.root' %workarea )
         filt.add_var( 'sample_hist', 'pileup_true' )
         filt.add_var('data_hist', 'pileup')
     else :

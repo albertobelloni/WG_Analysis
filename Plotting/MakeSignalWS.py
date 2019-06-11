@@ -341,7 +341,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             fitManager.run_fit_minuit( fitrange = (fit_min, fit_max) )
             fitManager.get_results( workspace )
             #fitManager.save_fit( sampMan, workspace, stats_pos='left' , extra_label = extra_label , plotParam =True)
-            canv = fitManager.draw( subplot = "pull" )
+            canv = fitManager.draw( subplot = "pull", paramlayout = (0.15,0.5,0.82), useOldsetup = True)
 
             canv.Print("%s/%s.pdf"%(plots_dir, full_suffix) )
             print "************"

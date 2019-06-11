@@ -275,6 +275,7 @@ Cut::Cut( CutType::Op in_op, CutType::Type in_type, CutType::Comp in_comp,
     val_int ( in_val_int ),
     val_float( in_val_float )
 {
+  //Print();
 }
 
 void Cut::Print() const{ 
@@ -364,6 +365,7 @@ CutConfig::CutConfig( const std::string &cut_str ) {
         cut_comp = CutType::OR;
     }
     
+    //std::cout<< name << std::endl; 
     BOOST_FOREACH( const std::string & val_orig, each_cut ) {
       
         // copy the value string and set it to lower case (mainly for True/False -> true/false )
@@ -687,6 +689,7 @@ bool ModuleConfig::PassInt( const std::string & cutname, const int cutval )
     }
     else {
         //if the cut doesn't exist then pass
+        //std::cout<< "no cut"<<cutname<<std::endl; 
         return true;
     }
 
@@ -707,6 +710,7 @@ bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval )
     }
     else {
         //if the cut doesn't exist then pass
+        //std::cout<< "no cut"<<cutname<<std::endl; 
         return true;
     }
 
