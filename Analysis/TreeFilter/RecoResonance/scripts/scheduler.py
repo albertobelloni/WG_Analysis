@@ -307,7 +307,7 @@ args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
 configs = [
 
     {
-        'module' : 'Conf.py',
+        'module' : 'Conf%i.py' %options.year,
         'args'   : { 'function' : 'make_final_el', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_id' : 'None' },
         'args_tag_NLO' : args_nlo,
         'input'  : '',
@@ -317,7 +317,7 @@ configs = [
         'tag'    : 'el',
     },
     {
-        'module' : 'Conf.py',
+        'module' : 'Conf%i.py' %options.year,
         'args'   : { 'function' : 'make_final_mu', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_id' : 'None'  },
         'args_tag_NLO' : args_nlo,
         'input'  : '',
