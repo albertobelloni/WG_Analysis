@@ -22,9 +22,14 @@ options.outputDir = '/afs/cern.ch/work/k/kawong/Resonances2018/pileup'
 
 def main() :
 
-    data_samples = ['SingleElectron', 'SingleMuon', 'SinglePhoton', 'DoubleMuon', 'DoubleElectron', 'EGamma']
-
-    mc_samples=[]
+    #data_samples = ['SingleElectron', 'SingleMuon', 'SinglePhoton', 'DoubleMuon', 'DoubleElectron', 'EGamma']
+    data_samples = ['SingleMuon','SingleElectron']
+    #mc_samples = ['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8','DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8',]
+    #mc_samples = ['GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
+    #mc_samples = ['TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8','TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
+    #mc_samples = ['WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8','WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
+    #mc_samples = ['WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8','WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
+    mc_samples = ['WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8','WWTo2L2Nu_13TeV-powheg','WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8','ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8']
 
     if not mc_samples:
         for samp in os.listdir( _NTUPLE_DIR ) :
@@ -78,8 +83,8 @@ def get_histograms(files, outfile) :
     chain.SetBranchStatus('EventWeights', 1)
 
     outfile.cd()
-
-    chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '1 * ( Alt$(EventWeights[0],1) > 0 ) - 1* ( Alt$(EventWeights[0],1) < 0 ) ' )
+    #chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '1 * ( EventWeights[0] > 0 ) - 1* ( EventWeights[0] < 0 ) ' )
+    chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '' )
 
     hist = outfile.Get('pileup_true')
 

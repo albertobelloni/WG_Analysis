@@ -6,13 +6,13 @@ def config_samples(samples) :
     samples.AddSample('SingleElectron'                       , path='SingleElectron'    ,  isActive=False, isData = True)
 
     samples.AddSample('DYJetsToLL_M-50', 
-                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
-                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('DYJetsToLL_M-50-amcatnloFXFX', 
-                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
-                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('ZGTo2LG', 
@@ -104,11 +104,11 @@ def config_samples(samples) :
 
 
     samples.AddSample('WJetsToLNu-madgraphMLM', 
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WJetsToLNu-amcatnloFXFX',
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WWG', 
@@ -291,14 +291,19 @@ def config_samples(samples) :
 
 
     samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
-                           #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
+                           #input_samples = ['WGToLNuG-amcatnloFXFX'],
                            plotColor = ROOT.kRed-2,
                            isActive=True,
                           )
 
     samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
+                           #input_samples = ['DYJetsToLL_M-50'],
+                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
+                           plotColor = ROOT.kCyan-2,
+                          )
+    samples.AddSampleGroup(  'Z+jetsLO', legend_name='Z+JetsLO',
                            input_samples = ['DYJetsToLL_M-50'],
                            #input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
                            plotColor = ROOT.kCyan-2,
@@ -321,16 +326,17 @@ def config_samples(samples) :
 
     samples.AddSampleGroup(  'Wjets', legend_name='W+Jets',
                            #input_samples = ['WJetsToLNu-madgraphMLM'],
-                           input_samples = [
-                                            'WJetsToLNuTrueHTOlap',
-                                            'WJetsToLNu_HT-100To200',
-                                            'WJetsToLNu_HT-200To400',
-                                            'WJetsToLNu_HT-400To600',
-                                            'WJetsToLNu_HT-600To800',
-                                            'WJetsToLNu_HT-800To1200',
-                                            'WJetsToLNu_HT-1200To2500',
-                                            'WJetsToLNu_HT-2500ToInf',
-                           ],
+                           input_samples = ['WJetsToLNu-amcatnloFXFX'],
+                           #input_samples = [
+                           #                 'WJetsToLNuTrueHTOlap',
+                           #                 'WJetsToLNu_HT-100To200',
+                           #                 'WJetsToLNu_HT-200To400',
+                           #                 'WJetsToLNu_HT-400To600',
+                           #                 'WJetsToLNu_HT-600To800',
+                           #                 'WJetsToLNu_HT-800To1200',
+                           #                 'WJetsToLNu_HT-1200To2500',
+                           #                 'WJetsToLNu_HT-2500ToInf',
+                           #],
                            plotColor = ROOT.kBlue-2,
                            isActive=False,
                           )
