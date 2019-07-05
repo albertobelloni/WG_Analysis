@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 
-parser.add_argument( '--dir', dest='dir', default=None, help='Path to directory containing ntuples' )
+parser.add_argument( '--dir', dest='directory', default=None, help='Path to directory containing ntuples' )
 parser.add_argument( '--fileKey', dest='fileKey', default='ntuple', required=False, help='key to match files' )
 parser.add_argument( '--treeName', dest='treeName', default='UMDNTuple/EventTree', required=False, help='name of tree in files' )
 parser.add_argument( '--weightBranch', dest='weightBranch', default='EventWeights', required=False, help='name of branch containing event weights' )
@@ -21,10 +21,10 @@ def main () :
 
     ntuple_files = []
 
-    for fname in os.listdir( options.dir ) :
+    for fname in os.listdir( options.directory ) :
         print fname
         if fname.count( options.fileKey ) :
-            ntuple_files.append( '%s/%s' %( options.dir, fname ) )
+            ntuple_files.append( '%s/%s' %( options.directory, fname ) )
 
     n_raw = []
     n_total = []
@@ -85,11 +85,13 @@ def main () :
 
 
 rejectlist = ["failed","SingleElectron","SingleMuon","ChargedResonance"]
-versionnames = ["UMDNTuple_v4", "UMDNTuple_1114","UMDNTuple_v3"]
+#invludelist = ["UMDNTuple_v4", "UMDNTuple_1114","UMDNTuple_v3"]
+includelist = ["UMDNTuple_0506_2016","UMDNTuple_0506_2017","UMDNTuple_0506_2018",]
 tempbase="tmp_jk2/"
 #basepath ="/store/user/kawong/WGamma/"
 basepath ="/store/user/jkunkle"
 #basepath ="/store/user/yofeng/WGamma/"
+#basepath ="/eos/cms/store/group/phys_exotica/Wgamma"
 def submitjobs():
  #./get_weighted_events.py --dir /store/user/kawong/WGamma/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/UMDNTuple_20190329testb/190404_064343/0000/
     #if options.dir: basepath = options.dir
@@ -102,13 +104,14 @@ def submitjobs():
         "periodic_hold = (CurrentTime - JobCurrentStartDate) >= 600 * $(MINUTE)",
         "periodic_release = NumJobStarts<5",
         "priority=0", #"Initialdir = ",
-        "Executable = ./get_weighted_events.py", ]
+        "+jobFlavour=workday",
+        "Executable = get_weighted_events.py", ]
 
-    for b,d,f in os.walk(basepath):
+    for b,d,f in os.walk(basepath,followlinks=True):
       if max([b.count(r) for r in rejectlist]):
         continue
       for fname in f:
-         if fname.count(".root") and sum([b.count(v) for v in versionnames]):
+         if fname.count(".root") and sum([b.count(i) for i in includelist]):
             dirlist.append(b)
             print b
             tag = os.path.relpath(b,basepath).split("/")

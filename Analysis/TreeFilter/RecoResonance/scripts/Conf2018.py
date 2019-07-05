@@ -109,7 +109,7 @@ def make_final_elel( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 28 | == 48'
+    filter_trig.cut_bits = ' == 26 | == 48'
     alg_list.append( filter_trig )
 
     filtermet = filter_met()
@@ -201,7 +201,7 @@ def make_final_el( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 28 | == 48'
+    filter_trig.cut_bits = ' == 26'
     alg_list.append( filter_trig )
 
     filter_event = Filter('FilterEvent')
@@ -235,7 +235,7 @@ def make_final_elg( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 28 | == 48'
+    filter_trig.cut_bits = ' == 26'
     alg_list.append( filter_trig )
 
     #filtermet = filter_met()
@@ -396,7 +396,7 @@ def filter_trigger() :
     filter_trigger = Filter('FilterTrigger')
 
     # this will store branches for only these triggers
-    filter_trigger.add_var( 'triggerBits', '9:HLT_IsoMu24,28:HLT_Ele35_WPTight_Gsf,10:HLT_IsoMu27,48:HLT_Photon200,27:HLT_Ele32_WPTight_Gsf_L1DoubleEG')
+    filter_trigger.add_var( 'triggerBits', '9:HLT_IsoMu24,26:HLT_Ele32_WPTight_Gsf,10:HLT_IsoMu27,48:HLT_Photon200,27:HLT_Ele32_WPTight_Gsf_L1DoubleEG')
     # this will store branches for all triggers found in the provided tree
     filter_trigger.add_var( 'AuxTreeName', 'UMDNTuple/TrigInfoTree' )
 
@@ -475,7 +475,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     #filt.cut_tight     = ' == True '
     #filt.cut_vid_medium     = ' == True '
     filt.cut_muon_dr    = ' > 0.4 '
-    filt.add_var( 'triggerMatchBits', '28,48' )
+    filt.add_var( 'triggerMatchBits', '26' )
     filt.cut_d0_barrel = ' < 0.05 '
     filt.cut_d0_endcap = ' < 0.10 '
     filt.cut_dz_barrel = ' < 0.10 '
