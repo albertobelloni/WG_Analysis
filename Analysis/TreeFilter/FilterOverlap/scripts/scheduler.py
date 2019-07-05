@@ -89,7 +89,6 @@ jobs1 = [
     JobConf(base, 'WGToLNuG_PtG-500_TuneCP5_13TeV-amcatnloFXFX-pythia8'        , tags=['PtMin500'], suffix = 'PhCutMin',year=2017),
     JobConf(base, 'WGToLNuG_PtG-500_TuneCP5_13TeV-madgraphMLM-pythia8'         , tags=['PtMin500'], suffix = 'PhCutMin',year=2017),
 ]
->>>>>>> Stashed changes
 
 jobs2 = [
     ### 2. WHEN STEP 1 IS DONE, COMMENT THAT BLOCK, AND UNCOMMENT AND RUN OVER THIS BLOCK

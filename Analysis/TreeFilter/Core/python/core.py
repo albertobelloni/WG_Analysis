@@ -1071,6 +1071,8 @@ def filter_jobs_for_resubmit( orig_commands, outputDir, outputFile, storagePath=
                 else:
                     print "file corrupted: %s/%s" %(top, outputFile)
                     break
+        else:
+            print "file missing: %s %s" %(filepath, outputFile)
 
         if not exists :
             commands.append( ( jobid, cmd_info ) )
