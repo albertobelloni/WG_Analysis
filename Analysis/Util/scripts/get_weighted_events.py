@@ -86,13 +86,16 @@ def main () :
 
     #print 'Total Events = %d, Weighted events = %d' %( totalEvents, weightedEvents )
 
+###################################
+#       Batch Options    
+###################################
 
-rejectlist = ["failed","SingleElectron","SingleMuon","ChargedResonance"]
+rejectlist = ["failed","SingleElectron","SingleMuon","ChargedResonance", "EGamma"]
 #invludelist = ["UMDNTuple_v4", "UMDNTuple_1114","UMDNTuple_v3"]
 includelist = ["UMDNTuple_0506_2016","UMDNTuple_0506_2017","UMDNTuple_0506_2018",]
-tempbase="tmp_jk2/"
-#basepath ="/store/user/kawong/WGamma/"
-basepath ="/store/user/jkunkle"
+tempbase="tmp_kakw/"
+basepath ="/store/user/kawong/WGamma2/"
+#basepath ="/store/user/jkunkle"
 #basepath ="/store/user/yofeng/WGamma/"
 #basepath ="/eos/cms/store/group/phys_exotica/Wgamma"
 def submitjobs():
@@ -126,10 +129,9 @@ def makecondorjob(basedir,tag,desc_entries):
     tag = tag[:3]
     tmpdir = tag[0] = tempbase+tag[0]
     tag = tuple(tag)
-    #if not os.path.exists(tmpdir):
-    if not os.path.isdir(tmpdir):
+    if not os.path.exists(tmpdir):
         os.makedirs(tmpdir)
-    else: 
+    elif not os.path.isdir(tmpdir):
         print tag[0], " already exists and is not directory. skipping"
         return
     desc_entries+=["",
