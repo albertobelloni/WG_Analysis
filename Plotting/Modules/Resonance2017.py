@@ -299,9 +299,15 @@ def config_samples(samples) :
                           )
 
     samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
-                           #input_samples = ['DYJetsToLL_M-50'],
-                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
+                           input_samples = ['DYJetsToLL_M-50'],
+                           #input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
                            plotColor = ROOT.kCyan-2,
+                           isActive=False,
+                          )
+
+    samples.AddSampleGroup(  'Z+jets2', legend_name='Z+Jets@nlo',
+                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
+                           plotColor = ROOT.kCyan-5,
                           )
 
     samples.AddSampleGroup(  'Zgamma', legend_name='Z#gamma',

@@ -4,39 +4,39 @@
  # https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV 
  # TTBar total cros section is 815.96 pb, taken from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO
  # https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
-( 'DYJetsToLL_M-50'               , { 'n_evt' : 49144274, 'cross_section' : 6225, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from 
-( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 81781064, 'cross_section' : 6225, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
-( 'ZGTo2LG'                       , { 'n_evt' : 9321494, 'cross_section' : 117.864, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from  total events = 13626718
-( 'TTJets_DiLept'                 , { 'n_evt' : 6094476, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
-( 'TTJets_SingleLeptFromT'        , { 'n_evt' : 11957043, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
-( 'TTJets_SingleLeptFromTbar'     , { 'n_evt' : 46455353, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
-( 'TTGJets'                       , { 'n_evt' : 1577833, 'cross_section' : 3.697, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM
+( 'DYJetsToLL_M-50'               , { 'n_evt' : 100194597, 'cross_section' : 6225, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from 
+( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 676319, 'cross_section' : 6225, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
+( 'ZGTo2LG'                       , { 'n_evt' : 8816038, 'cross_section' : 117.864, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from  total events = 13626718
+( 'TTJets_DiLept'                 , { 'n_evt' : 28701360, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
+( 'TTJets_SingleLeptFromT'        , { 'n_evt' : 36442628, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
+( 'TTJets_SingleLeptFromTbar'     , { 'n_evt' : 57053143, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
+( 'TTGJets'                       , { 'n_evt' : 1842387, 'cross_section' : 3.697, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM
 ( 'WWTo2L2Nu'                     , { 'n_evt' : 1, 'cross_section' : (118.7-3.974)*0.1086*0.1086*9, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from WW AN
-( 'WGToLNuG-amcatnloFXFX'         , { 'n_evt' : 3235156, 'cross_section' : 821.7, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM (489.0) from gridpack, 8.217e+02 .  #total events = 5048470
-( 'WGToLNuG-madgraphMLM'          , { 'n_evt' : 6103817, 'cross_section' : 405.271, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM (405.271, from gridpack 1025.9
-( 'WGToLNuG_PtG-130-amcatnloFXFX' , { 'n_evt' : 841701, 'cross_section' : 2.563*0.79, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM, from gridpack, 2.563e+00 # total events = 1561571
-( 'WGToLNuG_PtG-130-madgraphMLM'  , { 'n_evt' : 1645059, 'cross_section' : 0.6261*1.27, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from gridpack
-( 'WGToLNuG_PtG-500-amcatnloFXFX' , { 'n_evt' : 827560, 'cross_section' : 0.02948*0.76*0.79, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM (0.007945) from gridpack, 2.948e-02 # total events = 1609694
-( 'WGToLNuG_PtG-500-madgraphMLM'  , { 'n_evt' : 1393505, 'cross_section' : 0.0117887*0.72, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from gridpack
+( 'WGToLNuG-amcatnloFXFX'         , { 'n_evt' :  16602053, 'cross_section' : 821.7, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM (489.0) from gridpack, 8.217e+02 .  #total events = 5048470
+( 'WGToLNuG-madgraphMLM'          , { 'n_evt' : 5996061, 'cross_section' : 405.271, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM (405.271, from gridpack 1025.9
+( 'WGToLNuG_PtG-130-amcatnloFXFX' , { 'n_evt' : 1, 'cross_section' : 2.563*0.79, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM, from gridpack, 2.563e+00 # total events = 1561571
+( 'WGToLNuG_PtG-130-madgraphMLM'  , { 'n_evt' : 1, 'cross_section' : 0.6261*1.27, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from gridpack
+( 'WGToLNuG_PtG-500-amcatnloFXFX' , { 'n_evt' : 1, 'cross_section' : 0.02948*0.76*0.79, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM (0.007945) from gridpack, 2.948e-02 # total events = 1609694
+( 'WGToLNuG_PtG-500-madgraphMLM'  , { 'n_evt' : 1, 'cross_section' : 0.0117887*0.72, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from gridpack
 ( 'WWG'                           , { 'n_evt' : 827630, 'cross_section' : 0.2147, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM.  # total events = 999400
-( 'WJetsToLNu-madgraphMLM'        , { 'n_evt' : 29705748, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),# NNLO cross section from 
-( 'WJetsToLNu-amcatnloFXFX'       , { 'n_evt' : 12965572, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # total events = 24120319
+( 'WJetsToLNu-madgraphMLM'        , { 'n_evt' : 71026861, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),# NNLO cross section from 
+( 'WJetsToLNu-amcatnloFXFX'       , { 'n_evt' : 1, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # total events = 24120319
  #'WJetsToLNu_HT-100To200'       ,: { 'n_evt' : 10235198, 'cross_section' : 1345., 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  #'WJetsToLNu_HT-200To400'       ,: { 'n_evt' : 4950373, 'cross_section' :  359.7, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-100To200'        , { 'n_evt' : 10235198, 'cross_section' : 1325.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-200To400'        , { 'n_evt' : 4950373, 'cross_section' :  427.75, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-400To600'        , { 'n_evt' : 1963464, 'cross_section' :  63.861, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-600To800'        , { 'n_evt' : 3779141, 'cross_section' :  16.288, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-800To1200'       , { 'n_evt' : 1544513, 'cross_section' :  7.4843, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-1200To2500'      , { 'n_evt' : 244532, 'cross_section' :  1.7937, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-2500ToInf'       , { 'n_evt' : 253561, 'cross_section' :  0.040381, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_Pt-100To250'        , { 'n_evt' : 3644567, 'cross_section' : 676.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # total events = 10089661
-( 'GJets_HT-40To100'              , { 'n_evt' : 4467985, 'cross_section' : 20730., 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
-( 'GJets_HT-100To200'             , { 'n_evt' : 5131873, 'cross_section' : 9226., 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
-( 'GJets_HT-200To400'             , { 'n_evt' : 10036487, 'cross_section' : 2300, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
-( 'GJets_HT-400To600'             , { 'n_evt' : 2529729, 'cross_section' : 277.4, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
-( 'GJets_HT-600ToInf'             , { 'n_evt' : 2463946, 'cross_section' : 93.38, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
-( 'DiPhoton'                      , { 'n_evt' : 19410854, 'cross_section' : 84., 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section from HGG AN, total events = 35505641 # kak: changed 248 to 84
+( 'WJetsToLNu_HT-100To200'        , { 'n_evt' : 29521158, 'cross_section' : 1325.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+( 'WJetsToLNu_HT-200To400'        , { 'n_evt' : 25468933, 'cross_section' :  427.75, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+( 'WJetsToLNu_HT-400To600'        , { 'n_evt' : 5932701, 'cross_section' :  63.861, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+( 'WJetsToLNu_HT-600To800'        , { 'n_evt' : 19771294, 'cross_section' :  16.288, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+( 'WJetsToLNu_HT-800To1200'       , { 'n_evt' : 8402687, 'cross_section' :  7.4843, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+( 'WJetsToLNu_HT-1200To2500'      , { 'n_evt' : 7633949, 'cross_section' :  1.7937, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+( 'WJetsToLNu_HT-2500ToInf'       , { 'n_evt' : 3273980, 'cross_section' :  0.040381, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+( 'WJetsToLNu_Pt-100To250'        , { 'n_evt' : 1, 'cross_section' : 676.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # total events = 10089661
+( 'GJets_HT-40To100'              , { 'n_evt' : 9371355, 'cross_section' : 20730., 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
+( 'GJets_HT-100To200'             , { 'n_evt' : 9798176, 'cross_section' : 9226., 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
+( 'GJets_HT-200To400'             , { 'n_evt' : 19062809, 'cross_section' : 2300, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
+( 'GJets_HT-400To600'             , { 'n_evt' : 4655985 , 'cross_section' : 277.4, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
+( 'GJets_HT-600ToInf'             , { 'n_evt' : 4981121, 'cross_section' : 93.38, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
+( 'DiPhoton'                      , { 'n_evt' : 1, 'cross_section' : 84., 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section from HGG AN, total events = 35505641 # kak: changed 248 to 84
 
 
  ('ResonanceMass200'        , { 'n_evt' : 50000, 'cross_section' : 0.001*21.927083486735327,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 

@@ -25,7 +25,7 @@ def get_keep_filter(tag=None) :
     #el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig', 
     #            'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose', 
     #            'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
-    el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
+    el_addtl = ['el_phiOrig', 'el_sc_e','el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
                 'el_passVIDHEEP', 'el_passVIDTight', 'el_passVIDVeryLoose',
                 'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
     ph_basic = ['ph_n', 'ph_phi', 'ph_eta', 'ph_pt','ph_e','ph_hasPixSeed', 'ph_passEleVeto.*', ]
