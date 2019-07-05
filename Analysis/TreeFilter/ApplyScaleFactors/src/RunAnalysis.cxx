@@ -13,6 +13,7 @@
 
 #include "include/BranchDefs.h"
 #include "include/BranchInit.h"
+#include "include/RoccoR.h"
 
 
 #include "Util.h"
@@ -93,6 +94,11 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mu_idSF = -1;
     OUT::mu_idSFUP = -1;
     OUT::mu_idSFDN = -1;
+
+    OUT::mu_rcSF = -1;
+    OUT::mu_rcSFUP = -1;
+    OUT::mu_rcSFDN = -1;
+
 #endif
 
     // *************************
@@ -137,6 +143,9 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch( "mu_idSF"      ,  &OUT::mu_idSF      , "mu_idSF/F"      );
     outtree->Branch( "mu_idSFUP"    ,  &OUT::mu_idSFUP    , "mu_idSFUP/F"    );
     outtree->Branch( "mu_idSFDN"    ,  &OUT::mu_idSFDN    , "mu_idSFDN/F"    );
+    outtree->Branch( "mu_rcSF"      ,  &OUT::mu_rcSF      , "mu_rcSF/F"      );
+    outtree->Branch( "mu_rcSFUP"    ,  &OUT::mu_rcSFUP    , "mu_rcSFUP/F"    );
+    outtree->Branch( "mu_rcSFDN"    ,  &OUT::mu_rcSFDN    , "mu_rcSFDN/F"    );
 #endif
 
 
@@ -243,6 +252,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
+	    itr = mod_conf.GetInitData().find( "FilePathRochester" );
+	    if( itr != mod_conf.GetInitData().end() ) {
+	      rc.init((itr->second).c_str());
+	    }
         }
         if( mod_conf.GetName() == "AddElectronSF" ) { 
             std::map<std::string, std::string>::const_iterator itr;
@@ -291,6 +304,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
+
         }
 	
     }
@@ -682,6 +696,10 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     OUT::mu_trkSFUP = 1.0;
     OUT::mu_trkSFDN = 1.0;
 
+    OUT::mu_rcSF     = 1.0;
+    OUT::mu_rcSFUP   = 1.0;
+    OUT::mu_rcSFDN   = 1.0;
+
     if( OUT::isData) {
         return;
     }
@@ -694,6 +712,8 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     std::vector<float> isoerrsup;
     std::vector<float> isoerrsdn;
 
+    std::vector<float> rcsfs;
+    std::vector<float> rcsfserr;
 
     /*
     if( OUT::mu_n == 1 )  { // our trigger SFs are only available for single muon triggers
@@ -717,6 +737,8 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         float eta =   OUT::mu_eta->at(idx);
         float pt   =   OUT::mu_pt ->at(idx) ;
+	float phi = OUT::mu_phi->at(idx);
+	float Q = OUT::mu_charge->at(idx);
 
         ValWithErr entry_id;
         ValWithErr entry_iso;
@@ -737,6 +759,96 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
 
         // tracking scale factor is 1.0
         // https://hypernews.cern.ch/HyperNews/CMS/get/muon/1425.html
+
+	//////  Begin Rochester corrections! //////
+	if( OUT::isData) {
+	  double dtSF = rc.kScaleDT(Q, pt, eta, phi, 0, 0); //data, central correction
+	  std::vector<double> dtSF_errs;
+	  
+	  //get statistical error (set 1)
+	  double dtSF_statmean = 0.;
+	  double dtSF_statvar = 0;
+	  std::vector<double> dtSF_staterrs;
+	  for (int i = 0; i < 100; i++)
+	    {
+	      double f = rc.kScaleDT(Q, pt, eta, phi, 1, i);
+	      dtSF_staterrs.push_back(f);
+	      dtSF_statmean += f;
+	    }
+	  dtSF_statmean = dtSF_statmean/100.;
+	  for (int i = 0; i < 100; i++)
+	    {
+	      dtSF_statvar += pow(dtSF_staterrs.at(i) - dtSF_statmean, 2);
+	    }
+	  dtSF_statvar = dtSF_statvar/100.;
+	  dtSF_errs.push_back(sqrt(dtSF_statvar));
+
+	  //get systematic errors (set 2-5)
+	  for (int i = 2; i < 6; i++)
+	    {
+	      double dtSF_witherr = rc.kScaleDT(Q, pt, eta, phi, i, 0);
+	      dtSF_errs.push_back(dtSF_witherr - dtSF);
+	    }
+
+	  // total error = quadrature sum of stat and sys errors
+	  double dtSFerr = 0.;
+	  for (int i = 0; i < 5; i++)
+	    {
+	      dtSFerr += (dtSF_errs.at(i))*(dtSF_errs.at(i));
+	    }
+	  dtSFerr = sqrt(dtSFerr);
+
+	  rcsfs.push_back(dtSF);
+	  rcsfserr.push_back(dtSFerr);
+	}
+	else {
+	  //double u = gRandom->Rndm();
+	  float genpt   =   OUT::mu_truthMatchMu_pt ->at(idx);
+	  double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genpt, 0, 0); //MC scale and extra smearing with matched gen muon
+	  //double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, 0, 0); //MC scale and extra smearing when matched gen muon is not available
+	  std::vector<double> mcSF_errs;
+	  
+	  //get statistical error (set 1)
+	  double mcSF_statmean = 0.;
+	  double mcSF_statvar = 0;
+	  std::vector<double> mcSF_staterrs;
+	  for (int i = 0; i < 100; i++)
+	    {
+	      double f = rc.kSpreadMC(Q, pt, eta, phi, genpt, 1, i);
+	      //double f = rc.kSmearMC(Q, pt, eta, phi, nl, u, 1, i); // matched gen muon not available
+	      mcSF_staterrs.push_back(f);
+	      mcSF_statmean += f;
+	    }
+	  mcSF_statmean = mcSF_statmean/100.;
+	  for (int i = 0; i < 100; i++)
+	    {
+	      mcSF_statvar += pow(mcSF_staterrs.at(i) - mcSF_statmean, 2);
+	    }
+	  mcSF_statvar = mcSF_statvar/100.;
+	  mcSF_errs.push_back(sqrt(mcSF_statvar));
+
+	  //get systematic errors (set 2-5)
+	  for (int i = 2; i < 6; i++)
+	    {
+	      double mcSF_witherr = rc.kSpreadMC(Q, pt, eta, phi, genpt, i, 0);
+	      //mcSF_witherr = rc.kSmearMC(Q, pt, eta, phi, nl, u, i, 0); // matched gen muon not available
+	      mcSF_errs.push_back(mcSF_witherr - mcSF);
+	    }
+
+	  // total error = quadrature sum of stat and sys errors
+	  double mcSFerr = 0.;
+	  for (int i = 0; i < 5; i++)
+	    {
+	      mcSFerr += (mcSF_errs.at(i))*(mcSF_errs.at(i));
+	    }
+	  mcSFerr = sqrt(mcSFerr);
+
+	  rcsfs.push_back(mcSF);
+	  rcsfserr.push_back(mcSFerr);
+	}
+	
+	//////  End Rochester corrections! //////
+
     }
 
     if( OUT::mu_n == 1 ) {
@@ -748,6 +860,10 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         OUT::mu_isoSF   = isosfs[0];
         OUT::mu_isoSFUP = isosfs[0] + isoerrsup[0];
         OUT::mu_isoSFDN = isosfs[0] - isoerrsdn[0];
+
+	OUT::mu_rcSF = rcsfs[0];
+	OUT::mu_rcSFUP = rcsfs[0] + rcsfserr[0];
+	OUT::mu_rcSFDN = rcsfs[0] - rcsfserr[0];
     }
     else if( OUT::mu_n > 1 ) {
 
@@ -758,6 +874,10 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         OUT::mu_isoSF = isosfs[0]*isosfs[1];
         OUT::mu_isoSFUP = ( isosfs[0] + isoerrsup[0] ) *  ( isosfs[1] + isoerrsup[1] );
         OUT::mu_isoSFDN = ( isosfs[0] - isoerrsdn[0] ) *  ( isosfs[1] - isoerrsdn[1] );
+
+	OUT::mu_rcSF = rcsfs[0]*rcsfs[1];
+	OUT::mu_rcSFUP = (rcsfs[0] + rcsfserr[0])*(rcsfs[1] + rcsfserr[1]);
+	OUT::mu_rcSFDN = (rcsfs[0] - rcsfserr[0])*(rcsfs[1] - rcsfserr[1]);
     }
 
 #endif

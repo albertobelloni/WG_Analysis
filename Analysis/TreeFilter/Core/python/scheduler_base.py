@@ -9,7 +9,7 @@ _AT_UMD = ( hostname.count('umd') > 0 )
 tColor_Off="\033[0m"       # Text Reset
 tPurple="\033[0;35m%s"+tColor_Off       # Purple
 
-command_base = 'python scripts/filter.py  --filesDir %(base)s/%(input)s%(sample)s/%(version)s --outputDir %(output)s/%(outsample)s --outputFile tree.root --treeName %(treename)s --fileKey %(filekey)s --module scripts/%(module)s --moduleArgs "%(moduleArgs)s"  --confFileName %(sample)s.txt --nFilesPerJob %(nFilesPerJob)d --exeName %(exename)s --year %(year)i'
+command_base = 'python scripts/filter.py  --filesDir %(base)s/%(input)s/%(sample)s/%(version)s --outputDir %(output)s/%(outsample)s --outputFile tree.root --treeName %(treename)s --fileKey %(filekey)s --module scripts/%(module)s --moduleArgs "%(moduleArgs)s"  --confFileName %(sample)s.txt --nFilesPerJob %(nFilesPerJob)d --exeName %(exename)s --year %(year)i'
 
 check_base = 'python ../../Util/scripts/check_dataset_completion.py --originalDS %(base)s/%(input)s/%(sample)s/%(version)s --filteredDS %(output)s/%(outsample)s --treeNameOrig %(treename)s --histNameFilt tupel/filter --fileKeyOrig %(filekey)s --fileKeyFilt tree.root'
 

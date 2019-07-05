@@ -1,2 +1,2 @@
 PACKAGE=ApplyScaleFactors
-include ../Makefile.mk
+include ../Makefile_SF.mk

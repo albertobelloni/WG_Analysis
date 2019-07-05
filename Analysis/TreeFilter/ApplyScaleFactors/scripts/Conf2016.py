@@ -52,10 +52,7 @@ def get_muon_sf(options) :
 
     muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunBCDEF_SF_ISO.root' %base_path )
     muon_sf.add_var( 'FilePathIsoGH', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunGH_SF_ISO.root' %base_path )
-
-    ### For 2017
-
-    ### For 2018
+    muon_sf.add_var( 'FilePathRochester', '%s/roccor.Run2.v3/RoccoR2016.txt' %base_path )
 
     return muon_sf
 
@@ -70,10 +67,6 @@ def get_electron_sf(options) :
     electron_sf.add_var( 'FilePathRecoHighPt', '%s/2016/EGM2D_BtoH_GT20GeV_RecoSF_Legacy2016.root'%base_path)
     electron_sf.add_var( 'FilePathRecoLowPt',  '%s/2016/EGM2D_BtoH_low_RecoSF_Legacy2016.root'%base_path)
     electron_sf.add_var( 'FilePathCutID',      '%s/2016/2016LegacyReReco_ElectronTight.root'%base_path)
-
-    ### For 2017
-
-    ### For 2018
 
     return electron_sf
 

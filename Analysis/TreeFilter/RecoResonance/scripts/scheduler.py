@@ -345,13 +345,33 @@ args_nlo = { 'ApplyNLOWeight' : 'true', 'doFHPFS' : 'true' }
 ### ATTENTION! Choose (uncomment and modify as necessary) the type of ntuple you want to make. Single lepton, dilepton, single lepton plus gamma, etc.
 configs = [
 
+    {
+        'module' : 'Conf%i.py' %options.year,
+        'args'   : { 'function' : 'make_final_el', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_id' : 'None' },
+        'args_tag_NLO' : args_nlo,
+        'input'  : '',
+        'output' : output_base+'SingleLepNoPhId_el_2019_04_11',
+        'dataset': 'SingleElectron',
+        'keepSelection': 'tight',
+        'tag'    : 'el',
+    },
+    {
+        'module' : 'Conf%i.py' %options.year,
+        'args'   : { 'function' : 'make_final_mu', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_id' : 'None'  },
+        'args_tag_NLO' : args_nlo,
+        'input'  : '',
+        'output' : output_base+'SingleLepNoPhId_mu_2019_04_11',
+        'dataset': 'SingleMuon',
+        'keepSelection': 'tight',
+        'tag'    : 'mu',
+    },
     #{
     #    'module' : 'Conf%i.py' %options.year,
     #    'args'   : { 'function' : 'make_final_el', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_id' : 'None' },
     #    'args_tag_NLO' : args_nlo,
     #    'input'  : '',
-    #    'output' : output_base+'SingleLepNoPhId_el_2019_03_17',
-    #    'dataset': 'SingleElectron',
+    #    'output' : output_base+'LepLep_mumu_2019_04_11',
+    #    'tag'    : 'mumu',
     #    'keepSelection': 'tight',
     #    'tag'    : 'el',
     #},
@@ -362,8 +382,16 @@ configs = [
     #    'input'  : '',
     #    'output' : output_base+'SingleLepNoPhId_mu_2019_03_17',
     #    'dataset': 'SingleMuon',
+    #},
+    #{
+    #    'module' : 'Conf.py',
+    #    'args'   : { 'function' : 'make_final_elel', 'el_pt' : ' > 30 ' },
+    #    'args_tag_NLO' : args_nlo,
+    #    'input'  : '',
+    #    'output' : output_base+'LepLep_elel_2019_04_11',
+    #    'tag'    : 'elel',
     #    'keepSelection': 'tight',
-    #    'tag'    : 'mu',
+    #    'dataset': 'SingleElectron',
     #},
     #{
     #    'module' : 'Conf%i.py' %options.year,
@@ -481,7 +509,7 @@ configs = [
     #    'tag'    : 'elgnslv',
     #},
     #{
-    #    'module' : 'conf.py',
+    #    'module' : 'Conf%i.py' %options.year,
     #    'args'   : { 'function' : 'make_nofilt' , 'pass_lepton' : 'true'},
     #    'input'  : '',
     #    'output' : output_base+'SigNoFilt_2018_07_03',

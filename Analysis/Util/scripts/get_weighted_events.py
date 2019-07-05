@@ -31,6 +31,9 @@ def main () :
     n_weighted = []
 
 
+    total_events = 0
+    weighted_events = 0
+
     mychain = ROOT.TChain( options.treeName )
     for f in ntuple_files :
         mychain.AddFile( f )
