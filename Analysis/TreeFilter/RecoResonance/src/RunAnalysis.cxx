@@ -1107,7 +1107,6 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
         float ooEmooP = IN::el_ooEmooP->at(idx);
         float iso_rho = IN::el_pfIsoRho->at(idx);
         float el_esc  = IN::el_sc_e->at(idx); 
-        float el_esc  = IN::el_sc_e->at(idx);
         bool passConvVeto = IN::el_passConvVeto->at(idx);
         int misshits = IN::el_expectedMissingInnerHits->at(idx);
 

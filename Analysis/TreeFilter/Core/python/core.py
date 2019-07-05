@@ -356,7 +356,7 @@ def config_and_run( options, package_name ) :
         #command_info_orig = generate_multiprocessing_commands( file_evt_list, alg_list, exe_path, options )
 
         if options.resubmit :
-            command_info = filter_jobs_for_resubmit( command_info_orig, options.storagePath, options.outputDir, options.outputFile, options.treeName )
+            command_info = filter_jobs_for_resubmit( command_info_orig, options.outputDir, options.outputFile, options.storagePath, options.treeName )
         else :
             command_info = command_info_orig
 
@@ -389,7 +389,7 @@ def config_and_run( options, package_name ) :
             options.storagePath = None
 
         if options.resubmit :
-            command_info = filter_jobs_for_resubmit( command_info_orig, options.storagePath, options.outputDir, options.outputFile, options.treeName )
+            command_info = filter_jobs_for_resubmit( command_info_orig,  options.outputDir, options.outputFile, options.storagePath, options.treeName )
         else :
             command_info = command_info_orig
 
@@ -428,7 +428,7 @@ def config_and_run( options, package_name ) :
             options.storagePath = None
 
         if options.resubmit :
-            command_info = filter_jobs_for_resubmit( command_info_orig, options.storagePath, options.outputDir, options.outputFile, options.treeName )
+            command_info = filter_jobs_for_resubmit( command_info_orig, options.outputDir, options.outputFile, options.storagePath, options.treeName )
         else :
             command_info = command_info_orig
 
@@ -1042,31 +1042,59 @@ def generate_multiprocessing_commands( file_evt_list, alg_list, exe_path, kwargs
 
     return commands
 
-def filter_jobs_for_resubmit( orig_commands, storagePath, outputDir, outputFile, treeName=None ) :
+def filter_jobs_for_resubmit( orig_commands, outputDir, outputFile, storagePath=None, treeName=None ) :
 
+    print "RESUBMIT FILTER"
     commands = []
-        
     if storagePath is not None :
-        for jobid, cmd_info in orig_commands:
-            file_path = '%s/%s/' %(storagePath, jobid )
-            exists = False
-            for top, dirs, files, sizes in eosutil.walk_eos(file_path) :
-                if outputFile in files :
+        walker = eosutil.walk_eos
+        outdir = storagePath
+    else:
+        walker = os.walk
+        outdir = outputDir
+
+    for jobid, cmd_info in orig_commands:
+        file_path = '%s/%s/' %(outdir, jobid )
+        exists = False
+        for l in walker(file_path) :
+            ################################################
+            ### top, dirs, files, sizes  for eosutil.walk_eos
+            ### top, dirs, files         for os.walk
+            ################################################
+            top, dirs, files = l[:3]
+            if outputFile in files :
+                f = ROOT.TFile.Open("%s/%s" %(top, outputFile))
+                if f and f.Get(treeName):
                     exists = True
+                    print "file verified: %s/%s" %(top, outputFile)
+                    break
+                else:
+                    print "file corrupted: %s/%s" %(top, outputFile)
+                    break
 
-            if not exists :
-                commands.append( ( jobid, cmd_info ) )
-    else :
-        for jobid, cmd_info in orig_commands :
-            file_path = '%s/%s/' %(outputDir, jobid )
-            exists = False
-            for top, dirs, files in os.walk(file_path) :
-                if outputFile in files :
-                    exists = True
+        if not exists :
+            commands.append( ( jobid, cmd_info ) )
 
-            if not exists :
-                commands.append( ( jobid, cmd_info ) )
-
+#    if storagePath is not None :
+#        for jobid, cmd_info in orig_commands:
+#            file_path = '%s/%s/' %(storagePath, jobid )
+#            exists = False
+#            for top, dirs, files, sizes in eosutil.walk_eos(file_path) :
+#                if outputFile in files :
+#                    exists = True
+#
+#            if not exists :
+#                commands.append( ( jobid, cmd_info ) )
+#    else :
+#        for jobid, cmd_info in orig_commands :
+#            file_path = '%s/%s/' %(outputDir, jobid )
+#            exists = False
+#            for top, dirs, files in os.walk(file_path) :
+#                if outputFile in files :
+#                    exists = True
+#
+#            if not exists :
+#                commands.append( ( jobid, cmd_info ) )
 
     return commands
 
