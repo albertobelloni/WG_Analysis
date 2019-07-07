@@ -11,8 +11,8 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True )
 
     samples.AddSample('DYJetsToLL_M-50-amcatnloFXFX', 
-                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
-                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
+                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('ZGTo2LG', 
@@ -108,7 +108,8 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WJetsToLNu-amcatnloFXFX',
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
+                      #path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WWG', 
@@ -268,7 +269,7 @@ def config_samples(samples) :
     samples.AddSample('PythiaResonanceMass2000_width5', path='PythiaChargedResonance_WGToLNu_M2000_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2000 GeV', XSName='ResonanceMass2000')
     samples.AddSample('PythiaResonanceMass2200_width0p01', path='PythiaChargedResonance_WGToLNu_M2200_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2200 GeV', XSName='ResonanceMass2200')
     samples.AddSample('PythiaResonanceMass2200_width5', path='PythiaChargedResonance_WGToLNu_M2200_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2200 GeV', XSName='ResonanceMass2200')
-    samples.AddSample('PythiaResonanceMass2400_width0p01', path='PythiaChargedResonance_WGToLNu_M2400_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2400 GeV', XSName='ResonanceMass2400')
+    samples.AddSample('PythiaResonanceMass2400_width0p01', path='PythiaChargedResonance_WGToLNu_M2400_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2400 GeVV', XSName='ResonanceMass2400')
     samples.AddSample('PythiaResonanceMass2400_width5', path='PythiaChargedResonance_WGToLNu_M2400_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2400 GeV', XSName='ResonanceMass2400')
     samples.AddSample('PythiaResonanceMass2600_width0p01', path='PythiaChargedResonance_WGToLNu_M2600_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2600 GeV', XSName='ResonanceMass2600')
     samples.AddSample('PythiaResonanceMass2800_width0p01', path='PythiaChargedResonance_WGToLNu_M2800_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2800 GeV', XSName='ResonanceMass2800')
@@ -291,7 +292,7 @@ def config_samples(samples) :
 
 
     samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
-                           input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
+                           input_samples = ['WGToLNuG-amcatnloFXFX', 'WGToLNuG_PtG-130-amcatnloFXFX','WGToLNuG_PtG-500-amcatnloFXFX' ],
                            #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            #input_samples = ['WGToLNuG-amcatnloFXFX'],
                            plotColor = ROOT.kRed-2,
