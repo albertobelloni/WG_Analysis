@@ -25,7 +25,7 @@ def get_keep_filter(tag=None) :
     #el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig', 
     #            'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose', 
     #            'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
-    el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
+    el_addtl = ['el_phiOrig','el_sc_e', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
                 'el_passVIDHEEP', 'el_passVIDTight', 'el_passVIDVeryLoose',
                 'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
     ph_basic = ['ph_n', 'ph_phi', 'ph_eta', 'ph_pt','ph_e','ph_hasPixSeed', 'ph_passEleVeto.*', ]
@@ -94,7 +94,7 @@ def make_final_mumu( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -122,7 +122,7 @@ def make_final_elel( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -176,7 +176,7 @@ def make_final_mu( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -210,7 +210,7 @@ def make_final_el( alg_list, args) :
 
     alg_list.append( filter_event )
 
-    #alg_list.append( Filter( 'MakePhotonCountVars' ) )
+    alg_list.append( Filter( 'MakePhotonCountVars' ) )
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
@@ -473,6 +473,8 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_abssceta       = ' <2.5 '
 
     #filt.cut_tight     = ' == True '
+    filt.cut_medium     = ' == True '
+#    filt.cut_vid_tight     = ' == True '
     #filt.cut_vid_medium     = ' == True '
     filt.cut_muon_dr    = ' > 0.4 '
     filt.add_var( 'triggerMatchBits', '60' )
@@ -628,6 +630,7 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
     if( id_cut is not 'None' ) :
         setattr( filt, 'cut_%s' %id_cut, ' == True ' )
     #filt.cut_vid_medium     = ' == True '
+#    filt.cut_vid_tight     = ' == True '
 
     filt.cut_sigmaIEIE_barrel_loose  = ' < 0.0106'
     filt.cut_chIsoCorr_barrel_loose  = ' < 1.694'

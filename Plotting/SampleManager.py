@@ -40,7 +40,7 @@ def f_Obsolete(f):
                 print "This method is obsolete"
                 return f(*args,**kws)
         return f_wrapper
-                
+
 def f_Fixme(f):
         @wraps(f)
         def f_wrapper(*args, **kws):
@@ -317,7 +317,6 @@ class SampleManager :
         # keep track if a sample group has been added
         self.added_sample_group=False
 
-            
     #--------------------------------
     def quietprint(self,*msg):
             if self.quiet:
@@ -362,7 +361,7 @@ class SampleManager :
 
         newsample = copy.copy( oldsample )
         newsample.name = newname
-        
+ 
         histval = kwargs.pop('hist', None)
         for arg, val in kwargs.iteritems() :
             if hasattr( newsample, arg ) :
@@ -402,7 +401,7 @@ class SampleManager :
             tmp_sample = den_sample 
             den_sample = num_sample
             num_sample = tmp_sample
-        
+ 
         ratio_hist = num_sample.hist.Clone( name )
         divoptn = ""
         if binomunc:
@@ -433,7 +432,6 @@ class SampleManager :
 
         for key, val in kwargs.iteritems() :
             config[key] = val
-        
         return config
 
     #--------------------------------
@@ -3264,7 +3262,7 @@ class SampleManager :
                    print "No stack found"
            return
 
-    def get_stack_count(self, integralrange = None, sort =True):
+    def get_stack_count(self, integralrange = None, sort =True, includeData=False):
         """ integralrange: ntuple: x bin range to be integrated """
         err = array('d',[0])
         ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
@@ -3272,16 +3270,18 @@ class SampleManager :
             print "use range %g, %g" %integralrange
             ranger  = lambda h, e, r: map(h.FindBin, r)+[e]
         result = [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
-                         for s in self.get_samples(isActive=True,isData=False)]
+                         for s in self.get_samples(isActive=True,isData=False) if s.name != "ratio"]
         if sort: result.sort(key=lambda x: -x[1][0])
         htotal = self.get_stack_aggregate()
+        if includeData: result += [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
+                         for s in self.get_samples(isActive=True,isData=True)]
         result.append(("TOTAL",(htotal.IntegralAndError(\
                         *ranger(htotal,err,integralrange)), err[0])))
         resultdict = OrderedDict(result)
         return resultdict
 
-    def print_stack_count(self, integralrange = None):
-        result = self.get_stack_count(integralrange).items()
+    def print_stack_count(self, integralrange = None, **kwargs):
+        result = self.get_stack_count(integralrange, **kwargs).items()
         result = [ (r1,)+r2 for r1, r2 in result]
         for r in result[:-1]: print "%30s %8.3g +/- %5.3g" %r
         print "="*35+"\n%30s %8.3g +/- %5.3g" %result[-1]

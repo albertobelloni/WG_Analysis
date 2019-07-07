@@ -14,9 +14,8 @@ parser.add_argument( '--condor', dest='condor',action="store_true",help='submit 
 
 options = parser.parse_args()
 
-print '*************************FIX*********************'
-#if not options.condor:
 ROOT.gROOT.SetBatch(True)
+
 
 def main () :
 
@@ -60,6 +59,8 @@ def main () :
 
         neg_events  = weighthist.GetBinContent(0) + weighthist.GetBinContent(1)
         pos_events  = weighthist.GetBinContent(2) + weighthist.GetBinContent(3)
+        print "neg,pos: ", neg_events, pos_events
+
 
         total_events = neg_events + pos_events
         weighted_events = pos_events - neg_events 
@@ -85,13 +86,21 @@ def main () :
 
     #print 'Total Events = %d, Weighted events = %d' %( totalEvents, weightedEvents )
 
+###################################
+#       Batch Options    
+###################################
 
-rejectlist = ["failed","SingleElectron","SingleMuon","EGamma"]
+rejectlist = ["failed","SingleElectron","SingleMuon","ChargedResonance", "EGamma"]
+#invludelist = ["UMDNTuple_v4", "UMDNTuple_1114","UMDNTuple_v3"]
 includelist = ["UMDNTuple_0506_2016","UMDNTuple_0506_2017","UMDNTuple_0506_2018",]
+tempbase="tmp_kakw/"
+basepath ="/store/user/kawong/WGamma2/"
+#basepath ="/store/user/jkunkle"
+#basepath ="/store/user/yofeng/WGamma/"
+#basepath ="/eos/cms/store/group/phys_exotica/Wgamma"
 def submitjobs():
-    basepath ="/eos/cms/store/group/phys_exotica/Wgamma"
-
-    if options.directory: basepath = options.directory
+ #./get_weighted_events.py --dir /store/user/kawong/WGamma/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/UMDNTuple_20190329testb/190404_064343/0000/
+    #if options.dir: basepath = options.dir
     dirlist = []
     desc_entries = ["universe = vanilla",
         "notify_user = kakw@umd.edu",
@@ -112,27 +121,31 @@ def submitjobs():
             dirlist.append(b)
             print b
             tag = os.path.relpath(b,basepath).split("/")
-            makecondorjob(b,tag,desc_entries)
+            makecondorjob(b,tag,desc_entries) # edits desc_entries
             break
     submitcondorjob(desc_entries)
 
 def makecondorjob(basedir,tag,desc_entries):
-    tag = tuple(tag[:3])
-    tmpdir = "weighted/"+tag[0]
+    tag = tag[:3]
+    tmpdir = tag[0] = tempbase+tag[0]
+    tag = tuple(tag)
     if not os.path.exists(tmpdir):
-        if not os.path.isdir(tmpdir):
-            os.makedirs(tmpdir)
-        else: 
-            print tag[0], " already exists and is not directory. skipping"
-            return
+        os.makedirs(tmpdir)
+    elif not os.path.isdir(tmpdir):
+        print tag[0], " already exists and is not directory. skipping"
+        return
     desc_entries+=["",
-        "output = weighted/%s/stdout$(cluster)_$(process)_%s%s.txt" %tag,
-        "error = weighted/%s/stderr$(cluster)_$(process)_%s%s.txt"  %tag,
-        "log = weighted/%s/condor$(cluster)_$(process)_%s%s.txt" %tag,
+        "output = %s/stdout$(cluster)_$(process)_%s%s.txt" %tag,
+        "error = %s/stderr$(cluster)_$(process)_%s%s.txt"  %tag,
+        "log = %s/condor$(cluster)_$(process)_%s%s.txt" %tag,
         "arguments = --dir %s" %basedir,
         "queue",]
 
 def submitcondorjob(desc_entries):
+    if "queue" not in desc_entries:
+        print "no jobs to queue"
+        #print desc_entries
+        return
     desc_name = 'job_desc_1.txt'
     descf = open(desc_name, 'w')
     descf.write('\n'.join(desc_entries))
