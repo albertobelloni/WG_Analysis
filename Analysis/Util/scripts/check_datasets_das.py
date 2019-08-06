@@ -20,20 +20,20 @@ parser.add_argument( '--vetofail', dest='vetofail',default =False, action='store
 
 options = parser.parse_args()
 
-BASE_DIR   = '/store/user/yofeng/WGamma'
+BASE_DIR   = '/store/user/kawong/WGamma2'
 #BASE_DIR   = '/store/user/friccita/'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_SAMPLES = ['SingleElectron', 'SingleMuon', 'HLT']
 
 ## information from https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD
-RUN_YEAR = 'Run2017'
-RECO_TYPE_DATA = ['31Mar2018']
+RUN_YEAR = 'Run2016'
+RECO_TYPE_DATA = ['07Aug17']
 RECO_TYPE_MC   = ['12Apr2018']
 FILE_KEY = 'ntuple'
 TREE_NAME = 'UMDNTuple/EventTree'
 MC_CAMPAIGN_STR = 'RunIIFall17'
-DATA_VERSION = 'UMDNTuple_20190404data17test'
-MC_VERSION = 'UMDNTuple_20190329testb'
+DATA_VERSION = 'UMDNTuple_0506_2016'
+MC_VERSION = 'UMDNTuple_0506_2016'
 
 
 def main() :
@@ -86,7 +86,7 @@ def main() :
 
             query = '"dataset=/%s/%s/%s"' %( samp, pd, miniaodname )
 
-            json_name = 'tmp/%s_step1.json' %( samp )
+            json_name = '%s_step1.json' %( samp )
 
             print 'dasgoclient --query=%s --format=json --limit=0 ' %(  query )
             if not options.nodas: os.system('cd /cvmfs/cms.cern.ch/slc6_amd64_gcc530/cms/cmssw/CMSSW_8_0_25/src/;eval `scramv1 runtime -sh`;cd -')
@@ -139,7 +139,7 @@ def main() :
 
 
 
-                json_name = 'tmp/%s_step2_%d.json' %( samp, idx )
+                json_name = '%s_step2_%d.json' %( samp, idx )
                 
                 print 'dasgoclient --query=%s --format=json >& %s' %(  subdata['dataset'][0]['name'], json_name ) 
                 if not options.nodas: os.system( 'dasgoclient --query=%s --format=json >& %s' %(  subdata['dataset'][0]['name'], json_name ) )
@@ -169,7 +169,7 @@ def main() :
     print '******************************************'
     local_events = {}
     if options.notree:
-        ofile = open("tmp/treecount.json")
+        ofile = open("treecount.json")
     
         local_events=json.load(ofile )
     
@@ -205,7 +205,7 @@ def main() :
                 mindiff = min(diffs)
                 print '%s : Original = %d events, filtered = %d events.  \033[1mDifference = %d\033[0m' %( samp, mindiff+local_events[samp], local_events[samp],mindiff)
     
-        ofile = open("tmp/treecount.json",'w')
+        ofile = open("treecount.json",'w')
     
         json.dump( local_events, ofile )
     

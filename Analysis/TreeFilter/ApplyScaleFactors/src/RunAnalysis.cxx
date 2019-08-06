@@ -434,7 +434,7 @@ void RunModule::AddElectronSF( ModuleConfig & /*config*/ ) const {
         //
 
         float pt  = OUT::el_pt->at(idx);
-        float eta = OUT::el_sc_eta->at(idx);
+        float eta = OUT::el_eta->at(idx);
 
         ValWithErr res_id   = GetVals2D( _sfhist_el_id, eta, pt );
         ValWithErr res_reco;

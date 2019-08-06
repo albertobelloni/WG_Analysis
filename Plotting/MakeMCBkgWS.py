@@ -73,23 +73,26 @@ def main() :
     sel_base_mu = defs.get_base_selection( 'mu' )
     sel_base_el = defs.get_base_selection( 'el' )
 
+    weight_str_mu = weight_str + '*(mu_trigSF*mu_idSF*mu_isoSF*mu_rcSF*ph_idSF*ph_psvSF*ph_csevSF)'
+    weight_str_el = weight_str + '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF*ph_csevSF)'
+
     el_ip_str = '( fabs( el_d0[0] ) < 0.05 && fabs( el_dz[0] ) < 0.10 && fabs( el_sc_eta[0] )<= 1.479 ) || ( fabs( el_d0[0] ) < 0.10 && fabs( el_dz[0] ) < 0.20 && fabs( el_sc_eta[0] )> 1.479 )'
 
     el_tight = ' el_passVIDTight[0] == 1'
     el_eta   = ' fabs( el_eta[0] ) < 2.1 '
 
-    ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && !ph_hasPixSeed[0]'
-    ph_tightpt_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && !ph_hasPixSeed[0]'
+    ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
+    ph_tightpt_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
 
     met_str = 'met_pt > 25'
 
     Zveto_str = 'fabs(m_lep_ph-91)>15.0'
 
-    sel_mu_nominal      = '%s * ( %s && %s && %s )'            %(  weight_str,  sel_base_mu, ph_str, met_str)
-    sel_el_nominal      = '%s * ( %s && %s && %s && %s && %s && %s && ( %s ))'     %(  weight_str, sel_base_el, el_tight, el_eta, ph_str, met_str, Zveto_str, el_ip_str )
+    sel_mu_nominal      = '%s * ( %s && %s && %s )'            %(  weight_str_mu,  sel_base_mu, ph_str, met_str)
+    sel_el_nominal      = '%s * ( %s && %s && %s && %s && %s && %s && ( %s ))'     %(  weight_str_el, sel_base_el, el_tight, el_eta, ph_str, met_str, Zveto_str, el_ip_str )
 
-    sel_mu_phpt_nominal      = '%s * ( %s && %s && %s && ADDITION)'            %(  weight_str,  sel_base_mu, ph_tightpt_str, met_str)
-    sel_el_phpt_nominal      = '%s * ( %s && %s && %s && %s && %s && %s && ( %s ) && ADDITION)'     %(  weight_str, sel_base_el, el_tight, el_eta, ph_tightpt_str, met_str, Zveto_str, el_ip_str )
+    sel_mu_phpt_nominal      = '%s * ( %s && %s && %s && ADDITION)'            %(  weight_str_mu,  sel_base_mu, ph_tightpt_str, met_str)
+    sel_el_phpt_nominal      = '%s * ( %s && %s && %s && %s && %s && %s && ( %s ) && ADDITION)'     %(  weight_str_el, sel_base_el, el_tight, el_eta, ph_tightpt_str, met_str, Zveto_str, el_ip_str )
 
     sel_base_mu = sel_mu_phpt_nominal
     sel_base_el = sel_el_phpt_nominal

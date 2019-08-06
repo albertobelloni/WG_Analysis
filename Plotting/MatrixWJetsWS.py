@@ -56,7 +56,7 @@ def main() :
     sampManMuMu.outputs = {}
     sampManElEl.outputs = {}
 
-    sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 110. && m_ll > 70. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
+    sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 110. && m_ll > 70. && mu_pt[0] > 50. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
 
     #eta_cuts = ['EB', 'EE']
     eta_cuts = ['EB']
@@ -103,7 +103,7 @@ def main() :
 
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
-        outputFile = ROOT.TFile('%s/outfile_matrix_Pt15To25_LO_%s.root' %( options.outputDir, wjets.GetName() ),'recreate') #set pt cut here
+        outputFile = ROOT.TFile('%s/outfile_matrix_LepLep_NLO_PhOlap_photon_%s.root' %( options.outputDir, wjets.GetName() ),'recreate') #set pt cut here
         for key, can in sampManMuMu.outputs.iteritems() :
             can.Write( '%s' %(key) )
         for can in sampManElEl.outputs.iteritems() :
@@ -122,7 +122,8 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     #---------------------------------------
     # Get the base selection for each region
     #---------------------------------------
-    ph_sel_basic  = 'ph_n==1 && ph_Is%s[0] && (m_llph + m_ll < 180)' %( eta_cut )
+    #ph_sel_basic  = 'ph_n==1 && ph_Is%s[0] && (m_llph + m_ll < 180)' %( eta_cut )
+    ph_sel_basic  = 'ph_n==1 && ph_Is%s[0] && (ph_pt[0] > 40.*m_llph/150.)' %( eta_cut )
     ph_pt_15To25 = 'ph_pt[0] > 15.'# && ph_pt[0] < 25.'
     ph_pt_25To40 = 'ph_pt[0] > 25. && ph_pt[0] < 40.'
     ph_pt_40To70 = 'ph_pt[0] > 40. && ph_pt[0] < 70.'
@@ -163,9 +164,9 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     predR_sel = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid] ) #set pt cut here
     predR_sel = '(' + predR_sel + ')*' + myweight
 
-    #zpeak_sel = sel_base
-    zpeak_sel = sel_base + ' && ph_n == 0'
-    zpeak_sel =  '(' + zpeak_sel + ')*' + myweight
+    zpeak_sel = sel_base
+    zpeak_sel = ' && '.join( [sel_base, ph_sel_basic, ph_pt_70Up, ph_sel_chiso_incl, ph_sel_sieie_incl] ) 
+    #zpeak_sel =  '(' + zpeak_sel + ')*' + myweight
 
 
     if workspace is None :

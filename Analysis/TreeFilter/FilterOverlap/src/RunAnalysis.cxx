@@ -130,13 +130,13 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
         float phot_pt = OUT::trueph_pt->at(i);
         float phot_eta = OUT::trueph_eta->at(i);
         float phot_phi = OUT::trueph_phi->at(i);
-	int phot_mother = OUT::trueph_motherPID->at(i);
+	//int phot_mother = OUT::trueph_motherPID->at(i);
 	int phot_status = OUT::trueph_status->at(i);
-	bool phot_isStable = (phot_status == 1);
-	bool phot_correctMother = (fabs(phot_mother) == 1) || (fabs(phot_mother) == 2) || (fabs(phot_mother) == 3) || (fabs(phot_mother) == 4) || (fabs(phot_mother) == 5) || (fabs(phot_mother) == 11) || (fabs(phot_mother) == 13) || (fabs(phot_mother) == 15) || (fabs(phot_mother) == 21) || (fabs(phot_mother) == 2212); // gen photon must come from quark, lepton, gluon, or proton
-
-	if (!phot_isStable || !phot_correctMother) { std::cout << "DEBUG: my mother was " << phot_mother << " and my status was " << phot_status << std::endl; continue;}
-        if( !config.PassFloat( "cut_genph_pt", phot_pt ) ) continue;
+	//bool phot_isStable = (phot_status == 1);
+	bool phot_isFHPFS = OUT::trueph_IPFS->at(i);
+	//bool phot_correctMother = (fabs(phot_mother) == 1) || (fabs(phot_mother) == 2) || (fabs(phot_mother) == 3) || (fabs(phot_mother) == 4) || (fabs(phot_mother) == 5) || (fabs(phot_mother) == 11) || (fabs(phot_mother) == 13) || (fabs(phot_mother) == 15) || (fabs(phot_mother) == 21) || (fabs(phot_mother) == 2212); // gen photon must come from quark, lepton, gluon, or proton
+	if (!phot_isFHPFS) { std::cout << "Hahahahaha" << std::endl; continue; } // count only photons from hard process final state
+        if( !config.PassFloat( "cut_genph_pt", phot_pt ) ) continue; // count only photons passing this pt cut
 
         TLorentzVector phlv;
         phlv.SetPtEtaPhiM( phot_pt, phot_eta, phot_phi, 0.0 );

@@ -242,6 +242,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::trueph_phi                             = 0;
     OUT::trueph_motherPID                       = 0;
     OUT::trueph_status                          = 0;
+    OUT::trueph_FHPFS                          = 0;
+    OUT::trueph_IPFS                           = 0;
 
     OUT::truelep_n                              = 0;
     OUT::truelep_pt                             = 0;
@@ -496,6 +498,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         outtree->Branch("trueph_phi"          , &OUT::trueph_phi                       );
         outtree->Branch("trueph_motherPID"    , &OUT::trueph_motherPID                 );
         outtree->Branch("trueph_status"       , &OUT::trueph_status                    );
+        outtree->Branch("trueph_FHPFS"        , &OUT::trueph_FHPFS                    );
+        outtree->Branch("trueph_IPFS"        , &OUT::trueph_IPFS                    );
 
         outtree->Branch("truelep_n"           , &OUT::truelep_n, "truelep_n/I" );
         outtree->Branch("truelep_pt"          , &OUT::truelep_pt                       );
@@ -3014,6 +3018,8 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
     OUT::trueph_phi->clear();
     OUT::trueph_motherPID->clear();
     OUT::trueph_status->clear();
+    OUT::trueph_FHPFS->clear();
+    OUT::trueph_IPFS->clear();
 
     OUT::truelep_n = 0;
     OUT::truelep_pt->clear();
@@ -3109,13 +3115,13 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
 
             bool pass_ph_cuts = true;
 
-            if( !config.PassInt( "cut_ph_mother", abs(IN::gen_motherPID->at(gidx) ) ) ) pass_ph_cuts = false;
+            //if( !config.PassInt( "cut_ph_mother", abs(IN::gen_motherPID->at(gidx) ) ) ) pass_ph_cuts = false;
             //std::cout<<" ph_mother "<<IN::gen_motherPID->at(gidx)  <<" " << pass_ph_cuts;
-            if( !config.PassInt( "cut_ph_status", IN::gen_status->at(gidx) ) ) pass_ph_cuts = false;
+            //if( !config.PassInt( "cut_ph_status", IN::gen_status->at(gidx) ) ) pass_ph_cuts = false;
             //std::cout<<" ph_status "<<IN::gen_status->at(gidx)  <<" " << pass_ph_cuts;
-            if( !config.PassBool( "cut_ph_IsPromptFinalState", IN::gen_isPromptFinalState->at(gidx) ) ) pass_ph_cuts = false;
+            //if( !config.PassBool( "cut_ph_IsPromptFinalState", IN::gen_isPromptFinalState->at(gidx) ) ) pass_ph_cuts = false;
             //std::cout<<" ph_prompt "<< IN::gen_isPromptFinalState->at(gidx) <<" " << pass_ph_cuts;
-            if( !config.PassBool( "cut_ph_FromHardProcessFinalState", IN::gen_fromHardProcessFinalState->at(gidx) ) ) pass_ph_cuts = false;
+            //if( !config.PassBool( "cut_ph_FromHardProcessFinalState", IN::gen_fromHardProcessFinalState->at(gidx) ) ) pass_ph_cuts = false;
             //std::cout<<" ph_FHPFS "<<IN::gen_fromHardProcessFinalState->at(gidx) <<" " << pass_ph_cuts <<std::endl ;
 
 
@@ -3195,6 +3201,8 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
         OUT::trueph_phi->push_back( IN::gen_phi->at( pidx ) );
         OUT::trueph_motherPID->push_back( IN::gen_motherPID->at( pidx ) );
         OUT::trueph_status->push_back( IN::gen_status->at( pidx ) );
+        OUT::trueph_FHPFS->push_back( IN::gen_fromHardProcessFinalState->at( pidx ) );
+	OUT::trueph_IPFS->push_back( IN::gen_isPromptFinalState->at( pidx ) );
 
         TLorentzVector phlv;
         phlv.SetPtEtaPhiM( IN::gen_pt->at(pidx),

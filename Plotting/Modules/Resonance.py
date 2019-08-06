@@ -89,13 +89,13 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan , XSName='WGToLNuG_PtG-500-madgraphMLM'  )
 
     samples.AddSample('WGToLNuG-madgraphMLMMTResCut', 
-                      path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
-                      #path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax', 
+                      #path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+                      path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax', 
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-madgraphMLM' )
 
     samples.AddSample('WGToLNuG_PtG-130-madgraphMLMMTResCut', 
-                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
-                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin', 
+                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin', 
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-madgraphMLM' )
 
     samples.AddSample('WGToLNuG_PtG-500-madgraphMLMMTResCut', 
@@ -104,7 +104,7 @@ def config_samples(samples) :
 
 
     samples.AddSample('WJetsToLNu-madgraphMLM', 
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WJetsToLNu-amcatnloFXFX',
@@ -292,9 +292,11 @@ def config_samples(samples) :
 
 
     samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
-                           input_samples = ['WGToLNuG-amcatnloFXFX', 'WGToLNuG_PtG-130-amcatnloFXFX','WGToLNuG_PtG-500-amcatnloFXFX' ],
-                           #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
-                           #input_samples = ['WGToLNuG-amcatnloFXFX'],
+                           #input_samples = ['WGToLNuG-amcatnloFXFX', 'WGToLNuG_PtG-130-amcatnloFXFX','WGToLNuG_PtG-500-amcatnloFXFX' ],
+                           #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
+                           #input_samples = ['WGToLNuG-amcatnloFXFX'], ### real one! (nlo)
+                           input_samples = ['WGToLNuG-madgraphMLM'], ### real one! (lo)
+                           #input_samples = ['WGToLNuG-madgraphMLMPhCut', 'WGToLNuG_PtG-130-madgraphMLMPhCut','WGToLNuG_PtG-500-madgraphMLMPhCut' ],
                            plotColor = ROOT.kRed-2,
                            isActive=True,
                           )

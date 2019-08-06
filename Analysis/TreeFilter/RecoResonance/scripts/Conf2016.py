@@ -52,7 +52,7 @@ def get_keep_filter(tag=None) :
     branches_tight = mu_basic + el_basic + ph_basic + met_basic + jet_basic + event_basic 
 
     if tag == 'tight' : 
-        return branches_tight
+        return branches_tight + ph_addtl
     else :
         return branches_tight + mu_addtl + el_addtl + ph_addtl + met_addtl + jet_addtl
 
