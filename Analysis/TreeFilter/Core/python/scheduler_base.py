@@ -89,7 +89,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 if suffix is not None :
                     outsample = outsample+suffix
     
-                command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey ,'year':job.year}
+                command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : job.nfiles if hasattr(job,"nfiles") else nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey ,'year':job.year}
 
 
                 keepSelection   = config.get('keepSelection'  , None )
@@ -167,7 +167,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 if suffix is not None :
                     outsample = outsample+suffix
 
-                command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey ,'year': getattr(job,"year",0)}
+                command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : job.nfiles if hasattr(job,"nfiles") else nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey ,'year': getattr(job,"year",0)}
 
                 keepSelection   = config.get('keepSelection'  , None )
                 removeSelection = config.get('removeSelection', None )
