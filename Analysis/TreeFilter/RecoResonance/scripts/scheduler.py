@@ -58,7 +58,8 @@ if options.test :
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
 output_base = '/data/users/friccita/WGammaNtuple/'
 #output_base = '/afs/cern.ch/work/k/kawong/Resonances%i/' %options.year
-jobtag = '_2019_07_12'
+#jobtag = '_2019_07_12' #AAAAAAAAAAH!
+jobtag = '_2019_08_14'
 
 #version = 'UMDNTuple_0620'
 version_sig = ''
@@ -394,16 +395,16 @@ configs = [
 #        'dataset': 'SingleElectron',
         #'dataset': 'SingleElectron' if options.year!=2018 else 'EGamma',
 #    },
-    {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepLep_mumu'+jobtag,
-        'tag'    : 'mumu',
-        'keepSelection': 'tight',
-        'dataset': 'SingleMuon',
-    },
+    #{
+    #    'module' : 'Conf%i.py' %options.year,
+    #    'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
+    #    'args_tag_NLO' : args_nlo,
+    #    'input'  : '',
+    #    'output' : output_base+'LepLep_mumu'+jobtag,
+    #    'tag'    : 'mumu',
+    #    'keepSelection': 'tight',
+    #    'dataset': 'SingleMuon',
+    #},
     #{
     #    'module' : 'Conf%i.py' %options.year,
     #    'args'   : { 'function' : 'make_final_muel', 'el_pt' : ' > 30 ' },
@@ -423,15 +424,15 @@ configs = [
     #    'tag'    : 'elgnov',
     #    'dataset': 'SingleElectron',
     #},
-    #{
-    #    'module' : 'Conf%i.py' %options.year,
-    #    'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'true', 'phot_id' : 'None',},# 'unblind' : 'true' },
-    #    'args_tag_NLO' : args_nlo,
-    #    'input'  : '',
-    #    'output' : output_base+'LepGammaNoPhId_mug'+jobtag,
-    #    'dataset': 'SingleMuon',
-    #    'tag'    : 'muglph',
-    #},
+    {
+        'module' : 'Conf%i.py' %options.year,
+        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'true', 'phot_id' : 'None'},#, 'unblind' : 'True' },
+        'args_tag_NLO' : args_nlo,
+        'input'  : '',
+        'output' : output_base+'LepGammaNoPhId_mug'+jobtag,
+        'dataset': 'SingleMuon',
+        'tag'    : 'muglph',
+    },
 #    {
 #        'module' : 'Conf%i.py' %options.year,
 #        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'True', 'phot_id' : 'None',},# 'unblind' : 'True' },

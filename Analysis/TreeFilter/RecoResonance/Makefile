@@ -1,2 +1,2 @@
 PACKAGE=RecoResonance
-include ../Makefile.mk
+include ../Makefile_RC.mk

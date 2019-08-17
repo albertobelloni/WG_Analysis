@@ -52,7 +52,7 @@ def get_muon_sf(options) :
 
     muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunBCDEF_SF_ISO.root' %base_path )
     muon_sf.add_var( 'FilePathIsoGH', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunGH_SF_ISO.root' %base_path )
-    muon_sf.add_var( 'FilePathRochester', '%s/roccor.Run2.v3/RoccoR2016.txt' %base_path )
+    #muon_sf.add_var( 'FilePathRochester', '%s/roccor.Run2.v3/RoccoR2016.txt' %base_path )
 
     return muon_sf
 

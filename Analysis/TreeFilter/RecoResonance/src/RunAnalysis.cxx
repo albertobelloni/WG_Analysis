@@ -13,10 +13,12 @@
 
 #include "BranchDefs.h"
 #include "BranchInit.h"
+#include "include/RoccoR.h"
 
 #include "Util.h"
 
 #include "TFile.h"
+#include "TRandom.h"
 
 int main(int argc, char **argv)
 {
@@ -50,6 +52,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
     OUT::mu_pt20_n                              = 0;
     OUT::mu_pt30_n                              = 0;
+    OUT::mu_pt_rc                               = 0;
     OUT::mu_passTight                           = 0;
     OUT::mu_passMedium                          = 0;
     OUT::mu_passLoose                           = 0;
@@ -65,8 +68,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::el_passMedium                          = 0;
     OUT::el_passTight                           = 0;
     OUT::el_hasTrigMatch                        = 0;
-    OUT::el_trigMatch_dr                      = 0;
-    OUT::el_hasTruthMatchEl                  = 0;
+    OUT::el_trigMatch_dr                        = 0;
+    OUT::el_hasTruthMatchEl                     = 0;
     OUT::el_truthMatchEl_dr                     = 0;
     OUT::el_truthMatchEl_pt                     = 0;
 
@@ -298,6 +301,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     }
     outtree->Branch("mu_pt20_n", &OUT::mu_pt20_n, "mu_pt20_n/I"  );
     outtree->Branch("mu_pt30_n", &OUT::mu_pt30_n, "mu_pt30_n/I"  );
+    outtree->Branch("mu_pt_rc", &OUT::mu_pt_rc            );
     outtree->Branch("mu_passTight", &OUT::mu_passTight            );
     outtree->Branch("mu_passMedium", &OUT::mu_passMedium           );
     outtree->Branch("mu_passLoose", &OUT::mu_passLoose            );
@@ -556,26 +560,33 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             }
         }
         if( mod_conf.GetName() == "FilterMuon" ) { 
-            std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "triggerMatchBits" );
-            if( eitr != mod_conf.GetInitData().end() ) {
-                std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
-                for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
-                    std::stringstream ss_id( *bitr );
-                    int trig_id;
-                    ss_id >> trig_id;
-                    _muonTrigMatchBits.push_back(trig_id);
-                }
-            }
-            eitr = mod_conf.GetInitData().find( "evalPID" );
-            if( eitr != mod_conf.GetInitData().end() ) {
-                std::string pid = eitr->second;
-                if( pid == "tight"     ) _eval_mu_tight       = true;
-                if( pid == "medium"    ) _eval_mu_medium      = true;
-                if( pid == "loose"    ) _eval_mu_loose      = true;
-            }
+	  //Rochester input file
+	  std::map<std::string, std::string>::const_iterator itr;
+	  itr = mod_conf.GetInitData().find( "FilePathRochester" );
+	  if( itr != mod_conf.GetInitData().end() ) {
+	    rc.init((itr->second).c_str());
+	  }
+	  //trigger
+	  std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "triggerMatchBits" );
+	  if( eitr != mod_conf.GetInitData().end() ) {
+	    std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
+	    for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
+	      std::stringstream ss_id( *bitr );
+	      int trig_id;
+	      ss_id >> trig_id;
+	      _muonTrigMatchBits.push_back(trig_id);
+	    }
+	  }
+	  eitr = mod_conf.GetInitData().find( "evalPID" );
+	  if( eitr != mod_conf.GetInitData().end() ) {
+	    std::string pid = eitr->second;
+	    if( pid == "tight"     ) _eval_mu_tight       = true;
+	    if( pid == "medium"    ) _eval_mu_medium      = true;
+	    if( pid == "loose"    ) _eval_mu_loose      = true;
+	  }
         }
         if( mod_conf.GetName() == "FilterElectron" ) { 
-            std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "triggerMatchBits" );
+	  std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "triggerMatchBits" );
             if( eitr != mod_conf.GetInitData().end() ) {
                 std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
                 for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
@@ -834,6 +845,7 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
         save_event &= ApplyModule( mod_conf );
         if( printevent ) std::cout << " module " << mod_conf.GetName() << " result " << save_event << std::endl;
+	
     }
 
     return save_event;
@@ -895,6 +907,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
     OUT::mu_n                  = 0;
     OUT::mu_pt20_n             = 0;
     OUT::mu_pt30_n             = 0;
+    OUT::mu_pt_rc              -> clear();
     OUT::mu_passTight          -> clear();
     OUT::mu_passMedium         -> clear();
     OUT::mu_passLoose          -> clear();
@@ -911,8 +924,106 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 
         float pt = IN::mu_pt->at(idx);
         float eta = IN::mu_eta->at(idx);
+	float phi = IN::mu_phi->at(idx);
+	float Q = IN::mu_charge->at(idx);
+	int nl = IN::mu_nTrkLayers->at(idx);
+	float rcsfs = 1.; 
+	float rcsfserr = 0.;
 
-        if( !config.PassFloat( "cut_pt", pt   ) ) continue;
+	//////  Begin Rochester corrections! //////
+	if( OUT::isData) {
+	  double dtSF = rc.kScaleDT(Q, pt, eta, phi, 0, 0); //data, central correction
+	  std::vector<double> dtSF_errs;
+	  
+	  //get statistical error (set 1)
+	  double dtSF_statmean = 0.;
+	  double dtSF_statvar = 0;
+	  std::vector<double> dtSF_staterrs;
+	  for (int i = 0; i < 100; i++)
+	    {
+	      double f = rc.kScaleDT(Q, pt, eta, phi, 1, i);
+	      dtSF_staterrs.push_back(f);
+	      dtSF_statmean += f;
+	    }
+	  dtSF_statmean = dtSF_statmean/100.;
+	  for (int i = 0; i < 100; i++)
+	    {
+	      dtSF_statvar += pow(dtSF_staterrs.at(i) - dtSF_statmean, 2);
+	    }
+	  dtSF_statvar = dtSF_statvar/100.;
+	  dtSF_errs.push_back(sqrt(dtSF_statvar));
+
+	  //get systematic errors (set 2-5)
+	  for (int i = 2; i < 6; i++)
+	    {
+	      double dtSF_witherr = rc.kScaleDT(Q, pt, eta, phi, i, 0);
+	      dtSF_errs.push_back(dtSF_witherr - dtSF);
+	    }
+
+	  // total error = quadrature sum of stat and sys errors
+	  double dtSFerr = 0.;
+	  for (int i = 0; i < 5; i++)
+	    {
+	      dtSFerr += (dtSF_errs.at(i))*(dtSF_errs.at(i));
+	    }
+	  dtSFerr = sqrt(dtSFerr);
+
+	  rcsfs = dtSF;
+	  rcsfserr = dtSFerr;
+	}
+	else {
+	  double u = gRandom->Rndm();
+	  //float genpt   =   OUT::mu_truthMatchMu_pt ->at(idx);
+	  //double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genpt, 0, 0); //MC scale and extra smearing with matched gen muon
+	  double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, 0, 0); //MC scale and extra smearing when matched gen muon is not available
+	  std::vector<double> mcSF_errs;
+	  //get statistical error (set 1)
+	  double mcSF_statmean = 0.;
+	  double mcSF_statvar = 0;
+	  std::vector<double> mcSF_staterrs;
+	  for (int i = 0; i < 100; i++)
+	    {
+	      //double f = rc.kSpreadMC(Q, pt, eta, phi, genpt, 1, i);
+	      double f = rc.kSmearMC(Q, pt, eta, phi, nl, u, 1, i); // matched gen muon not available
+	      mcSF_staterrs.push_back(f);
+	      mcSF_statmean += f;
+	    }
+	  mcSF_statmean = mcSF_statmean/100.;
+	  for (int i = 0; i < 100; i++)
+	    {
+	      mcSF_statvar += pow(mcSF_staterrs.at(i) - mcSF_statmean, 2);
+	    }
+	  mcSF_statvar = mcSF_statvar/100.;
+	  mcSF_errs.push_back(sqrt(mcSF_statvar));
+
+	  //get systematic errors (set 2-5)
+	  for (int i = 2; i < 6; i++)
+	    {
+	      //double mcSF_witherr = rc.kSpreadMC(Q, pt, eta, phi, genpt, i, 0);
+	      double mcSF_witherr = rc.kSmearMC(Q, pt, eta, phi, nl, u, i, 0); // matched gen muon not available
+	      mcSF_errs.push_back(mcSF_witherr - mcSF);
+	    }
+
+	  // total error = quadrature sum of stat and sys errors
+	  double mcSFerr = 0.;
+	  for (int i = 0; i < 5; i++)
+	    {
+	      mcSFerr += (mcSF_errs.at(i))*(mcSF_errs.at(i));
+	    }
+	  mcSFerr = sqrt(mcSFerr);
+
+	  rcsfs = mcSF;
+	  rcsfserr = mcSFerr;
+	}
+	
+	//////  End Rochester corrections! //////
+
+	float ptrc = pt*rcsfs;
+	//float ptrc = pt*(rcsfs + rcsfserr); // vary RC up
+	//float ptrc = pt*(rcsfs - rcsfserr); // vary RC down
+
+	OUT::mu_pt_rc->push_back( ptrc );
+        if( !config.PassFloat( "cut_pt", ptrc   ) ) continue;
         if( !config.PassFloat( "cut_eta", fabs(eta) ) ) continue;
 
         bool isPfMu = IN::mu_isPf->at(idx);
@@ -1004,11 +1115,11 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         if( !config.PassFloat("cut_trkiso_tight",  IN::mu_trkIso->at(idx))  ) continue;
 
         TLorentzVector mulv;
-        mulv.SetPtEtaPhiE( IN::mu_pt->at(idx), 
+	mulv.SetPtEtaPhiM( ptrc,
                            IN::mu_eta->at(idx),
                            IN::mu_phi->at(idx),
-                           IN::mu_e->at(idx)
-                           );
+			   0.1057
+			   );
 
         float mindr = 101.0;
         for( int hltidx = 0 ; hltidx < IN::HLTObj_n; ++hltidx ) {
@@ -1064,10 +1175,10 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 
         OUT::mu_n++;
 
-        if( IN::mu_pt->at(idx) > 20 ) {
+        if( ptrc > 20 ) {
             OUT::mu_pt20_n++;
         }
-        if( IN::mu_pt->at(idx) > 30 ) {
+        if( ptrc > 30 ) {
             OUT::mu_pt30_n++;
         }
 
@@ -2348,7 +2459,7 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         TLorentzVector tlv;
-        tlv.SetPtEtaPhiE( OUT::mu_pt->at(idx), 
+        tlv.SetPtEtaPhiE( OUT::mu_pt_rc->at(idx), 
                           OUT::mu_eta->at(idx), 
                           OUT::mu_phi->at(idx), 
                           OUT::mu_e->at(idx) );

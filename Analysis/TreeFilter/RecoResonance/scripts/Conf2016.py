@@ -296,11 +296,13 @@ def make_final_mug( alg_list, args) :
     #alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
-    filter_event.cut_mu_pt30_n = ' == 1 '
+    #filter_event.cut_mu_pt30_n = ' == 1 ' #AAAAAAAAAAH!
+    filter_event.cut_mu_pt30_n = ' >= 1 '
     filter_event.cut_ph_n = ' > 0 '
 
     if sec_lep_veto is not 'False' :
-        filter_event.cut_mu_n = ' == 1 '
+        #filter_event.cut_mu_n = ' == 1 ' # AAAAAAAAAAH!
+        filter_event.cut_mu_n = ' >= 1 '
         filter_event.cut_el_n = ' == 0 '
 
     alg_list.append( filter_event)
@@ -311,13 +313,13 @@ def make_final_mug( alg_list, args) :
     alg_list.append( Filter( 'BuildEventVars' ) )
     alg_list.append( build_truth(args) )
 
-    if unblind is not 'True' :
-        filter_blind = Filter( 'FilterBlind' )
-        #filter_blind.cut_mt_lep_met_ph = ' < 100 ' 
-        filter_blind.cut_mt_res = ' < 100 '
+    #if unblind is not 'True' :
+        #filter_blind = Filter( 'FilterBlind' )
+        ##filter_blind.cut_mt_lep_met_ph = ' < 100 ' 
+        #filter_blind.cut_mt_res = ' < 100 '
 
-        filter_blind.add_var( 'isData', args.get('isData', ' == False' ) )
-        alg_list.append( filter_blind )
+        #filter_blind.add_var( 'isData', args.get('isData', ' == False' ) )
+        #alg_list.append( filter_blind )
 
 #def make_final_elgjj( alg_list, args) :
 #
@@ -411,6 +413,9 @@ def filter_met() :
 
 def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do_hists=False, evalPID='tight' ) :
 
+    workarea = os.getenv('WorkArea')
+    base_path = '%s/TreeFilter/RecoResonance/data' %workarea
+
     filt = Filter('FilterMuon')
 
     if do_cutflow :
@@ -425,6 +430,7 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
     filt.cut_trkiso_tight = ' < 0.05 '
 
     filt.add_var( 'triggerMatchBits', '23,31' )
+    filt.add_var( 'FilePathRochester', '%s/roccor.Run2.v3/RoccoR2016.txt' %base_path )
 
     filt.cut_isPf_loose         = ' == True '
     filt.cut_isGlobalOrTk_loose = ' == True '
