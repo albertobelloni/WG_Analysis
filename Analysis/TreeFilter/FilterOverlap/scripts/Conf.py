@@ -1,7 +1,6 @@
 from core import Filter
 import inspect
 import sys
-import os
 
 def get_remove_filter() :
     """ Define list of regex strings to filter input branches to remove from the output.
@@ -10,7 +9,7 @@ def get_remove_filter() :
         If both filters are used, all branches in keep_filter are used
         except for those in remove_filter """
 
-    return ['']
+    return []
 
 def get_keep_filter() :
     """ Define list of regex strings to filter input branches to retain in the output.  

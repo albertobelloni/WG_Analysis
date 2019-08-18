@@ -428,14 +428,14 @@ def MakeBkgTruthPlots( sampManReco ) :
     name = 'BkgTruthPlots'
     outdir = '%s/%s' %(options.outputDir, name )
 
-    sampManReco.CompareSelections( 'trueph_pt[0]', ['trueph_n>0']*3, ['WGToLNuG-amcatnloFXFX', 'WGToLNuG_PtG-130-amcatnloFXFX', 'WGToLNuG_PtG-500-amcatnloFXFX'], ( 50, 0, 1000 ), hist_config={'colors' : [ROOT.kBlack, ROOT.kRed, ROOT.kBlue], 'logy' : True, 'xlabel' : 'True photon p_{T} [GeV]'  }, legend_config={'legend_entries' : ['W#gamma Inclusive', 'W#gamma, p_{T}^{#gamma} > 130 GeV', 'W#gamma, p_{T}^{#gamma} > 500 GeV'] } )
+    sampManReco.CompareSelections( 'trueph_pt[0]', ['trueph_n>0']*3, ['WGToLNuG-amcatnloFXFX', 'WGToLNuG_PtG-130-amcatnloFXFX', 'WGToLNuG_PtG-500-amcatnloFXFX'], ( 50, 0, 1000 ), hist_config={'colors' : [ROOT.kBlack, ROOT.kRed, ROOT.kBlue], 'logy' : True, 'xlabel' : 'Photon p_{T} [GeV]'  }, legend_config={'legend_entries' : ['W#gamma Inclusive', 'W#gamma, p_{T}^{#gamma} > 130 GeV', 'W#gamma, p_{T}^{#gamma} > 500 GeV'] } )
 
     if options.outputDir is not None :
         sampManReco.SaveStack( 'Wgamma_NLO_comp' ,outdir, 'base' )
     else :
         raw_input('cont')
 
-    sampManReco.CompareSelections( 'trueph_pt[0]', ['trueph_n>0']*3, ['WGToLNuG-madgraphMLM', 'WGToLNuG_PtG-130-madgraphMLM', 'WGToLNuG_PtG-500-madgraphMLM'], ( 50, 0, 1000 ), hist_config={'colors' : [ROOT.kBlack, ROOT.kRed, ROOT.kBlue], 'logy' : True, 'xlabel' : 'True photon p_{T} [GeV]'  }, legend_config={'legend_entries' : ['W#gamma Inclusive', 'W#gamma, p_{T}^{#gamma} > 130 GeV', 'W#gamma, p_{T}^{#gamma} > 500 GeV'] } )
+    sampManReco.CompareSelections( 'trueph_pt[0]', ['trueph_n>0']*3, ['WGToLNuG-madgraphMLM', 'WGToLNuG_PtG-130-madgraphMLM', 'WGToLNuG_PtG-500-madgraphMLM'], ( 50, 0, 1000 ), hist_config={'colors' : [ROOT.kBlack, ROOT.kRed, ROOT.kBlue], 'logy' : True, 'xlabel' : 'Photon p_{T} [GeV]'  }, legend_config={'legend_entries' : ['W#gamma Inclusive', 'W#gamma, p_{T}^{#gamma} > 130 GeV', 'W#gamma, p_{T}^{#gamma} > 500 GeV'] } )
 
     if options.outputDir is not None :
         sampManReco.SaveStack( 'Wgamma_LO_comp' ,outdir, 'base' )
@@ -506,7 +506,7 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG ) :
     sel_base_mu = defs.get_base_selection( 'mu' )
     sel_base_el = defs.get_base_selection( 'el' )
 
-    ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80' 
+    ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 50' 
 
     sel_mu_nominal = '%s * ( %s && %s )'%( weight_str, sel_base_mu, ph_str ) 
     sel_el_nominal = '%s * ( %s && %s )'%( weight_str, sel_base_el, ph_str ) 

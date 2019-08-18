@@ -226,7 +226,7 @@ class DrawConfig :
             wiplabel.SetTextFont(52)
             labeltext = '36 fb^{-1} (13 TeV)'
             rootslabel = ROOT.TLatex()
-            rootslabel.SetText(text_dx+0.80, text_dy+0.96, labeltext  )
+            rootslabel.SetText(text_dx+0.75, text_dy+0.88, labeltext  )
             rootslabel.SetTextFont(42)
             rootslabel .SetNDC()
             rootslabel .SetTextSize(0.045)
