@@ -18,8 +18,8 @@ import time
 import analysis_utils
 from functools import wraps
 
-sys.path.append('/data/users/fengyb/CMSPLOTS/')
-import tdrstyle as tdr
+#sys.path.append('/data/users/fengyb/CMSPLOTS/')
+#import tdrstyle as tdr
 
 from uncertainties import ufloat
 from uncertainties import umath
