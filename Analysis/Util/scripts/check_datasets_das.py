@@ -9,7 +9,7 @@ from check_dataset_completion import get_dataset_counts
 
 parser = ArgumentParser()
 
-parser.add_argument( '--version', dest='version', required=True, default=None, help='Name of processing version (subdirectory under sample directory)' )
+parser.add_argument( '--version', dest='version', default=None, help='Name of processing version (subdirectory under sample directory)' )
 parser.add_argument( '--mcOnly', dest='mcOnly',  default=False, action='store_true', help='only process MC samples (check DATA_SAMPLES list)' )
 parser.add_argument( '--dataOnly', dest='dataOnly',  default=False, action='store_true', help='only process data samples (check DATA_SAMPLES list)' )
 parser.add_argument( '--dataEras', dest='dataEras',  default=None, help='List of data eras to expect, should be a list of single letters.  This should be provided if you want to have correct event counting' )
@@ -20,16 +20,20 @@ parser.add_argument( '--vetofail', dest='vetofail',default =False, action='store
 
 options = parser.parse_args()
 
-BASE_DIR   = '/store/user/friccita/'
+BASE_DIR   = '/store/user/kawong/WGamma2'
+#BASE_DIR   = '/store/user/friccita/'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_SAMPLES = ['SingleElectron', 'SingleMuon', 'HLT']
-#DATA_SAMPLES = ['SingleElectron']
+
+## information from https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD
 RUN_YEAR = 'Run2016'
-RECO_TYPE = ['23Sep2016', 'H-PromptReco']
-#RECO_TYPE = ['03Feb2017']
+RECO_TYPE_DATA = ['07Aug17']
+RECO_TYPE_MC   = ['12Apr2018']
 FILE_KEY = 'ntuple'
 TREE_NAME = 'UMDNTuple/EventTree'
-MC_CAMPAIGN_STR = 'RunIISummer16'
+MC_CAMPAIGN_STR = 'RunIIFall17'
+DATA_VERSION = 'UMDNTuple_0506_2016'
+MC_VERSION = 'UMDNTuple_0506_2016'
 
 
 def main() :
@@ -53,7 +57,7 @@ def main() :
                 continue
 
         for subdir in os.listdir( BASE_DIR + '/' + sampdir ) :
-            if subdir == options.version :
+            if subdir == options.version or subdir == MC_VERSION or subdir == DATA_VERSION:
                 found_samples.append( sampdir )
 
     das_events = defaultdict(list)
@@ -69,12 +73,13 @@ def main() :
         prodname = []
 
         if isData :
-            for rt in RECO_TYPE :
+            for rt in RECO_TYPE_DATA :
                 miniaodname = 'MINIAOD'
                 prodname.append('%s*%s*' %( RUN_YEAR, rt ) )
         else :
-            miniaodname = 'MINIAODSIM'
-            prodname.append('*')
+            for rt in RECO_TYPE_MC :
+                miniaodname = 'MINIAODSIM'
+                prodname.append('%s*%s*' %(MC_CAMPAIGN_STR, rt))
 
         nevents_das = 0
         for pd in prodname :
@@ -171,11 +176,34 @@ def main() :
         ofile.close()
     else:	
         for samp in found_samples :
+            isData = ( samp in DATA_SAMPLES )
 
-            tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME, vetoes='failed' )
-            #tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, options.version ), FILE_KEY, treeName=TREE_NAME)
+            if options.version:
+                version = options.version
+            elif isData:
+                version = DATA_VERSION
+            else:
+                version = MC_VERSION
+            tree_counts, hist_counts = get_dataset_counts( '%s/%s/%s' %( BASE_DIR, samp, version ), FILE_KEY, treeName=TREE_NAME, vetoes='failed' )
 
             local_events[samp] = tree_counts
+
+            ##old results
+            #isData = ( samp in DATA_SAMPLES )
+            if not das_events[samp]:
+                continue
+            #print das_events[samp]
+            diffs = [s-local_events[samp] for s in das_events[samp] if s -local_events[samp]>=0]
+            if isData:
+                das_total = sum(das_events[samp])
+                diff = das_total - local_events[samp] 
+                print '%s : Original = %d events, filtered = %d events.  \033[1mDifference = %d (%.4g%%)\033[0m' %( samp, das_total, local_events[samp], diff, 100.0*diff/das_total)
+            elif not diffs:
+                maxevent = max(das_events[samp])
+                print '%s : Original = %d events, filtered = %d events.  \033[31mDifference = %d\033[0m' %( samp, maxevent, local_events[samp],maxevent - local_events[samp])
+            else:
+                mindiff = min(diffs)
+                print '%s : Original = %d events, filtered = %d events.  \033[1mDifference = %d\033[0m' %( samp, mindiff+local_events[samp], local_events[samp],mindiff)
     
         ofile = open("treecount.json",'w')
     
@@ -183,19 +211,30 @@ def main() :
     
         ofile.close()
 
+
+
     print '******************************************'
     print ' Results '
     print '******************************************'
     for samp in found_samples :
+        isData = ( samp in DATA_SAMPLES )
         if not das_events[samp]:
                 continue
+        print das_events[samp],
         diffs = [s-local_events[samp] for s in das_events[samp] if s -local_events[samp]>=0]
-        if not diffs:
+        if isData:
+            das_total = sum(das_events[samp])
+            diff = das_total - local_events[samp] 
+            print "%s : Original = %d events, filtered = %d events.  \033[1mDifference = %d (%.4g%%)\033[0m"\
+                         %( samp, das_total, local_events[samp], diff, 100.0*diff/das_total)
+        elif not diffs:
             maxevent = max(das_events[samp])
-            print '%s : Orignal = %d events, filtered = %d events.  \033[31mDifference = %d\033[0m' %( samp, maxevent, local_events[samp],maxevent - local_events[samp])
+            print "%s : Original = %d events, filtered = %d events.  \033[31mDifference = %d (%.2g%%)\033[0m"\
+                        %( samp, maxevent, local_events[samp],maxevent - local_events[samp], 100.*(maxevent - local_events[samp])/maxevent)
         else:
             mindiff = min(diffs)
-            print '%s : Orignal = %d events, filtered = %d events.  \033[1mDifference = %d\033[0m' %( samp, mindiff+local_events[samp], local_events[samp],mindiff)
+            print "%s : Original = %d events, filtered = %d events.  \033[1mDifference = %d (%.2g%%)\033[0m"\
+                %( samp, mindiff+local_events[samp], local_events[samp],mindiff,100.0*mindiff/(mindiff+local_events[samp]))
 
 
 

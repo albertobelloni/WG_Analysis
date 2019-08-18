@@ -1,5 +1,5 @@
 import ROOT
-from ROOT import RooFit
+from ROOT import RooFit, gROOT, gSystem
 from uncertainties import ufloat
 import uuid
 import re
@@ -8,6 +8,8 @@ from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
 from pprint import pprint
+gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
+from ROOT import RooDoubleCB
 
 
 ROOT.gStyle.SetPalette(ROOT.kBird) 
@@ -105,7 +107,8 @@ class FitManager :
             [RooFit.LineColor(ROOT.kTeal-2), RooFit.LineStyle(ROOT.kDashed),],
                ]
     def __init__(self, fname, hist=None, xvardata = None, #,xvarfit=None,
-                    label="", sample_params={}) :
+                    label="", sample_params={},
+                    norders = 2 ) :
 
         # initialize object container
         self.defs = OrderedDict()          # store RooRealVar for fit functions
@@ -135,6 +138,10 @@ class FitManager :
         # toggles and extra parameters
         self.sample_params = sample_params
 
+        # set the function orders
+        # only useful for dijet, power, atlas functions, etc
+        self.func_norders = norders
+
         self.canvas = None
         self.curr_canvases = {}
         self.objs = []
@@ -156,6 +163,8 @@ class FitManager :
                 self.datahist = ROOT.RooDataHist( '%s%s' %(self.label,name), 'data', 
                             ROOT.RooArgList(self.xvardata), his )
 
+                if not hasattr(self, 'datahistlist'):
+                   self.datahistlist = {}
                 self.datahistlist['data'] = self.datahist
                 ROOT.SetOwnership( self.datahist, False )
             else:
@@ -171,6 +180,7 @@ class FitManager :
             self.histlist={}
             self.datahistlist={}
 
+    @f_Obsolete
     def MakeROOTObj( self, root_obj, *args ) :
         """ Generic function for making ROOT objects."""  
 
@@ -188,13 +198,32 @@ class FitManager :
             raise
 
 
-    @f_Obsolete ## FIXME
     def Integral( self ) :
 
         err = ROOT.Double()
-        val = self.hist.IntegralAndError( self.hist.FindBin( self.xvar.getMin() ), self.hist.FindBin( self.xvar.getMax() ), err )
+        val = self.hist.IntegralAndError( self.hist.FindBin( self.xvardata.getMin() ), self.hist.FindBin( self.xvardata.getMax() ), err )
 
         return ufloat( val, err )
+
+    def MakeIntegral(self,intrange=None, pdfname = None):
+        """ make pdf integral that returns in range [0,1] """
+        if intrange is None:
+            intrange = self.fitrange
+        if pdfname is None:
+            pdf = self.func_pdf
+        else:
+            pdf = self.wk.pdf(pdfname)
+        self.integral = pdf.createIntegral(self.xvardata,RooFit.NormSet(self.xvardata),RooFit.Range(*intrange))
+        return self.integral
+
+    def get_integral_value(self, intrange=None, pdfname = None):
+        """ calculate pdf integral return [0,1] """
+        ### FIXME
+        pass
+
+    def get_vals( self, name, order ) :
+
+        return self.defs[name][order]
 
     def add_vars( self, arg_list) :
         if self.func_name == 'dijet' : 
@@ -259,6 +288,13 @@ class FitManager :
             
             function = 'TMath::Power( @0/13000., @1 + ' + '+'.join( order_entries) + ')'
 
+            self.defs['dijet'] = {}
+            self.defs['dijet'][1] = (-16.0,  -20.0,  -10.0)
+            self.defs['dijet'][2] = (-5.0,    -9.0,  -3.0 )
+            self.defs['dijet'][3] = (-1.5,    -5.0,  -1.0 )
+
+            print "function: ", function
+
 
         if self.func_name == 'atlas' : 
 
@@ -278,11 +314,15 @@ class FitManager :
 
             function = '+'.join( order_entries )
 
-        mod_function = function.replace( '@0', 'x' )
-        mod_function = '[0]*' + mod_function
-        for i in range( 0, 9 ) :
-            mod_function = mod_function.replace( '@%d' %i, '[%d]' %i )
-        return mod_function
+        if forceUseRooFit :
+            # different syntax for ROOT and RooFit
+            return function
+        else :
+            mod_function = function.replace( '@0', 'x' )
+            mod_function = '[0]*' + mod_function
+            for i in range( 0, 9 ) :
+                mod_function = mod_function.replace( '@%d' %i, '[%d]' %i )
+            return mod_function
 
     @f_Obsolete
     def fit_histogram( self, workspace=None ) :
@@ -337,7 +377,8 @@ class FitManager :
         # arglist is passed to take new variables
         #self.add_vars( arg_list)
 
-        if self.func_name == 'bwxcb' : self.init_bwxcb()
+        #if self.func_name == 'bwxcb' : self.init_bwxcb()
+        if self.func_name == 'dscb'  : self.init_dscb()
         elif self.func_name == 'cb'  : self.init_cb()
         elif self.func_name == 'dcb' : self.init_dcb(reparam=False, **setupargs)
         elif self.func_name == 'dcbp' : self.init_dcb(**setupargs)
@@ -380,12 +421,49 @@ class FitManager :
                      #ROOT.RooFit.Save(ROOT.kTRUE))
         return
 
-    def run_simplefit(self):
-        """ simple fitter """
+    def run_fit_minuit(self, fitrange= None, debug = True ):
+        """
+        run the RooFit Fitter and MIGRAD, HESSE and MINOS
+        """
+        self.fitrange = self.fitrangehelper(fitrange)
+        self.xvardata.setRange("runfit",*self.fitrange)
+        self.func_pdf.fitTo( self.datahist, 
+                             RooFit.Save(), 
+                             RooFit.Range("runfit"), 
+                             ROOT.RooFit.SumW2Error(True), 
+                             ROOT.RooCmdArg( 'Strategy', 3 ) )
+        if debug: 
+           print "\n**************************"
+           print "***** finished fitTo in RooFit ******"
+           print "*********************\n"
+
+        # construct the Log(Likelihood)
+        nll = self.func_pdf.createNLL(self.datahist) ;
+        m = ROOT.RooMinimizer(nll)
+
+        m.migrad()        
+        if debug:
+           print "\n*************************************"
+           print "************ finished MIGRAD ****************"
+           print "***************************************\n"
+        m.hesse()
+        if debug:
+           print "\n*************************************"
+           print "************ finished HESSE *****************"
+           print "***************************************\n"
+        m.minos()
+        if debug:
+           print "\n*************************************"
+           print "************ finished MINOS *****************"
+           print "***************************************\n"
+        self.roofitresult = m.save()
+
+    def run_rootfit(self, fitrange=None ):
+        """  fit in ROOT """
         fitrange = self.fitrangehelper(fitrange)
         func_str = self.get_fit_function() 
 
-        self.func = self.MakeROOTObj( 'TF1', 'tf1_%s' %self.label, func_str, xmin, xmax )
+        self.func = self.MakeROOTObj( 'TF1', 'tf1_%s' %self.label, func_str, fitrange[0], fitrange[1] )
 
         if self.func_name == 'dijet' : 
 
@@ -395,7 +473,17 @@ class FitManager :
                 this_def = self.get_vals( self.func_name, i )
                 self.func.SetParameter( param, this_def[0] )
                 param += 1
-        self.hist.Fit( self.func, 'R' )
+
+        self.hist.Fit( self.func, 'REM' )
+        # do it a few times 
+        print "********** fit again *****************"
+        for iparam in xrange( 1, self.func_norders+1 ):
+            self.func.SetParameter( iparam, self.func.GetParameter(iparam))
+        self.hist.Fit( self.func, 'REM' )
+        print "********** fit again *****************"
+        for iparam in xrange( 1, self.func_norders+1 ):
+            self.func.SetParameter( iparam, self.func.GetParameter(iparam))
+        self.hist.Fit( self.func, 'REM' )
         return self.func
 
 
@@ -453,8 +541,10 @@ class FitManager :
             ##// value and error back propagated from MINUIT
             ##sigma_g2.Print() ;
 
-    @f_Obsolete
     def calculate_func_pdf( self ) :
+        """ 
+        cast a TF1 into RooGenericPdf in RooFit. So that it can be saved in RooWorkspace for the HiggsCombine
+        """
 
         if self.func_pdf is not None : 
             print 'The PDF Function already exists.  It will be overwritten'
@@ -467,7 +557,7 @@ class FitManager :
                 self.defs['dijet'][i] = ( fitted_result, fitted_result - fitted_error, fitted_result + fitted_error )
 
             arg_list = self.MakeROOTObj( 'RooArgList' )
-            arg_list.add( self.xvar )
+            arg_list.add( self.xvardata )
             self.add_vars( arg_list )
 
             for i in range( 1, arg_list.getSize() )  :
@@ -516,9 +606,8 @@ class FitManager :
         #log_res   = ufloat( logcoef.getValV(), logcoef.getErrorHi())
         #int_res   = ufloat( integral, math.sqrt( integral ) )
 
-
         results['integral'] = self.Integral( )
-        integral_var = ROOT.RooRealVar('dijet_%s_norm' %( self.label ), 'normalization', results['integral'].n )
+        integral_var = ROOT.RooRealVar('%s_norm' %( self.func_pdf.GetName() ), 'normalization', results['integral'].n )
         integral_var.setError( results['integral'].s )
 
         if workspace is not None :
@@ -539,6 +628,26 @@ class FitManager :
         self.hcorr = self.fitresult.correlationHist()
         self.hcorr.Draw("COLZ")
         return self.curr_canvases["corr"]
+        
+    @f_Obsolete ## for testing purposes: doesn't seem to work
+    def updatedraw(self,subplot=""):
+        if subplot:
+            if "top" in self.curr_canvases:
+                self.curr_canvases["top"].cd()
+            else: 
+                print "cannot update"
+                return
+        elif self.canvas:
+            self.canvas.cd()
+        else: return
+        self.frame.Draw()
+        if subplot:
+            self.curr_canvases["bottom"].cd()
+            self.subframe.Draw()
+            return self.curr_canvases["base"]
+        else:
+            return self.canvas
+
         
 
     def draw(self,title=" ",yrange=None,subplot="",component=False,**kw):
@@ -561,6 +670,8 @@ class FitManager :
 
         # make frame
         self.frame = self.xvardata.frame(RooFit.Title(title)) 
+        print "initalised frame"
+        self.frame.Print()
         # plot data histogram
         if component: 
             hlist = [h for h in self.datahistlist.values() if h!= self.datahist]
@@ -568,22 +679,44 @@ class FitManager :
                 h.plotOn(self.frame,RooFit.DataError(ROOT.RooAbsData.SumW2),
                     RooFit.DrawOption("B"),RooFit.DataError(ROOT.RooAbsData.None),
                         RooFit.XErrorSize(0),RooFit.FillColor(ROOT.kBlue-10))
+                print "PLOTONN: ", h
         self.datahist.plotOn(self.frame,RooFit.DataError(ROOT.RooAbsData.SumW2))
+
+        #
+        # old setup fitted for the signal and MC bkg fits
+        #
+        useOldsetup = kw.get("useOldsetup", False)
 
         # plotting fitted function
         if self.func_pdf:
+            #plotparm   = [self.frame,RooFit.NormRange('myrange')]
             plotparm   = [self.frame,]
+            #if  self.pdfplotrange and self.fitrange:
+            #    plotparm.append(RooFit.Range(*self.fitrange))
+            #if True: ## FIXME
             plotparm+=[RooFit.NormRange("runfit"),RooFit.Range("runfit")]
             if component == True:
                 component = self.components
             if isinstance(component,list):
                 for i,comp in enumerate(map(RooFit.Components,component)):
                     self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[i+1]+[comp,]))
+                    print "PLOTONN2: ", i, comp, plotparm+FitManager.LineDefs[i+1]+[comp,]
             self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[0]))
+            print "plotparm"
+            print plotparm
             pmlayout = kw.get("paramlayout",(0.65,0.9,0.8))
             ## toggle off parameters with None in layout
             if  pmlayout: 
-                self.func_pdf.paramOn(self.frame,
+                if useOldsetup:
+                   # make the param names short
+                   for name, param in self.fit_params.iteritems() :
+                       param.SetName( name )
+                   self.func_pdf.paramOn( self.frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(*pmlayout), ROOT.RooFit.Format("NBNEU" , ROOT.RooFit.FixedPrecision(2)) )
+                   # to make the border size zero for the parameters
+                   # this seems like a dangerous way to do, but currrently can not find a better way
+                   self.frame.findObject("%s_paramBox"%self.func_pdf.GetName()).SetBorderSize(0)
+                else:
+                   self.func_pdf.paramOn(self.frame,
                             RooFit.Layout(*pmlayout)).Draw()
         # set y axis range
         if dology:
@@ -603,8 +736,14 @@ class FitManager :
             self.subframe.Draw()
             #if subplot == "pull": self.subframe.GetYaxis().SetRangeUser(-6,6)
             self.ratio_formatting()
+            if useOldsetup:
+               self.subframe.GetYaxis().SetNdivisions(205)
+               self.subframe.GetYaxis().CenterTitle()
+               self.subframe.GetYaxis().SetRangeUser(-5.0,5.0)
+               self.subframe.GetXaxis().SetTitle("m_{T} [GeV]")
             ROOT.gPad.SetTicks(1,1)
-            chi  =self.frame.chiSquare(6) #FIXME: dof
+            chi  =self.getchisquare() ##FIXME
+            print "Printed Chi: ",chi
             # print chi-sq
             self.latex = ROOT.TLatex()
             self.latex.SetTextSize(0.1) 
@@ -623,6 +762,11 @@ class FitManager :
             self.subframe.addObject(self.line)
             return self.curr_canvases["base"]
         return self.canvas
+
+    def getchisquare(self,dof = None):
+        if dof is None:
+            #return self.frame.chiSquare("simul2",6) #FIXME: dof
+            return self.frame.chiSquare(6) #FIXME: dof
 
     def draw_label(self,**kw):
         draw_config = DrawConfig("","","",**kw) 
@@ -659,8 +803,9 @@ class FitManager :
         self.subframe.SetYTitle("Residual")
         return
 
-
+    @f_Obsolete 
     def init_bwxcb(self):
+        """ old function used for signal fitting. Not used anymore """
         mass =  self.sample_params['mass']
         width = self.sample_params['width']
 
@@ -708,6 +853,44 @@ class FitManager :
         self.fit_params['cb_mass'] = cb_m0
         #self.fit_params['cb'] = cb
 
+    def init_dscb(self):
+        mass =  self.sample_params['mass']
+        width = self.sample_params['width']
+
+        # TODO: this can be updated and merged to setuparray
+        cut1_vals   = (  0.3,       0.1,      0.6  ) 
+        sigma_vals  = ( 28. ,       1. ,      200. )
+        power1_vals = (  2.0,       1.4,      4.6  ) if width==1e-4 else ( 3.0,        2.4,       4.0 ) 
+        mass_vals   = ( mass,  0.5*mass,  1.1*mass)
+        cut2_vals   = (  1.5,       1.,       2.5  )
+        power2_vals = (  4.0,       0.,       5.0  )
+
+        cb_cut1   = self.MakeROOTObj('RooRealVar', 'cb_cut1_%s'   %self.label,   'Cut1'  ,  cut1_vals[0],   cut1_vals[1],   cut1_vals[2],   '')
+        cb_sigma  = self.MakeROOTObj('RooRealVar', 'cb_sigma_%s'  %self.label,   'Width' ,  sigma_vals[0],  sigma_vals[1],  sigma_vals[2],  'GeV')
+        cb_power1 = self.MakeROOTObj('RooRealVar', 'cb_power1_%s' %self.label,   'Power' ,  power1_vals[0], power1_vals[1], power1_vals[2], '')
+        cb_m0     = self.MakeROOTObj('RooRealVar', 'cb_mass_%s'   %self.label,   'mass'  ,  mass_vals[0],   mass_vals[1],   mass_vals[2],   'GeV')
+        cb_cut2   = self.MakeROOTObj('RooRealVar', 'cb_cut2_%s'   %self.label,   'Cut2'  ,  cut2_vals[0],   cut2_vals[1],   cut2_vals[2],   '')
+        cb_power2 = self.MakeROOTObj('RooRealVar', 'cb_power2_%s' %self.label,   'Power' ,  power2_vals[0], power2_vals[1], power2_vals[2], '')
+
+        # fix a few params in the signal fit
+        cb_cut2.setConstant()
+        cb_cut2.setError(0.0)
+
+        cb_power2.setConstant()
+        cb_power2.setError(0.0)
+
+        cb_power1.setConstant()
+        cb_power1.setError(0.0)
+
+        self.func_pdf = self.MakeROOTObj('RooDoubleCB', 'cb_%s'%self.label, 'Double Sided Crystal Ball Lineshape', self.xvardata, cb_m0, cb_sigma, cb_cut1, cb_power1, cb_cut2, cb_power2)
+
+        self.fit_params['cb_cut1'] = cb_cut1
+        self.fit_params['cb_sigma'] = cb_sigma
+        self.fit_params['cb_power1'] = cb_power1
+        self.fit_params['cb_mass'] = cb_m0
+        self.fit_params['cb_cut2'] = cb_cut2
+        self.fit_params['cb_power2'] = cb_power2
+
     def make_factory_string(self, classname, pdfname, valsar, norange=False):
         """ input string for RooFactory custom pdf
         
@@ -730,7 +913,8 @@ class FitManager :
 
     def make_expression_string(self, varname, varexp):
         """ make factory expression with name and formula of expression """
-        varlist = re.split('[+-*/() ]',varexp)
+        print varexp
+        varlist = re.split('[+\-*/() ]',varexp) # minus needs escape
         varlist = [v for v in varlist if v]
         varlist = ','.join(list(set(varlist)))
         return "expr::%s('%s',%s)" %(varname, varexp, varlist)
@@ -824,6 +1008,10 @@ class FitManager :
             self.func_pdf = self.wk.pdf("doublecb"+pdflabel)
         self.retrieve_param(valsar)
         if seterr: self.dcbseterr()
+        # retrieve parameters
+        #for v in valsar:
+        #    name = v[0] 
+        #    if name!="x": self.defs[name] = self.wk.var(name)
         self.xvardata = self.wk.var("x") #update xvardata
         self.xvardata.SetTitle(xname)
         self.xvardata.setUnit("GeV")
@@ -881,6 +1069,8 @@ class FitManager :
         ## step 4: extended pdf
         ## SUM for pdf instead of functions
         valsarex = icparm.get(ext,FitManager.setuparray[ext])
+        #factstrex = "SUM::"+ext+"(%s[%g,%g,%g]"%valsar3[0]+ "*%s," %name1+\
+        #                      "%s[%g,%g,%g]"%valsar3[1]+ "*%s)" %name2 
         pprint(valsarex)
         f = lambda nlist, unc: tuple(round(i * random.normalvariate(1,unc)) if isinstance(i,(int,float)) else i for i in nlist)
         factstrex = ["%s[%g,%g,%g]" %f(v,0.2) + "*%s" %name[i] for i,v in enumerate(valsarex)]
@@ -897,9 +1087,10 @@ class FitManager :
         self.wk.Print()
         self.retrieve_param(valsar1)
         self.retrieve_param(valsar2)
-        self.retrieve_param(valsar3)
+        if bkgd2 is not None: self.retrieve_param(valsar3)
         self.retrieve_param(valsarex)
         self.func_pdf = self.wk.pdf(ext)
         print "DEFINED VARIABLES"
         pprint(self.defs.items())
+        self.pdfplotrange = False ## FIXME: needed?
 

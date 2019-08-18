@@ -114,13 +114,12 @@ def main() :
             for name, vardata in kine_vars.iteritems() :
                                     
                 print 'MC background k-factor calculation'
-                make_kfactor_calc( sampManMuNoG, 'WjetsSMPIncl', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Wjets', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Wgamma', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Zgamma', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'AllTop', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Z+jets', seldic['selection'], suffix='wjets_%s' %(ch), False, workspace=wjets)
-                make_kfactor_calc( sampManMuNoG, 'Data', seldic['selection'], suffix='wjets_%s' %(ch), True, workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Wjets', seldic['selection'], False, suffix='wjets_%s' %(ch), workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Wgamma', seldic['selection'], False, suffix='wjets_%s' %(ch), workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Zgamma', seldic['selection'], False, suffix='wjets_%s' %(ch), workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'AllTop', seldic['selection'], False, suffix='wjets_%s' %(ch), workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Z+jets', seldic['selection'], False, suffix='wjets_%s' %(ch), workspace=wjets)
+                make_kfactor_calc( sampManMuNoG, 'Data', seldic['selection'], True, suffix='wjets_%s' %(ch), workspace=wjets)
 
 
     if options.outputDir is not None :
@@ -151,7 +150,7 @@ def main() :
 
 
 #def make_kfactor_calc( sampMan, sample, sel_base, plot_var, binning, suffix='', workspace=None) :
-def make_kfactor_calc( sampMan, sample, sel_base, suffix='', isdata=False, workspace=None) :
+def make_kfactor_calc( sampMan, sample, sel_base, isdata=False, suffix='', workspace=None) :
 
     #---------------------------------------
     # W selection for lepton
@@ -177,13 +176,15 @@ def make_kfactor_calc( sampMan, sample, sel_base, suffix='', isdata=False, works
     # put the cuts together
     #---------------------------------------
 
+    myweight = ''
+
     if isdata :
         myweight = '(isData)'
     else:
         myweight = '(NLOWeight*PUWeight*mu_trigSF*mu_idSF*mu_isoSF)'
 
     full_sel = ' && '.join( [sel_base, w_selection, jet_selection ] )
-    full_sel = '(' + full_sel + ')*' + mwyweight
+    full_sel = '(' + full_sel + ')*' + myweight
     
     almostfull_sel = ' && '.join( [sel_base, w_selection, jet_non_selection ] )
     almostfull_sel = '(' + almostfull_sel + ')*' + myweight
@@ -234,9 +235,6 @@ def clone_sample_and_draw( sampMan, samp, var, sel, binning ) :
 
     newSamp = sampMan.clone_sample( oldname=samp, newname=samp+str(uuid.uuid4()), temporary=True ) 
     sampMan.create_hist( newSamp, var, sel, binning )
-    print "Debug: histogram pointer = ",newSamp.hist
-    print "Debug: histogram mean = ",newSamp.hist.GetMean()
-    print "Debug: histogram integral =",newSamp.hist.Integral()
     return newSamp.hist
 
 
