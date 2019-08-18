@@ -13,39 +13,36 @@ using namespace std;
 void kplotter()
 { // beginning
 
-  TString infilename("Plots/Resonance/Plots_2019_04_15/WJetsWS/outfile_kfactor.root");
+  TString infilename("Plots/Resonance/Plots_2018_09_11/WJetsWS/outfile_kfactor.root");
   TFile* infile = new TFile(infilename,"READ");
 
   TString dataprefix("Data_");
-  TString wgamprefix("Wgamma_");
-  TString ttbarprefix("AllTop_");
-  TString zjetsprefix("Z+jets_");
-  TString zgamprefix("Zgamma_");
-  //TString wjetsprefix("WjetsSMPIncl_");
+  TString wjetsprefix("WjetsSMPIncl_");
   //TString wjetsprefix("WjetsSMPPt_");
   //TString wjetsprefix("WjetsSMPJet_");
-  TString wjetsprefix("Wjets_");
+  //TString wjetsprefix("Wjets_");
+  TString wgamprefix("Wgamma_");
+  TString ttbarprefix("TTbar_SingleLep_");
+  TString elefakeprefix("EleFakeBackground_");
 
   vector<TString> sampleprefix;
+  sampleprefix.push_back(wjetsprefix);
   sampleprefix.push_back(wgamprefix);
   sampleprefix.push_back(ttbarprefix);
-  sampleprefix.push_back(zjetsprefix);
-  sampleprefix.push_back(zgamprefix);
-  sampleprefix.push_back(wjetsprefix);
+  sampleprefix.push_back(elefakeprefix);
 
   //TString histsuffix("wpt_wjets_mu");
-  TString histsuffix("wmass_wjets_mu");
+  //TString histsuffix("wmass_wjets_mu");
   //TString histsuffix("leadjetpt_wjets_mu");
   //TString histsuffix("mtmumet_wjets_mu");
-  //TString histsuffix("jetn_wjets_mu");
+  TString histsuffix("jetn_wjets_mu");
 
 
   vector<Color_t> colorsMC;
+  colorsMC.push_back(kRed);
   colorsMC.push_back(kBlue);
   colorsMC.push_back(kGreen);
-  colorsMC.push_back(kCyan);
   colorsMC.push_back(kOrange);
-  colorsMC.push_back(kRed);
 
   // get data histogram
   TString histname_data = dataprefix + histsuffix;
@@ -53,9 +50,9 @@ void kplotter()
   TH1F* histdata = static_cast<TH1F*>(infile->Get(histname_data)->Clone());
   //histdata->GetXaxis()->SetTitle("Reco W p_{T} (GeV)");
   //histdata->GetXaxis()->SetTitle("Reco W mass (GeV)");
-  histdata->GetXaxis()->SetTitle("Leading jet p_{T} (GeV)");
+  //histdata->GetXaxis()->SetTitle("Leading jet p_{T} (GeV)");
   //histdata->GetXaxis()->SetTitle("m_{T}(#mu,MET) (GeV)");
-  //histdata->GetXaxis()->SetTitle("Jet multiplicity");
+  histdata->GetXaxis()->SetTitle("Jet multiplicity");
   histdata->GetYaxis()->SetTitle("Events");
 
   // define legend
@@ -87,17 +84,16 @@ void kplotter()
 
   cout << "Total data events: " << histdata->Integral() << endl;
   cout << "Total MC events: " << histmc->Integral();
-  histmc->SetFillStyle(3352);
-  histmc->SetFillColor(kBlue);
+
 
 
   TH1F* histratio = static_cast<TH1F*>(infile->Get(histname_data)->Clone());
   histratio->Divide(histmc);
   //histratio->GetXaxis()->SetTitle("Reco W p_{T} (GeV)");
-  histratio->GetXaxis()->SetTitle("Reco W mass (GeV)");
+  //histratio->GetXaxis()->SetTitle("Reco W mass (GeV)");
   //histratio->GetXaxis()->SetTitle("Leading jet p_{T} (GeV)");
   //histratio->GetXaxis()->SetTitle("m_{T}(#mu,MET) (GeV)");
-  //histratio->GetXaxis()->SetTitle("Jet multiplicity");
+  histratio->GetXaxis()->SetTitle("Jet multiplicity");
   histratio->GetYaxis()->SetTitle("Data/MC");
 
   
@@ -111,10 +107,8 @@ void kplotter()
   canv->cd(2)->SetPad(0.0,0.0,1.0,0.33);
 
   canv->cd(1);
-  canv->cd(1)->SetLogy();
   stack_MC->Draw("hist");
   histdata->Draw("LPE same");
-  histmc->Draw("same e2");
   leg->Draw();
   canv->cd(2);
   histratio->Draw();

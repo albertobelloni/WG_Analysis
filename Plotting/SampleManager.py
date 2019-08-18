@@ -1,7 +1,4 @@
-""" Sample Manager: Store imported Samples, General Plot methods
-"""
 import os
-import pdb
 import sys
 import math
 import re
@@ -27,27 +24,12 @@ import pickle
 import core
 import subprocess
 import multiprocessing
-from collections import OrderedDict
+import collections
 from DrawConfig import DrawConfig, LegendConfig, LabelConfig, HistConfig
 
 ROOT.gROOT.SetBatch(False)
 
 ROOT.gStyle.SetPalette(1)
-
-def f_Obsolete(f):
-        @wraps(f)
-        def f_wrapper(*args, **kws):
-                print "This method is obsolete"
-                return f(*args,**kws)
-        return f_wrapper
-
-def f_Fixme(f):
-        @wraps(f)
-        def f_wrapper(*args, **kws):
-                print "FIXME"
-                print "\033[1;31m FIXME \033[0m" 
-                return f(*args,**kws)
-        return f_wrapper
 
 class Sample :
     """ Store information about one sample """
@@ -213,6 +195,654 @@ class Sample :
     def getLineStyle( self ) :
         return self.lineStyle
 
+class LegendConfig :
+
+    def __init__(self) : 
+        pass
+
+class LabelConfig :
+
+    def __init__(self) : 
+        pass
+
+class HistConfig :
+
+    def __init__(self) : 
+        pass
+
+class DrawConfig :
+    """ Store and process all information necessary for making a histogram """
+
+    used_names = []
+
+    def __init__(self, var, selection, histpars, samples=None, hist_config={}, legend_config={}, label_config={}, replace_selection_for_sample={}) :
+
+        self.var = var
+        self.selection = selection
+
+        if not isinstance( self.var, list ) :
+            self.var = [self.var]
+        if not isinstance( self.selection, list ) :
+            self.selection = [self.selection]
+
+        self.samples = samples
+    
+        if self.samples is not None and not isinstance( self.samples, list ) :
+            self.samples = [self.samples]
+
+        self.histpars = histpars
+        self.hist_config = hist_config
+        self.legend_config = legend_config
+        self.label_config = label_config
+        self.replace_selection_for_sample = replace_selection_for_sample
+
+        self.modified_selection = None
+        self.stack_save_params = {}
+        self.stack_dump_params = {}
+
+        self.compare_hists = False
+        self.no_auto_draw = False
+
+        self.hist_configs = collections.OrderedDict()
+
+        self.samp_man_id = None
+
+    def get_doratio(self) :
+        """ return doratio key value set in hist_config """
+        return self.hist_config.get('doratio', False)
+
+    def get_reverseratio(self) :
+        """ return reverseratio key value set in hist_config """
+        return self.hist_config.get('reverseratio', False)
+
+    def get_binomunc(self) :
+        """ return binomunc key value set in hist_config, default is False """
+        return self.hist_config.get('binomunc', False)
+
+    def get_drawhist(self) :
+        return self.hist_config.get('drawhist', False)
+
+    def get_ylabel(self) :
+        """ return y axis label set in hist_config
+            if not set, returns Events/ x GeV with bin width calculated from histpars"""
+        ylabel = self.hist_config.get('ylabel', None) 
+        if ylabel is None :
+            if isinstance( self.histpars, tuple ) :
+                bin_width = ( self.histpars[2] - self.histpars[1] )/self.histpars[0]
+                bin_width_f = ( self.histpars[2] - self.histpars[1] )/float(self.histpars[0])
+            else :
+                bin_width = 1
+                bin_width_f = 1
+                
+
+            if math.fabs(bin_width_f - bin_width) != 0 :
+                ylabel = 'Events / %.1f GeV' %bin_width_f
+            else :
+                ylabel = 'Events / %d GeV' %bin_width
+
+        return ylabel
+
+    def get_xlabel(self) :
+
+        return self.hist_config.get('xlabel', '')
+
+    def get_rlabel(self) :
+        rlabel = self.hist_config.get('rlabel', None) 
+        if rlabel is None :
+            rlabel = 'Data / MC'
+
+        return rlabel
+
+    def get_tick_x_format(self) :
+        return self.hist_config.get( 'ticks_x', None )
+    def get_tick_y_format(self) :
+        return self.hist_config.get( 'ticks_y', None )
+    
+
+    def get_legend_entries(self) :
+
+        legend_entries = self.legend_config.get('legend_entries', [])
+        if len( legend_entries)  != len(self.samples) :
+            legend_entries = self.samples
+
+        return legend_entries
+
+    def get_ymin( self ) :
+        return self.hist_config.get('ymin', None)
+    def get_ymax( self ) :
+        return self.hist_config.get('ymax', None)
+    def get_ymax_scale( self ) :
+        return self.hist_config.get('ymax_scale', None)
+    def get_rmin( self ) :
+        return self.hist_config.get('rmin', 0.1 )
+    def get_rmax( self ) :
+        return self.hist_config.get('rmax', 1.9 )
+    def get_logy( self ) :
+        return self.hist_config.get('logy', False )
+    def get_normalize( self ) :
+        return self.hist_config.get('normalize', False )
+
+    def get_weight( self ) :
+        """ defaults to empty string: no weights
+            string: Apply weights
+        """
+        return self.hist_config.get('weight', "")
+
+    def get_unblind( self ) :
+        """ defaults to False: skipping Data
+            1, True: show Data
+            string: Apply blinding selection
+            This setting only has effect on Data
+        """
+        return self.hist_config.get('unblind', False)
+
+    def save_stack( self, filename, dirname, canname ) :
+
+        self.stack_save_params['filename'] = filename
+        self.stack_save_params['dirname'] = dirname
+        self.stack_save_params['canname'] = canname
+
+    def dump_stack( self, filename, dirname ) :
+
+        self.stack_dump_params['filename'] = filename
+        self.stack_dump_params['dirname'] = dirname
+
+    def add_label( self, config ) :
+        if 'extra_label' not in self.label_config :
+            self.label_config
+
+
+    def get_labels( self ) :
+
+        labels=[]
+        
+        stattext = self.label_config.get('statsLabel', None )
+        if stattext is not None :
+            statlabel  = ROOT.TLatex()
+            statlabel.SetTextFont( 42 )
+            statlabel   .SetNDC()
+            statlabel  .SetTextSize(0.045)
+            statlabel.SetText(0.16, 0.93, stattext)
+
+            labels.append(statlabel)
+
+        labelStyle = self.label_config.get('labelStyle', None)
+        #labelLoc = self.label_config.get('labelLoc', None)
+        labelLoc = self.label_config.get('labelLoc', 'topleft')
+        if labelStyle is None:
+        #if 1:
+
+            text_x = 0.18
+            text_y = 0.93
+
+            if labelLoc == 'topright' :
+                text_x = 0.75
+                text_y = 0.93
+            cmslabel = ROOT.TLatex()
+            cmslabel.SetNDC()
+            cmslabel.SetTextSize( 0.04 )
+            cmslabel.SetText(text_x, text_y, 'CMS Internal')
+
+            labels.append(cmslabel)
+
+        #elif labelStyle.count('fancy') :
+        else:
+            extText  = ''
+            if labelStyle.count('int'):
+               extText = 'Internal'
+            elif labelStyle.count('mc'):
+                extText = 'Simulation'
+            if labelStyle.count('prelim') :
+                extTex = " ".join(filter(None, [extText, 'Preliminary']))
+
+            labeltext = '19.4 fb^{-1} (8 TeV)'
+            if labelStyle.count('13') :
+                labeltext = '35.9 fb^{-1} (13 TeV)'
+
+            rootslabel = ROOT.TLatex()
+            cmslabel = ROOT.TLatex()
+            extlabel = ROOT.TLatex()
+
+            rootslabel.SetTextFont(42)
+            cmslabel.SetTextFont( 61 )
+            extlabel.SetTextFont(52)
+
+            extlabel  .SetNDC()
+            rootslabel .SetNDC()
+            cmslabel   .SetNDC()
+
+            if not labelStyle.count( 'paper') :
+                extlabel  .SetTextSize(0.045)
+            rootslabel .SetTextSize(0.045)
+            cmslabel  .SetTextSize(0.055)
+
+            if labelStyle.count('conf') :
+               extlabel2 = ROOT.TLatex()
+               extlabel2.SetTextFont(52)
+               extlabel2.SetTextSize(0.045)
+               extlabel2.SetNDC()
+
+            if labelLoc == 'topleft':
+               extlabel.SetText( 0.25, 0.93, extText)
+               cmslabel.SetText( 0.15, 0.93, 'CMS')
+               #rootslabel.SetText(0.65, 0.93, '#font[132]{#sqrt{s} = 8 TeV, L = 19.4 fb^{-1} }' )
+            elif labelLoc == 'insideleft':
+               extlabel.SetText( 0.30, 0.83, extText )
+               cmslabel.SetText( 0.20, 0.83, 'CMS')
+               extlabel2.SetText( 0.20, 0.78, 'Work in progress')
+               #rootslabel.SetText(0.65, 0.93, '#font[132]{#sqrt{s} = 8 TeV, L = 19.4 fb^{-1} }' )
+
+            rootslabel.SetText(0.70, 0.93, labeltext  )
+
+            if not labelStyle.count('paper') :
+                labels.append(extlabel)
+                #print "append extlabel2**********************"
+                #labels.append(extlabel2)
+            labels.append(cmslabel)
+            labels.append(rootslabel)
+
+        extra_label = self.label_config.get( 'extra_label', None )
+        if extra_label is not None :
+
+            if not isinstance( extra_label, list) :
+                extra_label = [extra_label]
+
+            for lab in extra_label :
+                extra_label_str = '#font[132]{'+lab+'}'
+                extra_label_loc = self.label_config.get( 'extra_label_loc', None )
+                labels.append(self.place_extra_label( lab, extra_label_loc ))
+
+        return labels
+
+    #--------------------------------
+    def place_extra_label(self, text, location=None) :
+
+        label = ROOT.TLatex()
+        label.SetNDC()
+        label.SetTextSize( 0.045 )
+        xval = 0.6
+        yval = 0.7
+        if location is None : 
+            print 'Please give a location for the label'
+        elif isinstance(location, tuple) : 
+            xval = location[0]
+            yval = location[1]
+        elif location == 'TopLeft' :
+            xval = 0.15
+            yval = 0.85
+
+        elif location == 'BottomLeft' :
+            xval = 0.25
+            yval = 0.25
+        else :
+            xval = 0.6
+            yval = 0.7
+
+        label.SetText(xval, yval, text)
+        return label
+
+    def get_unique_name( self, var ) :
+
+        outname = ''
+        
+        basename = var
+
+        # first remove brackets
+        pos_begin = 100
+        while pos_begin >= 0 :
+            pos_begin = basename.rfind( '[' )
+            if pos_begin < 0 :
+                break
+            pos_end = basename.find( ']', pos_begin )
+            basename = basename[:pos_begin] + basename[pos_end+1:]
+        if basename.count('+') :
+            basename = basename.split('[')[0]
+            basename = basename.replace('+', '_')
+        if basename.count('(') :
+            basename = basename.replace('(', '_')
+        if basename.count(')') :
+            basename = basename.replace(')', '_')
+        if basename.count(':') :
+            basename = basename.replace(':', '_')
+
+        if basename in self.used_names :
+            for i in range( 0, 1000000  ) :
+                outname = '%s_%d' %(basename, i)
+                if outname not in self.used_names :
+                    self.used_names.append(outname)
+                    break
+        else :
+            outname = basename
+            self.used_names.append(basename)
+
+        return outname
+
+
+    def get_var_val(self, sample, treename) :
+        mod_var = self.var
+        all_branches = sample.get_list_of_branches()
+        for br in all_branches :
+            if mod_var.count( br ) and not mod_var.count(treename+'.'+br)  :
+                mod_var = mod_var.replace( br, treename+'.'+br )
+
+        return mod_var
+
+    def compile_selection_string( self, sample, treename ) :
+        eval_str = self.get_eval_selection_string( sample, treename )
+        self.compiled_selection_string = compile( eval_str, '<string>', 'eval')
+
+    def compile_var_string( self, sample, treename ) :
+        var_str = self.get_var_val( sample, treename )
+        self.compiled_var_str = compile( var_str, '<string>', 'eval')
+
+    def get_compiled_selection_string( self ) :
+        return self.compiled_selection_string
+
+    def get_compiled_var( self ) :
+        return self.compiled_var_str
+
+    def get_names( self ) :
+        return self.hist_configs.keys()
+
+    def get_hist_type( self ) :
+
+        if self.var[0].count(':') == 2 :
+            return 'TH3F'
+        elif self.var[0].count(':') == 1 :
+            return 'TH2F'
+        else :
+            return 'TH1F'
+
+    def get_hist_declarations( self ) :
+
+        hist_decs = []
+
+        for name in self.hist_configs.keys() :
+
+            if type( self.histpars ) is tuple : 
+                if self.var[0].count(':') == 1 : # 2-D histogram
+                    if len(self.histpars) == 2 and type( self.histpars[0] ) is list and type(self.histpars[1]) is list : #both axes are variably binned
+                        text = 'double %sxarr[%d] = {'%(name, len(self.histpars[0])) + ','.join( [str(x) for x in self.histpars[0]] ) + '}; \n '
+                        text += 'double %syarr[%d] = {'%(name, len(self.histpars[1])) + ','.join( [str(y) for y in self.histpars[1]] ) + '}; \n '
+                        text += r' hist_%s = new TH2F( "%s", "", %d, %sxarr, %d, %syarr );' %( name, name, len(self.histpars[0])-1, name, len(self.histpars[1])-1, name ) 
+                        hist_decs.append(text)
+                    else :
+                        if len(self.histpars) != 6 :
+                            print 'varable expression requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax'
+                            return
+                        text = r' hist_%s = new TH2F( "%s", "", %d, %f, %f, %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5]  ) 
+                        hist_decs.append(text)
+                elif self.var[0].count(':') == 2 and not self.var[0].count('::') : # make a 3-d histogram
+                    if len(self.histpars) != 9 :
+                        print 'varable expression requests a 3-d histogram, please provide 9 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax'
+                        return
+                    text = r' hist_%s = new TH3F( "%s", "", %d, %f, %f, %d, %f, %f, %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5], self.histpars[6], self.histpars[7], self.histpars[8]  ) 
+                    hist_decs.append(text)
+                else : # 1-d histogram
+                    text = r' hist_%s = new TH1F( "%s", "", %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2] ) 
+                    hist_decs.append(text)
+
+            elif type( self.histpars ) is list : # variable rebinning
+                text = 'double %sxarr[%d] = {'%(name, len(self.histpars)) + ','.join( [str(x) for x in self.histpars] ) + '}; \n '
+                text += r' hist_%s = new TH1F( "%s", "", %d, %sxarr );' %( name, name, len(self.histpars)-1, name ) 
+                hist_decs.append(text)
+
+            else :
+                print 'No histogram parameters were passed'
+
+        return hist_decs
+
+    def create_hist_configs( self, branches=None ) :
+
+        if branches is None :
+            if len( self.var ) == 1 : # make one name for each selection
+                if self.samples and ( len(self.selection) == len( self.samples ) ) :
+                    if len(self.hist_config.get('colors', [])) != len( self.selection) :
+                        self.hist_config['colors'] = [ROOT.kBlack]*len(self.selection)
+                    for samp, sel, color, leg_entry in zip(self.samples, self.selection, self.hist_config['colors'], self.get_legend_entries() ) :
+                        name = self.get_unique_name( self.var[0] ) 
+                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry} 
+
+                else :
+                    for sel in self.selection :
+                        name = self.get_unique_name( self.var[0] ) 
+                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel} 
+            else : 
+                if self.samples and ( len(self.selection) == len( self.samples ) and len( self.var ) == len( self.samples) ) :
+                    if len(self.hist_config.get('colors', [])) != len( self.selection) :
+                        self.hist_config['colors'] = [ROOT.kBlack]*len(self.selection)
+                for var, samp, sel, color, leg_entry in zip( self.var, self.samples, self.selection, self.hist_config['colors'], self.get_legend_entries() ) :
+                    name = self.get_unique_name( self.var[0] ) 
+                    self.hist_configs[name] = {'var' : var, 'selection' : sel, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry} 
+
+                print 'Case when multiple vars is used is not implemented'
+        else :
+
+            if len( self.var ) == 1 : # make one name for each selection
+                if self.samples and ( len(self.selection) == len( self.samples ) ) :
+                    if len(self.hist_config.get('colors', [])) != len( self.selection) :
+                        self.hist_config['colors'] = [ROOT.kBlack]*len(self.selection)
+                    for samp, sel, color, leg_entry in zip(self.samples, self.selection, self.hist_config['colors'], self.get_legend_entries() ) :
+                        name = self.get_unique_name( self.var[0] ) 
+                        var = self.get_cpp_var_str( self.var[0], branches ) 
+                        selection = self.get_cpp_selection_str( sel, branches )
+                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'cppvar':var, 'cppselection':selection, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry} 
+                else :
+
+                    for sel in self.selection :
+                        name = self.get_unique_name( self.var[0] ) 
+                        var = self.get_cpp_var_str( self.var[0], branches ) 
+                        selection = self.get_cpp_selection_str( sel, branches ) 
+                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'cppvar':var, 'cppselection':selection} 
+    
+            else : #unclear if this case exists, don't implement for now
+                print 'Case when multiple vars is used is not implemented'
+
+
+    def get_cpp_selection_strs( self ) :
+        return [v['cppselection'] for v in self.hist_configs.values()]
+
+    def get_cpp_selection_str( self, selection, branches ) :
+        """ Create selection string in c++ 
+
+            branches is a list of branches in the tree
+            such that we can search the selection string
+            for occurences of these branches
+        """
+
+        # for each branch, find all occurances of that branch
+        # and store the branch name and end of the name
+        # indexed by the start index
+        # Then make the replacement for the largest
+        # string.  This avoids problems when one branch
+        # is a substring of another and the incorrect
+        # replacement is made
+        matched_locations = {}
+        for br in branches :
+            for selitr in re.finditer( br['name'], selection ) :
+                start = selitr.start()
+                end   = selitr.end()
+                br_range = (start, end)
+                matched_locations.setdefault( br_range , [] ).append( br['name'] )
+
+        max_ranges = {}
+        ranges = list( matched_locations.keys() )
+        for idx1, range1 in enumerate(ranges) :
+            has_sub_range = False
+            for idx2, range2 in enumerate(ranges) :
+                if idx1 == idx2 : 
+                    continue
+                if range1[0] == range2[0] : #they start at the same place
+                    if range1[1] <= range2[1] :
+                        has_sub_range = True
+                if range1[1] == range2[1] : # they end at the same place 
+                    if range1[0] >= range2[0] :
+                        has_sub_range = True
+                if range1[0] > range2[0] and range1[1] < range2[1] :
+                    has_sub_range = True
+
+            if not has_sub_range :
+                max_ranges[range1] = matched_locations[range1]
+
+        modified_selection = str(selection)
+        # start from the end of the string (max start)
+        # so that the found indices don't change
+        # when the string is modified
+        all_start = max_ranges.keys()
+        all_start.sort()
+        for max_range in reversed( all_start ) :
+            max_br = max_ranges[max_range]
+            if len( max_br ) != 1 :
+                print 'Matched multiple branches with the max range!  This must be fixed!'
+                sys.exit(1)
+
+            modified_selection = modified_selection[:max_range[0]] + 'IN::' + max_br[0] + modified_selection[max_range[1]:]
+
+        #for br in branches :
+        #    if modified_selection.count(br['name']) and not modified_selection.count( 'IN::'+br['name']):
+        #        modified_selection = modified_selection.replace( br['name'], 'IN::'+br['name'])
+        # a bit hacked
+        start_bracket = 100
+        while start_bracket > 0 :
+            start_bracket = modified_selection.rfind('[')
+            if start_bracket < 0 :
+                break
+            end_bracket = modified_selection.find( ']', start_bracket )
+            
+            # put an at->( in place of the first bracket
+            modified_selection = modified_selection[:start_bracket] + '->at(' + modified_selection[start_bracket+1:end_bracket] + ')' + modified_selection[end_bracket+1:]
+
+        return modified_selection
+
+    def get_cpp_var_strs(self ) :
+        return [v['cppvar'] for v in self.hist_configs.values()]
+
+    def get_cpp_var_str(self, var, branches) :
+
+        # for a 1-D histogram the var can undergo the
+        # same modification as the selection str
+        # for 2-D and 3-D histograms the colon separating
+        # the variables should become a comma so that
+        # the Fill command works.  However the ordering
+        # of the var string and the Fill command is reversed
+        # eg for a 3-D histogram the var is varZ:varY:varX
+        # but the fill is Fill( varX, varY, varZ)
+
+        input_var = var
+        if var.count( ':' ) :
+            split_var = var.split( ':' )
+            split_var.reverse()
+            input_var = ','.join( split_var )
+
+        var_str = self.get_cpp_selection_str( input_var, branches )
+        return var_str
+
+        ## for each branch, find all occurances of that branch
+        ## and store the branch name and end of the name
+        ## indexed by the start index
+        ## Then make the replacement for the largest
+        ## string.  This avoids problems when one branch
+        ## is a substring of another and the incorrect
+        ## replacement is made
+        #matched_locations = {}
+        #for br in branches :
+        #    for selitr in re.finditer( br['name'], var ) :
+        #        start = selitr.start()
+        #        matched_locations.setdefault( start , {} )
+        #        matched_locations[start][selitr.end()-start] = br['name']
+
+        #modified_var = str(var)
+        ## start from the end of the string (max start)
+        ## so that the found indices don't change
+        ## when the string is modified
+        #all_start = matched_locations.keys()
+        #all_start.sort()
+        #for start in reversed( all_start ) :
+        #    matches = matched_locations[start]
+        #    max_match  = max( matches.keys() )
+        #    max_br = matches[max_match]
+
+        #    modified_var = modified_var[:start] + 'IN::' + max_br + modified_var[start+max_match:]
+
+        ##modified_var = var
+        ##for br in branches :
+        ##    if modified_var.count(br['name']) and not modified_var.count( 'IN::'+br['name']):
+        ##        modified_var= modified_var.replace( br['name'], 'IN::'+br['name'])
+
+        ## a bit hacked
+        #for i in range(0, 10) :
+        #    modified_var= modified_var.replace('[%s]'%i, '->at(%s)'%i )
+
+        #return modified_var
+
+    
+    def get_eval_selection_string(self, sample, treename) :
+
+        if self.modified_selection is not None :
+            return self.modified_selection
+        else :
+
+            self.modified_selection = self.selection
+
+            # append treename to all identified branches
+            all_branches = sample.get_list_of_branches()
+            for br in all_branches :
+                if self.modified_selection.count(br) and not self.modified_selection.count( treename+'.'+br):
+                    self.modified_selection = self.modified_selection.replace( br, treename+'.'+br)
+
+            if self.modified_selection.count('&&') :
+                self.modified_selection = self.modified_selection.replace( '&&', 'and')
+
+            if self.modified_selection.count('||') :
+                self.modified_selection = self.modified_selection.replace( '||', 'or')
+
+            if self.modified_selection.count('fabs') :
+                self.modified_selection = self.modified_selection.replace( 'fabs', 'math.fabs')
+
+            return self.modified_selection
+
+    def get_selection_string( self, name ) :
+        res = self.replace_selection_for_sample.get( name, None )
+        if res is not None :
+            return res
+        else :
+            return self.selection[0]
+
+    def init_hist( self, name ) :
+
+        hist = None
+        histname = str(uuid.uuid4())
+
+        if type( self.histpars ) is tuple :
+            if self.var[0].count(':') == 1 : 
+                if len(self.histpars) == 2 and type( self.histpars[0] ) is list and type(self.histpars[1]) is list :
+                    hist = ROOT.TH2F( histname, '', len(self.histpars[0])-1, array('f', self.histpars[0]), len(self.histpars[1])-1, array('f', self.histpars[1]) )
+                else :
+                    if len(self.histpars) != 6 :
+                        print 'varable expression requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax'
+                        return
+                    hist = ROOT.TH2F( histname, '', self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5])
+            elif self.var[0].count(':') == 2 and not self.var.count('::') : # make a 3-d histogram
+                if len(self.histpars) != 9 :
+                    print 'varable expression requests a 3-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax'
+                    return
+                hist= ROOT.TH3F( histname, '',self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5], self.histpars[6], self.histpars[7], self.histpars[8] )
+            else : # 1-d histogram
+
+                hist= ROOT.TH1D( histname, '', self.histpars[0], self.histpars[1], self.histpars[2])
+
+        elif type( self.histpars ) is list :
+            hist = ROOT.TH1D( histname, '', len(self.histpars)-1, array('f', self.histpars))
+        else :
+            print 'No histogram parameters were passed'
+
+        if hist is not None :
+            hist.SetTitle( name )
+            hist.Sumw2()
+
+        return hist
+
+
     
 class SampleManager :
     """ Manage input samples and drawn histograms """
@@ -286,7 +916,7 @@ class SampleManager :
         self.legendWiden           = 1.0
         self.legendTranslateX      = 0.0
         self.legendTranslateY      = 0.0
-        self.entryWidth            = 0.08
+        self.entryWidth            = 0.04
         # Save any plot decorations such as labels here
         # This guarantees that the objects stay in memory
         self.curr_decorations      = []
@@ -317,6 +947,7 @@ class SampleManager :
         # keep track if a sample group has been added
         self.added_sample_group=False
 
+            
     #--------------------------------
     def quietprint(self,*msg):
             if self.quiet:
@@ -361,7 +992,7 @@ class SampleManager :
 
         newsample = copy.copy( oldsample )
         newsample.name = newname
- 
+        
         histval = kwargs.pop('hist', None)
         for arg, val in kwargs.iteritems() :
             if hasattr( newsample, arg ) :
@@ -401,7 +1032,7 @@ class SampleManager :
             tmp_sample = den_sample 
             den_sample = num_sample
             num_sample = tmp_sample
- 
+        
         ratio_hist = num_sample.hist.Clone( name )
         divoptn = ""
         if binomunc:
@@ -409,10 +1040,9 @@ class SampleManager :
         ratio_hist.Divide( num_sample.hist, den_sample.hist,1,1,divoptn)
 
 
-        ratio_hist.SetMarkerStyle(47)
+        ratio_hist.SetMarkerStyle(20)
         ratio_hist.SetMarkerSize(1.1)
-        # better axis division display
-        #ratio_hist.SetNdivisions(509 )
+        #ratio_hist.SetNdivisions(509, True )
         ratio_hist.SetStats(0)
         ratio_hist.SetTitle('')
 
@@ -428,10 +1058,11 @@ class SampleManager :
         config['legendWiden']      = kwargs.pop('legendWiden'      , 1.0)
         config['legendTranslateX'] = kwargs.pop('legendTranslateX' , 0.0)
         config['legendTranslateY'] = kwargs.pop('legendTranslateY' , 0.0)
-        config['entryWidth']       = kwargs.pop('entryWidth' , 0.08)
+        config['entryWidth']       = kwargs.pop('entryWidth'       , 0.04)
 
         for key, val in kwargs.iteritems() :
             config[key] = val
+        
         return config
 
     #--------------------------------
@@ -1374,9 +2005,9 @@ class SampleManager :
             else :
                 filenamestrip = filenamesplit[0]
 
-            #histnameeps = outputDir + '/' + filenamestrip+'.eps'
-            histnameeps = outputDir + '/' + filenamestrip+'.C'
+            histnameeps = outputDir + '/' + filenamestrip+'.eps'
             histnamepng = outputDir + '/' + filenamestrip+'.png'
+            #histnameeps = outputDir + '/' + filenamestrip+'.C'
             if not (filename.count( '.pdf' ) or filename.count('.png') ):
                 histnamepdf = outputDir + '/' + filenamestrip+'.pdf'
             else :
@@ -1856,7 +2487,7 @@ class SampleManager :
             thisSample.AddFiles( self.treeNameModel, input_files )
             self.modelSamples.append(thisSample)
 
-        print_prefix = "AddModelSample: Reading %s (%s) " %(name, path )
+        print_prefix = "Reading %s (%s) " %(name, path )
         print_prefix = print_prefix.ljust(60)
         if not input_files :
             print print_prefix + " [ \033[1;31mFailed\033[0m  ]"
@@ -2079,8 +2710,7 @@ class SampleManager :
         doratio = draw_config.get_doratio()
         if doratio:
             return self.curr_canvases["base"]
-        print self.curr_canvases
-        #return self.curr_canvases["top"]
+        return self.curr_canvases["top"]
 
     def draw_and_configure( self, draw_config, generate_data_from_sample=None, useModel=False, treeHist=None, treeSelection=None ) :
         """  calls makestack, implment option to imitate data, helper function for SampleManager.Draw """
@@ -2419,8 +3049,6 @@ class SampleManager :
 
         self.curr_canvases['same'].cd()
 
-        #
-        # Calls DrawSameCanvas
         self.DrawSameCanvas( self.curr_canvases['same'], created_samples, draw_config )
 
         if draw_config.get_doratio() :
@@ -2612,7 +3240,7 @@ class SampleManager :
         sweight = draw_config.get_weight()
         if sample.isData and isinstance(sblind,str):
                 selection = "(%s)&&(%s)" %(selection,sblind)
-        if isinstance(sweight,str) and sweight and not sample.isData:
+        if isinstance(sweight,str) and sweight:
                 selection = "(%s)*%s" %(selection,sweight)
         
 
@@ -2850,7 +3478,6 @@ class SampleManager :
 
 
     def get_active_samples( self, histpath ) :
-        """ calls get_hist to obtain histograms: may be updated in near future """
 
         for sample in self.samples :
             if sample.isActive :
@@ -3008,8 +3635,6 @@ class SampleManager :
 
         return output
 
-#### formatter and canvas makers ####
-
     def set_canvas_default_formatting(self, topcan, doratio, logy=False, ylabel=None, ymin=None, ymax=None ) :
 
         for prim in topcan.GetListOfPrimitives() :
@@ -3035,7 +3660,7 @@ class SampleManager :
                 else :
                     prim.GetYaxis().SetTitleSize(0.05)
                     prim.GetYaxis().SetTitleOffset( offset )
-                    prim.GetYaxis().SetLabelSize(0.03)
+                    prim.GetYaxis().SetLabelSize(0.05)
                     prim.GetXaxis().SetLabelSize(0.05)
                     prim.GetXaxis().SetTitleSize(0.05)
                     prim.GetXaxis().SetTitleSize(0.05)
@@ -3054,11 +3679,12 @@ class SampleManager :
                     topcan.GetHistogram().GetXaxis().SetTitleSize(0.0)
                     topcan.GetHistogram().GetXaxis().SetTitleOffset(1.1)
                 else :
-                    topcan.GetHistogram().GetYaxis().SetTitleSize(0.045)
-                    topcan.GetHistogram().GetYaxis().SetTitleOffset(0.9)
-                    topcan.GetHistogram().GetYaxis().SetLabelSize(0.04)
-                    topcan.GetHistogram().GetXaxis().SetLabelSize(0.04)
-                    topcan.GetHistogram().GetXaxis().SetTitleSize(0.045)
+                    topcan.GetHistogram().GetYaxis().SetTitleSize(0.05)
+                    topcan.GetHistogram().GetYaxis().SetTitleOffset(offset)
+                    topcan.GetHistogram().GetYaxis().SetLabelSize(0.05)
+                    topcan.GetHistogram().GetXaxis().SetLabelSize(0.05)
+                    topcan.GetHistogram().GetXaxis().SetTitleSize(0.05)
+                    topcan.GetHistogram().GetXaxis().SetTitleOffset(1.0)
 
     def set_ratio_default_formatting(self, canvas, ratiosamps, draw_config ) :
 
@@ -3078,15 +3704,14 @@ class SampleManager :
                 if ratiosamp.isSignal :
                     drawopt += 'HIST'
 
-                ratiosamp.hist.SetLineWidth(2)
-                if   doratio == True or doratio == 1 :
-                    ratiosamp.hist.GetYaxis().SetTitleSize(0.08)
+                if doratio == True or doratio == 1 :
+                    ratiosamp.hist.GetYaxis().SetTitleSize(0.10)
                     ratiosamp.hist.GetYaxis().SetTitleOffset(0.6)
-                    ratiosamp.hist.GetYaxis().SetLabelSize(0.08)
+                    ratiosamp.hist.GetYaxis().SetLabelSize(0.09)
+                    ratiosamp.hist.GetXaxis().SetTitleSize(0.10)
                     ratiosamp.hist.GetXaxis().SetLabelSize(0.09)
-                    ratiosamp.hist.GetXaxis().SetTitleSize(0.12)
-                    ratiosamp.hist.GetXaxis().SetTitleOffset(0.8)
-                elif doratio: #doratio==2 :
+                    ratiosamp.hist.GetXaxis().SetTitleOffset(1.3)
+                elif doratio==2 :
                     ratiosamp.hist.GetYaxis().SetTitleSize(0.06)
                     ratiosamp.hist.GetYaxis().SetTitleOffset(0.8)
                     ratiosamp.hist.GetYaxis().SetLabelSize(0.06)
@@ -3095,8 +3720,8 @@ class SampleManager :
                     ratiosamp.hist.GetXaxis().SetTitleOffset(1.0)
 
                 ratiosamp.hist.SetStats(0)
-                ratiosamp.hist.SetMarkerStyle(1)
-                ratiosamp.hist.SetMarkerSize(0.1)
+                ratiosamp.hist.SetMarkerStyle(20)
+                ratiosamp.hist.SetMarkerSize(1.1)
                 ratiosamp.hist.SetTitle('')
                 ratiosamp.hist.GetYaxis().CenterTitle()
                 #ratiosamp.hist.GetYaxis().SetNdivisions(506, True)
@@ -3130,24 +3755,22 @@ class SampleManager :
         samplist = self.get_samples(isActive=True ) 
         normalize = draw_config.get_normalize()
         if not normalize: samplist+=self.get_samples( name='__AllStack__' )   
-        #for samp in samplist:
-        #    if samp.hist == None :
-        #        continue
-        #    nmax = samp.hist.GetMaximum()
-        #    nmin = samp.hist.GetMaximum()
+        for samp in samplist:
+            if samp.hist == None :
+                continue
+            nmax = samp.hist.GetMaximum()
+            nmin = samp.hist.GetMaximum()
 
-        #    if nmax > calcymax :
-        #        calcymax = nmax
-        #    if nmin < ymin :
-        #        calcymin = nmin
-        maxarray =[samp.hist.GetMaximum() for samp in samplist if samp.hist]
-
+            if nmax > calcymax :
+                calcymax = nmax
+            if nmin < ymin :
+                calcymin = nmin
 
         if ymax is None :
-            ymax = max(maxarray)
+            ymax = calcymax 
 
         if ymin is None :
-            ymin = min(maxarray+[1]) /2.
+            ymin = calcymin 
 
         if ymax_scale is not None :
             ymax *= ymax_scale
@@ -3157,11 +3780,10 @@ class SampleManager :
         return (ymin, ymax)
 
     def create_standard_canvas(self, name='base') :
-        print "create_standard_canvas"
 
-        xsize = 800 
         #xsize = 650 
         #ysize = 500
+        xsize = 600
         ysize = 500
         self.curr_canvases[name] = ROOT.TCanvas(name, name, xsize, ysize)
 
@@ -3178,7 +3800,9 @@ class SampleManager :
 
     def create_standard_ratio_canvas(self) :
 
-        xsize = 800 
+        #xsize = 620 
+        #ysize = 620
+        xsize = 600
         ysize = 750
         self.curr_canvases['base'] = ROOT.TCanvas('basecan', 'basecan', xsize, ysize)
 
@@ -3231,7 +3855,6 @@ class SampleManager :
         self.curr_canvases[name].SetRightMargin(0.05)
         self.curr_canvases[name].SetTitle('')
 
-#### stack utilities ####
     def get_stack_pdf(self,method=1):
         """ extract unit normalized pdf after Draw command """ 
         if method==1:
@@ -3261,33 +3884,26 @@ class SampleManager :
            else: 
                    print "No stack found"
            return
-
-    def get_stack_count(self, integralrange = None, sort =True, includeData=False):
+    def get_stack_count(self, integralrange = None):
         """ integralrange: ntuple: x bin range to be integrated """
         err = array('d',[0])
         ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
         if integralrange and isinstance(integralrange,(list,tuple)) and len(integralrange)==2:
             print "use range %g, %g" %integralrange
             ranger  = lambda h, e, r: map(h.FindBin, r)+[e]
-        result = [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
-                         for s in self.get_samples(isActive=True,isData=False) if s.name != "ratio"]
-        if sort: result.sort(key=lambda x: -x[1][0])
+        result = [(s.name,s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0])for s in self.get_samples(isActive=True,isData=False)]
+        result.sort(key=lambda x: -x[1])
         htotal = self.get_stack_aggregate()
-        if includeData: result += [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
-                         for s in self.get_samples(isActive=True,isData=True)]
-        result.append(("TOTAL",(htotal.IntegralAndError(\
-                        *ranger(htotal,err,integralrange)), err[0])))
-        resultdict = OrderedDict(result)
-        return resultdict
+        #result.append(("TOTAL",htotal.IntegralAndError(0,htotal.GetNbinsX(),err), err[0]))
+        result.append(("TOTAL",htotal.IntegralAndError(*ranger(htotal,err,integralrange)), err[0]))
+        return result
 
-    def print_stack_count(self, integralrange = None, **kwargs):
-        result = self.get_stack_count(integralrange, **kwargs).items()
-        result = [ (r1,)+r2 for r1, r2 in result]
-        for r in result[:-1]: print "%30s %8.3g +/- %5.3g" %r
-        print "="*35+"\n%30s %8.3g +/- %5.3g" %result[-1]
+    def print_stack_count(self, integralrange = None):
+        result = self.get_stack_count(integralrange)
+        for line in result[:-1]: print "%15s %8.3g +/- %5.3g" %line
+        print "="*35+"\n%15s %8.3g +/- %5.3g" %result[-1]
         return
 
-    # raw data and legend for SampleManager.Draw()
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
 
         doratio=draw_config.get_doratio()
@@ -3339,7 +3955,6 @@ class SampleManager :
                     print "skipped ",dsamp
                     continue
             if normalize :
-            #dsamp.hist.SetMarkerStyle(8)
                 dsamp.hist.DrawNormalized('PE same')
             else :
                 dsamp.hist.Draw('PE same')
@@ -3466,7 +4081,6 @@ class SampleManager :
             self.curr_canvases['top'].SetLogy()
 
     def DrawSameCanvas(self, canvas, samples, draw_config, drawHist=False ) :
-        #pdb.set_trace()
 
         canvas.cd()
 
@@ -3573,7 +4187,6 @@ class SampleManager :
         self.draw_commands.append(config)
         
         created_samples = self.MakeSameCanvas(config, preserve_hists=True, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
-        print created_samples
         if not created_samples :
             print 'No histograms were created'
             return
@@ -3642,7 +4255,6 @@ class SampleManager :
             samp.hist.Draw(drawopts)
 
     def CompareVars( self, varexps, selections, sample_names, histpars=None, hist_config={}, label_config={}, legend_config={}, same=False ) :
-        """ similar to CompareSelection """
 
         self.clear_all()
 
@@ -3800,6 +4412,310 @@ class SampleManager :
     
 
     #---------------------------------------
+    def DoTAndP( self, varexp, num_selection, den_selection, sample, histpars=None, binning=[], xlabel=None, ylabel=None, ymin=None, ymax=None, label=None, normalize=False, colors=[], legend_entries=[] ) :
+    
+        self.clear_all()
+
+        if not isinstance(sample, list) :
+            sample = [sample]
+        if not isinstance(num_selection, list) :
+            num_selection= [num_selection]
+        if not isinstance(den_selection, list) :
+            den_selection= [den_selection]
+    
+        assert  len(sample) == len(num_selection), 'sample and numerator selection must have the same length'
+        assert  len(sample) == len(den_selection), 'sample and denominator selection must have the same length'
+    
+        if len(colors) != len( sample ) :
+            if colors :
+                print 'Size of colors input does not match size of vars input!'
+    
+            colors = [ self.get_samples(name=s)[0].color for s in sample ]
+    
+        num_hists = {}
+        den_hists = {}
+    
+    
+        # create a new sample manager to hold histograms
+        #sman = SampleManager('', '' )
+        for idx, (num, den, insamp) in enumerate( zip(num_selection, den_selection, sample) ) :
+            use_stored_first = False
+            if idx > 0 :
+                use_stored_first = True
+    
+            samp = insamp + str(idx)
+
+            num_name = '%s_num' %samp
+            den_name = '%s_den' %samp
+
+            self.clone_sample(oldname=insamp, newname=num_name, temporary=True )
+            self.clone_sample(oldname=insamp, newname=den_name, temporary=True )
+    
+            created_num_samp = []
+            created_den_samp = []
+            created_num_samp += self.MakeSameCanvas([num_name], varexp, num, histpars, doratio=False, useStoredBinning=use_stored_first, preserve_hists=True )
+            num_samp = created_num_samp[0]
+            #sman.samples.append(num_samp)
+
+            created_den_samp += self.MakeSameCanvas([den_name], varexp, den, histpars, doratio=False, useStoredBinning=True, preserve_hists=True)
+            den_samp = created_den_samp[0]
+            #sman.samples.append( den_samp )
+            #self.clear_hists()
+
+            if normalize :
+                num_samp.hist.Scale( 1.0/num_samp.hist.Integral() )
+                den_samp.hist.Scale( 1.0/den_samp.hist.Integral() )
+
+            rsamp = self.create_ratio_sample( '%s_ratio' %samp, num_sample=num_samp, den_sample=den_samp )
+            if xlabel is not None :
+                rsamp.hist.GetXaxis().SetTitle( xlabel )
+                #rsamp.hist.GetXaxis().SetTitleSize( 0.05 )
+                #rsamp.hist.GetXaxis().SetTitleOffset( 1.1 )
+            if ylabel is not None :
+                rsamp.hist.GetYaxis().SetTitle( ylabel )
+                #rsamp.hist.GetYaxis().SetTitleSize( 0.05 )
+                #rsamp.hist.GetYaxis().SetTitleOffset( 1.25 )
+    
+        plot_ymax = 0.0
+        plot_ymin = 100.0
+    
+        for ratio in self.get_samples(isRatio=True) :
+            ratio.hist.SetTitle('')
+            max = ratio.hist.GetMaximum()
+            min = ratio.hist.GetMinimum()
+            if max > plot_ymax :
+                plot_ymax = max
+            if min < plot_ymin :
+                plot_ymin = min
+        if ymin is not None :
+            plot_ymin = ymin
+        else :
+            plot_ymin *= 0.9
+        if ymax is not None :
+            plot_ymax = ymax
+        else :
+            plot_ymax *= 1.1
+    
+    
+        for ratio in self.get_samples(isRatio=True) :
+            ratio.hist.GetYaxis().SetRangeUser( plot_ymin, plot_ymax )
+    
+        self.create_standard_canvas( )
+        self.curr_canvases['base'].SetBottomMargin(0.13)
+        self.curr_canvases['base'].SetLeftMargin(0.13)
+        self.curr_canvases['base'].SetTitle('')
+    
+        for idx, ( ratio, color ) in enumerate( zip(self.get_samples(isRatio=True), colors ) ) :
+            drawcmd = ''
+            if idx > 0 :
+                drawcmd = 'same'
+            if varexp.count(':') :
+                drawcmd += 'colz'
+            ratio.hist.SetLineColor( color )
+            ratio.hist.SetMarkerColor( color )
+            ratio.hist.SetMarkerStyle( 20 )
+            ratio.hist.SetMarkerSize( 1.2 )
+            ratio.hist.Draw(drawcmd)
+            self.add_decoration( ratio.hist )
+    
+        leg_xmin = 0.6
+        leg_xmax = 0.8
+        leg_ymin = 0.68
+        leg_ymax = 0.88
+    
+        if varexp.count('eta') :
+            leg_xmin -= 0.2
+            leg_xmax -= 0.2
+            leg_ymin -= 0.1
+            leg_ymax -= 0.1
+    
+        leg = ROOT.TLegend( leg_xmin, leg_ymin, leg_xmax,  leg_ymax)
+        leg.SetBorderSize(0)
+        leg.SetFillColor(ROOT.kWhite)
+    
+        # check for an input legend_entries
+        if not legend_entries : 
+            legend_entries = sample
+    
+        for idx, (inname, legentry) in enumerate( zip(sample, legend_entries) ) :
+            name = inname+str(idx)
+            ratio = self.get_samples(name='%s_ratio' %name )[0]
+            leg.AddEntry( ratio.hist, legentry, 'LPE' )
+    
+        self.curr_canvases['base'].cd()
+        leg.Draw()
+        self.curr_legend = leg
+    
+        if label is not None :
+            lab = ROOT.TLatex()
+            lab.SetNDC()
+    
+            lab.SetText( 0.2, 0.83, label )
+            lab.SetTextFont(42)
+    
+            lab.Draw()
+    
+            if varexp.count('eta') :
+                xsize = lab.GetXsize()
+                newxmin = 0.5-( xsize/2 )
+                lab.SetX(newxmin)
+            self.curr_decorations .append(lab)
+
+    def MakeRocCurve( self, varexps, selections, signal, background , histpars=None, colors=[], markers=[], legend_entries=[], debug=False, less_than=False, doSoverB=False, extra_label=None, extra_label_loc=None, ymin=None, ymax=None, legendConfig=None ) :
+
+        if not isinstance( selections, list ) :
+            selections = [selections]
+        if not isinstance( varexps, list ) :
+            varexps = [varexps]
+        if not isinstance( signal, list ) :
+            signal = [signal]
+        if not isinstance( background, list ) :
+            background = [background]
+        if not isinstance( histpars, list ) :
+            histpars = [histpars]
+        if not isinstance( less_than, list ) :
+            less_than = [less_than]
+
+        self.clear_all()
+
+        self.apply_lenged_conf( legendConfig )
+
+        sig_samps = []
+        bkg_samps = []
+        for sig in signal :
+            sig_samps.append(self.get_samples(name=sig)[0])
+        for bkg in background :
+            bkg_samps.append(self.get_samples(name=bkg)[0])
+
+        if not colors :
+            colors = [ s.color for s in sig_samps ]
+
+        if not markers :
+            markers = [3]*len(signal)
+
+        if len(histpars) != len(signal) :
+            histpars = histpars*len(signal)
+
+        assert len(sig_samps) == len(bkg_samps), 'Did not retrieve all signal or background samples'
+
+        created_hists = []
+
+        self.create_standard_canvas()
+        self.curr_canvases['base'].cd()
+
+        for idx, (varexp, selection, histpar, sig_samp, bkg_samp, color, marker, lt) in enumerate( zip( varexps, selections, histpars, sig_samps, bkg_samps, colors, markers, less_than) ) :
+
+            newsigsamp = copy.copy(sig_samp)
+            newsigsamp.hist = None
+            newsigsamp.name = '%s%d' %(sig_samp.name, idx)
+            newbkgsamp = copy.copy(bkg_samp)
+            newbkgsamp.hist = None
+            newbkgsamp.name = '%s%d' %(bkg_samp.name, idx)
+
+            self.create_hist( newsigsamp, varexp, selection, histpar)
+            self.create_hist( newbkgsamp, varexp, selection, histpar)
+
+            sig_eff = []
+            bkg_eff = []
+            nsig = []
+            nbkg = []
+            sig_tot = newsigsamp.hist.Integral()
+            bkg_tot = newbkgsamp.hist.Integral()
+            for bin in range( 1, histpar[0]+1 ) :
+                min = bin
+                max = histpar[0]
+                if lt :
+                    min = 0 
+                    max = bin
+                sig_eff.append( newsigsamp.hist.Integral( min, max )/sig_tot )
+                bkg_eff.append( newbkgsamp.hist.Integral( min, max )/bkg_tot )
+                nsig.append( newsigsamp.hist.Integral( min, max ))
+                nbkg.append( newbkgsamp.hist.Integral( min, max ))
+
+            name='roc%d' %idx
+
+            nbins = histpar[0]
+            # if there are only two bins, this is a boolean and the TGraph should only have one point
+            if nbins == 2 :
+                nbins = 1
+
+            self.curr_hists[name] =  ROOT.TGraph(nbins)
+            self.curr_hists[name].SetName(name)
+
+            if ymin is not None :
+                self.curr_hists[name].SetMinimum( ymin )
+            if ymax is not None :
+                self.curr_hists[name].SetMaximum( ymax )
+
+            if doSoverB :
+                for bin, (sigeff, sig, bkg) in enumerate(zip( sig_eff, nsig, nbkg) ):
+                    if sig == 0 and bkg == 0 :
+                        continue
+                    if histpar[0] <= 2 and sigeff==1 :
+                        continue;
+                    if debug : print 'Place point at %f, bin %d, nSig=%f, nBkg=%f, %f, %f ' %( newsigsamp.hist.GetBinLowEdge( bin+1 ), bin+1, sig, bkg, sigeff, sig/math.sqrt(sig+bkg))
+                    self.curr_hists[name].SetPoint( bin, sigeff, sig/math.sqrt(sig+bkg) );
+
+            else :
+                bin=0
+                for (sig, bkg) in zip( sig_eff, bkg_eff ):
+                    if histpar[0] <= 2 and sig==1 :
+                        continue;
+                    bin+=1
+                    if debug : print 'Place point at %f, bin %d : %f, %f ' %( newsigsamp.hist.GetBinLowEdge( bin ), bin, sig, 1.0-bkg)
+                    self.curr_hists[name].SetPoint( bin, sig, 1.0-bkg );
+
+            #store numerical results
+
+            for bin, (sigeff, bkgeff, sig, bkg) in enumerate(zip( sig_eff, bkg_eff, nsig, nbkg) ):
+                den = sig+bkg
+                if den != 0 :
+                    self.transient_data.setdefault( 'Sig: %s, Bkg: %s' %(sig_samp.name, bkg_samp.name), [] ).append( { 'CutVal' : newsigsamp.hist.GetBinLowEdge( bin+1 ), 'nSig' : sig, 'nBkg' : bkg, 'bkgEff' : bkgeff, 'sigEff': sigeff, 'SoverRootSplusB' : sig/math.sqrt(den) } )
+
+
+            self.curr_hists[name].SetLineColor(color)
+            self.curr_hists[name].SetMarkerColor(color)
+            self.curr_hists[name].SetMarkerStyle(marker)
+            self.curr_hists[name].SetMarkerSize(1.2)
+
+            drawcmd = ''
+            if idx == 0 :
+                #drawcmd = 'ACP'
+                drawcmd = 'AP'
+                if histpar[0]>2 : drawcmd = 'C'+drawcmd
+            else :
+                #drawcmd = 'CPsame'
+                drawcmd = 'Psame'
+                if histpar[0]>2 : drawcmd = 'C'+drawcmd
+
+            self.curr_hists[name].Draw(drawcmd)
+            self.curr_hists[name].GetXaxis().SetTitle('Signal Efficiency')
+            if doSoverB :
+                self.curr_hists[name].GetYaxis().SetTitle('S / #sqrt{ S + B }')
+            else :
+                self.curr_hists[name].GetYaxis().SetTitle('Background Rejection')
+
+            self.curr_hists[name].GetYaxis().SetTitleSize(0.05)
+            self.curr_hists[name].GetXaxis().SetTitleSize(0.05)
+            self.curr_hists[name].GetYaxis().SetLabelSize(0.05)
+            self.curr_hists[name].GetXaxis().SetLabelSize(0.05)
+            self.curr_hists[name].SetTitle()
+            created_hists.append(self.curr_hists[name])
+
+        if legend_entries :
+
+            if len(legend_entries) != len(self.curr_hists) :
+                print 'Length of lengend entries does not match length of created histograms'
+            else :
+
+                self.curr_legend = self.create_standard_legend( len(sig_samps) )
+                for hist, entry in zip( created_hists, legend_entries) :
+                    self.curr_legend.AddEntry(hist, entry, 'PE')
+
+                self.curr_legend.Draw()
+
+        if extra_label is not None :
+            self.place_extra_label( extra_label, extra_label_loc )
 
 
     # ------------------------------------------------------------
@@ -3861,8 +4777,6 @@ class SampleManager :
         return newhist
 
     # ----------------------------------------------------------------------------
-    # TLegend is initialized
-#    def create_standard_legend(self, nentries,draw_config=None ) :
     def create_standard_legend(self, nentries,draw_config=None , isSignalLegend = False) :
 
         legend_config = {}
@@ -3885,13 +4799,10 @@ class SampleManager :
         if legendLoc == 'TopLeft' :
             legend_limits = { 'x1' : 0.2+legendTranslateX, 'y1' : 0.88-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.5*legendWiden+legendTranslateX, 'y2' : 0.88+legendTranslateY }
         elif legendLoc == 'Double' :
-            #legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.90+0.1-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
-            legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.6+legendTranslateY ,
-                              'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
-            #legend_limits = { 'x1' : 0.9-0.35*legendWiden+legendTranslateX, 'y1' : 0.90-legendCompress*entryWidth/2.0*nentries+legendTranslateY, 'x2' : 0.9+legendTranslateX, 'y2' : 0.90+legendTranslateY }
+            #legend_limits = { 'x1' : 0.15+legendTranslateX, 'y1' : 0.90-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
+            legend_limits = { 'x1' : 0.9-0.35*legendWiden+legendTranslateX, 'y1' : 0.90-legendCompress*entryWidth/2.0*nentries+legendTranslateY, 'x2' : 0.9+legendTranslateX, 'y2' : 0.90+legendTranslateY }
         else :
-            legend_limits = { 'x1' : 0.9-0.25*legendWiden+legendTranslateX, 'y1' : 0.85-legendCompress*entryWidth*nentries+legendTranslateY,
-                              'x2' : 0.90+legendTranslateX,                 'y2' : 0.85+legendTranslateY }
+            legend_limits = { 'x1' : 0.9-0.25*legendWiden+legendTranslateX, 'y1' : 0.90-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.90+legendTranslateX, 'y2' : 0.90+legendTranslateY }
 
         # modify for different canvas size
         if draw_config.get_doratio():

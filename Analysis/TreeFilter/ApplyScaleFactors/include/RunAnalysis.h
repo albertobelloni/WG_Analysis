@@ -109,6 +109,7 @@ class RunModule : public virtual RunModuleBase {
         int _run_bcdf_max;
         int _run_gh_min;
 
+
 };
 
 // Ouput namespace 
@@ -157,7 +158,6 @@ namespace OUT {
     float mu_idSF;
     float mu_idSFUP;
     float mu_idSFDN;
-
 #endif
 
 

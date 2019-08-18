@@ -6,10 +6,8 @@ hostname = os.getenv('HOSTNAME')
 
 _AT_UMD = ( hostname.count('umd') > 0 )
 
-tColor_Off="\033[0m"       # Text Reset
-tPurple="\033[0;35m%s"+tColor_Off       # Purple
 
-command_base = 'python scripts/filter.py  --filesDir %(base)s/%(input)s/%(sample)s/%(version)s --outputDir %(output)s/%(outsample)s --outputFile tree.root --treeName %(treename)s --fileKey %(filekey)s --module scripts/%(module)s --moduleArgs "%(moduleArgs)s"  --confFileName %(sample)s.txt --nFilesPerJob %(nFilesPerJob)d --exeName %(exename)s --year %(year)i'
+command_base = 'python scripts/filter.py  --filesDir %(base)s/%(input)s/%(sample)s/%(version)s --outputDir %(output)s/%(outsample)s --outputFile tree.root --treeName %(treename)s --fileKey %(filekey)s --module scripts/%(module)s --moduleArgs "%(moduleArgs)s"  --confFileName %(sample)s.txt --nFilesPerJob %(nFilesPerJob)d --exeName %(exename)s'
 
 check_base = 'python ../../Util/scripts/check_dataset_completion.py --originalDS %(base)s/%(input)s/%(sample)s/%(version)s --filteredDS %(output)s/%(outsample)s --treeNameOrig %(treename)s --histNameFilt tupel/filter --fileKeyOrig %(filekey)s --fileKeyFilt tree.root'
 
@@ -44,11 +42,9 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     nproc              = options.get('nproc'              , 1             )
     resubmit           = options.get('resubmit'           , False         )
     enableKeepFilter   = options.get('enableKeepFilter'   , False         )
-    totalEvents        = options.get('totalEvents'        , False         )
     enableRemoveFilter = options.get('enableRemoveFilter' , False         ) 
     disableOutputTree  = options.get('disableOutputTree'  , False         )
     PUPath             = options.get('PUPath'             , None          )
-    usexrd             = options.get('usexrd'             , False         )
 
     if run :
         for config in configs :
@@ -89,14 +85,12 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 if suffix is not None :
                     outsample = outsample+suffix
     
-                command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey ,'year':job.year}
+                command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey }
 
 
                 keepSelection   = config.get('keepSelection'  , None )
                 removeSelection = config.get('removeSelection', None )
 
-                if totalEvents :
-                    command += ' --totalEvents %i' %totalEvents
                 if enableKeepFilter :
                     command += ' --enableKeepFilter '
                     if keepSelection is not None :
@@ -114,16 +108,12 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                     if _AT_UMD :
                         command += ' --condor '
                     else :
-                        command += ' --condor '
-                    #    command += ' --batch '
+                        command += ' --batch '
 
                     if copyInputFiles :
                         command += ' --copyInputFiles '
                 else :
                     command += ' --nproc %d ' %nproc
-
-                if usexrd:
-                    command += ' --usexrd '
 
                 if resubmit :
                     command += ' --resubmit '
@@ -131,12 +121,9 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 if not first_data :
                     command += ' --noCompileWithCheck '
     
-                print tPurple %command
+                print command
                 if not dry_run :
-                    returncode = os.system(command)
-                    if returncode>=256:
-                         print returncode
-                         raise KeyboardInterrupt
+                    os.system(command)
                 if first_data :
                     first_data = False
     
@@ -167,13 +154,11 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 if suffix is not None :
                     outsample = outsample+suffix
 
-                command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey ,'year': getattr(job,"year",0)}
+                command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey }
 
                 keepSelection   = config.get('keepSelection'  , None )
                 removeSelection = config.get('removeSelection', None )
 
-                if totalEvents :
-                    command += ' --totalEvents %i' %totalEvents
                 if enableKeepFilter :
                     command += ' --enableKeepFilter '
                     if keepSelection is not None :
@@ -194,27 +179,19 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                     if _AT_UMD :
                         command += ' --condor '
                     else :
-                        command += ' --condor '
-                        #command += ' --batch '
+                        command += ' --batch '
 
                     if copyInputFiles :
                         command += ' --copyInputFiles '
                 else :
                     command += ' --nproc %d ' %nproc
 
-                if usexrd:
-                    command += ' --usexrd '
-
                 if resubmit :
                     command += ' --resubmit '
     
-                print tPurple %command
+                print command
                 if not dry_run :
-                     returncode=os.system(command)
-                     if returncode>=256:
-                         print returncode
-                         raise KeyboardInterrupt
-
+                    os.system(command)
                 if first_mc :
                     first_mc = False
     

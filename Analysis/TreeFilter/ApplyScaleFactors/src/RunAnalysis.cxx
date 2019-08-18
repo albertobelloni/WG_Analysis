@@ -14,6 +14,7 @@
 #include "include/BranchDefs.h"
 #include "include/BranchInit.h"
 
+
 #include "Util.h"
 
 #include "TFile.h"
@@ -92,7 +93,6 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mu_idSF = -1;
     OUT::mu_idSFUP = -1;
     OUT::mu_idSFDN = -1;
-
 #endif
 
     // *************************
@@ -291,7 +291,6 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
-
         }
 	
     }
@@ -421,7 +420,7 @@ void RunModule::AddElectronSF( ModuleConfig & /*config*/ ) const {
         //
 
         float pt  = OUT::el_pt->at(idx);
-        float eta = OUT::el_eta->at(idx);
+        float eta = OUT::el_sc_eta->at(idx);
 
         ValWithErr res_id   = GetVals2D( _sfhist_el_id, eta, pt );
         ValWithErr res_reco;
@@ -699,7 +698,7 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     /*
     if( OUT::mu_n == 1 )  { // our trigger SFs are only available for single muon triggers
         float feta = fabs(OUT::mu_eta->at(0));
-        float pt   =      OUT::mu_pt_rc ->at(0) ;
+        float pt   =      OUT::mu_pt ->at(0) ;
         if( pt > 26 && feta < 2.4 ) {
 
             ValWithErr entry;
@@ -717,9 +716,7 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         float eta =   OUT::mu_eta->at(idx);
-        float pt   =   OUT::mu_pt_rc ->at(idx) ;
-	float phi = OUT::mu_phi->at(idx);
-	float Q = OUT::mu_charge->at(idx);
+        float pt   =   OUT::mu_pt ->at(idx) ;
 
         ValWithErr entry_id;
         ValWithErr entry_iso;
@@ -740,7 +737,6 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
 
         // tracking scale factor is 1.0
         // https://hypernews.cern.ch/HyperNews/CMS/get/muon/1425.html
-
     }
 
     if( OUT::mu_n == 1 ) {
@@ -752,7 +748,6 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         OUT::mu_isoSF   = isosfs[0];
         OUT::mu_isoSFUP = isosfs[0] + isoerrsup[0];
         OUT::mu_isoSFDN = isosfs[0] - isoerrsdn[0];
-
     }
     else if( OUT::mu_n > 1 ) {
 
@@ -763,7 +758,6 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         OUT::mu_isoSF = isosfs[0]*isosfs[1];
         OUT::mu_isoSFUP = ( isosfs[0] + isoerrsup[0] ) *  ( isosfs[1] + isoerrsup[1] );
         OUT::mu_isoSFDN = ( isosfs[0] - isoerrsdn[0] ) *  ( isosfs[1] - isoerrsdn[1] );
-
     }
 
 #endif
