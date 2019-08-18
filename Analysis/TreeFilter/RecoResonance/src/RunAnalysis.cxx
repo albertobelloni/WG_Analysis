@@ -1086,6 +1086,62 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
 
     ClearOutputPrefix("el_");
 
+    float isorho_endcap_tight_a1      =0;
+    float isorho_endcap_medium_a1     =0;
+    float isorho_endcap_loose_a1      =0;
+    float isorho_endcap_veryloose_a1  =0;
+    float isorho_barrel_tight_a1      =0;
+    float isorho_barrel_medium_a1     =0;
+    float isorho_barrel_loose_a1      =0;
+    float isorho_barrel_veryloose_a1  =0;
+    if (!config.PassBool("cut_isorho_94x", false)){
+          if (printevent) std::cout<< "94x iso rho cuts coefficient applied"<<std::endl; 
+          isorho_endcap_tight_a1      =0.963;
+          isorho_endcap_medium_a1     =0.963;
+          isorho_endcap_loose_a1      =0.963;
+          isorho_endcap_veryloose_a1  =0.963;
+          isorho_barrel_tight_a1      =0.506;
+          isorho_barrel_medium_a1     =0.506;
+          isorho_barrel_loose_a1      =0.506;
+          isorho_barrel_veryloose_a1  =0.506;
+    }
+    float hovere_endcap_tight_a1      =0;
+    float hovere_endcap_medium_a1     =0;
+    float hovere_endcap_loose_a1      =0;
+    float hovere_endcap_veryloose_a1  =0;
+    float hovere_endcap_tight_a2      =0;
+    float hovere_endcap_medium_a2     =0;
+    float hovere_endcap_loose_a2      =0;
+    float hovere_endcap_veryloose_a2  =0;
+    float hovere_barrel_tight_a1      =0;
+    float hovere_barrel_medium_a1     =0;
+    float hovere_barrel_loose_a1      =0;
+    float hovere_barrel_veryloose_a1  =0;
+    float hovere_barrel_tight_a2      =0;
+    float hovere_barrel_medium_a2     =0;
+    float hovere_barrel_loose_a2      =0;
+    float hovere_barrel_veryloose_a2  =0;
+    if(!config.PassBool( "cut_hovere_94x", false)) {
+          if(printevent) std::cout<< "94x H/E cuts coefficient applied"<< std::endl;  
+          hovere_endcap_tight_a1      =2.06;
+          hovere_endcap_medium_a1     =2.52;
+          hovere_endcap_loose_a1      =2.54;
+          hovere_endcap_veryloose_a1  =2.54;
+          hovere_endcap_tight_a2      =0.183;
+          hovere_endcap_medium_a2     =0.183;
+          hovere_endcap_loose_a2      =0.183;
+          hovere_endcap_veryloose_a2  =0.183;
+          hovere_barrel_tight_a1      =1.15;
+          hovere_barrel_medium_a1     =1.16;
+          hovere_barrel_loose_a1      =1.16;
+          hovere_barrel_veryloose_a1  =1.16;
+          hovere_barrel_tight_a2      =0.0324;
+          hovere_barrel_medium_a2     =0.0324;
+          hovere_barrel_loose_a2      =0.0324;
+          hovere_barrel_veryloose_a2  =0.0324;
+    }
+    
+
     for( int idx = 0; idx < IN::el_n; ++idx ) {
 
         float pt    = IN::el_pt->at(idx);
@@ -1142,8 +1198,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
-                //if( !config.PassFloat( "cut_hovere_barrel_tight"    , hovere       ) ) {
-                if(  hovere > 0.026+1.15/el_esc+0.0324*rho/el_esc       ) { // hard-coded H/E cut
+                if( !config.PassFloat( "cut_hovere_barrel_tight"    , hovere - hovere_barrel_tight_a1/el_esc - hovere_barrel_tight_a2*rho/el_esc ) ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
@@ -1151,8 +1206,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
-                //if( !config.PassFloat( "cut_isoRho_barrel_tight"   ,iso_rho  ) ) {
-                if( iso_rho  > 0.0287+0.506 / pt ) {
+                if( !config.PassFloat( "cut_isoRho_barrel_tight"   ,iso_rho - isorho_barrel_tight_a1 / pt ) ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
@@ -1188,8 +1242,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
-                //if( !config.PassFloat( "cut_hovere_barrel_medium"    , hovere       ) ) {
-                if(  hovere > 0.046+1.16/el_esc+0.0324*rho/el_esc       ) { // hard-coded H/E cut
+                if( !config.PassFloat( "cut_hovere_barrel_medium"    , hovere - hovere_barrel_medium_a1/el_esc - hovere_barrel_medium_a2*rho/el_esc ) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
@@ -1197,8 +1250,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
-                //if( !config.PassFloat( "cut_isoRho_barrel_medium"   ,iso_rho  ) ) {
-                if( iso_rho  > 0.0478+0.506 / pt ) {
+                if( !config.PassFloat( "cut_isoRho_barrel_medium"   ,iso_rho - isorho_barrel_medium_a1 / pt ) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
@@ -1234,8 +1286,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
-                //if( !config.PassFloat( "cut_hovere_barrel_loose"    , hovere       ) ) {
-                if(  hovere > 0.05 +1.16/el_esc+0.0324*rho/el_esc       ) { // hard-coded H/E cut
+                if( !config.PassFloat( "cut_hovere_barrel_loose"    , hovere - hovere_barrel_loose_a1/el_esc - hovere_barrel_loose_a2*rho/el_esc ) ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
@@ -1243,8 +1294,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
-                //if( !config.PassFloat( "cut_isoRho_barrel_loose"   ,iso_rho) ) {
-                if( iso_rho  > 0.112+0.506 / pt ) {
+                if( !config.PassFloat( "cut_isoRho_barrel_loose"   ,iso_rho - isorho_barrel_loose_a1 / pt ) ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
@@ -1280,8 +1330,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
-                //if( !config.PassFloat( "cut_hovere_barrel_veryloose"    , hovere       ) ) {
-                if(  hovere > 0.05 +1.16/el_esc+0.0324*rho/el_esc       ) { // hard-coded H/E cut
+                if( !config.PassFloat( "cut_hovere_barrel_veryloose"    , hovere - hovere_barrel_veryloose_a1/el_esc - hovere_barrel_veryloose_a2*rho/el_esc ) ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
@@ -1289,8 +1338,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
-                //if( !config.PassFloat( "cut_isoRho_barrel_veryloose"   ,iso_rho  ) ) {
-                if( iso_rho  > 0.198+0.506 / pt ) {
+                if( !config.PassFloat( "cut_isoRho_barrel_veryloose"   ,iso_rho - isorho_barrel_veryloose_a1 / pt ) ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
@@ -1330,8 +1378,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
-                //if( !config.PassFloat( "cut_hovere_endcap_tight"    , hovere       ) ) {
-                if(  hovere > 0.0188+2.06/el_esc+0.183*rho/el_esc       ) { // hard-coded H/E cut
+                if( !config.PassFloat( "cut_hovere_endcap_tight"    , hovere - hovere_endcap_tight_a1/el_esc - hovere_endcap_tight_a2*rho/el_esc ) ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
@@ -1339,8 +1386,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
-                //if( !config.PassFloat( "cut_isoRho_endcap_tight"   ,iso_rho  ) ) {
-                if( iso_rho  > 0.0445+0.963/ pt ) {
+                if( !config.PassFloat( "cut_isoRho_endcap_tight"   ,iso_rho - isorho_endcap_tight_a1 / pt ) ) {
                     pass_tight=false;
                     if( _eval_el_tight ) continue;
                 }
@@ -1377,8 +1423,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
-                //if( !config.PassFloat( "cut_hovere_endcap_medium"    , hovere       ) ) {
-                if(  hovere > 0.0275+2.52/el_esc+0.183*rho/el_esc       ) { // hard-coded H/E cut
+                if( !config.PassFloat( "cut_hovere_endcap_medium"    , hovere - hovere_endcap_medium_a1/el_esc - hovere_endcap_medium_a2*rho/el_esc ) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
@@ -1386,8 +1431,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
-                //if( !config.PassFloat( "cut_isoRho_endcap_medium"   ,iso_rho  ) ) {
-                if( iso_rho  > 0.0658+0.963/ pt ) {
+                if( !config.PassFloat( "cut_isoRho_endcap_medium"   ,iso_rho - isorho_endcap_medium_a1 / pt ) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
                 }
@@ -1423,8 +1467,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
-                //if( !config.PassFloat( "cut_hovere_endcap_loose"    , hovere       ) ) {
-                if(  hovere > 0.0441+2.54/el_esc+0.183*rho/el_esc       ) { // hard-coded H/E cut
+                if( !config.PassFloat( "cut_hovere_endcap_loose"    , hovere - hovere_endcap_loose_a1/el_esc - hovere_endcap_loose_a2*rho/el_esc ) ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
@@ -1432,8 +1475,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
-                //if( !config.PassFloat( "cut_isoRho_endcap_loose"   ,iso_rho  ) ) {
-                if( iso_rho  > 0.108+0.963 / pt ) {
+                if( !config.PassFloat( "cut_isoRho_endcap_loose"   ,iso_rho - isorho_endcap_loose_a1 / pt ) ) {
                     pass_loose=false;
                     if( _eval_el_loose ) continue;
                 }
@@ -1469,8 +1511,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
-                //if( !config.PassFloat( "cut_hovere_endcap_veryloose"    , hovere       ) ) {
-                if(  hovere > 0.05+2.54/el_esc+0.183*rho/el_esc       ) { // hard-coded H/E cut
+                if( !config.PassFloat( "cut_hovere_endcap_veryloose"    , hovere - hovere_endcap_veryloose_a1/el_esc - hovere_endcap_veryloose_a2*rho/el_esc ) ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
@@ -1478,8 +1519,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }
-                //if( !config.PassFloat( "cut_isoRho_endcap_veryloose"   ,iso_rho  ) ) {
-                if( iso_rho  > 0.203+0.963 / pt ) {
+                if( !config.PassFloat( "cut_isoRho_endcap_veryloose"   ,iso_rho - isorho_endcap_veryloose_a1 / pt ) ) {
                     pass_veryloose=false;
                     if( _eval_el_veryloose ) continue;
                 }

@@ -1072,7 +1072,7 @@ def filter_jobs_for_resubmit( orig_commands, outputDir, outputFile, storagePath=
                     print "file corrupted: %s/%s" %(top, outputFile)
                     break
         else:
-            print "file missing: %s %s" %(filepath, outputFile)
+            print "file missing: %s %s" %(file_path, outputFile)
 
         if not exists :
             commands.append( ( jobid, cmd_info ) )
@@ -1264,7 +1264,7 @@ def create_job_desc_file(command_info, kwargs) :
                     'log = condorlog.txt',
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
-                    'Requirements = TARGET.Machine =!= "siab-1.umd.edu"',
+                    #'Requirements = TARGET.Machine =!= "siab-1.umd.edu"',
                     #'on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)',
                     #'next_job_start_delay=60',
                     'notify_user = kakw@umd.edu',
@@ -1297,7 +1297,7 @@ def create_job_desc_file(command_info, kwargs) :
                          #'MINUTE = 60',
                          #'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60*$(MINUTE)',
                          #'periodic_release = NumbJobStarts<5',
-                         'Requirements = TARGET.Machine =!= "siab-1.umd.edu"'
+                         #'Requirements = TARGET.Machine =!= "siab-1.umd.edu"'
                         ]
         # assemble the argument command
         arg_command = ['arguments = "',
