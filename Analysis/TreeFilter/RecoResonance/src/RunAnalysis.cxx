@@ -42,12 +42,14 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 			    std::vector<ModuleConfig> &configs ) {
 
     _input_tree = chain;
+    _outfile = outfile;
     // *************************
     // initialize trees
     // *************************
     InitINTree(chain);
     InitOUTTree( outtree );
 
+    h_EventWeight = new TH1F("weighthist","weighthist",2,-100000,100000);
     OUT::mu_pt20_n                              = 0;
     OUT::mu_pt30_n                              = 0;
     OUT::mu_passTight                           = 0;
@@ -821,6 +823,13 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
 }
 
+void RunModule::finalize() {
+    // Save EventWeight
+    _outfile->cd();
+    h_EventWeight->Write(); 
+
+}
+
 bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
 
     // In BranchInit
@@ -835,6 +844,8 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
         save_event &= ApplyModule( mod_conf );
         if( printevent ) std::cout << " module " << mod_conf.GetName() << " result " << save_event << std::endl;
     }
+    // Fill EventWeight histogram
+    h_EventWeight->Fill(OUT::NLOWeight); 
 
     return save_event;
 
@@ -3782,7 +3793,6 @@ bool RunModule::calc_constrained_nu_momentum( const TLorentzVector lepton, const
 }
 
 bool RunModule::solve_quadratic( float Aval, float Bval, float Cval, float & solution1, float &solution2 ) const {
-
    float discriminant = Bval*Bval - 4*Aval*Cval;
 
    //std::cout << "DISCRIMINANT = " << discriminant << std::endl;

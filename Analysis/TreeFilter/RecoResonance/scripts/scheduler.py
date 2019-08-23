@@ -42,8 +42,8 @@ options.year = 2016
 #options.PUPath='/data/users/kakw/Resonances2017/pileuptest/' ## testonly
 #options.PUPath='/data/users/kakw/Resonances2017/pileup3'
 #if options.year==2018: options.PUPath='/afs/cern.ch/work/k/kawong/Resonances2018/pileup'
-#if options.year==2016: options.PUPath='/data2/users/kakw/Resonances2016/pileup/'
 options.PUPath='/data/users/kakw/Resonances%i/pileup/' %options.year
+#options.PUPath='/afs/cern.ch/work/k/kawong/Resonances%i/pileup' %options.year
 #options.usexrd = True
 
 if options.test :
@@ -226,8 +226,6 @@ jobs2016 = [
 #        JobConf( base, 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
         #JobConf( base, 'WWTo2L2Nu_13TeV-powheg', version=version2016, year=2016),
         #JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', version=version2016, year=2016, tags=['NLO']     ),
-        #JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', version=version2016, year=2016, tags=['NLO']     ),
-
         #JobConf( base, 'WJetsToLNu_Wpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
         #JobConf( base, 'WJetsToLNu_Wpt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
         #JobConf( base, 'WJetsToLNu_Pt-100To250_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
@@ -339,6 +337,7 @@ jobs2016 = [
 if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
 if options.year==2018: jobs=jobs2018 
+#if options.test      : jobs=jobs[:1] # only leave one job
 
 
 args_nlo = { 'ApplyNLOWeight' : 'true' }#, 'doFHPFS' : 'true' }

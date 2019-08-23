@@ -17,10 +17,6 @@ from array import array
 import time
 import analysis_utils
 from functools import wraps
-
-#sys.path.append('/data/users/fengyb/CMSPLOTS/')
-#import tdrstyle as tdr
-
 from uncertainties import ufloat
 from uncertainties import umath
 import pickle
@@ -141,6 +137,8 @@ class Sample :
 
         self.list_of_branches = []
 
+        self.weightHist = None
+
     def __repr__ (self) :
             return "<Sample %s at %x>" %(self.name,id(self)) #<SampleManager.Sample instance at 0x>
 
@@ -173,7 +171,7 @@ class Sample :
             #self.hist.SetNdivisions(509, True )
 
 
-    def AddFiles( self, files, treeName=None, readHists=False ) :
+    def AddFiles( self, files, treeName=None, readHists=False , weightHistName=None) :
         """ Add one or more files and grab the tree named treeName """
 
         if not isinstance(files, list) :
@@ -181,10 +179,29 @@ class Sample :
 
         if treeName is not None :
             self.chain = ROOT.TChain(treeName, self.name)
-            for file in files :
-                self.chain.Add(file)
+            for f in files :
+                ## add weighted number of events histogram
+                if weightHistName:
+                    rf = ROOT.TFile(f)
+                    wh = rf.Get(weightHistName)
+                    wh.SetDirectory(0)
+                    if self.weightHist == None:
+                        self.weightHist = wh
+                    else: 
+                        self.weightHist.Add(wh)
+                self.chain.Add(f)
 
             self.chain.SetBranchStatus('*', 0 )
+
+        if weightHistName and wh:
+            for i in range(4):
+                print wh.GetBinContent(i),
+            print
+            totevt = wh.GetBinContent(2) - wh.GetBinContent(1) 
+            if totevt!=self.total_events:
+                self.scale = self.scale*self.total_events/totevt
+                print "total event from histogram: %g total event in imported XS file: %g scale updated to: %g" %(totevt, self.total_events, self.scale)
+                self.total_events = totevt
 
         if readHists :
             for file in files :
@@ -233,7 +250,7 @@ class Sample :
 class SampleManager :
     """ Manage input samples and drawn histograms """
 
-    def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root', base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False) :
+    def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root', base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = None) :
 
         #
         # This plotting module assumes that root files are 
@@ -254,6 +271,9 @@ class SampleManager :
 
         # the name of the tree to read
         self.treeName        = treeName
+
+        # the name of weighed event count histogram; Don't import and override hard coded totevt if none
+        self.weightHistName  = weightHistName
 
         # Name of the file.  This can be overwritten in the configuration module
         self.fileName        = filename
@@ -1710,7 +1730,7 @@ class SampleManager :
                     self.quietprint( 'Update scale for %s' %name)
 
             thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, total_events=totevt, legendName=legend_name)
-            thisSample.AddFiles( input_files, self.treeName, self.readHists )
+            thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName ) 
 
             self.samples.append(thisSample)
 

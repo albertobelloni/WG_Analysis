@@ -32,7 +32,7 @@ class RunModule : public virtual RunModuleBase {
 			 std::vector<ModuleConfig> & config) ;
         bool execute( std::vector<ModuleConfig> & config ) ;
 
-        void finalize( ) {};
+        void finalize( );
 
         // The ApplyModule function calls any other module defined below
         // in src/RunModule.cxx.  This funciton is not strictly required
@@ -97,8 +97,10 @@ class RunModule : public virtual RunModuleBase {
         TFile * _puweight_data_file;
         TH1F * _puweight_sample_hist;
         TH1D * _puweight_data_hist;
+        TH1F *h_EventWeight;
 
         TChain * _input_tree;
+        TFile  * _outfile;
 
 };
 
