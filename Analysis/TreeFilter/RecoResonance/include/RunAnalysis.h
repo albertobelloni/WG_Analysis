@@ -301,6 +301,8 @@ namespace OUT {
     std::vector<float> *trueph_phi;
     std::vector<Int_t> *trueph_motherPID;
     std::vector<Int_t> *trueph_status;
+    std::vector<Int_t> *trueph_isPromptFS;
+    std::vector<Int_t> *trueph_FHPFS;
     std::vector<Int_t> *trueph_nMatchingLep;
     Int_t truephIPFS_n;
 
