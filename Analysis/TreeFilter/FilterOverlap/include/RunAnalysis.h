@@ -40,6 +40,8 @@ class RunModule : public virtual RunModuleBase {
         bool FilterTrueHT         ( ModuleConfig & config ) const;
         bool FilterMTRes         ( ModuleConfig & config ) const;
 
+    private:
+        bool printevent ;
 };
 
 // Ouput namespace 

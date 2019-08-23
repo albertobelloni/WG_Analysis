@@ -18,8 +18,8 @@ import time
 import analysis_utils
 from functools import wraps
 
-sys.path.append('/data/users/fengyb/CMSPLOTS/')
-import tdrstyle as tdr
+#sys.path.append('/data/users/fengyb/CMSPLOTS/')
+#import tdrstyle as tdr
 
 from uncertainties import ufloat
 from uncertainties import umath
@@ -48,6 +48,22 @@ def f_Fixme(f):
                 print "\033[1;31m FIXME \033[0m" 
                 return f(*args,**kws)
         return f_wrapper
+
+
+def f_Dumpfname(func):
+    @wraps(func)
+    def echo_func(*func_args, **func_kwargs):
+        print('func \033[1;31m {}() \033[0m'.format(func.__name__))
+        return func(*func_args, **func_kwargs)
+    return echo_func
+
+def latex_float(f):
+    float_str = "{0:.3g}".format(f)
+    if "e" in float_str:
+        base, exponent = float_str.split("e")
+        return r"{0} \times 10^{{{1}}}".format(base, int(exponent))
+    else:
+        return float_str
 
 class Sample :
     """ Store information about one sample """
@@ -459,6 +475,9 @@ class SampleManager :
             val_list = val
             if not isinstance(val_list, list) :
                 val_list = [val_list]
+            if val_list is None or None in val_list:
+                each_results.append(list(self.samples)) #clone list if None is included
+                continue
             if hasattr( Sample(''), arg ) :
                 each_results.append([ samp  for samp in self.samples if getattr( samp, arg ) in val_list])
 
@@ -1346,12 +1365,14 @@ class SampleManager :
 
     #---------------------------------------
     def SaveStack( self, filename, outputDir=None, canname=None, write_command=False, command_file='commands.txt'  ) :
-        """ Save current plot to filename.  Must supply --outputDir  """
-        
+        """ Save current plot to filename.  Must supply outputDir 
+            write_command to write to a command file
+        """
+
         if outputDir is None :
             print 'No output directory provided.  Will not save.'
         else :
-            
+
             # write the command to a file if requested
             if write_command :
                 if not os.path.isdir( outputDir ) :
@@ -1363,9 +1384,15 @@ class SampleManager :
             if self.collect_commands :
                 self.add_save_stack( filename, outputDir, canname )
                 return
-    
+
             if not os.path.isdir( outputDir ) :
                 print 'Creating directory %s' %outputDir
+                if "~" in outputDir:
+                    outputDir = os.path.expanduser(outputDir)
+                    print "expand bash home directory: ", outputDir
+                if "$" in outputDir:
+                    outputDir = os.path.expandvars(outputDir)
+                    print "expand bash variable: ", outputDir
                 os.makedirs(outputDir)
 
             filenamesplit = filename.split('.')
@@ -2386,6 +2413,12 @@ class SampleManager :
 
             samp = hist_config['sample']
             selection = hist_config['selection']
+            sblind  = draw_config.get_unblind()
+            sweight = draw_config.get_weight()
+            if samp=="Data" and isinstance(sblind,str):
+                    selection = "(%s)&&(%s)" %(selection,sblind)
+            if isinstance(sweight,str) and sweight:
+                    selection = "(%s)*%s" %(selection,sweight)
 
             # In this case the same sample may be drawn multiple
             # times.  to avoid any conflicts, add new samples
@@ -2393,12 +2426,12 @@ class SampleManager :
 
             newname = hist_name
 
-            newsamp = self.clone_sample( oldname=samp, newname=newname, temporary=True )
+            newsamp = self.clone_sample( oldname=samp, newname=samp+"_"+newname, temporary=True )
 
             if useModel :
                 self.create_hist( newsamp, treeHist, treeSelection, draw_config.histpars, isModel=True)
             else :
-                self.create_hist( newsamp, hist_config['var'], hist_config['selection'], draw_config.histpars)
+                self.create_hist( newsamp, hist_config['var'], selection, draw_config.histpars)
 
             created_samples.append( newsamp )
 
@@ -2486,8 +2519,8 @@ class SampleManager :
                 sample.hist = thishist
                 if sample.hist is not None :
                     self.format_hist( sample )
-    
 
+    @f_Dumpfname
     def create_hist( self, sample, varexp, selection, histpars, isModel=False ) :
 
         if isinstance( sample, str) :
@@ -3127,7 +3160,8 @@ class SampleManager :
         
         calcymax = 0
         calcymin = 0.5
-        samplist = self.get_samples(isActive=True ) 
+        #samplist = self.get_samples(isActive=True ) 
+        samplist = self.get_samples() 
         normalize = draw_config.get_normalize()
         if not normalize: samplist+=self.get_samples( name='__AllStack__' )   
         #for samp in samplist:
@@ -3262,29 +3296,45 @@ class SampleManager :
                    print "No stack found"
            return
 
-    def get_stack_count(self, integralrange = None, sort =True, includeData=False):
+    def get_stack_count(self, integralrange = None, sort =True, includeData=False, isActive = True):
         """ integralrange: ntuple: x bin range to be integrated """
         err = array('d',[0])
         ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
+
         if integralrange and isinstance(integralrange,(list,tuple)) and len(integralrange)==2:
             print "use range %g, %g" %integralrange
             ranger  = lambda h, e, r: map(h.FindBin, r)+[e]
+
         result = [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
-                         for s in self.get_samples(isActive=True,isData=False) if s.name != "ratio"]
+                         for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.hist]
+
         if sort: result.sort(key=lambda x: -x[1][0])
         htotal = self.get_stack_aggregate()
+
         if includeData: result += [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
                          for s in self.get_samples(isActive=True,isData=True)]
-        result.append(("TOTAL",(htotal.IntegralAndError(\
+        if htotal: result.append(("TOTAL",(htotal.IntegralAndError(\
                         *ranger(htotal,err,integralrange)), err[0])))
         resultdict = OrderedDict(result)
         return resultdict
 
-    def print_stack_count(self, integralrange = None, **kwargs):
+    def print_stack_count(self, integralrange = None, dolatex=False, **kwargs):
         result = self.get_stack_count(integralrange, **kwargs).items()
+        if dolatex:
+            result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
+            printline = ""
+            for r in result[:-1]: printline+= "%30s & $%s$ $\\pm$ %s\\\\\n" %r
+            printline+= "\\hline\\hline\n%30s & $%s$ +/- %s\\\\\n" %result[-1]
+            print printline.replace("gamma","\\gamma").replace("Gamma","\\gamma").replace("G","\\gamma")
+            return
+
         result = [ (r1,)+r2 for r1, r2 in result]
-        for r in result[:-1]: print "%30s %8.3g +/- %5.3g" %r
-        print "="*35+"\n%30s %8.3g +/- %5.3g" %result[-1]
+        totalresult = None
+        if len(result)>1 and result[-1][0]=="TOTAL":
+            totalresult = result[-1]
+            result = result[:-1]
+        for r in result: print "%60s %8.3g +/- %5.3g" %r
+        if totalresult: print "="*35+"\n%60s %8.3g +/- %5.3g" %totalresult
         return
 
     # raw data and legend for SampleManager.Draw()
@@ -3505,12 +3555,13 @@ class SampleManager :
         first = True
         for hist_name, hist_config in draw_config.hist_configs.iteritems() :
 
-            draw_samp = self.get_samples( name=hist_name  )
+            draw_samp = self.get_samples( name=hist_config['sample']+"_"+hist_name  )
             if draw_samp :
                 draw_samp = draw_samp[0]
             else :
                 draw_samp = None
                 print 'WARNING Did not get a sample associated with the hist_config'
+                raise RuntimeError 
 
             drawcmd = 'same'
             if first :
@@ -3550,6 +3601,8 @@ class SampleManager :
     def CompareSelections( self, varexp, selections, reqsamples, histpars, hist_config={}, label_config={}, legend_config={}, same=False, useModel=False, treeHist=None, treeSelection=None ) :
         assert len(selections) == len(reqsamples), 'selections and samples must have same length'
 
+        self.curr_sig_legend = None
+
         if 'colors' in hist_config :
             if len(hist_config['colors']) < len( selections ) :
                 print 'Size of colors input does not match size of vars input!'
@@ -3564,14 +3617,14 @@ class SampleManager :
 
         if not same :
             self.clear_all()
-	
+
 		# initialize DrawConfig
         config = DrawConfig( varexp, selections, histpars, samples=reqsamples, 
                       hist_config=hist_config, label_config=label_config, legend_config=legend_config )
         config.create_hist_configs()
 
         self.draw_commands.append(config)
-        
+
         created_samples = self.MakeSameCanvas(config, preserve_hists=True, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
         print created_samples
         if not created_samples :
@@ -3591,7 +3644,7 @@ class SampleManager :
     def create_same_legend(self,  legend_entries, created_samples ) :
 
         # check for an input legend_entries
-        if not legend_entries : 
+        if not legend_entries:
             legend_entries = [s.legendName for s in created_samples]
 
         for idx, samp in enumerate(created_samples) :

@@ -37,10 +37,16 @@ def filter_photon( alg_list, args ) :
 
     pt_cut = args.get('pt_cut' , ' > 10 ' )
     nph_cut = args.get('nph_cut' , ' == 0 ' )
+    isPromptFS_cut = args.get('isPromptFS_cut', None)
+    FHPFS_cut = args.get('FHPFS_cut', None)
 
     filter_event = Filter('FilterPhoton')
     filter_event.cut_genph_pt = pt_cut
     filter_event.cut_n_gen_phot = nph_cut
+    if isPromptFS_cut:
+        filter_event.cut_genph_isPromptFS = isPromptFS_cut
+    if FHPFS_cut:
+        filter_event.cut_genph_FHPFS = FHPFS_cut
 
     alg_list.append( filter_event )
 

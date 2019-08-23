@@ -1264,7 +1264,7 @@ def create_job_desc_file(command_info, kwargs) :
                     'log = condorlog.txt',
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
-                    'Requirements = TARGET.Machine =!= "siab-1.umd.edu"',
+                    #'Requirements = TARGET.Machine =!= "siab-1.umd.edu"',
                     #'on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)',
                     #'next_job_start_delay=60',
                     'notify_user = friccita@umd.edu',

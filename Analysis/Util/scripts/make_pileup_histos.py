@@ -19,8 +19,8 @@ options = parser.parse_args()
 #_NTUPLE_DIR = '/eos/cms/store/group/phys_exotica/Wgamma'
 #options.outputDir = '/afs/cern.ch/work/k/kawong/Resonances2018/pileup'
 _NTUPLE_DIR = '/store/user/kawong/WGamma2/'
-options.version = 'UMDNTuple_0506_2017/'
-options.outputDir = '/data2/users/kakw/Resonances2017/pileup/'
+options.version = 'UMDNTuple_0812_2016/'
+options.outputDir = '/data/users/kakw/Resonances2016/pileup/'
 
 def main() :
 
@@ -32,7 +32,8 @@ def main() :
     #mc_samples = ['WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8','WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
     #mc_samples = ['WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8','WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
     #mc_samples = ['WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8','WWTo2L2Nu_13TeV-powheg','WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8','ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8']
-    mc_samples = [] # empty list means run over all found subdirectories
+    mc_samples = ['WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8']
+    #mc_samples = [] # empty list means run over all found subdirectories
 
     if not mc_samples:
         for samp in os.listdir( _NTUPLE_DIR ) :
