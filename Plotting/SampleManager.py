@@ -53,11 +53,17 @@ def f_Dumpfname(func):
         return func(*func_args, **func_kwargs)
     return echo_func
 
-def latex_float(f):
+def latex_float(f, u=None):
     float_str = "{0:.3g}".format(f)
     if "e" in float_str:
         base, exponent = float_str.split("e")
+        if u:
+            u=u/10**int(exponent)
+            uncer_str = "{0:.3g}".format(u)
+            return r"{0} & \pm {1} \times 10^{{{2}}}".format(base, uncer_str, int(exponent))
         return r"{0} \times 10^{{{1}}}".format(base, int(exponent))
+    elif u:
+        return r"{0} & \pm {1:.3g}".format(float_str, u)
     else:
         return float_str
 
@@ -3341,11 +3347,12 @@ class SampleManager :
     def print_stack_count(self, integralrange = None, dolatex=False, **kwargs):
         result = self.get_stack_count(integralrange, **kwargs).items()
         if dolatex:
-            result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
+            #result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
+            result = [ (r1,latex_float(*r2)) for r1, r2 in result]
             printline = ""
-            for r in result[:-1]: printline+= "%30s & $%s$ $\\pm$ %s\\\\\n" %r
-            printline+= "\\hline\\hline\n%30s & $%s$ +/- %s\\\\\n" %result[-1]
-            print printline.replace("gamma","\\gamma").replace("Gamma","\\gamma").replace("G","\\gamma")
+            for r in result[:-1]: printline+= "%20s & $%s$\\\\\n" %r
+            printline+= "\\hline\\hline\n%20s & $%s$\\\\\n" %result[-1]
+            print printline.replace("gamma","\\gamma ").replace("Gamma","\\gamma ").replace("G","\\gamma ")
             return
 
         result = [ (r1,)+r2 for r1, r2 in result]
