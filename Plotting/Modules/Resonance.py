@@ -338,17 +338,17 @@ def config_samples(samples) :
 
     samples.AddSampleGroup(  'Wjets', legend_name='W+Jets',
                            #input_samples = ['WJetsToLNu-madgraphMLM'],
-                           input_samples = ['WJetsToLNu-amcatnloFXFX'],
-                           #input_samples = [
-                           #                 'WJetsToLNuTrueHTOlap',
-                           #                 'WJetsToLNu_HT-100To200',
-                           #                 'WJetsToLNu_HT-200To400',
-                           #                 'WJetsToLNu_HT-400To600',
-                           #                 'WJetsToLNu_HT-600To800',
-                           #                 'WJetsToLNu_HT-800To1200',
-                           #                 'WJetsToLNu_HT-1200To2500',
-                           #                 'WJetsToLNu_HT-2500ToInf',
-                           #],
+                           #input_samples = ['WJetsToLNu-amcatnloFXFX'],
+                           input_samples = [
+                                            'WJetsToLNuTrueHTOlap',
+                                            'WJetsToLNu_HT-100To200',
+                                            'WJetsToLNu_HT-200To400',
+                                            'WJetsToLNu_HT-400To600',
+                                            'WJetsToLNu_HT-600To800',
+                                            'WJetsToLNu_HT-800To1200',
+                                            'WJetsToLNu_HT-1200To2500',
+                                            'WJetsToLNu_HT-2500ToInf',
+                           ],
                            plotColor = ROOT.kBlue-2,
                            #isActive=False,
                           )

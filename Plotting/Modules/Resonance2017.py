@@ -6,12 +6,12 @@ def config_samples(samples) :
     samples.AddSample('SingleElectron'                       , path='SingleElectron'    ,  isActive=False, isData = True)
 
     samples.AddSample('DYJetsToLL_M-50', 
-                      path='DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8', 
+                      path='DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap', 
 		              #path='DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('DYJetsToLL_M-50-amcatnloFXFX', 
-                      path='DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8', 
+                      path='DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8PhOlap', 
                       isActive=False, useXSFile=True )
 
     samples.AddSample('ZGTo2LG', 
@@ -36,7 +36,7 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WGToLNuG-amcatnloFXFX', 
-                      path='WGToLNuG_TuneCP5_13TeV-amcatnloFXFX-pythia8', 
+                      path='WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8', 
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange )
 
     samples.AddSample('WGToLNuG-madgraphMLM', 
@@ -291,7 +291,7 @@ def config_samples(samples) :
 
     samples.AddSampleGroup(  'Wgamma', legend_name='W#gamma',
                            #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
-                           input_samples = ['WGToLNuG-madgraphMLM'],
+                           input_samples = ['WGToLNuG-amcatnloFXFX'],
                            #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            plotColor = ROOT.kRed-2,

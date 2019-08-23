@@ -242,6 +242,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::trueph_phi                             = 0;
     OUT::trueph_motherPID                       = 0;
     OUT::trueph_status                          = 0;
+    OUT::trueph_isPromptFS                      = 0;
+    OUT::trueph_FHPFS                           = 0;
 
     OUT::truelep_n                              = 0;
     OUT::truelep_pt                             = 0;
@@ -496,6 +498,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         outtree->Branch("trueph_phi"          , &OUT::trueph_phi                       );
         outtree->Branch("trueph_motherPID"    , &OUT::trueph_motherPID                 );
         outtree->Branch("trueph_status"       , &OUT::trueph_status                    );
+        outtree->Branch("trueph_isPromptFS"   , &OUT::trueph_isPromptFS                );
+        outtree->Branch("trueph_FHPFS"        , &OUT::trueph_FHPFS                     );
 
         outtree->Branch("truelep_n"           , &OUT::truelep_n, "truelep_n/I" );
         outtree->Branch("truelep_pt"          , &OUT::truelep_pt                       );
@@ -3054,6 +3058,8 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
     OUT::trueph_phi->clear();
     OUT::trueph_motherPID->clear();
     OUT::trueph_status->clear();
+    OUT::trueph_isPromptFS->clear();
+    OUT::trueph_FHPFS->clear();
 
     OUT::truelep_n = 0;
     OUT::truelep_pt->clear();
@@ -3196,8 +3202,8 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
         unsigned lidx = litr->second;
 
         int pid = IN::gen_PID->at(lidx);
-        // should be an electron or muon
-        if( !( abs(pid) == 11 || abs(pid) == 13 ) ) continue;
+        // should be an electron or muon or taon
+        if( !( abs(pid) == 11 || abs(pid) == 13 || abs(pid) == 15 ) ) continue;
 
         //if( IN::gen_motherPID->at(lidx) == pid ) continue;
 
@@ -3235,6 +3241,8 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
         OUT::trueph_phi->push_back( IN::gen_phi->at( pidx ) );
         OUT::trueph_motherPID->push_back( IN::gen_motherPID->at( pidx ) );
         OUT::trueph_status->push_back( IN::gen_status->at( pidx ) );
+        OUT::trueph_isPromptFS->push_back( IN::gen_isPromptFinalState->at( pidx ) );
+        OUT::trueph_FHPFS->push_back( IN::gen_fromHardProcessFinalState->at( pidx ) );
 
         TLorentzVector phlv;
         phlv.SetPtEtaPhiM( IN::gen_pt->at(pidx),

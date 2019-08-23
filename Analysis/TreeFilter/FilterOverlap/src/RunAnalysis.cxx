@@ -136,15 +136,28 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
         float phot_pt = OUT::trueph_pt->at(i);
         float phot_eta = OUT::trueph_eta->at(i);
         float phot_phi = OUT::trueph_phi->at(i);
-	int phot_mother = OUT::trueph_motherPID->at(i);
-	int phot_status = OUT::trueph_status->at(i);
-	bool phot_isStable = (phot_status == 1);
-	bool phot_correctMother = (fabs(phot_mother) == 1) || (fabs(phot_mother) == 2) || (fabs(phot_mother) == 3) || (fabs(phot_mother) == 4) || (fabs(phot_mother) == 5) || (fabs(phot_mother) == 11) || (fabs(phot_mother) == 13) || (fabs(phot_mother) == 15) || (fabs(phot_mother) == 21) || (fabs(phot_mother) == 2212); // gen photon must come from quark, lepton, gluon, or proton
+      	int phot_mother = OUT::trueph_motherPID->at(i);
+      	int phot_status = OUT::trueph_status->at(i);
 
-      
-      if (printevent) {std::cout<<std::endl << phot_pt<< " "<< phot_eta<<" "<< phot_mother<<" "<<phot_status; }
-//	if (!phot_isStable || !phot_correctMother) { std::cout << "DEBUG: my mother was " << phot_mother << " and my status was " << phot_status << std::endl; continue;}
+#ifdef EXISTS_trueph_isPromptFS
+	      int phot_isPromptFS = OUT::trueph_isPromptFS->at(i);
+#endif
+#ifdef EXISTS_trueph_FHPFS
+      	int phot_FHPFS = OUT::trueph_FHPFS->at(i);
+#endif
+//bool phot_isStable = (phot_status == 1);
+//bool phot_correctMother = (fabs(phot_mother) == 1) || (fabs(phot_mother) == 2) || (fabs(phot_mother) == 3) || (fabs(phot_mother) == 4) || (fabs(phot_mother) == 5) || (fabs(phot_mother) == 11) || (fabs(phot_mother) == 13) || (fabs(phot_mother) == 15) || (fabs(phot_mother) == 21) || (fabs(phot_mother) == 2212); // gen photon must come from quark, lepton, gluon, or proton
+
+#ifdef EXISTS_trueph_isPromptFS
+      if (printevent) {std::cout<<std::endl << phot_pt<< " "<< phot_eta<<" "<< phot_mother<<" status "<<phot_status<<" isPrompt "<<phot_isPromptFS<<" FHPFS "<<phot_FHPFS; }
+#endif
         if( !config.PassFloat( "cut_genph_pt", phot_pt ) ) continue;
+#ifdef EXISTS_trueph_isPromptFS
+        if( !config.PassBool( "cut_genph_isPromptFS", phot_isPromptFS ) ) continue;
+#endif
+#ifdef EXISTS_trueph_FHPFS
+        if( !config.PassBool( "cut_genph_FHPFS", phot_FHPFS ) ) continue;
+#endif
 
         if (printevent) std::cout<< " pass";
         TLorentzVector phlv;
@@ -155,8 +168,8 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
     }
 
     if (printevent) {
-        std::cout<< std::endl; 
-        for (unsigned i=0;i<gen_phot.size() ;i++) {std::cout<<i<<" pt "<<gen_phot.at(i).Pt();}
+        //std::cout<< std::endl; 
+        //for (unsigned i=0;i<gen_phot.size() ;i++) {std::cout<<i<<" pt "<<gen_phot.at(i).Pt();}
         std::cout<< std::endl; 
     }
     if( !config.PassInt( "cut_n_gen_phot", gen_phot.size() ) ) keep_event=false;
