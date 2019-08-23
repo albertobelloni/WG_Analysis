@@ -1365,12 +1365,14 @@ class SampleManager :
 
     #---------------------------------------
     def SaveStack( self, filename, outputDir=None, canname=None, write_command=False, command_file='commands.txt'  ) :
-        """ Save current plot to filename.  Must supply --outputDir  """
-        
+        """ Save current plot to filename.  Must supply outputDir 
+            write_command to write to a command file
+        """
+
         if outputDir is None :
             print 'No output directory provided.  Will not save.'
         else :
-            
+
             # write the command to a file if requested
             if write_command :
                 if not os.path.isdir( outputDir ) :
@@ -1382,9 +1384,15 @@ class SampleManager :
             if self.collect_commands :
                 self.add_save_stack( filename, outputDir, canname )
                 return
-    
+
             if not os.path.isdir( outputDir ) :
                 print 'Creating directory %s' %outputDir
+                if "~" in outputDir:
+                    outputDir = os.path.expanduser(outputDir)
+                    print "expand bash home directory: ", outputDir
+                if "$" in outputDir:
+                    outputDir = os.path.expandvars(outputDir)
+                    print "expand bash variable: ", outputDir
                 os.makedirs(outputDir)
 
             filenamesplit = filename.split('.')
