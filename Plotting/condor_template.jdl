@@ -1,0 +1,10 @@
+universe = vanilla
+Executable = /home/kakw/efake/WG_Analysis/Plotting/condor-executable.sh
+should_transfer_files = NO
+Requirements = TARGET.FileSystemDomain == "privnet"
+Output = /home/kakw/efake/WG_Analysis/Plotting/log/zfit_$(cluster)_$(process).stdout
+Error =  /home/kakw/efake/WG_Analysis/Plotting/log/zfit_$(cluster)_$(process).stderr
+Log =    /home/kakw/efake/WG_Analysis/Plotting/log/zfit_$(cluster)_$(process).condor
+Arguments = [REPLACE]
++IsHighPriorityJob = True
+Queue 
