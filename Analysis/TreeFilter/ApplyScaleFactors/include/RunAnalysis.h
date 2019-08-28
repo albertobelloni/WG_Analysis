@@ -14,7 +14,6 @@
 #include "TGraphAsymmErrors.h"
 #include "TH2F.h"
 #include "TRandom3.h"
-#include "include/RoccoR.h"
 
 // The RunModule inherits from RunModuleBase (an Abstract Base Class )
 // defined in the Core package so that all
@@ -110,8 +109,6 @@ class RunModule : public virtual RunModuleBase {
         int _run_bcdf_max;
         int _run_gh_min;
 
-	RoccoR rc;
-
 };
 
 // Ouput namespace 
@@ -161,9 +158,6 @@ namespace OUT {
     float mu_idSFUP;
     float mu_idSFDN;
 
-    float mu_rcSF;
-    float mu_rcSFUP;
-    float mu_rcSFDN;
 #endif
 
 

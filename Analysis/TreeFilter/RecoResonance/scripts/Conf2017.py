@@ -411,6 +411,9 @@ def filter_met() :
 
 def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do_hists=False, evalPID='tight' ) :
 
+    workarea = os.getenv('WorkArea')
+    base_path = '%s/TreeFilter/RecoResonance/data' %_workarea
+
     filt = Filter('FilterMuon')
 
     if do_cutflow :
@@ -425,6 +428,7 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
     filt.cut_trkiso_tight = ' < 0.05 '
 
     filt.add_var( 'triggerMatchBits', '9' )
+    filt.add_var( 'FilePathRochester', '%s/roccor.Run2.v3/RoccoR2017.txt' %base_path )
 
     filt.cut_isPf_loose         = ' == True '
     filt.cut_isGlobalOrTk_loose = ' == True '

@@ -30,6 +30,7 @@ parser.add_argument('--doGammaGamma',    default=False,     action='store_true',
 parser.add_argument('--doEleFake',       default=False,     action='store_true',      dest='doEleFake',    required=False, help='make electron fake fits' )
 parser.add_argument('--doClosure',       default=False,     action='store_true',      dest='doClosure',    required=False, help='make closure tests' )
 parser.add_argument('--doAll',           default=False,     action='store_true',      dest='doAll',        required=False, help='make all backgrounds fits' )
+parser.add_argument('--doNonMajor',           default=False,     action='store_true',      dest='doNonMajor',        required=False, help='make all non-major backgrounds fits' )
 
 options = parser.parse_args()
 
@@ -72,23 +73,26 @@ def main() :
     sel_base_mu = defs.get_base_selection( 'mu' )
     sel_base_el = defs.get_base_selection( 'el' )
 
+    weight_str_mu = weight_str + '*(mu_trigSF*mu_idSF*mu_isoSF*mu_rcSF*ph_idSF*ph_psvSF*ph_csevSF)'
+    weight_str_el = weight_str + '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF*ph_csevSF)'
+
     el_ip_str = '( fabs( el_d0[0] ) < 0.05 && fabs( el_dz[0] ) < 0.10 && fabs( el_sc_eta[0] )<= 1.479 ) || ( fabs( el_d0[0] ) < 0.10 && fabs( el_dz[0] ) < 0.20 && fabs( el_sc_eta[0] )> 1.479 )'
 
     el_tight = ' el_passVIDTight[0] == 1'
     el_eta   = ' fabs( el_eta[0] ) < 2.1 '
 
-    ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 50 && !ph_hasPixSeed[0]'
-    ph_tightpt_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 50 && !ph_hasPixSeed[0]'
+    ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
+    ph_tightpt_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
 
     met_str = 'met_pt > 25'
 
     Zveto_str = 'fabs(m_lep_ph-91)>15.0'
 
-    sel_mu_nominal      = '%s * ( %s && %s && %s )'            %(  weight_str,  sel_base_mu, ph_str, met_str)
-    sel_el_nominal      = '%s * ( %s && %s && %s && %s && %s && %s && ( %s ))'     %(  weight_str, sel_base_el, el_tight, el_eta, ph_str, met_str, Zveto_str, el_ip_str )
+    sel_mu_nominal      = '%s * ( %s && %s && %s )'            %(  weight_str_mu,  sel_base_mu, ph_str, met_str)
+    sel_el_nominal      = '%s * ( %s && %s && %s && %s && %s && %s && ( %s ))'     %(  weight_str_el, sel_base_el, el_tight, el_eta, ph_str, met_str, Zveto_str, el_ip_str )
 
-    sel_mu_phpt_nominal      = '%s * ( %s && %s && %s && ADDITION)'            %(  weight_str,  sel_base_mu, ph_tightpt_str, met_str)
-    sel_el_phpt_nominal      = '%s * ( %s && %s && %s && %s && %s && %s && ( %s ) && ADDITION)'     %(  weight_str, sel_base_el, el_tight, el_eta, ph_tightpt_str, met_str, Zveto_str, el_ip_str )
+    sel_mu_phpt_nominal      = '%s * ( %s && %s && %s && ADDITION)'            %(  weight_str_mu,  sel_base_mu, ph_tightpt_str, met_str)
+    sel_el_phpt_nominal      = '%s * ( %s && %s && %s && %s && %s && %s && ( %s ) && ADDITION)'     %(  weight_str_el, sel_base_el, el_tight, el_eta, ph_tightpt_str, met_str, Zveto_str, el_ip_str )
 
     sel_base_mu = sel_mu_phpt_nominal
     sel_base_el = sel_el_phpt_nominal
@@ -172,7 +176,9 @@ def main() :
     workspace_zgamma            = ROOT.RooWorkspace( 'workspace_zgamma'   )
     workspace_wjets             = ROOT.RooWorkspace( 'workspace_wjets'    )
     workspace_backgrounds       = ROOT.RooWorkspace( 'workspace_backgrounds' )
+    workspace_nonmajor          = ROOT.RooWorkspace( 'workspace_nonmajor' )
     workspace_gammagamma        = ROOT.RooWorkspace( 'workspace_gammagamma'  )
+    workspace_elefake           = ROOT.RooWorkspace( 'workspace_elefake' )
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
     #lepg_samps = { 'mu' : sampManMuG}
@@ -202,7 +208,7 @@ def main() :
 
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch], 'TTbar',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttbar,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
+                    get_mc_fit( lepg_samps[ch], 'AllTop',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttbar,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
             if options.doZGamma: 
 
@@ -217,6 +223,13 @@ def main() :
 
                     get_mc_fit( lepg_samps[ch], 'Wjets', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wjets,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
+
+            if options.doEleFake:
+ 
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'Z+jets', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_elefake,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
+
             if options.doGammaGamma:
 
                 for name, vardata in kine_vars.iteritems() :
@@ -227,7 +240,13 @@ def main() :
                
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch],  [ 'WGamma', 'TTG', 'TTbar', 'Zgamma', 'Wjets', 'GammaGamma' ], seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_backgrounds,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
+                    get_mc_fit( lepg_samps[ch],  [ 'WGamma', 'TTG', 'AllTop', 'Zgamma', 'Wjets', 'GammaGamma' ], seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_backgrounds,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
+
+            if options.doNonMajor:
+               
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch],  [ 'TTG', 'AllTop', 'Zgamma', 'GammaGamma', 'GJets' ], seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_nonmajor,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
 
     if options.outputDir is not None :
@@ -243,10 +262,14 @@ def main() :
             workspace_zgamma.writeToFile( '%s/%s.root' %( options.outputDir,workspace_zgamma.GetName() ) )
         if options.doWJets:
             workspace_wjets.writeToFile( '%s/%s.root' %( options.outputDir, workspace_wjets.GetName() ) )
+        if options.doWJets:
+            workspace_elefake.writeToFile( '%s/%s.root' %( options.outputDir, workspace_elefake.GetName() ) )
         if options.doGammaGamma:
             workspace_gammagamma.writeToFile( '%s/%s.root' %( options.outputDir, workspace_gammagamma.GetName() ) )
         if options.doAll:
             workspace_backgrounds.writeToFile( '%s/%s.root' %( options.outputDir, workspace_backgrounds.GetName() ) )
+        if options.doNonMajor:
+            workspace_nonmajor.writeToFile( '%s/%s.root' %( options.outputDir, workspace_nonmajor.GetName() ) )
 
         for fileid, ws_list in workspaces_to_save.iteritems() :
             for idx, ws in enumerate(ws_list) :
@@ -257,10 +280,10 @@ def main() :
 
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
-        #for key, can in sampManMuG.outputs.iteritems() :
-        #    can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-        #for key, can in sampManElG.outputs.iteritems() :
-        #    can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
+        for key, can in sampManMuG.outputs.iteritems() :
+            can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
+        for key, can in sampManElG.outputs.iteritems() :
+            can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
 
         #for key, result in sampManMuG.fitresults.iteritems():
         #    print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManMuG.chi2[key])

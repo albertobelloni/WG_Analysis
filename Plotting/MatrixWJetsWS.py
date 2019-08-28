@@ -56,8 +56,8 @@ def main() :
     sampManMuMu.outputs = {}
     sampManElEl.outputs = {}
 
-    #sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 96.2 && m_ll > 86.2 && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
-    sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 110. && m_ll > 70. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
+    #sel_base_mu = 'mu_pt30_n==2 && mu_n==2 && m_ll < 110. && m_ll > 70. && mu_pt[0] > 50. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
+    sel_base_mu = 'mu_n==2 && m_ll < 130. && m_ll > 50. && mu_pt_rc[0] > 52. && mu_pt_rc[1] > 10. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1]'
 
     #eta_cuts = ['EB', 'EE']
     eta_cuts = ['EB']
@@ -104,7 +104,7 @@ def main() :
 
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
-        outputFile = ROOT.TFile('%s/outfile_matrix_ZPeak_6225_%s.root' %( options.outputDir, wjets.GetName() ),'recreate') #set pt cut here
+        outputFile = ROOT.TFile('%s/outfile_matrix_LepGam_NLO_PhOlap_notIPFS_%s.root' %( options.outputDir, wjets.GetName() ),'recreate') #set pt cut here
         for key, can in sampManMuMu.outputs.iteritems() :
             can.Write( '%s' %(key) )
         for can in sampManElEl.outputs.iteritems() :
@@ -123,11 +123,13 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     #---------------------------------------
     # Get the base selection for each region
     #---------------------------------------
-    ph_sel_basic  = 'ph_n==1 && ph_Is%s[0] && (m_llph + m_ll < 180)' %( eta_cut )
+    #ph_sel_basic  = 'ph_n==1 && ph_Is%s[0] && (m_llph + m_ll < 180)' %( eta_cut )
+    ph_sel_basic  = 'ph_n==1 && ph_Is%s[0] && (ph_pt[0] > 40.*m_llph/150.)' %( eta_cut )
     ph_pt_15To25 = 'ph_pt[0] > 15.'# && ph_pt[0] < 25.'
     ph_pt_25To40 = 'ph_pt[0] > 25. && ph_pt[0] < 40.'
     ph_pt_40To70 = 'ph_pt[0] > 40. && ph_pt[0] < 70.'
     ph_pt_70Up = 'ph_pt[0] > 70.'
+    ph_pt_40Up = 'ph_pt[0] > 40. && ph_passMedium[0] && ph_passEleVeto[0]'
     ph_sel_preid = 'ph_passHOverEMedium[0] && ph_passNeuIsoCorrMedium[0] && ph_passPhoIsoCorrMedium[0]'
     ph_sel_chiso_incl = 'ph_passSIEIEMedium[0]'
     ph_sel_sieie_incl = 'ph_passChIsoCorrMedium[0]'
@@ -144,8 +146,8 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     if isdata :
         myweight = '(isData)'
     else :
-        #myweight = '(NLOWeight*PUWeight*mu_idSF*mu_isoSF)'
-        myweight = '(NLOWeight*PUWeight)'
+        #myweight = '(NLOWeight*PUWeight)'
+        myweight = '(NLOWeight*PUWeight*mu_trigSF*mu_idSF*mu_isoSF*ph_idSF*ph_csevSF)'
 
 
     real_sel_sieie_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_sieie_incl, deltaR_real_sel] ) #set pt cut here
@@ -164,9 +166,10 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     predR_sel = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid] ) #set pt cut here
     predR_sel = '(' + predR_sel + ')*' + myweight
 
-    zpeak_sel = sel_base
+    zpeak_sel = ' && '.join( [sel_base, ph_sel_basic, ph_pt_40Up] ) 
     zpeak_sel =  '(' + zpeak_sel + ')*' + myweight
 
+    sel_smp_zpeak = 'mu_n==2 && m_ll < 106.2 && m_ll > 76.2 && mu_pt_rc[0] > 25. && mu_pt_rc[1] > 25. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1] && (mu_charge[0]*mu_charge[1] < 0) && ph_n == 0'
 
     if workspace is None :
         ws = ROOT.RooWorkspace( 'ws') 
@@ -185,7 +188,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     binning_pt = (300,0.,750.)
     binning_sigIEIE_FR = [0.,0.01022,0.1]
     binning_chIso_FR = [0.,0.441,5.]
-    binning_mll = (16, 70., 110.)
+    binning_mll = (40, 50., 130.)
     binning_dr = (40, 0., 4.)
     binning_vtx = (40, 0., 40.)
 
@@ -209,6 +212,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     #hist_fake_chIso_FR = clone_sample_and_draw( sampMan, sample, chIso_var, fake_sel_chiso_incl, binning_chIso_FR )
 
     hist_mll = clone_sample_and_draw( sampMan, sample, mll_var, zpeak_sel, binning_mll )
+    hist_mll_smp = clone_sample_and_draw( sampMan, sample, mll_var, sel_smp_zpeak, binning_mll )
     hist_dr = clone_sample_and_draw( sampMan, sample, dr_var, predR_sel, binning_dr )
     hist_nvtx = clone_sample_and_draw( sampMan, sample, vtx_var, zpeak_sel, binning_vtx )
     hist_npu = clone_sample_and_draw( sampMan, sample, pu_var, zpeak_sel, binning_vtx )
@@ -224,6 +228,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     #sampMan.outputs['%s_chIso_fake_FR_%s' %(sample,suffix)] = hist_fake_chIso_FR
 
     sampMan.outputs['%s_mll_%s' %(sample,suffix)] = hist_mll
+    sampMan.outputs['%s_mllsmp_%s' %(sample,suffix)] = hist_mll_smp
     sampMan.outputs['%s_dr_%s' %(sample,suffix)] = hist_dr
     sampMan.outputs['%s_vtxn_%s' %(sample,suffix)] = hist_nvtx
     sampMan.outputs['%s_pun_%s' %(sample,suffix)] = hist_npu
