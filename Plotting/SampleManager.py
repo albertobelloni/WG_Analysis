@@ -190,6 +190,9 @@ class Sample :
                 if weightHistName:
                     rf = ROOT.TFile(f)
                     wh = rf.Get(weightHistName)
+                    if not wh:
+                        print "weight histogram does not exist for %s" %f
+                        break
                     wh.SetDirectory(0)
                     if self.weightHist == None:
                         self.weightHist = wh
@@ -199,14 +202,14 @@ class Sample :
 
             self.chain.SetBranchStatus('*', 0 )
 
-        if weightHistName and wh:
+        if self.weightHist:
             for i in range(4):
-                print wh.GetBinContent(i),
+                print self.weightHist.GetBinContent(i),
             print
-            totevt = wh.GetBinContent(2) - wh.GetBinContent(1) 
+            totevt = self.weightHist.GetBinContent(2) - self.weightHist.GetBinContent(1) 
             if totevt!=self.total_events:
                 self.scale = self.scale*self.total_events/totevt
-                print "total event from histogram: %g total event in imported XS file: %g scale updated to: %g" %(totevt, self.total_events, self.scale)
+                print "total event from histogram: %.8g total event in imported XS file: %.8g scale updated to: %g" %(totevt, self.total_events, self.scale)
                 self.total_events = totevt
 
         if readHists :
@@ -313,7 +316,10 @@ class SampleManager :
 
         # if the cross section file is given, open it
         # and grab the cross section map out of it
+        # weightMap[name]["scale","cross_section","n_evt"] 
+        # scale = lumi*corss_section/n_evt
         self.weightMap = analysis_utils.read_xsfile( xsFile, lumi, print_values=True )
+        self.lumi = lumi
 
         self.curr_hists            = {}
         self.curr_canvases         = {}
