@@ -249,6 +249,7 @@ void ParseHistPars( const std::string & line, ModuleConfig& module);
 void ParseDataEntry( const std::string & line, ModuleConfig& module);
 void ReadHeaderLine( const std::string & line, CmdOptions & options);
 void ParseFiles( const std::string & line, CmdOptions& options);
+void MergeRootfile( TDirectory *target, TList *sourcelist );
 
 std::vector<std::string> Tokenize(const std::string & input, const std::string &sep );
 
