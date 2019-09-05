@@ -131,17 +131,6 @@ def ParseArgs() :
     
     return parser.parse_args()
 
-#FIXME: lone definition
-#class JobConfig :
-#
-#    def __init__(self) :
-#
-#        self.jobid        = None
-#        self.storage_path = None
-#        self.output_dir   = None
-#        self.run_command  = None
-
-
 def config_and_run( options, package_name ) :
 
     assert options.noInputFiles or options.files is not None or options.filesDir is not None , 'Must provide a file list via --files or a search directory via --filesDir'
@@ -541,7 +530,7 @@ def collect_input_files_xrd( filesDir, filekey='.root', write_file_list=False, r
         return input_files
 
 def collect_input_files_eos( filesDir, filekey='.root', write_file_list=False, read_file_list=False ) :
-    
+
     logging.info('Getting list of input files from eos in %s' %filesDir)
     if read_file_list :
         logging.info('Will read file list ' )
@@ -621,6 +610,7 @@ def compile_code( alg_list, branches, out_branches, branches_to_keep, workarea, 
         logging.error( 'Compilation failed.  Will not run' )
         os.system('rm %s' %lockname)
 
+        raise RuntimeError
         return False
 
     logging.info('********************************')
