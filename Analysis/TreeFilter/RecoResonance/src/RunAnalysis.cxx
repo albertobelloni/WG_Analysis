@@ -49,7 +49,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     InitINTree(chain);
     InitOUTTree( outtree );
 
-    h_EventWeight = new TH1F("weighthist","weighthist",2,-100000,100000);
+    h_EventWeight = new TH1I("weighthist","weighthist",2,-1.1,1.1);
     OUT::mu_pt20_n                              = 0;
     OUT::mu_pt30_n                              = 0;
     OUT::mu_passTight                           = 0;
