@@ -159,13 +159,17 @@ class Sample :
                     return
             print msg
 
-    @f_Dumpfname
-    def InitHist(self) :
+    def InitHist(self, onthefly = True) :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
         self.hist.SetTitle('')
-        self.hist.Scale( self.scale )
-        self.quietprint( 'Scale %s by %f' %( self.name, self.scale ))
+        if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__"):
+            scale = self.cross_section*self.lumi/self.total_events_onthefly
+        else: scale = self.scale
+        self.hist.Scale( scale )
+        self.quietprint( 'XS: %f  sample lumi: %f sample total events otf: %g logged: %g' %( self.cross_section, self.lumi, getattr(self,"total_events_onthefly",-1), self.total_events))
+        self.quietprint( 'Scale %s by %f logged value: %f' %( self.name, scale, self.scale ))
+        #raise RuntimeError
         if self.isData :
             self.quietprint(self.name+" is DATA!!")
             self.hist.SetMarkerStyle( 20 )
@@ -206,10 +210,9 @@ class Sample :
 
         if self.weightHist:
             totevt = self.weightHist.GetBinContent(2) - self.weightHist.GetBinContent(1) 
+            self.total_events_onthefly = totevt
             if totevt!=self.total_events:
-                #self.scale = self.scale*self.total_events/totevt
                 print "total event from histogram: %.8g total event in imported XS file: %.8g ratio: %g" %(totevt, self.total_events, totevt/self.total_events)
-                self.total_events_onthefly = totevt
 
         if readHists :
             for file in files :
@@ -317,7 +320,7 @@ class SampleManager :
         # and grab the cross section map out of it
         # weightMap[name]["scale","cross_section","n_evt"] 
         # scale = lumi*corss_section/n_evt
-        self.weightMap = analysis_utils.read_xsfile( xsFile, lumi, print_values=True )
+        self.weightMap, self.weightprinter = analysis_utils.read_xsfile( xsFile, lumi, print_values=not quiet )
         self.lumi = lumi
 
         self.curr_hists            = {}
@@ -370,6 +373,10 @@ class SampleManager :
                     return
             print msg
             return
+
+    #--------------------------------
+    def printcrosssection(self):
+        self.weightprinter.Print()
 
     #--------------------------------
     def create_sample( self, name, **kwargs ) :
@@ -2719,7 +2726,8 @@ class SampleManager :
                 sample.failed_draw=True
 
             if sample.hist is not None :
-                self.format_hist( sample )
+                 self.AddOverflow( sample.hist )
+                 sample.InitHist(onthefly = draw_config.get_onthefly())
 
         # Group draw parallelization
         # wait for draws to finish
