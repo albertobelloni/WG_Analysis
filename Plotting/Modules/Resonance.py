@@ -74,9 +74,9 @@ def config_samples(samples) :
                       path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMin', 
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan, XSName='WGToLNuG_PtG-500-amcatnloFXFX'   )
 
-    samples.AddSample('WGToLNuG_PtG-500-madgraphFXFXPhCut', 
-                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMin', 
-                      isActive=False, useXSFile=True, plotColor=ROOT.kCyan, XSName='WGToLNuG_PtG-500-madgraphFXFX'   )
+    #samples.AddSample('WGToLNuG_PtG-500-madgraphFXFXPhCut', 
+    #                  path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMin', 
+    #                  isActive=False, useXSFile=True, plotColor=ROOT.kCyan, XSName='WGToLNuG_PtG-500-madgraphFXFX'   )
 
     samples.AddSample('WGToLNuG-madgraphMLMPhCut', 
                       path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax', 

@@ -121,6 +121,7 @@ class Sample :
 
         # scale is the weight applied to this sample, default=1.0
         self.scale         = kwargs.get('scale', 1.0)
+        self.lumi          = kwargs.get('lumi', 1.0)
 
         # hold the cross section info
         self.cross_section = kwargs.get('cross_section', 0.0)
@@ -158,6 +159,7 @@ class Sample :
                     return
             print msg
 
+    @f_Dumpfname
     def InitHist(self) :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
@@ -186,8 +188,8 @@ class Sample :
         if treeName is not None :
             self.chain = ROOT.TChain(treeName, self.name)
             for f in files :
-                ## add weighted number of events histogram
-                if weightHistName:
+                ## add weighted number of events histogram if not data
+                if not self.isData and weightHistName:
                     rf = ROOT.TFile(f)
                     wh = rf.Get(weightHistName)
                     if not wh:
@@ -203,14 +205,11 @@ class Sample :
             self.chain.SetBranchStatus('*', 0 )
 
         if self.weightHist:
-            for i in range(4):
-                print self.weightHist.GetBinContent(i),
-            print
             totevt = self.weightHist.GetBinContent(2) - self.weightHist.GetBinContent(1) 
             if totevt!=self.total_events:
-                self.scale = self.scale*self.total_events/totevt
-                print "total event from histogram: %.8g total event in imported XS file: %.8g scale updated to: %g" %(totevt, self.total_events, self.scale)
-                self.total_events = totevt
+                #self.scale = self.scale*self.total_events/totevt
+                print "total event from histogram: %.8g total event in imported XS file: %.8g ratio: %g" %(totevt, self.total_events, totevt/self.total_events)
+                self.total_events_onthefly = totevt
 
         if readHists :
             for file in files :
@@ -255,7 +254,7 @@ class Sample :
     def getLineStyle( self ) :
         return self.lineStyle
 
-    
+
 class SampleManager :
     """ Manage input samples and drawn histograms """
 
@@ -1722,7 +1721,7 @@ class SampleManager :
             thisscale = 1.0
             # multiply by command line MC weight only for MC
             #if self.mcweight is not None and not isData :
-            if self.mcweight is not None  :
+            if self.mcweight is not None  : ## FIXME
                 thisscale *= self.mcweight
 
             # multply by scale provided to this function
@@ -1741,8 +1740,8 @@ class SampleManager :
                     totevt = self.weightMap[xsname]['n_evt']
                     self.quietprint( 'Update scale for %s' %name)
 
-            thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, total_events=totevt, legendName=legend_name)
-            thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName ) 
+            thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, lumi=self.lumi, cross_section=thisxs, total_events=totevt, legendName=legend_name)
+            thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName)
 
             self.samples.append(thisSample)
 
@@ -3549,7 +3548,6 @@ class SampleManager :
             self.curr_canvases['top'].SetLogy()
 
     def DrawSameCanvas(self, canvas, samples, draw_config, drawHist=False ) :
-        #pdb.set_trace()
 
         canvas.cd()
 
@@ -3603,7 +3601,7 @@ class SampleManager :
             if draw_samp is not None and not draw_samp.isSignal and drawhist:
                 drawcmd+='hist'
 
-            
+
             if draw_samp is not None :
 
                 draw_samp.hist.GetYaxis().SetTitle( draw_config.get_ylabel() )
