@@ -53,7 +53,7 @@ def main () :
         totalEvents = 0
         weightedEvents = 0
 
-        weighthist = ROOT.TH1I( 'weighthist', 'weighthist', 2, -100000, 100000 )
+        weighthist = ROOT.TH1D( 'weighthist', 'weighthist', 2, -100000, 100000 )
 
         print mychain.GetEntries()
         n_raw.append(  mychain.GetEntries() )

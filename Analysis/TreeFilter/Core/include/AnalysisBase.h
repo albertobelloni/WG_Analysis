@@ -9,6 +9,7 @@
 
 #include "TTree.h"
 #include "TH1F.h"
+#include "TH1D.h"
 #include "TChain.h"
 //class TTree;
 //class TChain;

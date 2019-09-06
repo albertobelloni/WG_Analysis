@@ -154,12 +154,12 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
 
 
 
-            TH1F* hfilter;
+            TH1D* hfilter;
             TKey *key = (TKey*) gDirectory->GetListOfKeys()->FindObject("filter");
             int ifilter = 0;
             if (key){
               std::cout<< "found filter";
-              hfilter = (TH1F*) key->ReadObj();
+              hfilter = (TH1D*) key->ReadObj();
               int nbinsx = hfilter->GetNbinsX();
               for (int i = 1; i<nbinsx;i++) {
                 std::cout<< "bin"<< i <<std::endl; 
@@ -172,8 +172,8 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
 
               // double bin number of histogram if no more bins are available
               if (strlen(hfilter->GetXaxis()->GetBinLabel(nbinsx)) > 0){
-                TH1F* htemp = hfilter;
-                hfilter = new TH1F("filter","filter",nbinsx*2,0,nbinsx*2);
+                TH1D* htemp = hfilter;
+                hfilter = new TH1D("filter","filter",nbinsx*2,0,nbinsx*2);
                 hfilter->Add(htemp);
                 ifilter = nbinsx;
                 std::cout<< "nobreak with ifilter = "<< ifilter<< std::endl; 
@@ -193,7 +193,7 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
               labelstr = labelss.str();
               hfilter->GetXaxis()->SetBinLabel(ifilter+2,labelstr.c_str());
             }else {
-              hfilter = new TH1F("filter", "filter", 2, 0, 2);
+              hfilter = new TH1D("filter", "filter", 2, 0, 2);
               hfilter->GetXaxis()->SetBinLabel(1, "Total");
               hfilter->GetXaxis()->SetBinLabel(2, "Filter");
             }
