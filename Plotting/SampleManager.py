@@ -17,10 +17,6 @@ from array import array
 import time
 import analysis_utils
 from functools import wraps
-
-#sys.path.append('/data/users/fengyb/CMSPLOTS/')
-#import tdrstyle as tdr
-
 from uncertainties import ufloat
 from uncertainties import umath
 import pickle
@@ -51,17 +47,24 @@ def f_Fixme(f):
 
 
 def f_Dumpfname(func):
+    """ decorator to show function name and caller name """
     @wraps(func)
     def echo_func(*func_args, **func_kwargs):
-        print('func \033[1;31m {}() \033[0m'.format(func.__name__))
+        print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'.format(func.__name__,sys._getframe(1).f_code.co_name))
         return func(*func_args, **func_kwargs)
     return echo_func
 
-def latex_float(f):
+def latex_float(f, u=None):
     float_str = "{0:.3g}".format(f)
     if "e" in float_str:
         base, exponent = float_str.split("e")
+        if u:
+            u=u/10**int(exponent)
+            uncer_str = "{0:.3g}".format(u)
+            return r"{0} & \pm {1} \times 10^{{{2}}}".format(base, uncer_str, int(exponent))
         return r"{0} \times 10^{{{1}}}".format(base, int(exponent))
+    elif u:
+        return r"{0} & \pm {1:.3g}".format(float_str, u)
     else:
         return float_str
 
@@ -117,12 +120,19 @@ class Sample :
         # drawn in the ratio box, default=False
         self.drawRatio = kwargs.get('drawRatio', False)
 
-        # scale is the weight applied to this sample, default=1.0
-        self.scale         = kwargs.get('scale', 1.0)
+        self.weightmap = kwargs.get('weightmap', None)
+        print "weightmap", self.name, self.weightmap
+        if self.weightmap == None:
+            self.weightmap = { }
 
-        # hold the cross section info
-        self.cross_section = kwargs.get('cross_section', 0.0)
-        self.total_events = kwargs.get('total_events', -1)
+        ## preference goes in the order of keyword argument, then weightmap, then default value
+        wmap = lambda varname, default: kwargs.get(varname, self.weightmap.get(varname, default))
+        self.scale         = wmap ('scale', 1.0)
+        self.lumi          = wmap ('lumi', 1.0)
+        self.cross_section = wmap ('cross_section', 1.0)
+        self.total_events  = wmap ('n_evt', 1.0)
+        self.k_factor      = wmap ('k_factor', 1.0)
+        self.gen_eff       = wmap ('gen_eff', 1.0)
 
         self.averageSamples = kwargs.get('averageSamples', False )
 
@@ -141,6 +151,8 @@ class Sample :
 
         self.list_of_branches = []
 
+        self.weightHist = None
+
     def __repr__ (self) :
             return "<Sample %s at %x>" %(self.name,id(self)) #<SampleManager.Sample instance at 0x>
 
@@ -154,12 +166,18 @@ class Sample :
                     return
             print msg
 
-    def InitHist(self) :
+    def InitHist(self, onthefly = True) :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
         self.hist.SetTitle('')
-        self.hist.Scale( self.scale )
-        self.quietprint( 'Scale %s by %f' %( self.name, self.scale ))
+        if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__"):
+            scale = self.cross_section*self.lumi/self.total_events_onthefly
+            scale = analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
+        else: scale = self.scale
+        self.hist.Scale( scale )
+        self.quietprint( 'XS: %f  sample lumi: %f sample total events otf: %g logged: %g' %( self.cross_section, self.lumi, getattr(self,"total_events_onthefly",-1), self.total_events))
+        self.quietprint( 'Scale %s by %f logged value: %f' %( self.name, scale, self.scale ))
+        #raise RuntimeError
         if self.isData :
             self.quietprint(self.name+" is DATA!!")
             self.hist.SetMarkerStyle( 20 )
@@ -173,7 +191,7 @@ class Sample :
             #self.hist.SetNdivisions(509, True )
 
 
-    def AddFiles( self, files, treeName=None, readHists=False ) :
+    def AddFiles( self, files, treeName=None, readHists=False , weightHistName=None) :
         """ Add one or more files and grab the tree named treeName """
 
         if not isinstance(files, list) :
@@ -181,10 +199,28 @@ class Sample :
 
         if treeName is not None :
             self.chain = ROOT.TChain(treeName, self.name)
-            for file in files :
-                self.chain.Add(file)
+            for f in files :
+                ## add weighted number of events histogram if not data
+                if not self.isData and weightHistName:
+                    rf = ROOT.TFile(f)
+                    wh = rf.Get(weightHistName)
+                    if not wh:
+                        print "weight histogram does not exist for %s" %f
+                        break
+                    wh.SetDirectory(0)
+                    if self.weightHist == None:
+                        self.weightHist = wh
+                    else: 
+                        self.weightHist.Add(wh)
+                self.chain.Add(f)
 
             self.chain.SetBranchStatus('*', 0 )
+
+        if self.weightHist:
+            totevt = self.weightHist.GetBinContent(2) - self.weightHist.GetBinContent(1) 
+            self.total_events_onthefly = totevt
+            if totevt!=self.total_events:
+                print "total event from histogram: %.8g total event in imported XS file: %.8g ratio: %g" %(totevt, self.total_events, totevt/self.total_events)
 
         if readHists :
             for file in files :
@@ -229,11 +265,12 @@ class Sample :
     def getLineStyle( self ) :
         return self.lineStyle
 
-    
+
 class SampleManager :
     """ Manage input samples and drawn histograms """
 
-    def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root', base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False) :
+    def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root',
+            base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = None) :
 
         #
         # This plotting module assumes that root files are 
@@ -255,11 +292,17 @@ class SampleManager :
         # the name of the tree to read
         self.treeName        = treeName
 
+        # the name of weighed event count histogram; Don't import and override hard coded totevt if none
+        self.weightHistName  = weightHistName
+
         # Name of the file.  This can be overwritten in the configuration module
         self.fileName        = filename
 
         #the name of the tree to read for models
         self.treeNameModel   = treeNameModel
+
+        # dummy sample
+        self.dummysample = Sample("")
 
         #
         # path to directory containing samples for models
@@ -278,6 +321,9 @@ class SampleManager :
 
         # store model samples
         self.modelSamples          = []
+        
+        # store log messages
+        self.logmessage            = []
 
         # store the order that the samples were added
         # in the configuration module.  The samples
@@ -287,7 +333,11 @@ class SampleManager :
 
         # if the cross section file is given, open it
         # and grab the cross section map out of it
-        self.weightMap = analysis_utils.read_xsfile( xsFile, lumi, print_values=True )
+        # weightMap[name]["scale","cross_section","n_evt"] 
+        # scale = lumi*corss_section/n_evt
+        self.weightMap, self.weightprinter = analysis_utils.read_xsfile( xsFile, lumi, print_values=not quiet )
+        if quiet: self.logmessage.extend(self.weightprinter.GetMessage())
+        self.lumi = lumi
 
         self.curr_hists            = {}
         self.curr_canvases         = {}
@@ -335,10 +385,21 @@ class SampleManager :
 
     #--------------------------------
     def quietprint(self,*msg):
-            if self.quiet:
-                    return
-            print msg
-            return
+        """ samplemanager.quietprint(*msg)
+            if samplemanager.quiet is set to True
+            message is not printed, but saved to samplemanager.logmessage
+            else it is printed
+        """
+
+        if self.quiet:
+                self.logmessage.extend(msg)
+                return
+        for m in msg: print m
+        return
+
+    #--------------------------------
+    def printcrosssection(self):
+        self.weightprinter.Print()
 
     #--------------------------------
     def create_sample( self, name, **kwargs ) :
@@ -465,7 +526,7 @@ class SampleManager :
 
         # if no arguments provided, return all samples
         if not kwargs :
-            return self.samples
+            return self.samples[:]
 
         # collect results for each argument provided
         # then require and AND of samples matching each
@@ -478,15 +539,12 @@ class SampleManager :
             if val_list is None or None in val_list:
                 each_results.append(list(self.samples)) #clone list if None is included
                 continue
-            if hasattr( Sample(''), arg ) :
+            if hasattr( self.dummysample , arg ) :
                 each_results.append([ samp  for samp in self.samples if getattr( samp, arg ) in val_list])
 
-        common_results = list( reduce( lambda x,y : set(x) & set(y), each_results ) ) 
+        common_results = list( reduce( lambda x,y : set(x) & set(y), each_results ) )
         if not common_results :
             self.quietprint( 'WARNING : Found zero samples matching criteria!  Sample matching criteria were : ', kwargs)
-            #assert( '' )
-            #for s in self.get_samples() :
-            #    print s.name
             return []
 
         return common_results
@@ -520,7 +578,7 @@ class SampleManager :
     #--------------------------------
     def get_sample_names(self) :
         return [x.name for x in self.samples]
-    
+
     #--------------------------------
     def get_model_sample_names(self) :
         return [x.name for x in self.modelSamples]
@@ -536,7 +594,7 @@ class SampleManager :
                 for s in samp_name:
                         self.activate_sample(s)
                 return
-        
+
         name = samp_name
         if not isinstance( samp_name, str ) :
             name = samp_name.name
@@ -1656,7 +1714,7 @@ class SampleManager :
         self.ReadSamples(self.samples_conf )
 
     #--------------------------------
-    def AddSample(self, name, path=None, filekey=None, isData=False, scale=None, isSignal=False, sigLineStyle=7, sigLineWidth=2, drawRatio=False, plotColor=ROOT.kBlack, lineColor=None, isActive=True, required=False, displayErrBand=False, useXSFile=False, XSName=None, legend_name=None) :
+    def AddSample(self, name, path=None, filekey=None, isData=False, isSignal=False, sigLineStyle=7, sigLineWidth=2, drawRatio=False, plotColor=ROOT.kBlack, lineColor=None, isActive=True, required=False, displayErrBand=False, useXSFile=False, XSName=None, legend_name=None) :
         """ Create an entry for this sample """
 
         if self.added_sample_group :
@@ -1690,27 +1748,26 @@ class SampleManager :
             thisscale = 1.0
             # multiply by command line MC weight only for MC
             #if self.mcweight is not None and not isData :
-            if self.mcweight is not None  :
+            if self.mcweight is not None  : ## FIXME
                 thisscale *= self.mcweight
 
-            # multply by scale provided to this function
-            if scale is not None :
-                thisscale *= scale
+            xsname = name
+            ## in case XS name does not match sample name
+            if XSName is not None :
+                xsname = XSName
 
-            thisxs = 0
-            totevt = -1
-            if useXSFile :
-                xsname = name
-                if XSName is not None :
-                    xsname = XSName
-                if xsname in self.weightMap  :
-                    thisscale *= self.weightMap[xsname]['scale']
-                    thisxs = self.weightMap[xsname]['cross_section']
-                    totevt = self.weightMap[xsname]['n_evt']
-                    self.quietprint( 'Update scale for %s' %name)
+            if useXSFile and xsname in self.weightMap  :
+                self.weightMap[xsname]['scale'] *= thisscale
+                self.quietprint( 'Update scale for %s' %name)
+                thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
+                                sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
+                                color=plotColor, drawRatio=drawRatio, weightmap= self.weightMap[xsname], lumi=self.lumi, legendName=legend_name)
+            else:
+                thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
+                                sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
+                                color=plotColor, drawRatio=drawRatio, scale=thisscale, lumi=self.lumi,  legendName=legend_name)
 
-            thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, cross_section=thisxs, total_events=totevt, legendName=legend_name)
-            thisSample.AddFiles( input_files, self.treeName, self.readHists )
+            thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName)
 
             self.samples.append(thisSample)
 
@@ -1727,14 +1784,14 @@ class SampleManager :
         print_prefix = "AddSample: Reading %s " %( path[0] )
         print_prefix = print_prefix.ljust(60)
         if not input_files :
-            print print_prefix + " [ \033[1;31mFailed\033[0m  ]"
+            self.quietprint(print_prefix + " [ \033[1;31mFailed\033[0m  ]")
         else :
             if len(set(path) & set(subpaths_used)) != len(path) :
                 print print_prefix + " [ \033[1;33mPartial\033[0m ]"
                 print path
                 print subpaths_used
             else :
-                print print_prefix + " [ \033[1;32mSuccess\033[0m ]" 
+                self.quietprint( print_prefix + " [ \033[1;32mSuccess\033[0m ]" )
 
     #--------------------------------
     def collect_input_files( self, base_path, path_list, paths_used, subpaths_used, filekey=None ) :
@@ -1918,9 +1975,10 @@ class SampleManager :
             print 'Could not import module %s' %module_path
         
         if hasattr(ImportedModule, 'config_samples') :
-            print '-------------------------------------'
-            print 'BEGIN READING SAMPLES'
-            print '-------------------------------------'
+            if not self.quiet:
+                print '-------------------------------------'
+                print 'BEGIN READING SAMPLES'
+                print '-------------------------------------'
             ImportedModule.config_samples(self)
         else :
             print 'ERROR - samplesConf does not implement a function called config_samples '
@@ -2688,7 +2746,8 @@ class SampleManager :
                 sample.failed_draw=True
 
             if sample.hist is not None :
-                self.format_hist( sample )
+                 self.AddOverflow( sample.hist )
+                 sample.InitHist(onthefly = draw_config.get_onthefly())
 
         # Group draw parallelization
         # wait for draws to finish
@@ -3321,11 +3380,12 @@ class SampleManager :
     def print_stack_count(self, integralrange = None, dolatex=False, **kwargs):
         result = self.get_stack_count(integralrange, **kwargs).items()
         if dolatex:
-            result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
+            #result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
+            result = [ (r1,latex_float(*r2)) for r1, r2 in result]
             printline = ""
-            for r in result[:-1]: printline+= "%30s & $%s$ $\\pm$ %s\\\\\n" %r
-            printline+= "\\hline\\hline\n%30s & $%s$ +/- %s\\\\\n" %result[-1]
-            print printline.replace("gamma","\\gamma").replace("Gamma","\\gamma").replace("G","\\gamma")
+            for r in result[:-1]: printline+= "%20s & $%s$\\\\\n" %r
+            printline+= "\\hline\\hline\n%20s & $%s$\\\\\n" %result[-1]
+            print printline.replace("gamma","\\gamma ").replace("Gamma","\\gamma ").replace("G","\\gamma ")
             return
 
         result = [ (r1,)+r2 for r1, r2 in result]
@@ -3516,7 +3576,6 @@ class SampleManager :
             self.curr_canvases['top'].SetLogy()
 
     def DrawSameCanvas(self, canvas, samples, draw_config, drawHist=False ) :
-        #pdb.set_trace()
 
         canvas.cd()
 
@@ -3570,7 +3629,7 @@ class SampleManager :
             if draw_samp is not None and not draw_samp.isSignal and drawhist:
                 drawcmd+='hist'
 
-            
+
             if draw_samp is not None :
 
                 draw_samp.hist.GetYaxis().SetTitle( draw_config.get_ylabel() )

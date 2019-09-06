@@ -16,6 +16,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "TFile.h"
+#include "TKey.h"
+#include "TObject.h"
 
 AnaConfig::AnaConfig()
 {
@@ -117,6 +119,15 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
             TFile * outfile  = TFile::Open(filepath.c_str(), "RECREATE");
 
             outfile->cd();
+
+            // Merge TH1
+            TList* FileList = new TList();
+            BOOST_FOREACH( const std::string &fpath, options.files[fidx].files ) {
+              FileList->Add( TFile::Open(fpath.c_str()) );
+            }
+            MergeRootfile(outfile, FileList);
+
+
             TTree * outtree  = 0;
             std::vector<std::string> name_tok = Tokenize( chain->GetName(), "/" ); 
 
@@ -141,10 +152,54 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
                 outtree->SetDirectory(outfile);
             }
 
+
+
+            TH1D* hfilter;
+            TKey *key = (TKey*) gDirectory->GetListOfKeys()->FindObject("filter");
+            int ifilter = 0;
+            if (key){
+              std::cout<< "found filter";
+              hfilter = (TH1D*) key->ReadObj();
+              int nbinsx = hfilter->GetNbinsX();
+              for (int i = 1; i<nbinsx;i++) {
+                std::cout<< "bin"<< i <<std::endl; 
+                if (strlen(hfilter->GetXaxis()->GetBinLabel(i)) == 0){
+                  ifilter = i-1;
+                  std::cout<< "break with ifilter = "<< ifilter<< std::endl; 
+                  break;
+                }
+              }
+
+              // double bin number of histogram if no more bins are available
+              if (strlen(hfilter->GetXaxis()->GetBinLabel(nbinsx)) > 0){
+                TH1D* htemp = hfilter;
+                hfilter = new TH1D("filter","filter",nbinsx*2,0,nbinsx*2);
+                hfilter->Add(htemp);
+                ifilter = nbinsx;
+                std::cout<< "nobreak with ifilter = "<< ifilter<< std::endl; 
+                // copy the labels over
+                for (int i = 1; i <= nbinsx; i++){
+                  const char* labeltemp = htemp->GetXaxis()->GetBinLabel(i); 
+                  hfilter->GetXaxis()->SetBinLabel(i,labeltemp);
+                }
+              }
+              std::stringstream labelss;
+              std::string labelstr;
+              labelss << "Total " << (ifilter+1)/2 ;
+              labelstr = labelss.str();
+              hfilter->GetXaxis()->SetBinLabel(ifilter+1, labelstr.c_str());
+              labelss.str("");
+              labelss << "Filter " << (ifilter+1)/2 ;
+              labelstr = labelss.str();
+              hfilter->GetXaxis()->SetBinLabel(ifilter+2,labelstr.c_str());
+            }else {
+              hfilter = new TH1D("filter", "filter", 2, 0, 2);
+              hfilter->GetXaxis()->SetBinLabel(1, "Total");
+              hfilter->GetXaxis()->SetBinLabel(2, "Filter");
+            }
+
+            //return to root directory
             outfile->cd();
-            TH1F * hfilter = new TH1F("filter", "filter", 2, 0, 2);
-            hfilter->GetXaxis()->SetBinLabel(1, "Total");
-            hfilter->GetXaxis()->SetBinLabel(2, "Filter");
 
             runmod.initialize( chain, outtree, outfile, options, getEntries() );
 
@@ -174,10 +229,10 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
 
                 bool save_event = runmod.execute( getEntries() );
 
-                hfilter->Fill(0);
+                hfilter->Fill(ifilter);
                 if( save_event ) {
                     if( !options.disableOutputTree ) outtree->Fill();
-                    hfilter->Fill(1);
+                    hfilter->Fill(ifilter+1);
                     n_saved++;
                 }
             }
@@ -211,7 +266,7 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
 
             outfile->cd(dir_path.c_str());
             outtree->Write();
-            hfilter->Write();
+            hfilter->Write("",TObject::kOverwrite);
             outfile->Close();
 
             std::vector<std::string> output_files;
@@ -1341,3 +1396,115 @@ std::vector<std::string> Tokenize(const std::string & text, const std::string &i
 }
         
     
+void MergeRootfile( TDirectory *target, TList *sourcelist ) {
+  /* 
+   * Copied from $ROOTSYS/tutorials/io/hadd.C 
+   * */
+
+   std::cout << "Target path: " << target->GetPath() << std::endl;
+   TString path( (char*)strstr( target->GetPath(), ":" ) );
+   path.Remove( 0, 2 );
+
+   TFile *first_source = (TFile*)sourcelist->First();
+   first_source->cd( path );
+   TDirectory *current_sourcedir = gDirectory;
+   //gain time, do not add the objects in the list in memory
+   Bool_t status = TH1::AddDirectoryStatus();
+   TH1::AddDirectory(kFALSE);
+
+   // loop over all keys in this directory
+   //TChain *globChain = 0;
+   TIter nextkey( current_sourcedir->GetListOfKeys() );
+   TKey *key, *oldkey=0;
+   while ( (key = (TKey*)nextkey())) {
+
+      //keep only the highest cycle number for each key
+      if (oldkey && !strcmp(oldkey->GetName(),key->GetName())) continue;
+
+      // read object from first source file
+      first_source->cd( path );
+      TObject *obj = key->ReadObj();
+
+      if ( obj->IsA()->InheritsFrom( TH1::Class() ) ) {
+         // descendant of TH1 -> merge it
+
+         //      cout << "Merging histogram " << obj->GetName() << endl;
+         TH1 *h1 = (TH1*)obj;
+
+         // loop over all source files and add the content of the
+         // correspondant histogram to the one pointed to by "h1"
+         TFile *nextsource = (TFile*)sourcelist->After( first_source );
+         while ( nextsource ) {
+
+            // make sure we are at the correct directory level by cd'ing to path
+            nextsource->cd( path );
+            TKey *key2 = (TKey*)gDirectory->GetListOfKeys()->FindObject(h1->GetName());
+            if (key2) {
+               TH1 *h2 = (TH1*)key2->ReadObj();
+               h1->Add( h2 );
+               delete h2;
+            }
+
+            nextsource = (TFile*)sourcelist->After( nextsource );
+         }
+      }
+      else if ( obj->IsA()->InheritsFrom( TTree::Class() ) ) {
+         std::cout << "not copying TTree, name: "
+         << obj->GetName() << " title: " << obj->GetTitle() << std::endl;
+
+   //      // loop over all source files create a chain of Trees "globChain"
+   //      const char* obj_name= obj->GetName();
+
+   //      globChain = new TChain(obj_name);
+   //      globChain->Add(first_source->GetName());
+   //      TFile *nextsource = (TFile*)sourcelist->After( first_source );
+   //      //      const char* file_name = nextsource->GetName();
+   //      // cout << "file name  " << file_name << endl;
+   //      while ( nextsource ) {
+
+   //         globChain->Add(nextsource->GetName());
+   //         nextsource = (TFile*)sourcelist->After( nextsource );
+   //      }
+
+      } else if ( obj->IsA()->InheritsFrom( TDirectory::Class() ) ) {
+         // it's a subdirectory
+
+        std::cout << "Found subdirectory " << obj->GetName() << std::endl;
+
+         // create a new subdir of same name and title in the target file
+         target->cd();
+         TDirectory *newdir = target->mkdir( obj->GetName(), obj->GetTitle() );
+
+         // newdir is now the starting point of another round of merging
+         // newdir still knows its depth within the target file via
+         // GetPath(), so we can still figure out where we are in the recursion
+         MergeRootfile( newdir, sourcelist );
+
+      } else {
+
+         // object is of no type that we know or can handle
+        std::cout << "Unknown object type, name: "
+         << obj->GetName() << " title: " << obj->GetTitle() << std::endl;
+      }
+
+      // now write the merged histogram (which is "in" obj) to the target file
+      // note that this will just store obj in the current directory level,
+      // which is not persistent until the complete directory itself is stored
+      // by "target->Write()" below
+      if ( obj ) {
+         target->cd();
+
+         //!!if the object is a tree, it is stored in globChain...
+         if(obj->IsA()->InheritsFrom( TTree::Class() ))
+           std::cout<< "skip TTree"<<std::endl; 
+         //   globChain->Merge(target->GetFile(),0,"keep");
+         else
+            obj->Write( key->GetName() );
+      }
+
+   } // while ( ( TKey *key = (TKey*)nextkey() ) )
+
+   // save modifications to target file
+   target->SaveSelf(kTRUE);
+   TH1::AddDirectory(status);
+}

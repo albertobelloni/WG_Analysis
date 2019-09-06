@@ -24,7 +24,7 @@
  #'WJetsToLNu_HT-100To200'       ,: { 'n_evt' : 10235198, 'cross_section' : 1345., 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  #'WJetsToLNu_HT-200To400'       ,: { 'n_evt' : 4950373, 'cross_section' :  359.7, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
 ( 'WJetsToLNu_HT-100To200'        , { 'n_evt' : 35283801, 'cross_section' : 1325.3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-200To400'        , { 'n_evt' : 21250527, 'cross_section' :  427.75, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+( 'WJetsToLNu_HT-200To400'        , { 'n_evt' : 21250517, 'cross_section' :  427.75, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
 ( 'WJetsToLNu_HT-400To600'        , { 'n_evt' : 14112190, 'cross_section' :  63.861, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
 ( 'WJetsToLNu_HT-600To800'        , { 'n_evt' : 21709087, 'cross_section' :  16.288, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
 ( 'WJetsToLNu_HT-800To1200'       , { 'n_evt' : 20432728, 'cross_section' :  7.4843, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),

@@ -94,6 +94,10 @@ class DrawConfig :
         """ return binomunc key value set in hist_config, default is False """
         return self.hist_config.get('binomunc', False)
 
+    def get_onthefly(self) :
+        """ return onthefly key value set in hist_config, default to true """
+        return self.hist_config.get('doratio', True)
+
     def get_drawhist(self) :
         return self.hist_config.get('drawhist', False)
 
@@ -205,7 +209,7 @@ class DrawConfig :
 
         labelStyle = self.label_config.get('labelStyle', None)
         labelLoc = self.label_config.get('labelLoc', None)
-        if labelStyle is None:
+        if labelStyle is None or labelStyle.count('Fancy')==0:
 
             text_dx = self.label_config.get("dx",0)
             text_x = text_dx +0.18
@@ -225,6 +229,13 @@ class DrawConfig :
             wiplabel.SetText(text_x+0.07, text_y, 'Simulation Work in Progress')
             wiplabel.SetTextFont(52)
             labeltext = '36 fb^{-1} (13 TeV)'
+            if labelStyle:
+                if labelStyle.count('2016') :
+                    labeltext = '35.9 fb^{-1} (13 TeV)'
+                if labelStyle.count('2017') :
+                    labeltext = '41.5 fb^{-1} (13 TeV)'
+                if labelStyle.count('2018') :
+                    labeltext = '59.7 fb^{-1} (13 TeV)'
             rootslabel = ROOT.TLatex()
             rootslabel.SetText(text_dx+0.80, text_dy+0.96, labeltext  )
             rootslabel.SetTextFont(42)
@@ -241,8 +252,12 @@ class DrawConfig :
                 extText = 'Preliminary'
 
             labeltext = '19.4 fb^{-1} (8 TeV)'
-            if labelStyle.count('13') :
-                labeltext = '36 fb^{-1} (13 TeV)'
+            if labelStyle.count('2016') :
+                labeltext = '35.9 fb^{-1} (13 TeV)'
+            if labelStyle.count('2017') :
+                labeltext = '41.5 fb^{-1} (13 TeV)'
+            if labelStyle.count('2018') :
+                labeltext = '59.7 fb^{-1} (13 TeV)'
 
             rootslabel = ROOT.TLatex()
             cmslabel = ROOT.TLatex()
