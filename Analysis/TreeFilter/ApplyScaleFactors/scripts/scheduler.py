@@ -175,7 +175,7 @@ input_dirs = [
 #              'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
 #              'LepGamma_elg_2019_04_11','LepGamma_mug_2019_04_11',
 #              'LepLep_mumu_2019_07_12',
-              'LepGammaNoPhId_mug_2019_08_14',
+              'LepGammaNoPhId_mug_2019_09_04',
 ]
 
 configs = []

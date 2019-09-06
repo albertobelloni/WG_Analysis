@@ -10,6 +10,7 @@ p.add_argument( '--check', dest='check', default=False, action='store_true', hel
 p.add_argument( '--clean', dest='clean', default=False, action='store_true', help='Run cleanup of extra files' )
 p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true', help='Only submit missing output' )
 p.add_argument( '--local', dest='local', default=False, action='store_true', help='Run locally' )
+p.add_argument( '--year', dest='year', help='Specify the year' )
 p.add_argument( '--test', dest='test', default=False, action='store_true', help='Run a test job' )
 options = p.parse_args()
 
@@ -55,9 +56,10 @@ if options.test :
     options.local = True
 
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
-output_base = '/data/users/kakw/Resonances%i/' %options.year
+#output_base = '/data/users/kakw/Resonances%i/' %options.year
+output_base = '/data/users/friccita/WGammaNtuple/'
 #output_base = '/afs/cern.ch/work/k/kawong/Resonances%i/' %options.year
-jobtag = '_2019_08_12_beta'
+jobtag = '_2019_09_04'
 
 #version = 'UMDNTuple_0620'
 version_sig = ''
@@ -193,16 +195,16 @@ jobs2017 = [
 ]
 
 jobs2016 = [
-#        JobConf(base, 'SingleMuon', isData=True, version=version2016, year=2016),
+        JobConf(base, 'SingleMuon', isData=True, version=version2016, year=2016),
 #        JobConf(base, 'SingleElectron', isData=True, version=version2016, year=2016),
-#        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']),
+        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']),
 #        JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
 #        JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                     ),
 #     # JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
         #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']                        ),
         #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']                         ),
         #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
-         JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version="UMDNTuple_0814_2016", year=2016, tags=['NLO']      ),
+#         JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version="UMDNTuple_0814_2016", year=2016, tags=['NLO']      ),
 #        JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', version=version2016, year=2016, tags=['NLO']),
 #        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
 #        JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
@@ -212,8 +214,8 @@ jobs2016 = [
 #        JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016), 
 #        JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
 #        JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016), 
-#        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                ),
-#        JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , version=version2016, year=2016, tags=['NLO']   , nfiles = options.nFilesPerJob/3    ),
+        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                ),
+        JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , version=version2016, year=2016, tags=['NLO']   , nfiles = options.nFilesPerJob/3    ),
          #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']     ),
 #        JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016     ),
 #        JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016     ),
@@ -363,44 +365,44 @@ configs = [
     #    'tag'    : 'el',
     #    'dataset': 'SingleElectron',
     #},
-   {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'True' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepGamma_mug'+jobtag,
-        'tag'    : 'mug',
-        'dataset': 'SingleMuon',
-    },
-    {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True'},
-        'args_tag_NLO' : args_nlo,
-        'input'  : '' ,
-        'output' : output_base+'LepGamma_elg'+jobtag,
-        'tag'    : 'elg',
-        'dataset': 'SingleElectron' if options.year!=2018 else 'EGamma',
-    },
-    {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_elel', 'el_pt' : ' > 30 ' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepLep_elel'+jobtag,
-        'tag'    : 'elel',
-        'keepSelection': 'tight',
-        'dataset': 'SingleElectron' if options.year!=2018 else 'EGamma',
-    },
-    {
-        'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
-        'args_tag_NLO' : args_nlo,
-        'input'  : '',
-        'output' : output_base+'LepLep_mumu'+jobtag,
-        'tag'    : 'mumu',
-        'keepSelection': 'tight',
-        'dataset': 'SingleMuon',
-    },
+   #{
+   #     'module' : 'Conf%i.py' %options.year,
+   #     'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'phot_vars' : 'True' },
+   #     'args_tag_NLO' : args_nlo,
+   #     'input'  : '',
+   #     'output' : output_base+'LepGamma_mug'+jobtag,
+   #     'tag'    : 'mug',
+   #     'dataset': 'SingleMuon',
+   # },
+   # {
+   #     'module' : 'Conf%i.py' %options.year,
+   #     'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 15 ', 'eleVeto' : 'None', 'phot_vars' : 'True'},
+   #     'args_tag_NLO' : args_nlo,
+   #     'input'  : '' ,
+   #     'output' : output_base+'LepGamma_elg'+jobtag,
+   #     'tag'    : 'elg',
+   #     'dataset': 'SingleElectron' if options.year!=2018 else 'EGamma',
+   # },
+   # {
+   #     'module' : 'Conf%i.py' %options.year,
+   #     'args'   : { 'function' : 'make_final_elel', 'el_pt' : ' > 30 ' },
+   #     'args_tag_NLO' : args_nlo,
+   #     'input'  : '',
+   #     'output' : output_base+'LepLep_elel'+jobtag,
+   #     'tag'    : 'elel',
+   #     'keepSelection': 'tight',
+   #     'dataset': 'SingleElectron' if options.year!=2018 else 'EGamma',
+   # },
+   # {
+   #     'module' : 'Conf%i.py' %options.year,
+   #     'args'   : { 'function' : 'make_final_mumu', 'mu_pt' : ' > 30 ' },
+   #     'args_tag_NLO' : args_nlo,
+   #     'input'  : '',
+   #     'output' : output_base+'LepLep_mumu'+jobtag,
+   #     'tag'    : 'mumu',
+   #     'keepSelection': 'tight',
+   #     'dataset': 'SingleMuon',
+   # },
     #{
     #    'module' : 'Conf%i.py' %options.year,
     #    'args'   : { 'function' : 'make_final_muel', 'el_pt' : ' > 30 ' },
@@ -422,7 +424,7 @@ configs = [
     #},
     {
         'module' : 'Conf%i.py' %options.year,
-        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'true', 'phot_id' : 'None'},#, 'unblind' : 'True' },
+        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'True', 'phot_id' : 'None'},#, 'unblind' : 'True' },
         'args_tag_NLO' : args_nlo,
         'input'  : '',
         'output' : output_base+'LepGammaNoPhId_mug'+jobtag,

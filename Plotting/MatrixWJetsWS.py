@@ -23,7 +23,7 @@ options = parser.parse_args()
 
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
-_XSFILE   = 'cross_sections/photon15.py'
+_XSFILE   = 'cross_sections/photon16.py'
 _LUMI     = 36000
 _BASEPATH = '/afs/cern.ch/work/f/friccita/WG_Analysis/Plotting/LimitSetting/'
 #_BASEPATH = '/home/friccita/WGamma/WG_Analysis/Plotting/LimitSetting/'
@@ -189,6 +189,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     binning_sigIEIE_FR = [0.,0.01022,0.1]
     binning_chIso_FR = [0.,0.441,5.]
     binning_mll = (40, 50., 130.)
+    binning_mt = (100,0.,1000.)
     binning_dr = (40, 0., 4.)
     binning_vtx = (40, 0., 40.)
 
@@ -198,6 +199,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     dr_var = 'min(dr_lep_ph,dr_lep2_ph)'
     vtx_var = 'vtx_n'
     pu_var = 'pu_n'
+    mt_var = 'mt_res'
 
     #hist_real_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE )
     #hist_real_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso )
@@ -215,6 +217,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     hist_mll_smp = clone_sample_and_draw( sampMan, sample, mll_var, sel_smp_zpeak, binning_mll )
     hist_dr = clone_sample_and_draw( sampMan, sample, dr_var, predR_sel, binning_dr )
     hist_nvtx = clone_sample_and_draw( sampMan, sample, vtx_var, zpeak_sel, binning_vtx )
+    hist_mt = clone_sample_and_draw( sampMan, sample, mt_var, zpeak_sel, binning_mt )
     hist_npu = clone_sample_and_draw( sampMan, sample, pu_var, zpeak_sel, binning_vtx )
     
     #sampMan.outputs['%s_sigmaIEIE_real_%s' %(sample,suffix)] = hist_real_sigmaIEIE
@@ -231,6 +234,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     sampMan.outputs['%s_mllsmp_%s' %(sample,suffix)] = hist_mll_smp
     sampMan.outputs['%s_dr_%s' %(sample,suffix)] = hist_dr
     sampMan.outputs['%s_vtxn_%s' %(sample,suffix)] = hist_nvtx
+    sampMan.outputs['%s_mtres_%s' %(sample,suffix)] = hist_mt
     sampMan.outputs['%s_pun_%s' %(sample,suffix)] = hist_npu
 
 
