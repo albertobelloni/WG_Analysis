@@ -52,15 +52,6 @@ def read_xsfile( xsfile, lumi, print_values=False ) :
 
     for name, values in xsdict :
 
-       # lumi_sample_den = values['cross_section']*values['gen_eff']*values['k_factor']
-       # if lumi_sample_den == 0 :
-       #     print 'Cannot calculate cross section for %s.  It will receive a weight of 1.' %name
-       #     lumi_sample = lumi
-       #     xs_printer.AddLine( ['Sample %s ' %name, 'cross section : %f pb' %values['cross_section'], 'N Events : %d' %(values['n_evt']), 'sample lumi : %f' %(lumi_sample), 'Scale : ERROR' ] )
-       # else :
-       #     lumi_sample = values['n_evt']/float(lumi_sample_den)
-       # lumi_scale = float(lumi)/lumi_sample;
-
         values["lumi"] = lumi ## add lumi value for scale_calc() to unpack)
         scale = scale_calc(**values)
         xs_printer.AddLine( ['Sample %s ' %name, 'cross section : %.4g' %values['cross_section'], 'pb  N Events : %d' %(values['n_evt']), 'Scale : %.4g' %scale ] )
