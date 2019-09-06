@@ -10,7 +10,12 @@ class Printer() :
         self.entries.append( line )
 
     def Print(self) :
+        message = self.GetMessage()
+        for msg in message:
+            print msg
+        return
 
+    def GetMessage(self):
         # get number of columns
         max_cols = max( [len(line) for line in self.entries ] )
         colwidths = [0]*max_cols
@@ -21,8 +26,9 @@ class Printer() :
                 if len(col) > colwidths[idx] :
                     colwidths[idx] = len(col)
 
-        for line in self.entries :
-            print ' '.join( [col.ljust(colwidths[idx]) for idx, col in enumerate(line) ] )
+        #for line in self.entries :
+        #    print ' '.join( [col.ljust(colwidths[idx]) for idx, col in enumerate(line) ] )
+        return   [ ' '.join( [col.ljust(colwidths[idx]) for idx, col in enumerate(line) ] )  for line in self.entries ]
 
 def read_xsfile( xsfile, lumi, print_values=False ) :
     if print_values:

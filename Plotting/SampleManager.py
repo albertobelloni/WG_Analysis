@@ -47,9 +47,10 @@ def f_Fixme(f):
 
 
 def f_Dumpfname(func):
+    """ decorator to show function name and caller name """
     @wraps(func)
     def echo_func(*func_args, **func_kwargs):
-        print('func \033[1;31m {}() \033[0m'.format(func.__name__))
+        print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'.format(func.__name__,sys._getframe(1).f_code.co_name))
         return func(*func_args, **func_kwargs)
     return echo_func
 
@@ -120,7 +121,7 @@ class Sample :
         self.drawRatio = kwargs.get('drawRatio', False)
 
         self.weightmap = kwargs.get('weightmap', None)
-        print "weightmap", self.weightmap
+        print "weightmap", self.name, self.weightmap
         if self.weightmap == None:
             self.weightmap = { }
 
@@ -171,7 +172,7 @@ class Sample :
         self.hist.SetTitle('')
         if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__"):
             scale = self.cross_section*self.lumi/self.total_events_onthefly
-            scale = analysis_util.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
+            scale = analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
         else: scale = self.scale
         self.hist.Scale( scale )
         self.quietprint( 'XS: %f  sample lumi: %f sample total events otf: %g logged: %g' %( self.cross_section, self.lumi, getattr(self,"total_events_onthefly",-1), self.total_events))
@@ -300,6 +301,9 @@ class SampleManager :
         #the name of the tree to read for models
         self.treeNameModel   = treeNameModel
 
+        # dummy sample
+        self.dummysample = Sample("")
+
         #
         # path to directory containing samples for models
         # the samples that are read are configured through
@@ -317,6 +321,9 @@ class SampleManager :
 
         # store model samples
         self.modelSamples          = []
+        
+        # store log messages
+        self.logmessage            = []
 
         # store the order that the samples were added
         # in the configuration module.  The samples
@@ -329,6 +336,7 @@ class SampleManager :
         # weightMap[name]["scale","cross_section","n_evt"] 
         # scale = lumi*corss_section/n_evt
         self.weightMap, self.weightprinter = analysis_utils.read_xsfile( xsFile, lumi, print_values=not quiet )
+        if quiet: self.logmessage.extend(self.weightprinter.GetMessage())
         self.lumi = lumi
 
         self.curr_hists            = {}
@@ -377,10 +385,17 @@ class SampleManager :
 
     #--------------------------------
     def quietprint(self,*msg):
-            if self.quiet:
-                    return
-            print msg
-            return
+        """ samplemanager.quietprint(*msg)
+            if samplemanager.quiet is set to True
+            message is not printed, but saved to samplemanager.logmessage
+            else it is printed
+        """
+
+        if self.quiet:
+                self.logmessage.extend(msg)
+                return
+        for m in msg: print m
+        return
 
     #--------------------------------
     def printcrosssection(self):
@@ -511,7 +526,7 @@ class SampleManager :
 
         # if no arguments provided, return all samples
         if not kwargs :
-            return self.samples
+            return self.samples[:]
 
         # collect results for each argument provided
         # then require and AND of samples matching each
@@ -524,15 +539,12 @@ class SampleManager :
             if val_list is None or None in val_list:
                 each_results.append(list(self.samples)) #clone list if None is included
                 continue
-            if hasattr( Sample(''), arg ) :
+            if hasattr( self.dummysample , arg ) :
                 each_results.append([ samp  for samp in self.samples if getattr( samp, arg ) in val_list])
 
-        common_results = list( reduce( lambda x,y : set(x) & set(y), each_results ) ) 
+        common_results = list( reduce( lambda x,y : set(x) & set(y), each_results ) )
         if not common_results :
             self.quietprint( 'WARNING : Found zero samples matching criteria!  Sample matching criteria were : ', kwargs)
-            #assert( '' )
-            #for s in self.get_samples() :
-            #    print s.name
             return []
 
         return common_results
@@ -566,7 +578,7 @@ class SampleManager :
     #--------------------------------
     def get_sample_names(self) :
         return [x.name for x in self.samples]
-    
+
     #--------------------------------
     def get_model_sample_names(self) :
         return [x.name for x in self.modelSamples]
@@ -582,7 +594,7 @@ class SampleManager :
                 for s in samp_name:
                         self.activate_sample(s)
                 return
-        
+
         name = samp_name
         if not isinstance( samp_name, str ) :
             name = samp_name.name
@@ -1749,7 +1761,7 @@ class SampleManager :
                 self.quietprint( 'Update scale for %s' %name)
                 thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
                                 sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
-                                color=plotColor, drawRatio=drawRatio, weightmap= self.weightMap[xsname], legendName=legend_name)
+                                color=plotColor, drawRatio=drawRatio, weightmap= self.weightMap[xsname], lumi=self.lumi, legendName=legend_name)
             else:
                 thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
                                 sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
@@ -1772,14 +1784,14 @@ class SampleManager :
         print_prefix = "AddSample: Reading %s " %( path[0] )
         print_prefix = print_prefix.ljust(60)
         if not input_files :
-            print print_prefix + " [ \033[1;31mFailed\033[0m  ]"
+            self.quietprint(print_prefix + " [ \033[1;31mFailed\033[0m  ]")
         else :
             if len(set(path) & set(subpaths_used)) != len(path) :
                 print print_prefix + " [ \033[1;33mPartial\033[0m ]"
                 print path
                 print subpaths_used
             else :
-                print print_prefix + " [ \033[1;32mSuccess\033[0m ]" 
+                self.quietprint( print_prefix + " [ \033[1;32mSuccess\033[0m ]" )
 
     #--------------------------------
     def collect_input_files( self, base_path, path_list, paths_used, subpaths_used, filekey=None ) :
@@ -1963,9 +1975,10 @@ class SampleManager :
             print 'Could not import module %s' %module_path
         
         if hasattr(ImportedModule, 'config_samples') :
-            print '-------------------------------------'
-            print 'BEGIN READING SAMPLES'
-            print '-------------------------------------'
+            if not self.quiet:
+                print '-------------------------------------'
+                print 'BEGIN READING SAMPLES'
+                print '-------------------------------------'
             ImportedModule.config_samples(self)
         else :
             print 'ERROR - samplesConf does not implement a function called config_samples '
