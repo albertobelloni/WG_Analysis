@@ -119,13 +119,19 @@ class Sample :
         # drawn in the ratio box, default=False
         self.drawRatio = kwargs.get('drawRatio', False)
 
-        # scale is the weight applied to this sample, default=1.0
-        self.scale         = kwargs.get('scale', 1.0)
-        self.lumi          = kwargs.get('lumi', 1.0)
+        self.weightmap = kwargs.get('weightmap', None)
+        print "weightmap", self.weightmap
+        if self.weightmap == None:
+            self.weightmap = { }
 
-        # hold the cross section info
-        self.cross_section = kwargs.get('cross_section', 0.0)
-        self.total_events = kwargs.get('total_events', -1)
+        ## preference goes in the order of keyword argument, then weightmap, then default value
+        wmap = lambda varname, default: kwargs.get(varname, self.weightmap.get(varname, default))
+        self.scale         = wmap ('scale', 1.0)
+        self.lumi          = wmap ('lumi', 1.0)
+        self.cross_section = wmap ('cross_section', 1.0)
+        self.total_events  = wmap ('n_evt', 1.0)
+        self.k_factor      = wmap ('k_factor', 1.0)
+        self.gen_eff       = wmap ('gen_eff', 1.0)
 
         self.averageSamples = kwargs.get('averageSamples', False )
 
@@ -165,6 +171,7 @@ class Sample :
         self.hist.SetTitle('')
         if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__"):
             scale = self.cross_section*self.lumi/self.total_events_onthefly
+            scale = analysis_util.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
         else: scale = self.scale
         self.hist.Scale( scale )
         self.quietprint( 'XS: %f  sample lumi: %f sample total events otf: %g logged: %g' %( self.cross_section, self.lumi, getattr(self,"total_events_onthefly",-1), self.total_events))
@@ -261,7 +268,8 @@ class Sample :
 class SampleManager :
     """ Manage input samples and drawn histograms """
 
-    def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root', base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = None) :
+    def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root',
+            base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = None) :
 
         #
         # This plotting module assumes that root files are 
@@ -1694,7 +1702,7 @@ class SampleManager :
         self.ReadSamples(self.samples_conf )
 
     #--------------------------------
-    def AddSample(self, name, path=None, filekey=None, isData=False, scale=None, isSignal=False, sigLineStyle=7, sigLineWidth=2, drawRatio=False, plotColor=ROOT.kBlack, lineColor=None, isActive=True, required=False, displayErrBand=False, useXSFile=False, XSName=None, legend_name=None) :
+    def AddSample(self, name, path=None, filekey=None, isData=False, isSignal=False, sigLineStyle=7, sigLineWidth=2, drawRatio=False, plotColor=ROOT.kBlack, lineColor=None, isActive=True, required=False, displayErrBand=False, useXSFile=False, XSName=None, legend_name=None) :
         """ Create an entry for this sample """
 
         if self.added_sample_group :
@@ -1731,23 +1739,22 @@ class SampleManager :
             if self.mcweight is not None  : ## FIXME
                 thisscale *= self.mcweight
 
-            # multply by scale provided to this function
-            if scale is not None :
-                thisscale *= scale
+            xsname = name
+            ## in case XS name does not match sample name
+            if XSName is not None :
+                xsname = XSName
 
-            thisxs = 0
-            totevt = -1
-            if useXSFile :
-                xsname = name
-                if XSName is not None :
-                    xsname = XSName
-                if xsname in self.weightMap  :
-                    thisscale *= self.weightMap[xsname]['scale']
-                    thisxs = self.weightMap[xsname]['cross_section']
-                    totevt = self.weightMap[xsname]['n_evt']
-                    self.quietprint( 'Update scale for %s' %name)
+            if useXSFile and xsname in self.weightMap  :
+                self.weightMap[xsname]['scale'] *= thisscale
+                self.quietprint( 'Update scale for %s' %name)
+                thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
+                                sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
+                                color=plotColor, drawRatio=drawRatio, weightmap= self.weightMap[xsname], legendName=legend_name)
+            else:
+                thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
+                                sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
+                                color=plotColor, drawRatio=drawRatio, scale=thisscale, lumi=self.lumi,  legendName=legend_name)
 
-            thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, lumi=self.lumi, cross_section=thisxs, total_events=totevt, legendName=legend_name)
             thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName)
 
             self.samples.append(thisSample)
