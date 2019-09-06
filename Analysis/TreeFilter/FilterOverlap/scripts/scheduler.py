@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 from argparse import ArgumentParser
 
@@ -5,7 +6,7 @@ import scheduler_base
 from scheduler_base import JobConf
 
 p = ArgumentParser()
-p.add_argument( '--run', dest='run', default=False, action='store_true', help='Run filtering' )
+p.add_argument( '--run', dest='run', default=True, action='store_true', help='Run filtering' )
 p.add_argument( '--check', dest='check', default=False, action='store_true', help='Run check of completion' )
 p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true', help='Only submit missing output' )
 p.add_argument( '--local', dest='local', default=False, action='store_true', help='Run locally' )
@@ -19,7 +20,7 @@ else :
     options.run = False
 
 options.batch = ( not options.local )
-
+options.year = 2016
 ### ATTENTION! Here you specify the directory containing the processed ntuples, on which you want to run FilterOverlap.
 #base = '/data/users/fengyb/WGammaNtuple'
 base = '/data2/users/kakw/Resonances2016'
@@ -157,7 +158,7 @@ for input_dir in input_dirs :
     configs.append( {
                      'module' : module,
                      'args' : {},
-                     'input' : input_dir, 
+                     'input' : input_dir,
                      'output' : base + '/' + input_dir,
                      'tag' : 'olap', 
                      #'args_tag_pholap'           : { 'function' : 'filter_photon', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ' },

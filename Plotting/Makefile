@@ -1,16 +1,27 @@
 ### ATTENTION: Set OUTPUTMAIN to the folder in your Plotting directory where you want to save your output
-OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_05_17
+OUTPUTMAIN=~/WGamma/WG_Analysis/Plotting/Plots/Resonance/Plots_2019_08_16
 ### ATTENTION: Make sure that these DIR_* strings specify the directories containing the processed ntuples that you want to run over
 DIR_MUG=/data/users/friccita/WGammaNtuple/LepGamma_mug_2019_04_11/WithSF
 DIR_ELG=/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/WithSF
-DIR_MUGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_03_17/WithSF
-DIR_ELGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_elg_2019_03_17/WithSF
+#DIR_MUGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_03_17/WithSF
+#DIR_ELGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_elg_2019_03_17/WithSF
+DIR_MUGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_07_12/WithSF
+DIR_ELGNoId=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_elg_2019_07_12/WithSF
 DIR_MU=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_04_11/WithSF
 DIR_EL=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_el_2019_04_11/WithSF
-DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2019_04_11/WithSF
+#DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2019_07_12/WithSF
+#DIR_MUMU=/data/users/kakw/Resonances2016/LepLep_mumu_2019_08_05
+DIR_MUMU=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_08_14/WithSF
 DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2019_04_11/WithSF
-#DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2019_04_11
-#DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2019_04_11
+
+#DIR_MUG=/data2/users/kakw/Resonances2016/LepGamma_mug_2019_06_11b
+#DIR_ELG=/data2/users/kakw/Resonances2016/LepGamma_elg_2019_06_11
+#DIR_MUGNoId=/data2/users/kakw/Resonances2016/LepGammaNoPhId_mug_2019_06_11b
+#DIR_ELGNoId=/data2/users/kakw/Resonances2016/LepGammaNoPhId_elg_2019_06_11b
+#DIR_MU=/data2/users/kakw/Resonances2016/LepGammaNoPhId_mug_2019_06_11b
+#DIR_EL=/data2/users/kakw/Resonances2016/LepGammaNoPhId_elg_2019_06_11b
+#DIR_MUMU=/data2/users/kakw/Resonances2016/LepLep_mumu_2019_06_11b
+#DIR_ELEL=/data2/users/kakw/Resonances2016/LepLep_elel_2019_06_11
 
 DIR_SIGTruth=/data/users/friccita/WGammaNtuple/SigNoFilt_2019_04_15/WithSF
 
@@ -20,7 +31,7 @@ DIR_Combine=/data/users/fengyb/CMSSW_8_1_0/src
 all : plots workspaces limits
 
 plots :
-	python MakePlots.py --baseDirMu ${DIR_MU} --baseDirEl ${DIR_EL} --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG}  --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --baseDirNoFilt ${DIR_SIGTruth} --makeWCR --outputDir ${OUTPUTMAIN}/Plots
+	python MakePlots.py --baseDirMu ${DIR_MU} --baseDirEl ${DIR_EL} --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG}  --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --baseDirNoFilt ${DIR_SIGTruth} --makeSR --outputDir ${OUTPUTMAIN}/Plots
 	#python MakePlots.py --baseDirMu ${DIR_MU} --baseDirEl ${DIR_EL} --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG}  --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --baseDirNoFilt ${DIR_SIGTruth} --baseDirReco ${DIR_MU} --makeBkgTruth --outputDir ${OUTPUTMAIN}/Plots
 
 wjets : 
@@ -43,7 +54,9 @@ mcbkg :
 
 	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS
 	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doTopGamma --doTop --doZGamma --doWJets --doWGamma --doGammaGamma --doAll
+	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doWGamma --doEleFake --doWJets --doNonMajor
 	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doWGamma
+	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doWGamma --doEleFake --doWJets
 
 efake : 
 

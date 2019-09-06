@@ -339,7 +339,6 @@ jobs2016 = [
 if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
 if options.year==2018: jobs=jobs2018 
-#if options.test      : jobs=jobs[:1] # only leave one job
 
 
 args_nlo = { 'ApplyNLOWeight' : 'true' }#, 'doFHPFS' : 'true' }
@@ -421,15 +420,15 @@ configs = [
     #    'tag'    : 'elgnov',
     #    'dataset': 'SingleElectron',
     #},
-#    {
-#        'module' : 'Conf%i.py' %options.year,
-#        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'true', 'phot_id' : 'None',},# 'unblind' : 'true' },
-#        'args_tag_NLO' : args_nlo,
-#        'input'  : '',
-#        'output' : output_base+'LepGammaNoPhId_mug'+jobtag,
-#        'dataset': 'SingleMuon',
-#        'tag'    : 'muglph',
-#    },
+    {
+        'module' : 'Conf%i.py' %options.year,
+        'args'   : { 'function' : 'make_final_mug', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'true', 'phot_id' : 'None'},#, 'unblind' : 'True' },
+        'args_tag_NLO' : args_nlo,
+        'input'  : '',
+        'output' : output_base+'LepGammaNoPhId_mug'+jobtag,
+        'dataset': 'SingleMuon',
+        'tag'    : 'muglph',
+    },
 #    {
 #        'module' : 'Conf%i.py' %options.year,
 #        'args'   : { 'function' : 'make_final_elg', 'mu_pt' : ' > 10 ', 'el_pt' : ' > 10 ' , 'ph_pt' : ' > 10 ', 'phot_vars' : 'True', 'phot_id' : 'None',},# 'unblind' : 'True' },

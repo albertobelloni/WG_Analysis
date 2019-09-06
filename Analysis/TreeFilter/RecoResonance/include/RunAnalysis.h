@@ -10,6 +10,7 @@
 #include "TTree.h"
 #include "TChain.h"
 #include "TLorentzVector.h"
+#include "include/RoccoR.h"
 
 // The RunModule inherits from RunModuleBase (an Abstract Base Class )
 // defined in the Core package so that all
@@ -99,6 +100,7 @@ class RunModule : public virtual RunModuleBase {
         TH1D * _puweight_data_hist;
         TH1D * h_EventWeight;
 
+	RoccoR rc;
         TChain * _input_tree;
         TFile  * _outfile;
 
@@ -110,6 +112,7 @@ namespace OUT {
 
     Int_t mu_pt20_n;
     Int_t mu_pt30_n;
+    std::vector<float> *mu_pt_rc;
     std::vector<Bool_t> *mu_passTight;
     std::vector<Bool_t> *mu_passMedium;
     std::vector<Bool_t> *mu_passLoose;

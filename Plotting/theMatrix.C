@@ -19,11 +19,11 @@ void theMatrix()
   //TString plot_var("chIso_real_");
   //TString plot_var("sigmaIEIE_FR_");
   //TString plot_var("chIso_FR_");
-  //TString plot_var("mll_");
+  TString plot_var("mll_");
   //TString plot_var("dr_");
-  TString plot_var("vtxn_");
+  //TString plot_var("vtxn_");
   
-  TFile* file = new TFile("Plots/Resonance/Plots_2019_04_19/WJetsWS/outfile_matrix_Pt15To25_workspace_wjets.root","READ");
+  TFile* file = new TFile("Plots/Resonance/Plots_2019_06_27/WJetsWS/outfile_matrix_Pt15To25_LO_workspace_wjets.root","READ");
 
   // get histograms
   
@@ -45,7 +45,7 @@ void theMatrix()
   // get data histogram
   TString datahistname = dataprefix + plot_var /*+ selprefix */+ datasuffix;
   TH1F* data_hist = static_cast<TH1F*>(file->Get(datahistname)->Clone());
-  data_hist->GetXaxis()->SetTitle("Number of vertices");
+  data_hist->GetXaxis()->SetTitle("m_{#mu#mu} (GeV)");
   data_hist->GetYaxis()->SetTitle("Events");
   //data_hist->Rebin(5);
   //data_hist->GetXaxis()->SetRangeUser(0.,0.025)
