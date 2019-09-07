@@ -136,12 +136,14 @@ class Sample :
 
         self.averageSamples = kwargs.get('averageSamples', False )
 
-        # groupedSamples is filled if this is a grouping of other samples.
+        # groupedSampleNames is filled if this is a grouping of other samples.
         # if a sample is grouped, it is drawn as the sum of all entries
         # in this list.  Be careful to set isActive to False for the
         # sub samples or they will be drawn as well.  Grouped samples
         # can be further grouped default=[]
-        self.groupedSamples = kwargs.get('groupedSamples', [])
+        self.groupedSampleNames = []
+        self.groupedSamples      = []
+        self.AddGroupSamples( kwargs.get('groupedSampleNames', []) )
 
         # set a sample to temporary to delete it
         # when clear_all is called
@@ -166,13 +168,29 @@ class Sample :
                     return
             print msg
 
+    def scale_calc(self, onthefly=True):
+        if onthefly:
+            return analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
+        else:
+            return analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events         , self.gen_eff, self.k_factor)
+
+    def nevt_calc(self):
+        """ calculate expected number of events for MC normalization """
+        if self.isData:
+            print "Nevents invalid for Data sample"
+            return -1
+        if self.IsGroupedSample():
+            return sum([ samp.nevt_calc() for samp in self.groupedSamples ]) 
+        return analysis_utils.nevents_calc(self.cross_section, self.lumi, self.gen_eff, self.k_factor)
+
     def InitHist(self, onthefly = True) :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
         self.hist.SetTitle('')
         if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__"):
-            scale = self.cross_section*self.lumi/self.total_events_onthefly
-            scale = analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
+            #scale = self.cross_section*self.lumi/self.total_events_onthefly
+            #analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
+            scale = self.scale_calc() 
         else: scale = self.scale
         self.hist.Scale( scale )
         self.quietprint( 'XS: %f  sample lumi: %f sample total events otf: %g logged: %g' %( self.cross_section, self.lumi, getattr(self,"total_events_onthefly",-1), self.total_events))
@@ -226,16 +244,18 @@ class Sample :
             for file in files :
                 self.ofiles.append( ROOT.TFile.Open( file ) )
 
-    def AddGroupSamples( self, samples ) :
-        """ Add subsamples to this sample """
+    def AddGroupSamples( self, samplenames ) :
+        """ Add subsamples to this sample by samplenames"""
 
-        if not isinstance( samples, list) :
-            samples = [samples]
+        if not isinstance( samplenames, list) :
+            samplenames = [samplenames]
 
-        self.groupedSamples += samples
+        self.groupedSampleNames += samplenames
+        foundsamples = [ self.manager.get_samples(name = n) for n in samplenames]
+        self.groupedSamples += [s[0] for s in foundsamples if s] # select only found samples
 
     def IsGroupedSample(self) :
-        return ( len( self.groupedSamples ) > 0 )
+        return ( len( self.groupedSampleNames ) > 0 )
 
 
     def enable_parsed_branches( self, brstr ) :
@@ -710,10 +730,10 @@ class SampleManager :
         if isinstance( samp, str ) :
             samp = self.get_samples(name=samp)[0]
 
-        if samp.groupedSamples :
+        if samp.groupedSampleNames :
             min_val_tot = None
             max_val_tot = None
-            for subsampname in samp.groupedSamples :
+            for subsampname in samp.groupedSampleNames :
                 min_val, max_val = self.get_sample_branch_minmax(subsampname, branch )
                 if min_val_tot is None or min_val_tot < min_val :
                     min_val_tot = min_val
@@ -767,7 +787,7 @@ class SampleManager :
     #---------------------------------------
     def GetLowestGroupedSamples( self, sample ) :
         lowest = []
-        for subsamp in self.get_samples(name=sample.groupedSamples ) :
+        for subsamp in self.get_samples(name=sample.groupedSampleNames ) :
             if subsamp.IsGroupedSample() :
                 lowest += self.GetLowestGroupedSamples( subsamp )
             else :
@@ -1874,7 +1894,7 @@ class SampleManager :
             is_a_grouped_sample = ( name in self.get_grouped_sample_names() )
 
             if is_a_grouped_sample :
-                group_samples = self.get_samples(name=name)[0].groupedSamples
+                group_samples = self.get_samples(name=name)[0].groupedSampleNames
                 thisSample.AddGroupSamples( group_samples )
             else :
                 thisSample.AddGroupSamples( samp )
@@ -1902,7 +1922,7 @@ class SampleManager :
             is_a_grouped_sample = ( name in self.get_grouped_sample_names() )
 
             if is_a_grouped_sample :
-                group_samples = self.get_samples(name=name).groupedSamples
+                group_samples = self.get_samples(name=name).groupedSampleNames
                 thisSample.AddGroupSamples( group_samples )
             else :
                 thisSample.AddGroupSamples( samp )
@@ -2551,7 +2571,7 @@ class SampleManager :
 
         # Draw the histogram.  Use histpars as the bin limits if given
         if sample.IsGroupedSample() :
-            for subsampname in sample.groupedSamples :
+            for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
                 print 'Extract grouped hist %s' %subsampname
                 if subsampname in self.get_sample_names() :
@@ -2639,7 +2659,7 @@ class SampleManager :
 
         # Draw the histogram.  Use histpars as the bin limits if given
         if sample.IsGroupedSample() :
-            for subsampname in sample.groupedSamples :
+            for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
 
                 if not self.quiet : print 'Draw grouped hist %s' %subsampname
@@ -2650,7 +2670,7 @@ class SampleManager :
                     self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel )
 
             sample.failed_draw=False
-            for subsampname in sample.groupedSamples :
+            for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
                 if subsamp.failed_draw :
                     sample.failed_draw=True
@@ -2713,7 +2733,7 @@ class SampleManager :
 
         # Draw the histogram.  Use histpars as the bin limits if given
         if sample.IsGroupedSample() :
-            for subsampname in sample.groupedSamples :
+            for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
 
                 if not self.quiet : print 'Draw grouped hist %s' %subsampname
@@ -2724,7 +2744,7 @@ class SampleManager :
                     self.create_hist_new( draw_config, subsamp, isModel=isModel )
 
             sample.failed_draw=False
-            for subsampname in sample.groupedSamples :
+            for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
                 if subsamp.failed_draw :
                     sample.failed_draw=True
@@ -3017,7 +3037,7 @@ class SampleManager :
             print 'Trying to group a sample that is not a grouped sample'
             return
 
-        subsamp_names = sample.groupedSamples
+        subsamp_names = sample.groupedSampleNames
         if not self.quiet : print 'RUN GROUPING FOR %s' %sample.name
         if not self.quiet : print subsamp_names
 
@@ -3062,7 +3082,7 @@ class SampleManager :
             vars = [vars]
 
         if sample.IsGroupedSample() :
-            for subsampname in sample.groupedSamples :
+            for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
 
                 if not self.quiet : print 'running on grouped hist %s' %subsampname
@@ -3355,7 +3375,7 @@ class SampleManager :
                    print "No stack found"
            return
 
-    def get_stack_count(self, integralrange = None, sort =True, includeData=False, isActive = True):
+    def get_stack_count(self, integralrange = None, sort =True, includeData=False, isActive = True, acceptance = False):
         """ integralrange: ntuple: x bin range to be integrated """
         err = array('d',[0])
         ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
@@ -3364,7 +3384,12 @@ class SampleManager :
             print "use range %g, %g" %integralrange
             ranger  = lambda h, e, r: map(h.FindBin, r)+[e]
 
-        result = [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
+        if acceptance:
+            ### to calculate acceptance, divide by overall normalization of the sample
+            result = [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange))/ s.nevt_calc() ,err[0]/ s.nevt_calc()))\
+                         for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.hist]
+        else:
+            result = [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
                          for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.hist]
 
         if sort: result.sort(key=lambda x: -x[1][0])
