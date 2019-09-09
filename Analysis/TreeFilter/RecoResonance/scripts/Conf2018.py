@@ -412,7 +412,7 @@ def filter_met() :
 def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do_hists=False, evalPID='tight' ) :
 
     workarea = os.getenv('WorkArea')
-    base_path = '%s/TreeFilter/RecoResonance/data' %_workarea
+    base_path = '%s/TreeFilter/RecoResonance/data' %workarea
 
     filt = Filter('FilterMuon')
 
