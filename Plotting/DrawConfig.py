@@ -212,9 +212,9 @@ class DrawConfig :
         if labelStyle is None or labelStyle.count('Fancy')==0:
 
             text_dx = self.label_config.get("dx",0)
-            text_x = text_dx +0.18
+            text_x = text_dx +0.17
             text_dy = self.label_config.get("dy",0)
-            text_y = text_dy +0.88
+            text_y = text_dy +0.87
 
             if labelLoc == 'topright' :
                 text_x = 0.75
@@ -226,7 +226,7 @@ class DrawConfig :
             wiplabel = ROOT.TLatex()
             wiplabel.SetNDC()
             wiplabel.SetTextSize( 0.05 )
-            wiplabel.SetText(text_x+0.07, text_y, 'Simulation Work in Progress')
+            wiplabel.SetText(text_x+0.065, text_y, 'Simulation Work in Progress')
             wiplabel.SetTextFont(52)
             labeltext = '36 fb^{-1} (13 TeV)'
             if labelStyle:
@@ -237,7 +237,7 @@ class DrawConfig :
                 if labelStyle.count('2018') :
                     labeltext = '59.7 fb^{-1} (13 TeV)'
             rootslabel = ROOT.TLatex()
-            rootslabel.SetText(text_dx+0.80, text_dy+0.96, labeltext  )
+            rootslabel.SetText(text_dx+0.75, text_dy+0.93, labeltext  )
             rootslabel.SetTextFont(42)
             rootslabel .SetNDC()
             rootslabel .SetTextSize(0.045)

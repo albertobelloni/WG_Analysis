@@ -224,7 +224,7 @@ class Sample :
                     wh = rf.Get(weightHistName)
                     if not wh:
                         print "weight histogram does not exist for %s" %f
-                        break
+                        continue
                     wh.SetDirectory(0)
                     if self.weightHist == None:
                         self.weightHist = wh
@@ -260,7 +260,7 @@ class Sample :
 
     def enable_parsed_branches( self, brstr ) :
         """ Set Branch status to 1 """
-        if self.chain is not None :
+        if self.chain is not None and self.chain.GetEntries():
             for br in self.chain.GetListOfBranches() :
                 if brstr.count( br.GetName() ) > 0 and self.chain.GetBranchStatus( br.GetName() ) == 0 :
                     self.chain.SetBranchStatus( br.GetName(), 1)
@@ -270,7 +270,7 @@ class Sample :
             return self.list_of_branches
         else :
             branches = []
-            if self.chain is not None :
+            if self.chain is not None and self.chain.GetEntries():
                 for br in self.chain.GetListOfBranches() :
                     branches.append(br.GetName())
 
@@ -1463,14 +1463,14 @@ class SampleManager :
                 self.add_save_stack( filename, outputDir, canname )
                 return
 
+            print 'Creating directory %s' %outputDir
+            if "~" in outputDir:
+                outputDir = os.path.expanduser(outputDir)
+                print "expand bash home directory: ", outputDir
+            if "$" in outputDir:
+                outputDir = os.path.expandvars(outputDir)
+                print "expand bash variable: ", outputDir
             if not os.path.isdir( outputDir ) :
-                print 'Creating directory %s' %outputDir
-                if "~" in outputDir:
-                    outputDir = os.path.expanduser(outputDir)
-                    print "expand bash home directory: ", outputDir
-                if "$" in outputDir:
-                    outputDir = os.path.expandvars(outputDir)
-                    print "expand bash variable: ", outputDir
                 os.makedirs(outputDir)
 
             filenamesplit = filename.split('.')
@@ -2755,7 +2755,7 @@ class SampleManager :
             return
 
         else :
-            if sample.chain is not None :
+            if sample.chain is not None and sample.chain.GetEntries():
                 if not self.quiet or sample.isData: print 'Make %s hist %s : \033[1;31m %s\033[0m' %(sample.name, varexp,selection)
                 res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
                 if res < 0 :
