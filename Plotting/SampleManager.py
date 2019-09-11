@@ -517,9 +517,17 @@ class SampleManager :
 
     #--------------------------------
     def Merge(samplemanager, suffix= ""):
+        """ Merge SampleManagers 
+            suffix: add suffix to sample names of the merged SampleManager
+            destructive to merged SampleManager
+        """
+        ## add suffix to merged sample names so they don't clash with the original
         for samp in samplemanager.samples:
             samp.name += suffix
-    
+            samp.groupedSampleNames = [n+suffix for n in samp.groupedSampleNames]
+            samp.manager = self
+        self.samples+= samplemanager.samples
+
     #--------------------------------
     def config_legend(self, **kwargs ) :
 
