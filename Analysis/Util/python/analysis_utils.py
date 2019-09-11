@@ -17,6 +17,8 @@ class Printer() :
 
     def GetMessage(self):
         # get number of columns
+        if not self.entries:
+            return []
         max_cols = max( [len(line) for line in self.entries ] )
         colwidths = [0]*max_cols
 
@@ -36,11 +38,12 @@ def read_xsfile( xsfile, lumi, print_values=False ) :
         print ' LOAD CROSS SECTION INFO'
         print '-------------------------------------'
     weightMap = {}
+    xs_printer = Printer()
     if xsfile is None :
-        return weightMap
+        return weightMap, xs_printer
     if lumi is None :
         print 'Cannot calculate weights without a luminosity'
-        return weightMap
+        return weightMap, xs_printer
     if not os.path.isfile( xsfile ) :
         print 'Could not locate cross section file.  No values will be loaded.'
         raise RuntimeError ## assume we always need one
@@ -48,7 +51,6 @@ def read_xsfile( xsfile, lumi, print_values=False ) :
 
     ofile = open( xsfile )
     xsdict = eval( ofile.read() )
-    xs_printer = Printer()
 
     for name, values in xsdict :
 
