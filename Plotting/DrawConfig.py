@@ -162,6 +162,8 @@ class DrawConfig :
         return self.hist_config.get('logy', False )
     def get_normalize( self ) :
         return self.hist_config.get('normalize', False )
+    def get_drawopt( self ) :
+        return self.hist_config.get('drawopt', "" )
 
     def get_weight( self ) :
         """ defaults to empty string: no weights
