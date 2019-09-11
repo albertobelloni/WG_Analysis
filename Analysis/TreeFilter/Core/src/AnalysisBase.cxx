@@ -896,7 +896,7 @@ void CutFlowModule::WriteCutFlowHist( TDirectory * dir) const
 {
 
     unsigned nbins = order.size() + 1;
-    TH1F* cuthist = new TH1F( ( GetName() + ":cuthist").c_str(), "cuthist", nbins, 0, nbins );
+    TH1F* cuthist = new TH1F( ( GetName() + "_cuthist").c_str(), "cuthist", nbins, 0, nbins );
     cuthist->GetXaxis()->SetBinLabel( 1, "Total" );
     cuthist->SetBinContent( 1, total );
     for( unsigned binnum = 0; binnum < order.size(); ++binnum ) {
@@ -928,7 +928,7 @@ void CutFlowModule::createHist( const std::string &basename, const std::string &
 {
 
     hists.insert( std::make_pair(histname, 
-                                 TH1F( ( basename + ":" + histname).c_str(), histname.c_str(), 
+                                 TH1F( ( basename + "_" + histname).c_str(), histname.c_str(), 
                                  nbin, xmin, xmax ) ) );
 }
 
