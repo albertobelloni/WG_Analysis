@@ -792,15 +792,15 @@ bool ModuleConfig::PassFloat( const std::string & cutname, const float cutval , 
 
 }
 
-bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vector<int> &cutval )
+bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vector<int> &cutval, const bool docutflow )
 {
 
     if( HasCut( cutname ) ) {
         const CutConfig & cut_conf = GetCut( cutname );
         bool result = cut_conf.PassAnyIntVector( cutname, cutval );
 
-        if( cutflows.size() ) { 
-            std::cout << "No cutflows for PassAnyIntVector" << std::endl;
+        if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
+            cutflows[0].AddCutDecision( cutname, result ); //no before/after histogram for vectors
         }
 
         return result;
