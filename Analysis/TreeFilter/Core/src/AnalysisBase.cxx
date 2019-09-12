@@ -729,14 +729,14 @@ bool CutConfig::PassAnyIntVector(const std::string &name, const std::vector<int>
 }
         
 
-bool ModuleConfig::PassInt( const std::string & cutname, const int cutval )
+bool ModuleConfig::PassInt( const std::string & cutname, const int cutval, const bool docutflow  )
 {
 
     if( HasCut( cutname ) ) {
         const CutConfig & cut_conf = GetCut( cutname );
         bool result = cut_conf.PassInt( cutname, cutval );
 
-        if( cutflows.size() ) { // only assume 1 cutflow for now
+        if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
             cutflows[0].AddCutDecisionInt( cutname, result, cutval );
         }
 
@@ -750,14 +750,14 @@ bool ModuleConfig::PassInt( const std::string & cutname, const int cutval )
 
 }
 
-bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval )
+bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval , const bool docutflow  )
 {
 
     if( HasCut( cutname ) ) {
         const CutConfig & cut_conf = GetCut( cutname );
         bool result = cut_conf.PassBool( cutname, cutval );
 
-        if( cutflows.size() ) { // only assume 1 cutflow for now
+        if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
             cutflows[0].AddCutDecisionBool( cutname, result, cutval );
         }
 
@@ -771,14 +771,14 @@ bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval )
 
 }
 
-bool ModuleConfig::PassFloat( const std::string & cutname, const float cutval )
+bool ModuleConfig::PassFloat( const std::string & cutname, const float cutval , const bool docutflow )
 {
 
     if( HasCut( cutname ) ) {
         const CutConfig & cut_conf = GetCut( cutname );
         bool result = cut_conf.PassFloat( cutname, cutval );
 
-        if( cutflows.size() ) { // only assume 1 cutflow for now
+        if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
             cutflows[0].AddCutDecisionFloat( cutname, result, cutval );
         }
 
@@ -812,6 +812,12 @@ bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vec
 
 }
 
+void ModuleConfig::PassCounter( const std::string & cutname , const bool result)
+{
+        if( cutflows.size() ) { // only assume 1 cutflow for now
+            cutflows[0].AddCutDecision( cutname, result);
+        }
+}
 
 bool ModuleConfig::HasCut( const std::string &name ) const {
 
@@ -896,7 +902,7 @@ void CutFlowModule::WriteCutFlowHist( TDirectory * dir) const
 {
 
     unsigned nbins = order.size() + 1;
-    TH1F* cuthist = new TH1F( ( GetName() + ":cuthist").c_str(), "cuthist", nbins, 0, nbins );
+    TH1F* cuthist = new TH1F( ( GetName() + "_cuthist").c_str(), "cuthist", nbins, 0, nbins );
     cuthist->GetXaxis()->SetBinLabel( 1, "Total" );
     cuthist->SetBinContent( 1, total );
     for( unsigned binnum = 0; binnum < order.size(); ++binnum ) {
@@ -928,7 +934,7 @@ void CutFlowModule::createHist( const std::string &basename, const std::string &
 {
 
     hists.insert( std::make_pair(histname, 
-                                 TH1F( ( basename + ":" + histname).c_str(), histname.c_str(), 
+                                 TH1F( ( basename + "_" + histname).c_str(), histname.c_str(), 
                                  nbin, xmin, xmax ) ) );
 }
 

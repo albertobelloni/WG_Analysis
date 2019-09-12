@@ -582,9 +582,9 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 	  eitr = mod_conf.GetInitData().find( "evalPID" );
 	  if( eitr != mod_conf.GetInitData().end() ) {
 	    std::string pid = eitr->second;
-	    if( pid == "tight"     ) _eval_mu_tight       = true;
-	    if( pid == "medium"    ) _eval_mu_medium      = true;
-	    if( pid == "loose"    ) _eval_mu_loose      = true;
+	    if( pid == "tight"     ) {  _eval_mu_tight       = true; std::cout<< "eval only mu tight"<<std::endl; }
+	    if( pid == "medium"    ) {  _eval_mu_medium      = true; std::cout<< "eval only mu medium"<<std::endl; }
+	    if( pid == "loose"     ) {  _eval_mu_loose       = true; std::cout<< "eval only mu loose"<<std::endl; }
 	  }
         }
         if( mod_conf.GetName() == "FilterElectron" ) { 

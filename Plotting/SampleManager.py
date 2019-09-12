@@ -516,6 +516,19 @@ class SampleManager :
         return self.create_sample( name=name, isRatio=True, hist=ratio_hist, temporary=True, color=color )
 
     #--------------------------------
+    def Merge(samplemanager, suffix= ""):
+        """ Merge SampleManagers 
+            suffix: add suffix to sample names of the merged SampleManager
+            destructive to merged SampleManager
+        """
+        ## add suffix to merged sample names so they don't clash with the original
+        for samp in samplemanager.samples:
+            samp.name += suffix
+            samp.groupedSampleNames = [n+suffix for n in samp.groupedSampleNames]
+            samp.manager = self
+        self.samples+= samplemanager.samples
+
+    #--------------------------------
     def config_legend(self, **kwargs ) :
 
         config = {}
@@ -1218,6 +1231,7 @@ class SampleManager :
 
 
     def load_hist_from_file_cache( self, sample, name, filename, debug=False ) :
+        """ load histogram from file by histogram name """
 
         if debug :
             print 'Load hist %s from %s into sample %s' %( name, filename, sample.name )
@@ -2481,7 +2495,7 @@ class SampleManager :
 
 
     #----------------------------------------------------
-    def MakeSameCanvas(self, draw_config, useStoredBinning=False, preserve_hists=False, useModel=False, treeHist=None, treeSelection=None) :
+    def MakeSameCanvas(self, draw_config, useStoredBinning=False, preserve_hists=False, useModel=False, treeHist=None, treeSelection=None, readhist = False) :
 
         if not preserve_hists :
             self.clear_all()
@@ -2506,7 +2520,9 @@ class SampleManager :
 
             newsamp = self.clone_sample( oldname=samp, newname=samp+"_"+newname, temporary=True )
 
-            if useModel :
+            if readhist:
+                self.read_hist(newsamp, hist_config['var'])
+            elif useModel :
                 self.create_hist( newsamp, treeHist, treeSelection, draw_config.histpars, isModel=True)
             else :
                 self.create_hist( newsamp, hist_config['var'], selection, draw_config.histpars)
@@ -2599,6 +2615,71 @@ class SampleManager :
                     self.format_hist( sample )
 
     @f_Dumpfname
+    def read_hist( self, sample, histname ) :
+
+        if isinstance( sample, str) :
+            slist = self.get_samples( name=sample )
+            if not slist :
+                print 'Could not retrieve sample, %s' %sample
+                return False
+            if len(slist) > 1 :
+                print 'Located multiple samples with name %s' %sample
+                return False
+            sample = slist[0]
+
+        sampname = sample.name
+
+        if not self.quiet : print 'obtaining hist %s : %s ' %( sample, histname )
+
+        #histname = str(uuid.uuid4())
+
+        sample.hist = None
+
+        #if sample.hist is not None :
+        #    sample.hist.SetTitle( sampname )
+        #    sample.hist.Sumw2()
+        #    ROOT.SetOwnership(sample.hist, False )
+
+        # Draw the histogram.  Use histpars as the bin limits if given
+        if sample.IsGroupedSample() :
+            for subsampname in sample.groupedSampleNames :
+                subsamp = self.get_samples( name=subsampname )[0]
+
+                if not self.quiet : print 'Draw grouped hist %s' %subsampname
+
+                if isModel and subsampname in [s.name for s in self.get_model_samples()] :
+                    self.read_hist( subsamp, histname)
+                elif subsampname in self.get_sample_names() :
+                    self.read_hist( subsamp, histname) 
+
+            sample.failed_draw=False
+            for subsampname in sample.groupedSampleNames :
+                subsamp = self.get_samples( name=subsampname )[0]
+                if subsamp.failed_draw :
+                    sample.failed_draw=True
+
+
+            self.group_sample( sample, isModel=isModel )
+
+            return True
+
+        else :
+            sample.failed_draw=False
+            for f in sample.ofiles:
+                histtemp = f.Get(histname)    
+                print f, histtemp, histname
+                if histtemp and not sample.hist:
+                    sample.hist = histtemp.Clone()
+                elif histtemp:
+                    sample.hist.Add(histtemp)
+                else:
+                    sample.failed_draw=True
+            ## normalize to cross_section
+            sample.SetHist()
+            return True
+
+
+
     def create_hist( self, sample, varexp, selection, histpars, isModel=False ) :
 
         if isinstance( sample, str) :
@@ -3422,8 +3503,8 @@ class SampleManager :
         if totalresult: print "="*35+"\n%60s %8.3g +/- %5.3g" %totalresult
         return
 
-    # raw data and legend for SampleManager.Draw()
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
+        """ Draw Data, Signal and legend. Called by SampleManager.Draw() """
 
         doratio=draw_config.get_doratio()
         if doratio == True or doratio == 1 :
@@ -3453,9 +3534,6 @@ class SampleManager :
                         prim.GetXaxis().SetNdivisions( ticksx[0],ticksx[1],ticksx[2] )
                     if ticksy is not None :
                         prim.GetYaxis().SetNdivisions( ticksy[0],ticksy[1],ticksy[2] )
-
-
-
             topcan.DrawClonePad()
 
         elif isinstance(topcan, ROOT.THStack ) :
@@ -3473,7 +3551,10 @@ class SampleManager :
             if not draw_config.get_unblind() and dsamp.isData:
                     print "skipped ",dsamp
                     continue
-            if normalize :
+            if normalize == "Total":
+                dsamp.hist.Scale(1./dsamp.hist.GetBinContent(1)) # assume total is the first bin
+                dsamp.hist.Draw('PE same')
+            elif normalize:
             #dsamp.hist.SetMarkerStyle(8)
                 dsamp.hist.DrawNormalized('PE same')
             else :
@@ -3492,7 +3573,10 @@ class SampleManager :
                     #samp.hist.SetLineWidth(3)
                     samp.hist.SetLineStyle(samp.getLineStyle())
                     samp.hist.SetStats(0)
-                    if normalize :
+                    if normalize == "Total":
+                        samp.hist.Scale(1./samp.hist.GetBinContent(1)) # assume total is the first bin
+                        samp.hist.Draw('HIST same')
+                    elif normalize :
                         samp.hist.DrawNormalized('HIST same')
                     else :
                         samp.hist.Draw('HIST same')
@@ -3601,6 +3685,7 @@ class SampleManager :
             self.curr_canvases['top'].SetLogy()
 
     def DrawSameCanvas(self, canvas, samples, draw_config, drawHist=False ) :
+        """  Called by CompareSelections, CompareHists """
 
         canvas.cd()
 
@@ -3611,8 +3696,10 @@ class SampleManager :
         ymax = draw_config.get_ymax()
         ymax_scale = draw_config.get_ymax_scale()
         normalize = draw_config.get_normalize()
+        drawopt = draw_config.get_drawopt()
         drawhist = draw_config.get_drawhist()
 
+        ## calculate y range
         calcymax = 0
         calcymin = 0.5
         for samp in samples :
@@ -3647,9 +3734,9 @@ class SampleManager :
                 print 'WARNING Did not get a sample associated with the hist_config'
                 raise RuntimeError
 
-            drawcmd = 'same'
+            drawcmd = drawopt+' same'
             if first :
-                drawcmd = ''
+                drawcmd = drawopt
                 first = False
             if draw_samp is not None and not draw_samp.isSignal and drawhist:
                 drawcmd+='hist'
@@ -3666,7 +3753,7 @@ class SampleManager :
                 draw_samp.hist.GetYaxis().SetLabelSize(0.03)
                 draw_samp.hist.SetLineColor( hist_config['color'] )
                 draw_samp.hist.SetLineWidth( 2 )
-                draw_samp.hist.SetMarkerSize( 0 )
+                draw_samp.hist.SetMarkerSize( 1 ) ## font size for histogram text option
                 draw_samp.hist.SetMarkerStyle( 7 )
                 draw_samp.hist.SetMarkerColor(hist_config['color'])
                 draw_samp.hist.SetStats(0)
@@ -3674,13 +3761,57 @@ class SampleManager :
                     draw_samp.hist.SetMarkerSize( 1 )
                     draw_samp.hist.SetMarkerStyle(20)
 
-                if normalize and draw_samp.hist.Integral() != 0  :
+                if normalize == "Total" and draw_samp.hist.GetBinContent(1) :
+                    draw_samp.hist.Scale(1.0/draw_samp.hist.GetBinContent(1))
+                elif normalize and draw_samp.hist.Integral() != 0  :
                     draw_samp.hist.Scale(1.0/draw_samp.hist.Integral())
 
                 draw_samp.hist.GetYaxis().SetRangeUser(ymin, ymax)
 
                 #draw_samp.hist.Draw(drawcmd+'goff')
                 draw_samp.hist.Draw(drawcmd)
+
+
+    def CompareHists( self, histname, reqsamples, histpars, hist_config={}, label_config={}, legend_config={}, same=False, useModel=False, treeHist=None, treeSelection=None ) :
+        """ provide hist name and compare histogram from TFiles; useful with cutflows """
+
+        self.curr_sig_legend = None
+
+        if 'colors' in hist_config :
+            if len(hist_config['colors']) < len( reqsamples ) :
+                print 'Size of colors input does not match size of vars input!'
+                reqnum = len(hist_config['colors']) - len( reqsamples )
+                hist_config['colors'].extend([ self.get_samples(name=s)[0].color
+                                                for s in reqsamples[reqnum:] ])
+
+        if not same :
+            self.clear_all()
+
+		# initialize DrawConfig
+        config = DrawConfig( histname, selection=[" "]*len(reqsamples), histpars="", samples=reqsamples,
+                      hist_config=hist_config, label_config=label_config, legend_config=legend_config )
+        config.create_hist_configs()
+
+        self.draw_commands.append(config)
+
+        created_samples = self.MakeSameCanvas(config, preserve_hists=True, readhist=True )
+        print created_samples
+        if not created_samples :
+            print 'No histograms were created'
+            return
+
+        # make the legend
+        step = len(created_samples)
+        self.curr_legend = self.create_standard_legend(step, draw_config=config )
+
+        legend_entries = config.get_legend_entries()
+        self.create_same_legend( legend_entries , created_samples )
+
+        #self.DrawCanvas(self.curr_canvases['same'], ylabel=ylabel, xlabel=xlabel, rlabel=rlabel, doratio=doratio, labelStyle=labelStyle, rmin=rmin, rmax=rmax, ymax=ymax, ymin=ymin, logy=logy, extra_label=extra_label, extra_label_loc=extra_label_loc)
+        self.DrawCanvas(self.curr_canvases['same'], config )
+
+
+
 
     def CompareSelections( self, varexp, selections, reqsamples, histpars, hist_config={}, label_config={}, legend_config={}, same=False, useModel=False, treeHist=None, treeSelection=None ) :
         assert len(selections) == len(reqsamples), 'selections and samples must have same length'
