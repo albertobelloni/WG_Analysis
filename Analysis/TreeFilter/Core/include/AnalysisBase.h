@@ -149,12 +149,14 @@ class ModuleConfig {
 
         template <class Number>
         bool PassNum( const std::string &, const Number, const bool , CutType::Type = CutType::FLOAT);
+        template <class Number>
+        bool PassNum( const std::string &, const Number, const std::string & cutflowtag, CutType::Type = CutType::FLOAT); //FIXME to be implemented: Fill cutflow with alternative name (to merge serveral cuts)
 
         bool PassBool ( const std::string & cutname, const bool  val , const bool = true);
         bool PassInt  ( const std::string & cutname, const int   val , const bool = true);
         bool PassFloat( const std::string & cutname, const float val , const bool = true);
         bool PassAnyIntVector( const std::string & cutname, const std::vector<int> &val , const bool = true);
-        void PassCounter( const std::string & cutname , const bool result = true);
+        void PassCounter( const std::string & cutname , const bool result = true, const float weight = 1.0);
 
         std::string GetName() const {return name;}
 

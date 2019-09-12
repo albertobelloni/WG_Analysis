@@ -801,10 +801,10 @@ bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vec
 
 }
 
-void ModuleConfig::PassCounter( const std::string & cutname , const bool result)
+void ModuleConfig::PassCounter( const std::string & cutname , const bool result, const float weight)
 {
         if( cutflows.size() ) { // only assume 1 cutflow for now
-            cutflows[0].AddCutDecision( cutname, result);
+            cutflows[0].AddCutDecision( cutname, result, weight);
         }
 }
 
