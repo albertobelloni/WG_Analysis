@@ -728,16 +728,33 @@ bool CutConfig::PassAnyIntVector(const std::string &name, const std::vector<int>
     return pass_cuts;
 }
         
-
-bool ModuleConfig::PassInt( const std::string & cutname, const int cutval, const bool docutflow  )
+template <class Number>
+bool ModuleConfig::PassNum( const std::string & cutname, const Number cutval, const bool docutflow , CutType::Type cuttype )
 {
 
     if( HasCut( cutname ) ) {
         const CutConfig & cut_conf = GetCut( cutname );
-        bool result = cut_conf.PassInt( cutname, cutval );
+        bool result;
+        switch (cuttype){
+          case CutType::FLOAT:
+            result = cut_conf.PassFloat( cutname, cutval );
+            break;
+          case CutType::INT:
+            result = cut_conf.PassInt( cutname, cutval );
+            break;
+          case CutType::BOOL:
+            result = cut_conf.PassBool( cutname, cutval );
+            break;
+          default:
+            std::cout<< "WARNING: ModuleConfig::PassNum incorrect cuttype value"<< static_cast<int>(cuttype) << std::endl; 
+            result = cut_conf.PassFloat( cutname, cutval );
+            break;
+        }
 
         if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
-            cutflows[0].AddCutDecisionInt( cutname, result, cutval );
+            cutflows[0].AddCutDecisionFillHists( cutname, result, cutval );
+        }else if (cutflows.size()){
+            cutflows[0].FillCutDecisionHists( cutname, result, cutval );
         }
 
         return result;
@@ -747,49 +764,21 @@ bool ModuleConfig::PassInt( const std::string & cutname, const int cutval, const
         //std::cout<< "no cut"<<cutname<<std::endl; 
         return true;
     }
+}
 
+bool ModuleConfig::PassInt( const std::string & cutname, const int cutval, const bool docutflow  )
+{
+    return PassNum( cutname, cutval, docutflow , CutType::INT);
 }
 
 bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval , const bool docutflow  )
 {
-
-    if( HasCut( cutname ) ) {
-        const CutConfig & cut_conf = GetCut( cutname );
-        bool result = cut_conf.PassBool( cutname, cutval );
-
-        if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
-            cutflows[0].AddCutDecisionBool( cutname, result, cutval );
-        }
-
-        return result;
-    }
-    else {
-        //if the cut doesn't exist then pass
-        //std::cout<< "no cut"<<cutname<<std::endl; 
-        return true;
-    }
-
+    return PassNum( cutname, cutval, docutflow , CutType::BOOL);
 }
 
 bool ModuleConfig::PassFloat( const std::string & cutname, const float cutval , const bool docutflow )
 {
-
-    if( HasCut( cutname ) ) {
-        const CutConfig & cut_conf = GetCut( cutname );
-        bool result = cut_conf.PassFloat( cutname, cutval );
-
-        if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
-            cutflows[0].AddCutDecisionFloat( cutname, result, cutval );
-        }
-
-        return result;
-    }
-    else {
-        //if the cut doesn't exist then pass
-        return true;
-    }
-      
-
+    return PassNum( cutname, cutval, docutflow , CutType::FLOAT);
 }
 
 bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vector<int> &cutval, const bool docutflow )
@@ -1019,6 +1008,37 @@ void CutFlowModule::AddCutDecisionBool( const std::string & cutname, bool pass, 
         }
     }
 }
+
+template <typename Number>
+void CutFlowModule::AddCutDecisionFillHists( const std::string & cutname, bool pass, Number val, float weight ) {
+
+    // add cut decision
+    AddCutDecision( cutname, pass, weight );
+    // fill hists
+    FillCutDecisionHists(cutname, pass, val, weight);
+
+}
+
+template <typename Number>
+void CutFlowModule::FillCutDecisionHists( const std::string & cutname, bool pass, Number val, float weight ) {
+
+    if( hists.size() ) {
+        std::string befname = cutname + "_before";
+        std::string aftname = cutname + "_after";
+        std::map<std::string, TH1F>::iterator hitr = hists.find(befname);
+        if( hitr != hists.end() ) {
+            hitr->second.Fill( val );
+        }
+        // fill the after hist only when the cut passes
+        if( pass ) {
+            std::map<std::string, TH1F>::iterator hitr = hists.find(aftname);
+            if( hitr != hists.end() ) {
+                hitr->second.Fill( val );
+            }
+        }
+    }
+}
+
 void CutFlowModule::Print() const {
 
     // get max width

@@ -109,6 +109,11 @@ class CutFlowModule {
 
         // allow for a non-zero weight, but
         // for now assume the weight is 1
+        template <typename Number>
+        void AddCutDecisionFillHists( const std::string & cutname, bool pass, Number val, float weight =1.0);
+        template <typename Number>
+        void FillCutDecisionHists( const std::string & cutname, bool pass, Number val, float weight =1.0 );
+
         void AddCutDecision( const std::string & cutname, bool pass, float weight=1.0);
         void AddCutDecisionFloat( const std::string & cutname, bool pass, float val, float weight=1.0);
         void AddCutDecisionInt( const std::string & cutname, bool pass, int val, float weight=1.0);
@@ -120,7 +125,7 @@ class CutFlowModule {
         bool hasHist( const std::string & name ) { return ( hists.find(name) != hists.end() ); }
         TH1F getHist( const std::string & name ) { return hists.at(name); }
         const std::vector<std::string> & getOrder() { return order; }
-        void createHist( const std::string &basename, const std::string &histname, 
+        void createHist( const std::string &basename, const std::string &histname,
                          int nbin, float xmin, float xmax);
 
         void Print() const;
@@ -141,6 +146,9 @@ class ModuleConfig {
     public :
 
         ModuleConfig(const std::string &_name);
+
+        template <class Number>
+        bool PassNum( const std::string &, const Number, const bool , CutType::Type = CutType::FLOAT);
 
         bool PassBool ( const std::string & cutname, const bool  val , const bool = true);
         bool PassInt  ( const std::string & cutname, const int   val , const bool = true);
