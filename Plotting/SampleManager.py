@@ -516,7 +516,7 @@ class SampleManager :
         return self.create_sample( name=name, isRatio=True, hist=ratio_hist, temporary=True, color=color )
 
     #--------------------------------
-    def Merge(samplemanager, suffix= ""):
+    def Merge(self, samplemanager, suffix= ""):
         """ Merge SampleManagers 
             suffix: add suffix to sample names of the merged SampleManager
             destructive to merged SampleManager
