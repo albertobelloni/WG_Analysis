@@ -142,10 +142,11 @@ class ModuleConfig {
 
         ModuleConfig(const std::string &_name);
 
-        bool PassBool ( const std::string & cutname, const bool  val );
-        bool PassInt  ( const std::string & cutname, const int   val );
-        bool PassFloat( const std::string & cutname, const float val );
+        bool PassBool ( const std::string & cutname, const bool  val , const bool = false);
+        bool PassInt  ( const std::string & cutname, const int   val , const bool = false);
+        bool PassFloat( const std::string & cutname, const float val , const bool = false);
         bool PassAnyIntVector( const std::string & cutname, const std::vector<int> &val );
+        void PassCounter( const std::string & cutname , const bool result = true);
 
         std::string GetName() const {return name;}
 
