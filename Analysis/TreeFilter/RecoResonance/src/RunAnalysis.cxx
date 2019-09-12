@@ -1378,55 +1378,66 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
             // Medium cuts
             if( !use_eval || _eval_el_medium ) {
                 config.PassCounter("electron_barrel");
+                config.PassCounter("electron_endcap",true,0.0);
                 if( !config.PassFloat( "cut_absdEtaIn_barrel_medium"    , fabs(dEtaIn)        , false) ) {
-                    config.PassCounter("cut_absdEtaIn_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                   config.PassCounter("cut_absdEtaIn_medium");
                 }
                 if( !config.PassFloat( "cut_absdPhiIn_barrel_medium"    , fabs(dPhiIn)       ,false) ) {
-                    config.PassCounter("cut_absdPhiIn_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_absdPhiIn_medium");
                 }
                 if( !config.PassFloat( "cut_sigmaIEIE_barrel_medium" , sigmaIEIEFull5x5    ,false) ) {
-                    config.PassCounter("cut_sigmaIEIE_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_sigmaIEIE_medium");
                 }
                 if( !config.PassFloat( "cut_d0_barrel_medium"        , d0            ,false) ) {
-                    config.PassCounter("cut_d0_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_d0_medium");
                 }
                 if( !config.PassFloat( "cut_z0_barrel_medium"        , z0           ,false) ) {
-                    config.PassCounter("cut_z0_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_z0_medium");
                 }
                 if( !config.PassFloat( "cut_hovere_barrel_medium"    , hovere - hovere_barrel_medium_a1/el_esc - hovere_barrel_medium_a2*rho/el_esc  ,false) ) {
-                    config.PassCounter("cut_hovere_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_hovere_medium");
                 }
                 if( !config.PassFloat( "cut_ooEmooP_barrel_medium"    , ooEmooP       ,false) ) {
-                    config.PassCounter("cut_ooEmooP_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_ooEmooP_medium");
                 }
                 if( !config.PassFloat( "cut_isoRho_barrel_medium"   ,iso_rho - isorho_barrel_medium_a1 / pt ,false) ) {
-                    config.PassCounter("cut_isoRho_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_isoRho_medium");
                 }
                 if( !config.PassInt( "cut_passConvVeto_barrel_medium"   , passConvVeto       ,false) ) {
-                    config.PassCounter("cut_ConvVeto_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_ConvVeto_medium");
                 }
                 if( !config.PassInt  ( "cut_misshits_barrel_medium"  , misshits      ,false ) ) {
-                    config.PassCounter("cut_misshits_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_misshits_medium");
                 }
             }
             
@@ -1569,56 +1580,67 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
             
             // Medium cuts
             if( !use_eval || _eval_el_medium ) {
+                config.PassCounter("electron_barrel",true,0.0);
                 config.PassCounter("electron_endcap");
                 if( !config.PassFloat( "cut_absdEtaIn_endcap_medium"    , fabs(dEtaIn)      ,false ) ) {
-                    config.PassCounter("cut_absdEtaIn_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_absdEtaIn_medium");
                 }
                 if( !config.PassFloat( "cut_absdPhiIn_endcap_medium"    , fabs(dPhiIn)       ,false) ) {
-                    config.PassCounter("cut_absdPhiIn_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_absdPhiIn_medium");
                 }
                 if( !config.PassFloat( "cut_sigmaIEIE_endcap_medium" , sigmaIEIEFull5x5    ,false) ) {
-                    config.PassCounter("cut_sigmaIEIE_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_sigmaIEIE_medium");
                 }
                 if( !config.PassFloat( "cut_d0_endcap_medium"        , d0           ,false) ) {
-                    config.PassCounter("cut_d0_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_d0_medium");
                 }
                 if( !config.PassFloat( "cut_z0_endcap_medium"        , z0           ,false) ) {
-                    config.PassCounter("cut_z0_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_z0_medium");
                 }
                 if( !config.PassFloat( "cut_hovere_endcap_medium"    , hovere - hovere_endcap_medium_a1/el_esc - hovere_endcap_medium_a2*rho/el_esc ,false) ) {
-                    config.PassCounter("cut_hovere_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_hovere_medium");
                 }
                 if( !config.PassFloat( "cut_ooEmooP_endcap_medium"    , ooEmooP       ,false) ) {
-                    config.PassCounter("cut_ooEmooP_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_ooEmooP_medium");
                 }
                 if( !config.PassFloat( "cut_isoRho_endcap_medium"   ,iso_rho - isorho_endcap_medium_a1 / pt ,false) ) {
-                    config.PassCounter("cut_isoRho_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_isoRho_medium");
                 }
                 if( !config.PassInt( "cut_passConvVeto_endcap_medium"   , passConvVeto      ,false) ) {
-                    config.PassCounter("cut_ConvVeto_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_ConvVeto_medium");
                 }
                 if( !config.PassInt  ( "cut_misshits_endcap_medium"  , misshits      ,false) ) {
-                    config.PassCounter("cut_misshits_medium");
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_misshits_medium");
                 }
             }
             
@@ -1954,35 +1976,42 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
 
             // medium
             if( !use_eval || _eval_ph_medium ) {
+                config.PassCounter("electron_barrel");
+                config.PassCounter("electron_endcap",true,0.0);
                 if( !config.PassFloat( "cut_sigmaIEIE_barrel_medium"  , sigmaIEIE          ,false) ) {
-                    config.PassCounter("cut_sigmaIEIE_medium");
                     pass_medium=false;
                     pass_sieie_medium=false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_sigmaIEIE_medium");
                 }
                 if( !config.PassFloat( "cut_chIsoCorr_barrel_medium"  , pfChIsoPtRhoCorr   ,false) ) {
-                    config.PassCounter("cut_chIsoCorr_medium");
                     pass_medium=false;
                     pass_chIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_chIsoCorr_medium");
                 }
                 if( !config.PassFloat( "cut_neuIsoCorr_barrel_medium" , pfNeuIsoPtRhoCorr  ,false) ) {
-                    config.PassCounter("cut_newIsoCorr_medium");
                     pass_medium=false;
                     pass_neuIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_newIsoCorr_medium");
                 }
                 if( !config.PassFloat( "cut_phoIsoCorr_barrel_medium" , pfPhoIsoPtRhoCorr  ,false) ) {
-                    config.PassCounter("cut_phoIsoCorr_medium");
                     pass_medium=false;
                     pass_phoIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_phoIsoCorr_medium");
                 }
                 if( !config.PassFloat( "cut_hovere_barrel_medium" , hovere ,false) ) {
-                    config.PassCounter("cut_hovere_medium");
                     pass_medium=false;
                     pass_hovere_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_hovere_medium");
                 }
             }
 
@@ -2052,35 +2081,42 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
 
             // medium
             if( !use_eval || _eval_ph_medium ) {
+                config.PassCounter("electron_barrel",true,0.0);
+                config.PassCounter("electron_endcap");
                 if( !config.PassFloat( "cut_sigmaIEIE_endcap_medium"  , sigmaIEIE          ,false) ) {
-                    config.PassCounter("cut_sigmaIEIE_medium");
                     pass_medium=false;
                     pass_sieie_medium=false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_sigmaIEIE_medium");
                 }
                 if( !config.PassFloat( "cut_chIsoCorr_endcap_medium"  , pfChIsoPtRhoCorr   ,false) ) {
-                    config.PassCounter("cut_chIsoCorr_medium");
                     pass_medium=false;
                     pass_chIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_chIsoCorr_medium");
                 }
                 if( !config.PassFloat( "cut_neuIsoCorr_endcap_medium" , pfNeuIsoPtRhoCorr  ,false) ) {
-                    config.PassCounter("cut_newIsoCorr_medium");
                     pass_medium=false;
                     pass_neuIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_newIsoCorr_medium");
                 }
                 if( !config.PassFloat( "cut_phoIsoCorr_endcap_medium" , pfPhoIsoPtRhoCorr  ,false) ) {
-                    config.PassCounter("cut_phoIsoCorr_medium");
                     pass_medium=false;
                     pass_phoIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_phoIsoCorr_medium");
                 }
                 if( !config.PassFloat( "cut_hovere_endcap_medium" , hovere ,false) )  {
-                    config.PassCounter("cut_hovere_medium");
                     pass_medium=false;
                     pass_hovere_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_hovere_medium");
                 }
             }
 
