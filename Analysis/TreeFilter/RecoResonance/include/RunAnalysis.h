@@ -85,6 +85,7 @@ class RunModule : public virtual RunModuleBase {
         bool _eval_el_loose    ;
         bool _eval_el_veryloose;
         bool _needs_nlo_weght ;
+        bool _filterevent_cutflow ;
 
         std::map<int, std::vector<int> > _quality_map;
 
