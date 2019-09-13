@@ -141,7 +141,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
 
     // store the lumis for averaging
-    float int_lumi_b = 5933692351.209;
+    /*float int_lumi_b = 5933692351.209;
     float int_lumi_c = 2761135761.229;
     float int_lumi_d = 4525903884.794;
     float int_lumi_e = 4318519409.159;
@@ -151,93 +151,123 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
     float int_lumi_bcdef = int_lumi_b + int_lumi_c + int_lumi_d + int_lumi_e + int_lumi_f;
     float int_lumi_gh  = int_lumi_g + int_lumi_h;
-
+    */
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
 
         if( mod_conf.GetName() == "AddMuonSF" ) { 
+	  std::map<std::string, std::string>::const_iterator bcdef;
+	  std::map<std::string, std::string>::const_iterator gh;
+	  bcdef = mod_conf.GetInitData().find( "LumiBCDEF" );
+	  gh = mod_conf.GetInitData().find( "LumiGH" );
+	  float lumi_bcdef = 0.;
+	  float lumi_gh = 0.;
+	  if (bcdef != mod_conf.GetInitData().end())
+	    {
+	      lumi_bcdef = std::stof(bcdef->second);
+	      std::cout << "lumi bcdef = " << lumi_bcdef << std::endl;
+	    }
+	  else
+	    {	    
+	      std::cout << "Warning: could not get integrated luminosity for BCDEF!" << std::endl;
+	    }
+	  if (gh != mod_conf.GetInitData().end())
+	    {
+	      lumi_gh = std::stof(gh->second);
+	      std::cout << "lumi gh = " << lumi_gh << std::endl;
+	    }
+	  else
+	    {	    
+	      std::cout << "Warning: could not get integrated luminosity for GH!" << std::endl;
+	    }
+	  
             std::map<std::string, std::string>::const_iterator itr;
+            std::map<std::string, std::string>::const_iterator hname;
 
             itr = mod_conf.GetInitData().find( "FilePathIsoBCDEF" );
+	    hname = mod_conf.GetInitData().find( "HistIsoBCDEF" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_iso_bcdef = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_iso_bcdef->IsOpen() ) {
-                    TH2D * thishist =  dynamic_cast<TH2D*>(_sffile_mu_iso_bcdef->Get( "NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt" ));
+		  TH2D * thishist =  dynamic_cast<TH2D*>(_sffile_mu_iso_bcdef->Get( (hname->second).c_str() ));
                     if( !thishist ) {
 		      std::cout << "could not get hist from file " << _sffile_mu_iso_bcdef->GetName() << std::endl;
                     }
-                    _sfhists_mu_iso.push_back(std::make_pair(int_lumi_bcdef,  thishist));
+                    _sfhists_mu_iso.push_back(std::make_pair(lumi_bcdef,  thishist));
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
             itr = mod_conf.GetInitData().find( "FilePathIsoGH" );
+            hname = mod_conf.GetInitData().find( "HistIsoGH" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_iso_gh = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_iso_gh->IsOpen() ) {
-                    TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_iso_gh->Get( "NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt" ));
+		  TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_iso_gh->Get( (hname->second).c_str() ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_iso_gh->GetName() << std::endl;
                     }
-                    _sfhists_mu_iso.push_back(std::make_pair(int_lumi_gh, thishist));
+                    _sfhists_mu_iso.push_back(std::make_pair(lumi_gh, thishist));
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
             itr = mod_conf.GetInitData().find( "FilePathIdBCDEF" );
+            hname = mod_conf.GetInitData().find( "HistIdBCDEF" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_id_bcdef = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_id_bcdef->IsOpen() ) {
-                    TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_id_bcdef->Get( "NUM_TightID_DEN_genTracks_eta_pt" ) );
+		  TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_id_bcdef->Get( (hname->second).c_str() ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_id_bcdef->GetName() << std::endl;
                     }
-                    _sfhists_mu_id.push_back(std::make_pair(int_lumi_bcdef, thishist) );
+                    _sfhists_mu_id.push_back(std::make_pair(lumi_bcdef, thishist) );
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
             itr = mod_conf.GetInitData().find( "FilePathIdGH" );
+            hname = mod_conf.GetInitData().find( "HistIdGH" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_id_gh = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_id_gh->IsOpen() ) {
-                    TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_id_gh->Get( "NUM_TightID_DEN_genTracks_eta_pt" ));
+                    TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_id_gh->Get( (hname->second).c_str() ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_id_gh->GetName() << std::endl;
                     }
-                    _sfhists_mu_id.push_back(std::make_pair(int_lumi_gh, thishist));
+                    _sfhists_mu_id.push_back(std::make_pair(lumi_gh, thishist));
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
             itr = mod_conf.GetInitData().find( "FilePathTrigBCDEF" );
+            hname = mod_conf.GetInitData().find( "HistTrigBCDEF" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_trig_bcdef = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_trig_bcdef->IsOpen() ) {
-		  //TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_bcdef->Get( "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ));
-                    TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_bcdef->Get( "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ));
+                    TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_bcdef->Get( (hname->second).c_str() ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_trig_bcdef->GetName() << std::endl;
                     }
-                    _sfhists_mu_trig.push_back(std::make_pair(int_lumi_bcdef, thishist));
+                    _sfhists_mu_trig.push_back(std::make_pair(lumi_bcdef, thishist));
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
             itr = mod_conf.GetInitData().find( "FilePathTrigGH" );
+            hname = mod_conf.GetInitData().find( "HistTrigGH" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_trig_gh = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_trig_gh->IsOpen() ) {
-		  //TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_gh->Get( "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ));
-                    TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_gh->Get( "IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio" ));
+                    TH2F * thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_gh->Get( (hname->second).c_str() ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_trig_gh->GetName() << std::endl;
                     }
-                    _sfhists_mu_trig.push_back(std::make_pair(int_lumi_gh, thishist));
+                    _sfhists_mu_trig.push_back(std::make_pair(lumi_gh, thishist));
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
@@ -246,33 +276,52 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         }
         if( mod_conf.GetName() == "AddElectronSF" ) { 
             std::map<std::string, std::string>::const_iterator itr;
+            std::map<std::string, std::string>::const_iterator hname;
 
             itr = mod_conf.GetInitData().find( "FilePathCutID" );
+            hname = mod_conf.GetInitData().find( "HistCutID" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_el_id = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_el_id = dynamic_cast<TH2F*>(_sffile_el_id->Get( "EGamma_SF2D" ));
+                _sfhist_el_id = dynamic_cast<TH2F*>(_sffile_el_id->Get( (hname->second).c_str() ));
             }
             itr = mod_conf.GetInitData().find( "FilePathRecoHighPt" );
+            hname = mod_conf.GetInitData().find( "HistRecoHighPt" );
             if( itr != mod_conf.GetInitData().end() ){
                 _sffile_el_recohighpt = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_el_recohighpt = dynamic_cast<TH2F*>(_sffile_el_recohighpt->Get("EGamma_SF2D"));
+                _sfhist_el_recohighpt = dynamic_cast<TH2F*>(_sffile_el_recohighpt->Get( (hname->second).c_str() ));
             }
             itr = mod_conf.GetInitData().find( "FilePathRecoLowPt" );
+            hname = mod_conf.GetInitData().find( "HistRecoLowPt" );
             if( itr != mod_conf.GetInitData().end() ){
                 _sffile_el_recolowpt = TFile::Open( (itr->second).c_str(), "READ" );
-                _sfhist_el_recolowpt = dynamic_cast<TH2F*>(_sffile_el_recolowpt->Get("EGamma_SF2D"));
+                _sfhist_el_recolowpt = dynamic_cast<TH2F*>(_sffile_el_recolowpt->Get( (hname->second).c_str() ) );
             }
         }
         if( mod_conf.GetName() == "AddPhotonSF" ) { 
             std::map<std::string, std::string>::const_iterator itr;
+            std::map<std::string, std::string>::const_iterator hname;
+
             itr = mod_conf.GetInitData().find( "FilePathId" );
+            hname = mod_conf.GetInitData().find( "HistId" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_ph_id = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_ph_id->IsOpen() ) { 
-                    _sfhist_ph_id   = dynamic_cast<TH2F*>(_sffile_ph_id->Get( "EGamma_SF2D" ) );
+		  _sfhist_ph_id   = dynamic_cast<TH2F*>(_sffile_ph_id->Get( (hname->second).c_str() ) );
                     if( !_sfhist_ph_id ) {
                         std::cout << "could not get hist from file " << _sffile_ph_id->GetName() << std::endl;
                     }
+                }
+                else {
+                    std::cout << "Could not open file " << itr->second << std::endl;
+                }
+            }
+            itr = mod_conf.GetInitData().find( "FilePathPSveto" );
+            if( itr != mod_conf.GetInitData().end() ) {
+                _sffile_ph_psv   = TFile::Open( (itr->second).c_str(), "READ" );
+                if( _sffile_ph_psv->IsOpen() ) { 
+		  hname = mod_conf.GetInitData().find( "HistPSveto" );
+                    _sfhist_ph_psv  = dynamic_cast<TH2D*>(_sffile_ph_psv->Get( (hname->second).c_str() ) );
+                    if( !_sfhist_ph_psv ) std::cout << "Could not get PSV hist from file " << _sffile_ph_ev->GetName() << std::endl;
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
@@ -282,9 +331,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_ph_ev   = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_ph_ev->IsOpen() ) { 
-                    _sfhist_ph_psv  = dynamic_cast<TH2D*>(_sffile_ph_ev->Get( "Scaling_Factors_HasPix_R9 Inclusive" ) );
-                    _sfhist_ph_csev = dynamic_cast<TH2D*>(_sffile_ph_ev->Get( "Scaling_Factors_CSEV_R9 Inclusive" ) );
-                    if( !_sfhist_ph_psv ) std::cout << "Could not get PSV hist from file " << _sffile_ph_ev->GetName() << std::endl;
+		    hname = mod_conf.GetInitData().find( "HistCSEveto" );
+                    _sfhist_ph_csev = dynamic_cast<TH2D*>(_sffile_ph_ev->Get( (hname->second).c_str() ) );
                     if( !_sfhist_ph_csev ) std::cout << "Could not get CSEV hist from file " << _sffile_ph_ev->GetName() << std::endl;
                 }
                 else {
@@ -696,7 +744,7 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     std::vector<float> isoerrsdn;
 
 
-    /*
+    
     if( OUT::mu_n == 1 )  { // our trigger SFs are only available for single muon triggers
         float feta = fabs(OUT::mu_eta->at(0));
         float pt   =      OUT::mu_pt_rc ->at(0) ;
@@ -713,7 +761,7 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
             std::cout << "AddMuonSF -- WARNING : muon pt or eta out of range " << pt << " " << feta << std::endl;
         }
     }
-    */
+    
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         float eta =   OUT::mu_eta->at(idx);

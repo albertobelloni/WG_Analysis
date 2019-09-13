@@ -97,6 +97,7 @@ class RunModule : public virtual RunModuleBase {
         TH2F *_sfhist_el_recolowpt;
 
         TFile *_sffile_ph_id;
+        TFile *_sffile_ph_psv;
         TFile *_sffile_ph_ev;
 
         TH2F *_sfhist_ph_id;
