@@ -84,13 +84,32 @@ def nevents_calc(cross_section, lumi, gen_eff = 1.0, k_factor = 1.0 , **kwargs):
     """ calculate expectant normalization of MC events for a given lumi """
     return cross_section * lumi * gen_eff * k_factor
 
+def walk_root_text(rootdir, skipdir = True):
+    for rd, d in walk_root(rootdir, True):
+        if not (skipdir and d.InheritsFrom("TDirectory")):
+            yield maketfilepath(rd,d)
 
-def walk_root(rootdir):
+def maketfilepath(rd, d):
+    path = rd.GetPath().split(":")
+    if len(path)>1:
+        fullpath = path[-1] + "/" + d.GetName()
+        return fullpath.lstrip("/")
+
+def walk_root(rootdir, flatten = False):
     rootdir, newrootdirs, dataobjs = parse_root_dir(rootdir)
-    yield rootdir, newrootdirs, dataobjs
+    if flatten:
+        for d in dataobjs:
+            yield rootdir, d
+    else:
+        yield rootdir, newrootdirs, dataobjs
     for rd in newrootdirs:
-        for rootdir, newrootdirs, dataobjs in walk_root(rd):
-            yield rootdir, newrootdirs, dataobjs
+        if flatten:
+            yield rootdir, rd
+            for rootdir, o in walk_root(rd, True):
+                yield rootdir, o
+        else:
+            for rootdir, newrootdirs, dataobjs in walk_root(rd):
+                yield rootdir, newrootdirs, dataobjs
 
 def parse_root_dir(rootdir):
     if not (isinstance(rootdir, ROOT.TObject) and rootdir.InheritsFrom("TDirectory")):
