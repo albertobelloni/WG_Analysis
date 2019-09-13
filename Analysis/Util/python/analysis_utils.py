@@ -1,4 +1,5 @@
 import os
+import ROOT
 
 class Printer() :
     """ print tabulated data with variable column width """
@@ -83,5 +84,20 @@ def nevents_calc(cross_section, lumi, gen_eff = 1.0, k_factor = 1.0 , **kwargs):
     """ calculate expectant normalization of MC events for a given lumi """
     return cross_section * lumi * gen_eff * k_factor
 
+
+def walk_root(rootdir):
+    rootdir, newrootdirs, dataobjs = parse_root_dir(rootdir)
+    yield rootdir, newrootdirs, dataobjs
+    for rd in newrootdirs:
+        for rootdir, newrootdirs, dataobjs in walk_root(rd):
+            yield rootdir, newrootdirs, dataobjs
+
+def parse_root_dir(rootdir):
+    if not (isinstance(rootdir, ROOT.TObject) and rootdir.InheritsFrom("TDirectory")):
+        return rootdir, [], []
+    dataobjs, newrootdirs = [],[]
+    for o in [k.ReadObj() for k in rootdir.GetListOfKeys()]:
+        newrootdirs.append(o) if o.InheritsFrom("TDirectory") else dataobjs.append(o)
+    return rootdir, newrootdirs, dataobjs
 
 

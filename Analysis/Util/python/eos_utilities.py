@@ -1,4 +1,4 @@
-import subprocess 
+import subprocess
 import os
 import sys
 import time
@@ -37,13 +37,13 @@ def walk_eos(path) :
 
 #---------------------------------------------------------
 def parse_eos_dir(path, DEBUG=False) :
-    
+
     # remove leading xrootd for using xrd dirlist
     #res = re.match('/xrootd/(.*)', path)
     #if res is not None :
     #    path = res.group(1)
     directories = []
-    files = [] 
+    files = []
     sizes = []
 
     #print 'PATH = ', path
@@ -59,7 +59,7 @@ def parse_eos_dir(path, DEBUG=False) :
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=None,bufsize=-1)
     # p.wait() hangs indefinately on large directories
     # (this is a known issue https://docs.python.org/2/library/subprocess.html#subprocess.Popen.wait)
-    # so instead, just use a short sleep to 
+    # so instead, just use a short sleep to
     # ensure the command has completed
     #time.sleep(2)
     #p.wait()
@@ -83,7 +83,7 @@ def parse_eos_dir(path, DEBUG=False) :
                 print 'Cannot parse line :'
                 print line
                 print 'Here is the path'
-                print path 
+                print path
                 print 'Here is the full entry'
                 print result
             continue
@@ -97,6 +97,6 @@ def parse_eos_dir(path, DEBUG=False) :
         else :
             files.append(obj)
             sizes.append( int(size) )
-        
+
     return directories, files, sizes
 
