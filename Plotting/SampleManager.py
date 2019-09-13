@@ -404,6 +404,13 @@ class SampleManager :
         self.added_sample_group=False
 
     #--------------------------------
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            return self.samples[index]
+        if isinstance(index, str):
+            return self.get_samples(name = index)[0]
+
+    #--------------------------------
     def quietprint(self,*msg):
         """ samplemanager.quietprint(*msg)
             if samplemanager.quiet is set to True
@@ -2635,10 +2642,6 @@ class SampleManager :
 
         sample.hist = None
 
-        #if sample.hist is not None :
-        #    sample.hist.SetTitle( sampname )
-        #    sample.hist.Sumw2()
-        #    ROOT.SetOwnership(sample.hist, False )
 
         # Draw the histogram.  Use histpars as the bin limits if given
         if sample.IsGroupedSample() :
@@ -2675,6 +2678,10 @@ class SampleManager :
                 else:
                     sample.failed_draw=True
             ## normalize to cross_section
+            if sample.hist is not None :
+                sample.hist.SetTitle( sampname )
+                sample.hist.Sumw2()
+                ROOT.SetOwnership(sample.hist, False )
             sample.SetHist()
             return True
 
