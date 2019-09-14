@@ -285,6 +285,8 @@ class Sample :
     def getLineStyle( self ) :
         return self.lineStyle
 
+    def walk_text(self, index=0):
+        return list(analysis_utils.walk_root_text(self.ofiles[index]))
 
 class SampleManager :
     """ Manage input samples and drawn histograms """
@@ -2670,7 +2672,7 @@ class SampleManager :
             sample.failed_draw=False
             for f in sample.ofiles:
                 histtemp = f.Get(histname)    
-                print f, histtemp, histname
+                #print f, histtemp, histname
                 if histtemp and not sample.hist:
                     sample.hist = histtemp.Clone()
                 elif histtemp:
@@ -3215,6 +3217,7 @@ class SampleManager :
         for prim in topcan.GetListOfPrimitives() :
             if isinstance(prim, ROOT.TH1F) :
                 if ymin is not None and ymax is not None :
+                    print "set_canvas_default_formatting:SetRangeUser ",ymin, ymax
                     prim.GetYaxis().SetRangeUser( ymin, ymax )
                 prim.SetTitle('')
                 offset = 1.15
@@ -3319,14 +3322,16 @@ class SampleManager :
             #oneline.Draw()
             #self.add_decoration(oneline)
 
+    @f_Dumpfname
     def calc_yaxis_limits(self, draw_config ) :
 
         ymin       = draw_config.get_ymin()
         ymax       = draw_config.get_ymax()
         ymax_scale = draw_config.get_ymax_scale()
+        logy       = draw_config.get_logy()
 
-        calcymax = 0
-        calcymin = 0.5
+        #calcymax = 0
+        #calcymin = 0.5
         #samplist = self.get_samples(isActive=True )
         samplist = self.get_samples()
         normalize = draw_config.get_normalize()
@@ -3342,19 +3347,29 @@ class SampleManager :
         #    if nmin < ymin :
         #        calcymin = nmin
         maxarray =[samp.hist.GetMaximum() for samp in samplist if samp.hist]
+        minarray =[samp.hist.GetMinimum(0) for samp in samplist if samp.hist]
 
 
         if ymax is None :
             ymax = max(maxarray)
 
         if ymin is None :
-            ymin = min(maxarray+[1]) /2.
+            ymin = min(minarray) 
 
-        if ymax_scale is not None :
-            ymax *= ymax_scale
+        if ymax_scale is None :
+            ymax_scale = 1.2
+        if logy:
+            if ymax<=0:
+                ymax=None
+            if ymin<=0:
+                ymin=None
+            if ymin and ymax:
+                ymax *= pow(ymax/ymin,ymax_scale-1)
+                ymin *= pow(ymax/ymin,0.9-1)
         else :
-            ymax *= 1.2
+            ymax *= ymax_scale
 
+        print maxarray, minarray, ymin, ymax
         return (ymin, ymax)
 
     def create_standard_canvas(self, name='base') :
@@ -3548,9 +3563,14 @@ class SampleManager :
                 print 'Top stack has no hists! Exiting'
                 return
             topcan.Draw()
-            topcan.SetMinimum(ymin)
-            topcan.SetMaximum(ymax)
-            self.set_stack_default_formatting( topcan, doratio, logy=draw_config.get_logy())
+            logy = draw_config.get_logy()
+            if ymin and not (logy and ymin<=0):
+                topcan.SetMinimum(ymin) 
+                print "SetMinimum ",ymin
+            if ymax and not (logy and ymax<=0): 
+                topcan.SetMaximum(ymax)
+                print "SetMaximum ",ymax
+            self.set_stack_default_formatting( topcan, doratio, logy=logy)
 
 
         # draw the data
@@ -3706,29 +3726,31 @@ class SampleManager :
         drawopt = draw_config.get_drawopt()
         drawhist = draw_config.get_drawhist()
 
-        ## calculate y range
-        calcymax = 0
-        calcymin = 0.5
-        for samp in samples :
-            hmax = samp.hist.GetMaximum()
-            hmin = samp.hist.GetMaximum()
-            if normalize and samp.hist.Integral() != 0 :
-                hmax = hmax / samp.hist.Integral()
-                hmin = hmin / samp.hist.Integral()
-            if hmax > calcymax :
-                calcymax = hmax
-            if hmin < calcymin :
-                calcymin = hmin
+        ymin, ymax = self.calc_yaxis_limits(draw_config )
 
-        if ymax is None :
-            ymax = calcymax
-        if ymin is None :
-            ymin = calcymin
-        if ymax_scale is not None :
-            ymax *= ymax_scale
-        else :
-            ymax *= 1.2
-        ymin *= 0.8
+        ### calculate y range
+        #calcymax = 0
+        #calcymin = 0.5
+        #for samp in samples :
+        #    hmax = samp.hist.GetMaximum()
+        #    hmin = samp.hist.GetMaximum()
+        #    if normalize and samp.hist.Integral() != 0 :
+        #        hmax = hmax / samp.hist.Integral()
+        #        hmin = hmin / samp.hist.Integral()
+        #    if hmax > calcymax :
+        #        calcymax = hmax
+        #    if hmin < calcymin :
+        #        calcymin = hmin
+
+        #if ymax is None :
+        #    ymax = calcymax
+        #if ymin is None :
+        #    ymin = calcymin
+        #if ymax_scale is not None :
+        #    ymax *= ymax_scale
+        #else :
+        #    ymax *= 1.2
+        #ymin *= 0.8
 
         first = True
         for hist_name, hist_config in draw_config.hist_configs.iteritems() :
@@ -3773,7 +3795,11 @@ class SampleManager :
                 elif normalize and draw_samp.hist.Integral() != 0  :
                     draw_samp.hist.Scale(1.0/draw_samp.hist.Integral())
 
-                draw_samp.hist.GetYaxis().SetRangeUser(ymin, ymax)
+                if ymin is not None and ymax is not None and ymin<ymax:
+                    print "set %s histogram y range: %g, %g" %(draw_samp.name, ymin, ymax)
+                    draw_samp.hist.GetYaxis().SetRangeUser(ymin, ymax)
+                else:
+                    print "warning: %s histogram fail to set range "%draw_samp.name, ymin, ymax
 
                 #draw_samp.hist.Draw(drawcmd+'goff')
                 draw_samp.hist.Draw(drawcmd)
