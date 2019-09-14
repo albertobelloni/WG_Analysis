@@ -123,9 +123,9 @@ class DrawConfig :
         return ylabel
 
     def get_xlabel(self) :
-
         xunit = self.hist_config.get('xunit', 'GeV')
-        return self.hist_config.get('xlabel',"" ) + '[%s]' %xunit
+        unitstr = "[%s]" %xunit if xunit else ""
+        return self.hist_config.get('xlabel',"" ) + unitstr
 
     def get_rlabel(self) :
         rlabel = self.hist_config.get('rlabel', None)

@@ -165,7 +165,6 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
                 std::cout<< "bin"<< i <<std::endl; 
                 if (strlen(hfilter->GetXaxis()->GetBinLabel(i)) == 0){
                   ifilter = i-1;
-                  std::cout<< "break with ifilter = "<< ifilter<< std::endl; 
                   break;
                 }
               }
@@ -176,7 +175,6 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
                 hfilter = new TH1D("filter","filter",nbinsx*2,0,nbinsx*2);
                 hfilter->Add(htemp);
                 ifilter = nbinsx;
-                std::cout<< "nobreak with ifilter = "<< ifilter<< std::endl; 
                 // copy the labels over
                 for (int i = 1; i <= nbinsx; i++){
                   const char* labeltemp = htemp->GetXaxis()->GetBinLabel(i); 
@@ -249,16 +247,10 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
                     outfile->mkdir( conf.GetName().c_str() );
                     outfile->cd(conf.GetName().c_str() );
 
-                    BOOST_FOREACH( const std::string & cutname, conf.getCutFlows()[0].getOrder() ) {
-                        std::string befname = cutname+"_before";
-                        std::string aftname = cutname+"_after";
-                        if( conf.getCutFlows()[0].hasHist(befname) ) {
-                            conf.getCutFlows()[0].getHist(befname).Write();
-                        }
-                        if( conf.getCutFlows()[0].hasHist(aftname) ) {
-                            conf.getCutFlows()[0].getHist(aftname).Write();
-                        }
+                    for (auto const & h : conf.getCutFlows()[0].getHists()){
+                      h.second.Write();
                     }
+
                     conf.WriteCutFlowHists( outfile );
                     conf.PrintCutFlows( );
                 }
@@ -752,8 +744,10 @@ bool ModuleConfig::PassNum( const std::string & cutname, const Number cutval, co
         }
 
         if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
+          //std::cout<< "with cutflow"<<std::endl; 
             cutflows[0].AddCutDecisionFillHists( cutname, result, cutval );
         }else if (cutflows.size()){
+          //std::cout<< "without cutflow"<<std::endl; 
             cutflows[0].FillCutDecisionHists( cutname, result, cutval );
         }
 
@@ -922,6 +916,7 @@ void CutFlowModule::createHist( const std::string &basename, const std::string &
                                 int nbin, float xmin, float xmax) 
 {
 
+  std::cout<< "insert histograms " << basename << ":"<< histname<< " "<< hists.size()<<std::endl; 
     hists.insert( std::make_pair(histname, 
                                  TH1F( ( basename + "_" + histname).c_str(), histname.c_str(), 
                                  nbin, xmin, xmax ) ) );
@@ -946,68 +941,16 @@ void CutFlowModule::AddCutDecision( const std::string & cutname, bool pass, floa
 
 }
 
+/*
 void CutFlowModule::AddCutDecisionFloat( const std::string & cutname, bool pass, float val, float weight ) {
-
-    AddCutDecision( cutname, pass, weight );
-    // fill hists
-    if( hists.size() ) {
-        std::string befname = cutname + "_before";
-        std::string aftname = cutname + "_after";
-        std::map<std::string, TH1F>::iterator hitr = hists.find(befname);
-        if( hitr != hists.end() ) {
-            hitr->second.Fill( val );
-        }
-        // fill the after hist only when the cut passes
-        if( pass ) {
-            std::map<std::string, TH1F>::iterator hitr = hists.find(aftname);
-            if( hitr != hists.end() ) {
-                hitr->second.Fill( val );
-            }
-        }
-    }
 }
 
 void CutFlowModule::AddCutDecisionInt( const std::string & cutname, bool pass, int val, float weight ) {
-
-    AddCutDecision( cutname, pass, weight );
-    // fill hists
-    if( hists.size() ) {
-        std::string befname = cutname + "_before";
-        std::string aftname = cutname + "_after";
-        std::map<std::string, TH1F>::iterator hitr = hists.find(befname);
-        if( hitr != hists.end() ) {
-            hitr->second.Fill( val );
-        }
-        // fill the after hist only when the cut passes
-        if( pass ) {
-            std::map<std::string, TH1F>::iterator hitr = hists.find(aftname);
-            if( hitr != hists.end() ) {
-                hitr->second.Fill( val );
-            }
-        }
-    }
 }
 
 void CutFlowModule::AddCutDecisionBool( const std::string & cutname, bool pass, bool val, float weight ) {
-
-    AddCutDecision( cutname, pass, weight );
-    // fill hists
-    if( hists.size() ) {
-        std::string befname = cutname + "_before";
-        std::string aftname = cutname + "_after";
-        std::map<std::string, TH1F>::iterator hitr = hists.find(befname);
-        if( hitr != hists.end() ) {
-            hitr->second.Fill( val );
-        }
-        // fill the after hist only when the cut passes
-        if( pass ) {
-            std::map<std::string, TH1F>::iterator hitr = hists.find(aftname);
-            if( hitr != hists.end() ) {
-                hitr->second.Fill( val );
-            }
-        }
-    }
-}
+} 
+*/
 
 template <typename Number>
 void CutFlowModule::AddCutDecisionFillHists( const std::string & cutname, bool pass, Number val, float weight ) {
