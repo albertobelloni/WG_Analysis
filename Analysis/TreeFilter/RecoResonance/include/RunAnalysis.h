@@ -94,6 +94,7 @@ class RunModule : public virtual RunModuleBase {
 
         std::map<int, bool> triggerResults;
         std::map<int, bool> metfilterResults;
+        std::map<int, std::string> triggerNames;
 
         TFile * _puweight_sample_file;
         TFile * _puweight_data_file;
