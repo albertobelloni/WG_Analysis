@@ -3325,49 +3325,41 @@ class SampleManager :
     @f_Dumpfname
     def calc_yaxis_limits(self, draw_config ) :
 
-        ymin       = draw_config.get_ymin()
-        ymax       = draw_config.get_ymax()
-        ymax_scale = draw_config.get_ymax_scale()
-        logy       = draw_config.get_logy()
+        ymindef     = draw_config.get_ymin()
+        ymaxdef     = draw_config.get_ymax()
+        ymax_scale  = draw_config.get_ymax_scale()
+        logy        = draw_config.get_logy()
+        ymin,ymax   = ymindef, ymaxdef
+        print "default ymaxmin: ", ymaxdef, ymindef
+        maxarray, minarray = [], []
 
-        #calcymax = 0
-        #calcymin = 0.5
-        #samplist = self.get_samples(isActive=True )
         samplist = self.get_samples()
         normalize = draw_config.get_normalize()
         if not normalize: samplist+=self.get_samples( name='__AllStack__' )
-        #for samp in samplist:
-        #    if samp.hist == None :
-        #        continue
-        #    nmax = samp.hist.GetMaximum()
-        #    nmin = samp.hist.GetMaximum()
 
-        #    if nmax > calcymax :
-        #        calcymax = nmax
-        #    if nmin < ymin :
-        #        calcymin = nmin
-        maxarray =[samp.hist.GetMaximum() for samp in samplist if samp.hist]
-        minarray =[samp.hist.GetMinimum(0) for samp in samplist if samp.hist]
-
-
-        if ymax is None :
+        if ymaxdef is None :
+            maxarray =[samp.hist.GetMaximum() for samp in samplist if samp.hist]
             ymax = max(maxarray)
 
-        if ymin is None :
+        if ymindef is None :
+            minarray =[samp.hist.GetMinimum(0) for samp in samplist if samp.hist]
             ymin = min(minarray) 
 
         if ymax_scale is None :
             ymax_scale = 1.2
-        if logy:
-            if ymax<=0:
-                ymax=None
-            if ymin<=0:
-                ymin=None
-            if ymin and ymax:
-                ymax *= pow(ymax/ymin,ymax_scale-1)
-                ymin *= pow(ymax/ymin,0.9-1)
-        else :
-            ymax *= ymax_scale
+
+        # scale ymax, only if default is not given
+        if ymin and ymax:
+            if logy:
+                # log scale only makes sense with positive numbers
+                if ymax<=0:
+                    ymax=None
+                if ymin<=0:
+                    ymin=None
+                if not ymaxdef: ymax *= pow(ymax/ymin,ymax_scale-1)
+                if not ymindef: ymin *= pow(ymax/ymin,0.9-1)
+            else :
+                if not ymaxdef: ymax += (ymax-ymin)*ymax_scale
 
         print maxarray, minarray, ymin, ymax
         return (ymin, ymax)
