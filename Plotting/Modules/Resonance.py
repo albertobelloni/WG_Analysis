@@ -5,151 +5,156 @@ def config_samples(samples) :
     samples.AddSample('SingleMuon'                       , path='SingleMuon'    ,  isActive=False, isData = True)
     samples.AddSample('SingleElectron'                       , path='SingleElectron'    ,  isActive=False, isData = True)
 
-    samples.AddSample('DYJetsToLL_M-50', 
-                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
-                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+    samples.AddSample('DYJetsToLL_M-50',
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('DYJetsToLL_M-50-amcatnloFXFX', 
-                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
-                      #path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+    samples.AddSample('DYJetsToLL_M-50-amcatnloFXFXPhOlap',
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap',
+                      isActive=False, useXSFile=True,XSName='DYJetsToLL_M-50-amcatnloFXFX' )
+
+    samples.AddSample('DYJetsToLL_M-50-amcatnloFXFX',
+                      path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('ZGTo2LG', 
-                      path='ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
-                      isActive=False, useXSFile=True )
-    
-    samples.AddSample('TTJets_DiLept', 
-                      path='TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
-                      #path='TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+    samples.AddSample('ZGTo2LG',
+                      path='ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('TTJets_SingleLeptFromTbar', 
-                      path='TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('TTJets_DiLept',
+                      path='TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
+                      #path='TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('TTJets_SingleLeptFromT', 
-                      path='TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('TTJets_SingleLeptFromTbar',
+                      path='TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('TTGJets', 
-                      path='TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', 
+    samples.AddSample('TTJets_SingleLeptFromT',
+                      path='TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('WGToLNuG-amcatnloFXFX', 
-                      path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+    samples.AddSample('TTGJets',
+                      path='TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8',
+                      isActive=False, useXSFile=True )
+
+    samples.AddSample('WGToLNuG-amcatnloFXFX',
+                      path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange )
 
-    samples.AddSample('WGToLNuG-madgraphMLM', 
-                      path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+    samples.AddSample('WGToLNuG-madgraphMLM',
+                      path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange )
 
-    samples.AddSample('WGToLNuG_PtG-130-amcatnloFXFX', 
-                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+    samples.AddSample('WGToLNuG_PtG-130-amcatnloFXFX',
+                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet )
 
-    samples.AddSample('WGToLNuG_PtG-130-madgraphMLM', 
-                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+    samples.AddSample('WGToLNuG_PtG-130-madgraphMLM',
+                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet )
 
-    samples.AddSample('WGToLNuG_PtG-500-amcatnloFXFX', 
-                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+    samples.AddSample('WGToLNuG_PtG-500-amcatnloFXFX',
+                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8',
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan   )
 
-    samples.AddSample('WGToLNuG_PtG-500-madgraphMLM', 
-                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+    samples.AddSample('WGToLNuG_PtG-500-madgraphMLM',
+                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan   )
 
-    samples.AddSample('WGToLNuG-amcatnloFXFXPhCut', 
-                      path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', 
-                      #path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax', 
+    samples.AddSample('WGToLNuG-amcatnloFXFXPhCut',
+                      path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax',
+                      #path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-amcatnloFXFX')
 
-    samples.AddSample('WGToLNuG_PtG-130-amcatnloFXFXPhCut', 
-                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin', 
-                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin', 
+    samples.AddSample('WGToLNuG_PtG-130-amcatnloFXFXPhCut',
+                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin',
+                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-amcatnloFXFX' )
 
-    samples.AddSample('WGToLNuG_PtG-500-amcatnloFXFXPhCut', 
-                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMin', 
+    samples.AddSample('WGToLNuG_PtG-500-amcatnloFXFXPhCut',
+                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan, XSName='WGToLNuG_PtG-500-amcatnloFXFX'   )
 
-    samples.AddSample('WGToLNuG-madgraphMLMPhCut', 
-                      path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax', 
-                      #path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax', 
+    samples.AddSample('WGToLNuG-madgraphMLMPhCut',
+                      path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax',
+                      #path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-madgraphMLM' )
 
-    samples.AddSample('WGToLNuG_PtG-130-madgraphMLMPhCut', 
-                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin', 
-                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin', 
+    samples.AddSample('WGToLNuG_PtG-130-madgraphMLMPhCut',
+                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin',
+                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-madgraphMLM' )
 
-    samples.AddSample('WGToLNuG_PtG-500-madgraphMLMPhCut', 
-                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMin', 
+    samples.AddSample('WGToLNuG_PtG-500-madgraphMLMPhCut',
+                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan , XSName='WGToLNuG_PtG-500-madgraphMLM'  )
 
-    samples.AddSample('WGToLNuG-madgraphMLMMTResCut', 
-                      #path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
-                      path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax', 
+    samples.AddSample('WGToLNuG-madgraphMLMMTResCut',
+                      #path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                      path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-madgraphMLM' )
 
-    samples.AddSample('WGToLNuG_PtG-130-madgraphMLMMTResCut', 
-                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
-                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin', 
+    samples.AddSample('WGToLNuG_PtG-130-madgraphMLMMTResCut',
+                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-madgraphMLM' )
 
-    samples.AddSample('WGToLNuG_PtG-500-madgraphMLMMTResCut', 
-                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+    samples.AddSample('WGToLNuG_PtG-500-madgraphMLMMTResCut',
+                      path='WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan , XSName='WGToLNuG_PtG-500-madgraphMLM'  )
 
 
-    samples.AddSample('WJetsToLNu-madgraphMLM', 
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', 
+    samples.AddSample('WJetsToLNu-madgraphMLM',
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
+                      isActive=False, useXSFile=True )
+
+    samples.AddSample('WJetsToLNu-madgraphMLMPhOlap',
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('WJetsToLNu-amcatnloFXFX',
-                      #path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', 
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', 
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('WWG', 
-                      path='WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', 
+    samples.AddSample('WWG',
+                      path='WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('DiPhoton', 
-                      path='DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', 
+    samples.AddSample('DiPhoton',
+                      path='DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('WJetsToLNuTrueHTOlap', 
-                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlapPhOlap', 
+    samples.AddSample('WJetsToLNuTrueHTOlap',
+                      path='WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8TrueHTOlapPhOlap',
                       isActive=False, plotColor=ROOT.kGreen-5, useXSFile=True, XSName='WJetsToLNu-madgraphMLM')
 
-    samples.AddSample('WJetsToLNu_HT-100To200', 
-                      path='WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('WJetsToLNu_HT-100To200',
+                      path='WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, plotColor=ROOT.kGreen , useXSFile=True )
 
-    samples.AddSample('WJetsToLNu_HT-200To400', 
-                      path='WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('WJetsToLNu_HT-200To400',
+                      path='WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, plotColor=ROOT.kCyan  , useXSFile=True )
 
-    samples.AddSample('WJetsToLNu_HT-400To600', 
-                      path='WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('WJetsToLNu_HT-400To600',
+                      path='WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, plotColor=ROOT.kViolet, useXSFile=True )
 
-    samples.AddSample('WJetsToLNu_HT-600To800', 
-                      path='WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('WJetsToLNu_HT-600To800',
+                      path='WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, plotColor=ROOT.kOrange, useXSFile=True )
 
-    samples.AddSample('WJetsToLNu_HT-800To1200', 
-                      path='WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('WJetsToLNu_HT-800To1200',
+                      path='WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, plotColor=ROOT.kSpring, useXSFile=True )
 
-    samples.AddSample('WJetsToLNu_HT-1200To2500', 
-                      path='WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('WJetsToLNu_HT-1200To2500',
+                      path='WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, plotColor=ROOT.kGray  , useXSFile=True )
 
-    samples.AddSample('WJetsToLNu_HT-2500ToInf', 
-                      path='WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', 
+    samples.AddSample('WJetsToLNu_HT-2500ToInf',
+                      path='WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, plotColor=ROOT.kRed+6  , useXSFile=True )
 
     samples.AddSample('WJetsToLNu_Pt-0To50',
@@ -281,7 +286,7 @@ def config_samples(samples) :
     samples.AddSample('PythiaResonanceMass4000_width5', path='PythiaChargedResonance_WGToLNu_M4000_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 4000 GeV', XSName='ResonanceMass4000')
 
 
-    samples.AddSampleGroup( 'Data', legend_name='Data', 
+    samples.AddSampleGroup( 'Data', legend_name='Data',
                             input_samples = [
                                              'SingleMuon',
                                              'SingleElectron',
@@ -293,35 +298,35 @@ def config_samples(samples) :
 
     samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
                            input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut'],
-                           #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-madgraphMLMPhCut'],
-                           #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            #input_samples = ['WGToLNuG-amcatnloFXFX'],
                            plotColor = ROOT.kRed-2,
                            isActive=True,
                           )
 
-    samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
-                           #input_samples = ['DYJetsToLL_M-50'],
-                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
-                           plotColor = ROOT.kCyan-2,
-                           isActive=False
-                          )
-    samples.AddSampleGroup(  'Z+jetsLO', legend_name='Z+JetsLO',
-                           input_samples = ['DYJetsToLL_M-50'],
-                           #input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
-                           plotColor = ROOT.kCyan-2,
-                           isActive=False,
-                          )
-
-    samples.AddSampleGroup(  'Z+jets2', legend_name='Z+Jets@nlo',
-                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
-                           plotColor = ROOT.kCyan-5,
+    samples.AddSampleGroup( 'GammaGamma', legend_name='#gamma#gamma',
+                           input_samples = [
+                                           'DiPhoton',
+                           ],
+                           plotColor = ROOT.kYellow,
                           )
 
     samples.AddSampleGroup(  'Zgamma', legend_name='Z#gamma',
                            input_samples = ['ZGTo2LG'],
                            plotColor = ROOT.kRed-8,
                           )
+
+    samples.AddSampleGroup(  'Z+jetsLO', legend_name='Z+JetsLO',
+                           input_samples = ['DYJetsToLL_M-50'],
+                           plotColor = ROOT.kCyan-2,
+                           isActive=False,
+                          )
+
+    samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
+                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFXPhOlap'],
+                           #input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
+                           plotColor = ROOT.kCyan-5,
+                          )
+
 
 
 
@@ -396,12 +401,6 @@ def config_samples(samples) :
                            #isActive=False,
                           )
 
-    samples.AddSampleGroup( 'GammaGamma', legend_name='#gamma#gamma',
-                           input_samples = [
-                                           'DiPhoton',
-                           ],
-                           plotColor = ROOT.kYellow,
-                          )
 
 
 
@@ -442,7 +441,7 @@ def config_samples(samples) :
                            input_samples = ['Wjets', 'TTbar_SingleLep'],
                            isActive=False,
                           )
-    samples.AddSampleGroup( 'EleFakeBackground', 
+    samples.AddSampleGroup( 'EleFakeBackground',
                            input_samples = ['Z+jets', 'Zgamma', 'TTbar_DiLep'],
                            isActive=False,
                           )

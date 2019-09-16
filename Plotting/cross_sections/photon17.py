@@ -7,7 +7,7 @@
 ( 'DYJetsToLL_M-50'               , { 'n_evt' : 46294554, 'cross_section' : 6225, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from 
 ( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 123584524, 'cross_section' : 6225, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
 ( 'ZGTo2LG'                       , { 'n_evt' : 19282022, 'cross_section' : 117.864, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from  total events = 13626718
-( 'TTJets_DiLept'                 , { 'n_evt' : 27924233, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
+( 'TTJets_DiLept'                 , { 'n_evt' : 27924233, 'cross_section'  :  815*.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
 ( 'TTJets_SingleLeptFromT'        , { 'n_evt' : 61761347, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
 ( 'TTJets_SingleLeptFromTbar'     , { 'n_evt' : 56705550, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
 ( 'TTGJets'                       , { 'n_evt' : 4623345, 'cross_section' : 3.697, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM
@@ -36,7 +36,7 @@
 ( 'GJets_HT-200To400'             , { 'n_evt' : 16995110, 'cross_section' : 2300, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
 ( 'GJets_HT-400To600'             , { 'n_evt' : 4646958, 'cross_section' : 277.4, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
 ( 'GJets_HT-600ToInf'             , { 'n_evt' : 3108230, 'cross_section' : 85.31, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
-( 'DiPhoton'                      , { 'n_evt' : 1533189, 'cross_section' : 84., 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section from HGG AN, total events = 35505641 # kak: changed 248 to 84
+( 'DiPhoton'                      , { 'n_evt' : 1533189, 'cross_section' : 135., 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section from HGG AN, total events = 35505641 # kak: changed 248 to 84
 
 
  ('ResonanceMass200'        , { 'n_evt' : 50000, 'cross_section' : 0.001*21.927083486735327,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
