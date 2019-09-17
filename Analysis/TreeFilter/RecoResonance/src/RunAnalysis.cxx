@@ -643,8 +643,9 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                 // get the mapping of trigger ID to the name
                 // This could be taken from the TrigInfoTree
                 std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
-                for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
-                    std::vector<std::string> name_id_map = Tokenize( *bitr, ":" );
+                //for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
+                for ( auto const& bitr : trigger_bit_list ){
+                    std::vector<std::string> name_id_map = Tokenize( bitr, ":" );
                     std::stringstream ss_id( name_id_map[0] );
                     // convert the ID to an int
                     int trig_id;
@@ -652,6 +653,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     // make an entry in the output map
                     triggerResults[trig_id] = 0;
                     outtree->Branch(name_id_map[1].c_str(), &(triggerResults[trig_id]), (name_id_map[1]+"/O").c_str() );
+                    triggerNames[trig_id] = name_id_map[1];
+                    //mod_conf.PassCounter(name_id_map[1], true, 0.0);
                 }
             }
             eitr = mod_conf.GetInitData().find( "AuxTreeName" );
@@ -2473,6 +2476,15 @@ bool RunModule::FilterEvent( ModuleConfig & config ) const {
 
     bool keep_event = true;
 
+    for( auto const& itr: triggerNames){
+      int triggerid = itr.first ;
+      std::string triggername = itr.second ;
+      bool pass = triggerResults.at(triggerid);
+
+      config.PassCounter(triggername, pass );
+    
+    }
+
     if( !config.PassInt( "cut_el_n"     , OUT::el_n        ) ) { 
         if (_filterevent_cutflow) return false;
         keep_event=false; 
@@ -2526,16 +2538,17 @@ bool RunModule::FilterTrigger( ModuleConfig & config ) {
     std::vector<int> passed_ids;
     // for each configured trigger, get its decision and store the result 
     // in the output branch
-    for( std::map<int, bool>::iterator itr = triggerResults.begin();
-            itr != triggerResults.end() ; ++itr ) {
+    //for( std::map<int, bool>::iterator itr = triggerResults.begin();
+    //        itr != triggerResults.end() ; ++itr ) {
+    for( auto& itr : triggerResults ) {
 
-        if( std::find( IN::passedTriggers->begin(), IN::passedTriggers->end(), itr->first ) 
+        if( std::find( IN::passedTriggers->begin(), IN::passedTriggers->end(), itr.first ) 
                 != IN::passedTriggers->end() ) {
-            itr->second = true;
-            passed_ids.push_back( itr->first );
+            itr.second = true;
+            passed_ids.push_back( itr.first );
         }
         else {
-            itr->second = false;
+            itr.second = false;
         }
     }
 
