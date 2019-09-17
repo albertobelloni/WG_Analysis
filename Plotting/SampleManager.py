@@ -3329,20 +3329,29 @@ class SampleManager :
         ymaxdef     = draw_config.get_ymax()
         ymax_scale  = draw_config.get_ymax_scale()
         logy        = draw_config.get_logy()
+        normalize = draw_config.get_normalize()
         ymin,ymax   = ymindef, ymaxdef
-        print "default ymaxmin: ", ymaxdef, ymindef
         maxarray, minarray = [], []
 
         samplist = self.get_samples()
-        normalize = draw_config.get_normalize()
-        if not normalize: samplist+=self.get_samples( name='__AllStack__' )
+        #if not normalize: samplist+=self.get_samples( name='__AllStack__' )
 
         if ymaxdef is None :
-            maxarray =[samp.hist.GetMaximum() for samp in samplist if samp.hist]
+            if normalize = "Total":
+                maxarray =[samp.hist.GetMaximum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
+            elif normalize:
+                maxarray =[samp.hist.GetMaximum()/samp.hist.Integral() for samp in samplist if samp.hist and samp.hist.Integral()>0]
+            else:
+                maxarray =[samp.hist.GetMaximum() for samp in samplist if samp.hist]
             ymax = max(maxarray)
 
         if ymindef is None :
-            minarray =[samp.hist.GetMinimum(0) for samp in samplist if samp.hist]
+            if normalize = "Total":
+                minarray =[samp.hist.GetMinimum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
+            elif normalize:
+                minarray =[samp.hist.GetMinimum()/samp.hist.Integral() for samp in samplist if samp.hist and samp.hist.Integral()>0]
+            else:
+                minarray =[samp.hist.GetMinimum(0) for samp in samplist if samp.hist]
             ymin = min(minarray) 
 
         if ymax_scale is None :
