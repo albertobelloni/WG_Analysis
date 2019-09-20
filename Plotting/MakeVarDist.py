@@ -213,14 +213,3 @@ def hformat(h1,color):
 
 main()
 
-    
-
-
-
-
-    
-    
-
-
-
-
