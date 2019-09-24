@@ -55,16 +55,17 @@ def f_Dumpfname(func):
     return echo_func
 
 def latex_float(f, u=None):
-    float_str = "{0:.3g}".format(f)
+    if f!=0 and abs(f)<0.1: float_str = "{0:.3e}".format(f)
+    else:          float_str = "{0:.4g}".format(f)
     if "e" in float_str:
         base, exponent = float_str.split("e")
-        if u:
+        if u is not None:
             u=u/10**int(exponent)
             uncer_str = "{0:.3g}".format(u)
-            return r"{0} & \pm {1} \times 10^{{{2}}}".format(base, uncer_str, int(exponent))
-        return r"{0} \times 10^{{{1}}}".format(base, int(exponent))
+            return r"${0}$ & $\pm {1} \times 10^{{{2}}}$".format(base, uncer_str, int(exponent))
+        return r"${0} \times 10^{{{1}}}$&".format(base, int(exponent))
     elif u:
-        return r"{0} & \pm {1:.3g}".format(float_str, u)
+        return r"${0}$ & $\pm {1:.3g}$".format(float_str, u)
     else:
         return float_str
 
@@ -121,7 +122,7 @@ class Sample :
         self.drawRatio = kwargs.get('drawRatio', False)
 
         self.weightmap = kwargs.get('weightmap', None)
-        print "weightmap", self.name, self.weightmap
+        #print "weightmap", self.name, self.weightmap
         if self.weightmap == None:
             self.weightmap = { }
 
@@ -286,6 +287,7 @@ class Sample :
         return self.lineStyle
 
     def walk_text(self, index=0):
+        if not self.ofiles: return []
         return list(analysis_utils.walk_root_text(self.ofiles[index]))
 
 class SampleManager :
@@ -2435,9 +2437,10 @@ class SampleManager :
 
         self.curr_legend = self.create_standard_legend( step, draw_config=draw_config)
 
-        if self.get_signal_samples():
+        nsigsamp = len(self.get_signal_samples())
+        if nsigsamp:
            ## neeed to plot signal distributions
-           self.curr_sig_legend = self.create_standard_legend(step, draw_config=draw_config, isSignalLegend = True)
+           self.curr_sig_legend = self.create_standard_legend(nsigsamp, draw_config=draw_config, isSignalLegend = True)
         else:
            self.curr_sig_legend = None
 
@@ -2458,6 +2461,7 @@ class SampleManager :
                tmp_sig_legend_entries.append( (samp.hist, samp.legendName, 'L'))
             else:
                tmp_legend_entries.append( ( samp.hist, samp.legendName,  'F') )
+        print "tmp_legend_entries", tmp_legend_entries
 
         self.quietprint( '********************NOT FILLING SIGNAL ENTRY IN LEGEND**********************')
         #for samp in self.get_signal_samples() :
@@ -2845,7 +2849,8 @@ class SampleManager :
             return
 
         else :
-            if sample.chain is not None and sample.chain.GetEntries():
+            if sample.chain is not None: 
+                if sample.chain.GetEntries() == 0: print '\033[1;31m WARNING: No entries from sample %s \033[0m' %sample.name
                 if not self.quiet or sample.isData: print 'Make %s hist %s : \033[1;31m %s\033[0m' %(sample.name, varexp,selection)
                 res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
                 if res < 0 :
@@ -3337,7 +3342,7 @@ class SampleManager :
         #if not normalize: samplist+=self.get_samples( name='__AllStack__' )
 
         if ymaxdef is None :
-            if normalize = "Total":
+            if normalize == "Total":
                 maxarray =[samp.hist.GetMaximum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
             elif normalize:
                 maxarray =[samp.hist.GetMaximum()/samp.hist.Integral() for samp in samplist if samp.hist and samp.hist.Integral()>0]
@@ -3346,7 +3351,7 @@ class SampleManager :
             ymax = max(maxarray)
 
         if ymindef is None :
-            if normalize = "Total":
+            if normalize == "Total":
                 minarray =[samp.hist.GetMinimum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
             elif normalize:
                 minarray =[samp.hist.GetMinimum()/samp.hist.Integral() for samp in samplist if samp.hist and samp.hist.Integral()>0]
@@ -3510,11 +3515,12 @@ class SampleManager :
         result = self.get_stack_count(integralrange, **kwargs).items()
         if dolatex:
             #result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
-            result = [ (r1,latex_float(*r2)) for r1, r2 in result]
+            result = [ (r1.replace("gamma","\\gamma ").replace("Gamma","\\gamma ").replace("\\gamma$$\\gamma","\\gamma\\gamma"),
+                        latex_float(*r2)) for r1, r2 in result]
             printline = ""
-            for r in result[:-1]: printline+= "%20s & $%s$\\\\\n" %r
-            printline+= "\\hline\\hline\n%20s & $%s$\\\\\n" %result[-1]
-            print printline.replace("gamma","\\gamma ").replace("Gamma","\\gamma ").replace("G","\\gamma ")
+            for r in result[:-1]: printline+= "%20s & %s\\\\\n" %r
+            printline+= "\\hline\\hline\n%20s & %s\\\\\n" %result[-1]
+            print printline
             return
 
         result = [ (r1,)+r2 for r1, r2 in result]
@@ -3522,8 +3528,8 @@ class SampleManager :
         if len(result)>1 and result[-1][0]=="TOTAL":
             totalresult = result[-1]
             result = result[:-1]
-        for r in result: print "%60s %8.3g +/- %5.3g" %r
-        if totalresult: print "="*35+"\n%60s %8.3g +/- %5.3g" %totalresult
+        for r in result: print "%30s %8.3g +/- %5.3g" %r
+        if totalresult: print "="*45+"\n%30s %8.3g +/- %5.3g" %totalresult
         return
 
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
@@ -3590,7 +3596,7 @@ class SampleManager :
 
 
         # draw the signals
-        legendTextSize = draw_config.legend_config.get('legendTextSize', 0.04 )
+        legendTextSize = draw_config.legend_config.get('legendTextSize', 0.035 )
         #print legendTextSize
         if sighists :
             #sigsamps = self.get_samples(name=sighists)
@@ -4164,7 +4170,6 @@ class SampleManager :
 
     # ----------------------------------------------------------------------------
     # TLegend is initialized
-#    def create_standard_legend(self, nentries,draw_config=None ) :
     def create_standard_legend(self, nentries,draw_config=None , isSignalLegend = False) :
 
         legend_config = {}
@@ -4182,15 +4187,14 @@ class SampleManager :
         entryWidth       = legend_config.get('entryWidth', self.entryWidth )
 
         siglegPos        = legend_config.get('siglegPos',  self.siglegPos)
+        fillalpha        = legend_config.get('fillalpha',  False)
 
 
         if legendLoc == 'TopLeft' :
             legend_limits = { 'x1' : 0.2+legendTranslateX, 'y1' : 0.88-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.5*legendWiden+legendTranslateX, 'y2' : 0.88+legendTranslateY }
         elif legendLoc == 'Double' :
-            #legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.90+0.1-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
             legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.6+legendTranslateY ,
-                              'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
-            #legend_limits = { 'x1' : 0.9-0.35*legendWiden+legendTranslateX, 'y1' : 0.90-legendCompress*entryWidth/2.0*nentries+legendTranslateY, 'x2' : 0.9+legendTranslateX, 'y2' : 0.90+legendTranslateY }
+                              'x2' : 0.6*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
         else :
             legend_limits = { 'x1' : 0.9-0.25*legendWiden+legendTranslateX, 'y1' : 0.85-legendCompress*entryWidth*nentries+legendTranslateY,
                               'x2' : 0.90+legendTranslateX,                 'y2' : 0.85+legendTranslateY }
@@ -4198,7 +4202,6 @@ class SampleManager :
         # modify for different canvas size
         if draw_config.get_doratio():
             legend_limits['y1'] = legend_limits['y1']*0.90
-            #legend_limits['y2'] = legend_limits['y2']*1.05
 
         # grab stored legend limits
         if self.legendLimits :
@@ -4214,7 +4217,12 @@ class SampleManager :
         leg = ROOT.TLegend(legend_limits['x1'], legend_limits['y1'],
                            legend_limits['x2'], legend_limits['y2'])
 
-        leg.SetFillColor(ROOT.kWhite)
+        if fillalpha == True:
+            leg.SetFillColorAlpha(ROOT.kWhite,0) # transparent if fillalpha is float or True(0: transparent)
+        elif isinstance(fillalpha,float) and fillalpha<=1 and fillalpha>=0:
+            leg.SetFillColorAlpha(ROOT.kWhite, fillalpha)
+        else:
+            leg.SetFillColor(ROOT.kWhite)
         leg.SetBorderSize(0)
 
         if legendLoc == 'Double' and not isSignalLegend:
