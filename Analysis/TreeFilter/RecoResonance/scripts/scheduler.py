@@ -10,7 +10,7 @@ p.add_argument( '--check', dest='check', default=False, action='store_true', hel
 p.add_argument( '--clean', dest='clean', default=False, action='store_true', help='Run cleanup of extra files' )
 p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true', help='Only submit missing output' )
 p.add_argument( '--local', dest='local', default=False, action='store_true', help='Run locally' )
-p.add_argument( '--year', dest='year', help='Specify the year' )
+p.add_argument( '--year', dest='year', help='Specify the year', type=int)
 p.add_argument( '--test', dest='test', default=False, action='store_true', help='Run a test job' )
 options = p.parse_args()
 
@@ -37,7 +37,7 @@ options.copyInputFiles=False
 options.enableKeepFilter=True
 options.enableRemoveFilter=False
 options.filekey = 'ntuple'
-options.year = 2016
+#options.year = 2016
 #options.PUPath='/data/users/jkunkle/Resonances/PileupHistograms'
 #options.PUPath='/data/users/friccita/WGammaNtuple/Pileup'
 #options.PUPath='/data/users/kakw/Resonances2017/pileuptest/' ## testonly

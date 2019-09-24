@@ -10,6 +10,7 @@ p.add_argument( '--check'   , dest='check'   , default=False, action='store_true
 p.add_argument( '--clean'   , dest='clean'   , default=False, action='store_true', help='Run cleanup of extra files' )
 p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true', help='Only submit missing output' )
 p.add_argument( '--local'   , dest='local'   , default=False , action='store_true', help='Run locally'                )
+p.add_argument( '--year', dest='year', help='Specify the year', type=int )
 options = p.parse_args()
 
 if not options.check :
@@ -18,13 +19,12 @@ else :
     options.run = False
 
 options.batch = ( not options.local )
-options.year = 2016
 
 ### ATTENTION! Here you specify the directory containing the ntuples that you want to run over.
 base = '/data/users/friccita/WGammaNtuple/'
 
 
-jobs = [
+jobs2016 = [
         #--------------------------
         JobConf(base, 'SingleMuon', isData=True, year=2016         ),
         #JobConf(base, 'SingleElectron', isData=True, year=2016        ),
@@ -160,6 +160,10 @@ jobs = [
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width0p01' ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width0p01' ),
 ]
+
+if options.year==2016: jobs=jobs2016
+if options.year==2017: jobs=jobs2017
+if options.year==2018: jobs=jobs2018 
 
 options.nFilesPerJob = 1
 

@@ -155,6 +155,12 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
 
         if( mod_conf.GetName() == "AddMuonSF" ) { 
+	  std::map<std::string, std::string>::const_iterator muyear = mod_conf.GetInitData().find("year");
+	  if (muyear != mod_conf.GetInitData().end())
+	    {
+	      _year_mu = std::stoi(muyear->second);
+	    }
+
 	  std::map<std::string, std::string>::const_iterator bcdef;
 	  std::map<std::string, std::string>::const_iterator gh;
 	  bcdef = mod_conf.GetInitData().find( "LumiBCDEF" );
@@ -298,6 +304,12 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             }
         }
         if( mod_conf.GetName() == "AddPhotonSF" ) { 
+	  std::map<std::string, std::string>::const_iterator phyear = mod_conf.GetInitData().find("year");
+	  if (phyear != mod_conf.GetInitData().end())
+	    {
+	      _year_ph = std::stoi(phyear->second);
+	    }
+
             std::map<std::string, std::string>::const_iterator itr;
             std::map<std::string, std::string>::const_iterator hname;
 
@@ -665,17 +677,35 @@ void RunModule::AddPhotonSF( ModuleConfig & /*config*/ ) const {
         float eta = OUT::ph_eta->at(idx);
 
         ValWithErr res_id   = GetVals2D( _sfhist_ph_id, eta, pt );
-        ValWithErr res_psv  = GetVals2D( _sfhist_ph_psv, fabs(eta), pt );
-        ValWithErr res_csev = GetVals2D( _sfhist_ph_csev, fabs(eta), pt );
-
         sfs_id .push_back(res_id.val );
         errs_id.push_back(res_id.err_up);
 
-        sfs_csev .push_back(res_csev.val );
-        errs_csev.push_back(res_csev.err_up);
+	if (_year_ph == 2016)
+	  {
+	    ValWithErr res_psv  = GetVals2D( _sfhist_ph_psv, fabs(eta), pt );
+	    ValWithErr res_csev = GetVals2D( _sfhist_ph_csev, fabs(eta), pt );
 
-        sfs_psv .push_back(res_psv.val );
-        errs_psv.push_back(res_psv.err_up);
+	    sfs_csev .push_back(res_csev.val );
+	    errs_csev.push_back(res_csev.err_up);
+	    
+	    sfs_psv .push_back(res_psv.val );
+	    errs_psv.push_back(res_psv.err_up);
+	  }
+	else if (_year_ph == 2017 || _year_ph == 2018)
+	  {
+	    ValWithErr res_psv  = PhGetVals1D( _sfhist_ph_psv );
+	    ValWithErr res_csev = PhGetVals1D( _sfhist_ph_csev );
+
+	    sfs_csev .push_back(res_csev.val );
+	    errs_csev.push_back(res_csev.err_up);
+	    
+	    sfs_psv .push_back(res_psv.val );
+	    errs_psv.push_back(res_psv.err_up);
+	  }
+	else
+	  std::cout << "ERROR AddPhotonSF: year not recognized!" << std::endl;
+
+
 
     }
 
@@ -748,7 +778,18 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     if( OUT::mu_n == 1 )  { // our trigger SFs are only available for single muon triggers
         float feta = fabs(OUT::mu_eta->at(0));
         float pt   =      OUT::mu_pt_rc ->at(0) ;
-        if( pt > 26 && feta < 2.4 ) {
+
+	float ptcut = -999.;
+	if (_year_mu == 2016)
+	  ptcut = 26.;
+	else if (_year_mu == 2017)
+	  ptcut = 29.;
+	else if (_year_mu == 2018)
+	  ptcut = 26.;
+	else
+	  std::cout << "ERROR AddMuonSF: year not recognized!" << std::endl;
+
+        if( pt > ptcut && feta < 2.4 ) {
 
             ValWithErr entry;
             entry = GetValsRunRange2D( _sfhists_mu_trig, pt, feta );
@@ -756,6 +797,7 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
             OUT::mu_trigSF = entry.val;
             OUT::mu_trigSFUP = entry.val + entry.err_up;
             OUT::mu_trigSFDN = entry.val - entry.err_dn;
+
         }
         else {
             std::cout << "AddMuonSF -- WARNING : muon pt or eta out of range " << pt << " " << feta << std::endl;
@@ -768,20 +810,37 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         float pt   =   OUT::mu_pt_rc ->at(idx) ;
 	float phi = OUT::mu_phi->at(idx);
 	float Q = OUT::mu_charge->at(idx);
+	float feta = fabs(eta);
 
-        ValWithErr entry_id;
-        ValWithErr entry_iso;
-        entry_id  = GetValsRunRange2D( _sfhists_mu_id,  eta, pt );
-        entry_iso = GetValsRunRange2D( _sfhists_mu_iso, eta, pt );
+	ValWithErr entry_id;
+	ValWithErr entry_iso;
+	if (_year_mu == 2016)
+	  { // 2016
+	    entry_id  = GetValsRunRange2D( _sfhists_mu_id,  eta, pt );
+	    entry_iso = GetValsRunRange2D( _sfhists_mu_iso, eta, pt );
+	  } // 2016
+	if (_year_mu == 2017)
+	  { // 2017
+	    entry_id  = GetValsRunRange2D( _sfhists_mu_id,  pt, feta );
+	    entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
+	  } // 2017
+	if (_year_mu == 2018)
+	  { // 2018
+	    entry_id  = GetValsRunRange2D( _sfhists_mu_id,  pt, feta);
+	    entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
+	  } // 2018
+	else
+	  std::cout << "Error AddMuonSF: year not recognized!" << std::endl;
 
-        idsfs.push_back( entry_id.val );
-        iderrsup.push_back( entry_id.err_up );
-        iderrsdn.push_back( entry_id.err_dn );
+	idsfs.push_back( entry_id.val );
+	iderrsup.push_back( entry_id.err_up );
+	iderrsdn.push_back( entry_id.err_dn );
+	
+	isosfs.push_back( entry_iso.val );
+	isoerrsup.push_back( entry_iso.err_up);
+	isoerrsdn.push_back( entry_iso.err_dn);
 
-        isosfs.push_back( entry_iso.val );
-        isoerrsup.push_back( entry_iso.err_up);
-        isoerrsdn.push_back( entry_iso.err_dn);
-
+	// Tracking sf's are not needed anymore!
         //trksfs.push_back( entry_trk.val);
         //trkerrsup.push_back( entry_trk.err_up );
         //trkerrsdn.push_back( entry_trk.err_dn );
@@ -815,6 +874,20 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     }
 
 #endif
+}
+
+template<class HIST> ValWithErr RunModule::PhGetVals1D( const HIST* hist ) const {
+
+  ValWithErr result;
+  int nbinsX = hist->GetNbinsX();
+
+  // Assumes only EB photons!
+  result.val    = hist->GetBinContent(1);
+  result.err_up = hist->GetBinError(1) ;
+  result.err_dn = result.err_up;
+
+  return result;
+
 }
 
 template<class HIST> ValWithErr RunModule::GetVals2D( const HIST* hist, float xvar, float yvar ) const {
