@@ -6,7 +6,7 @@
  # https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
 ( 'DYJetsToLL_M-50'               , { 'n_evt' : 100194597, 'cross_section' : 6225, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from 
 ( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 676319, 'cross_section' : 6225, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
-( 'ZGTo2LG'                       , { 'n_evt' : 8816038, 'cross_section' : 117.864, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from  total events = 13626718
+( 'ZGTo2LG'                       , { 'n_evt' : 8816038, 'cross_section' : 55.63, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # From GenXSecAnalyzer
 ( 'TTJets_DiLept'                 , { 'n_evt' : 28701360, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
 ( 'TTJets_SingleLeptFromT'        , { 'n_evt' : 36442628, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
 ( 'TTJets_SingleLeptFromTbar'     , { 'n_evt' : 57053143, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge

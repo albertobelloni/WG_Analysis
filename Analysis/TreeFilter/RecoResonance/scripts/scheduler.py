@@ -56,6 +56,7 @@ if options.test :
     options.local = True
 
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
+
 output_base = '/data2/users/kakw/Resonances%i/' %options.year
 #output_base = '/afs/cern.ch/work/k/kawong/Resonances%i/' %options.year
 jobtag = '_2019_08_22_beta'
