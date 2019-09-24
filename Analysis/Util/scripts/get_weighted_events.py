@@ -34,7 +34,6 @@ def main () :
 
 
     ntuple_files_run=ntuple_files
-    #ntuple_files_run=ntuple_files[:-80]
 
     if options.tchain:
         mychain = ROOT.TChain( options.treeName )
@@ -54,7 +53,7 @@ def main () :
         totalEvents = 0
         weightedEvents = 0
 
-        weighthist = ROOT.TH1F( 'weighthist', 'weighthist', 2, -100000, 100000 )
+        weighthist = ROOT.TH1D( 'weighthist', 'weighthist', 2, -100000, 100000 )
 
         print mychain.GetEntries()
         n_raw.append(  mychain.GetEntries() )
@@ -98,7 +97,8 @@ def main () :
 rejectlist = ["failed","SingleElectron","SingleMuon","EGamma"]
 includelist = ["UMDNTuple_0506_2016","UMDNTuple_0506_2017","UMDNTuple_0506_2018",]
 def submitjobs():
-    basepath ="/eos/cms/store/group/phys_exotica/Wgamma"
+    #basepath ="/eos/cms/store/group/phys_exotica/Wgamma"
+    basepath = "/store/user/kawong/WGamma2/"
 
     if options.directory: basepath = options.directory
     dirlist = []
@@ -109,8 +109,8 @@ def submitjobs():
 #        "MINUTE      = 60",
 #        "periodic_hold = (CurrentTime - JobCurrentStartDate) >= 600 * $(MINUTE)",
 #        "periodic_release = NumJobStarts<5",
-        "priority=0", #"Initialdir = ",
-        '+jobFlavour= "workday" ',
+        #"priority=0", #"Initialdir = ",
+        #'+jobFlavour= "workday" ',
         "Executable = get_weighted_events.py", ]
 
     for b,d,f in os.walk(basepath,followlinks=True):
@@ -138,7 +138,7 @@ def makecondorjob(basedir,tag,desc_entries):
         "output = weighted/%s/stdout$(cluster)_$(process)_%s%s.txt" %tag,
         "error = weighted/%s/stderr$(cluster)_$(process)_%s%s.txt"  %tag,
         "log = weighted/%s/condor$(cluster)_$(process)_%s%s.txt" %tag,
-        "arguments = --dir %s" %basedir,
+        "arguments = --dir %s %s" %(basedir,"--tchain" if options.tchain else ""), 
         "queue",]
 
 def submitcondorjob(desc_entries):

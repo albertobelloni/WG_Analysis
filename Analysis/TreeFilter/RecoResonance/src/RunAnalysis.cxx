@@ -44,12 +44,14 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 			    std::vector<ModuleConfig> &configs ) {
 
     _input_tree = chain;
+    _outfile = outfile;
     // *************************
     // initialize trees
     // *************************
     InitINTree(chain);
     InitOUTTree( outtree );
 
+    h_EventWeight = new TH1D("weighthist","weighthist",2,-1.1,1.1);
     OUT::mu_pt20_n                              = 0;
     OUT::mu_pt30_n                              = 0;
     OUT::mu_pt_rc                               = 0;
@@ -548,45 +550,62 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("PUWeightDN5", &OUT::PUWeightDN5, "PUWeightDN5/F" );
     outtree->Branch("PUWeightDN10", &OUT::PUWeightDN10, "PUWeightDN10/F" );
 
+
+    std::map<std::string, std::string>::const_iterator eitr;
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
     
         if( mod_conf.GetName() == "FilterBlind" ) { 
-            std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "isData" );
+
+            eitr = mod_conf.GetInitData().find( "isData" );
             if( eitr != mod_conf.GetInitData().end() ) {
                 std::string data = eitr->second;
                 std::transform(data.begin(), data.end(), data.begin(), ::tolower);
                 if( data=="true") _isData=true;
                 else              _isData=false;
             }
+
+        }
+        if( mod_conf.GetName() == "FilterEvent" ) { 
+
+            eitr = mod_conf.GetInitData().find( "evalCutflow" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+                std::string evalcutflow = eitr->second;
+                std::transform(evalcutflow.begin(), evalcutflow.end(), evalcutflow.begin(), ::tolower);
+                if( evalcutflow=="true") _filterevent_cutflow=true;
+                else                     _filterevent_cutflow=false;
+            }
+
         }
         if( mod_conf.GetName() == "FilterMuon" ) { 
-	  //Rochester input file
-	  std::map<std::string, std::string>::const_iterator itr;
-	  itr = mod_conf.GetInitData().find( "FilePathRochester" );
-	  if( itr != mod_conf.GetInitData().end() ) {
-	    rc.init((itr->second).c_str());
-	  }
-	  //trigger
-	  std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "triggerMatchBits" );
-	  if( eitr != mod_conf.GetInitData().end() ) {
-	    std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
-	    for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
-	      std::stringstream ss_id( *bitr );
-	      int trig_id;
-	      ss_id >> trig_id;
-	      _muonTrigMatchBits.push_back(trig_id);
-	    }
-	  }
-	  eitr = mod_conf.GetInitData().find( "evalPID" );
-	  if( eitr != mod_conf.GetInitData().end() ) {
-	    std::string pid = eitr->second;
-	    if( pid == "tight"     ) _eval_mu_tight       = true;
-	    if( pid == "medium"    ) _eval_mu_medium      = true;
-	    if( pid == "loose"    ) _eval_mu_loose      = true;
-	  }
+
+            //Rochester input file
+            eitr = mod_conf.GetInitData().find( "FilePathRochester" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+              rc.init((eitr->second).c_str());
+            }
+            //trigger
+             eitr = mod_conf.GetInitData().find( "triggerMatchBits" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+              std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
+              for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
+                std::stringstream ss_id( *bitr );
+                int trig_id;
+                ss_id >> trig_id;
+                _muonTrigMatchBits.push_back(trig_id);
+              }
+            }
+            eitr = mod_conf.GetInitData().find( "evalPID" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+              std::string pid = eitr->second;
+              if( pid == "tight"     ) {  _eval_mu_tight       = true; std::cout<< "eval only mu tight"<<std::endl; }
+              if( pid == "medium"    ) {  _eval_mu_medium      = true; std::cout<< "eval only mu medium"<<std::endl; }
+              if( pid == "loose"     ) {  _eval_mu_loose       = true; std::cout<< "eval only mu loose"<<std::endl; }
+            }
+
         }
         if( mod_conf.GetName() == "FilterElectron" ) { 
-	  std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "triggerMatchBits" );
+
+	           eitr = mod_conf.GetInitData().find( "triggerMatchBits" );
             if( eitr != mod_conf.GetInitData().end() ) {
                 std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
                 for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
@@ -604,24 +623,29 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                 if( pid == "loose"     ) _eval_el_loose       = true;
                 if( pid == "veryloose" ) _eval_el_veryloose   = true;
             }
+
         }
         if( mod_conf.GetName() == "FilterPhoton" ) { 
-            std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "evalPID" );
+
+             eitr = mod_conf.GetInitData().find( "evalPID" );
             if( eitr != mod_conf.GetInitData().end() ) {
                 std::string pid = eitr->second;
                 if( pid == "tight"     ) _eval_ph_tight       = true;
                 if( pid == "medium"    ) _eval_ph_medium      = true;
                 if( pid == "loose"     ) _eval_ph_loose       = true;
             }
+
         }
         if( mod_conf.GetName() == "FilterTrigger" ) { 
-            std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "triggerBits" );
+
+             eitr = mod_conf.GetInitData().find( "triggerBits" );
             if( eitr != mod_conf.GetInitData().end() ) {
                 // get the mapping of trigger ID to the name
                 // This could be taken from the TrigInfoTree
                 std::vector<std::string> trigger_bit_list = Tokenize( eitr->second, "," );
-                for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
-                    std::vector<std::string> name_id_map = Tokenize( *bitr, ":" );
+                //for( std::vector<std::string>::const_iterator bitr = trigger_bit_list.begin(); bitr != trigger_bit_list.end(); ++bitr ) {
+                for ( auto const& bitr : trigger_bit_list ){
+                    std::vector<std::string> name_id_map = Tokenize( bitr, ":" );
                     std::stringstream ss_id( name_id_map[0] );
                     // convert the ID to an int
                     int trig_id;
@@ -629,6 +653,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     // make an entry in the output map
                     triggerResults[trig_id] = 0;
                     outtree->Branch(name_id_map[1].c_str(), &(triggerResults[trig_id]), (name_id_map[1]+"/O").c_str() );
+                    triggerNames[trig_id] = name_id_map[1];
+                    //mod_conf.PassCounter(name_id_map[1], true, 0.0);
                 }
             }
             eitr = mod_conf.GetInitData().find( "AuxTreeName" );
@@ -660,10 +686,12 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     }
                 }
             }
+
         }
        if( mod_conf.GetName() == "FilterMET" ) {
+
             // working on met filter. Basically copied from trigger code
-            std::map<std::string, std::string>::const_iterator eitr = mod_conf.GetInitData().find( "METFilterBits" );
+             eitr = mod_conf.GetInitData().find( "METFilterBits" );
             if( eitr != mod_conf.GetInitData().end() ) {
                 // get the mapping of metfilter index to the name
                 // This could be taken from the FilterInfoTree
@@ -708,11 +736,13 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                     }
                 }
             }
+
         }
         if( mod_conf.GetName() == "WeightEvent" ) { 
-            std::map<std::string, std::string>::const_iterator itr = mod_conf.GetInitData().find( "ApplyNLOWeight" );
-            if( itr != mod_conf.GetInitData().end() ) {
-                if( itr->second == "true" ) {
+
+             eitr = mod_conf.GetInitData().find( "ApplyNLOWeight" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+                if( eitr->second == "true" ) {
                     _needs_nlo_weght = true;
                 }
             }
@@ -772,9 +802,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             
         }
         if( mod_conf.GetName() == "FilterDataQuality" ) { 
-            std::map<std::string, std::string>::const_iterator itr = mod_conf.GetInitData().find( "jsonFile" );
-            if( itr != mod_conf.GetInitData().end() ) {
-                std::string jsonFile = itr->second;
+
+            eitr = mod_conf.GetInitData().find( "jsonFile" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+                std::string jsonFile = eitr->second;
 
                 std::string line;
                 std::ifstream infile( jsonFile.c_str() );
@@ -832,6 +863,13 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
 }
 
+void RunModule::finalize() {
+    // Save EventWeight
+    _outfile->cd();
+    h_EventWeight->Write(); 
+
+}
+
 bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
 
     // In BranchInit
@@ -847,6 +885,8 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
         if( printevent ) std::cout << " module " << mod_conf.GetName() << " result " << save_event << std::endl;
 	
     }
+    // Fill EventWeight histogram
+    h_EventWeight->Fill(OUT::NLOWeight); 
 
     return save_event;
 
@@ -1057,14 +1097,17 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
             }
         }
 
-        // loose cuts
+        // tight cuts
+        //std::cout<< "debug: mu tight eval "<< _eval_mu_tight<<std::endl; 
         if( !use_eval || _eval_mu_tight ) {
             if( !config.PassBool ( "cut_isGlobal_tight"       , isGloMu     ) ) {
                 pass_tight = false;
+                //std::cout<< "debug: mu tight eval isGlobal"<< _eval_mu_tight<<std::endl; 
                 if( _eval_mu_tight ) continue;
             }
             if( !config.PassBool ( "cut_isPf_tight"       , isPfMu     ) ) {
                 pass_tight = false;
+                std::cout<< "debug: mu tight eval isPf"<< _eval_mu_tight<<std::endl; 
                 if( _eval_mu_tight ) continue;
             }
             if( !config.PassFloat( "cut_chi2_tight"       , chi2  ) ) { 
@@ -1112,7 +1155,6 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         //  
         if( !config.PassBool( "cut_id_Tight",      IN::mu_isTight->at(idx)) ) continue;
         if( !config.PassFloat("cut_pfiso_tight",   IN::mu_pfIso->at(idx))   ) continue;
-        if( !config.PassFloat("cut_trkiso_tight",  IN::mu_trkIso->at(idx))  ) continue;
 
         TLorentzVector mulv;
 	mulv.SetPtEtaPhiM( ptrc,
@@ -1182,6 +1224,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
             OUT::mu_pt30_n++;
         }
 
+         config.PassCounter("muon_pass");
     }
 
 
@@ -1209,7 +1252,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
     float isorho_barrel_medium_a1     =0;
     float isorho_barrel_loose_a1      =0;
     float isorho_barrel_veryloose_a1  =0;
-    if (!config.PassBool("cut_isorho_94x", false)){
+    if (!config.PassBool("cut_isorho_94x", false, false)){
           if (printevent) std::cout<< "94x iso rho cuts coefficient applied"<<std::endl; 
           isorho_endcap_tight_a1      =0.963;
           isorho_endcap_medium_a1     =0.963;
@@ -1236,7 +1279,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
     float hovere_barrel_medium_a2     =0;
     float hovere_barrel_loose_a2      =0;
     float hovere_barrel_veryloose_a2  =0;
-    if(!config.PassBool( "cut_hovere_94x", false)) {
+    if(!config.PassBool( "cut_hovere_94x", false, false)) {
           if(printevent) std::cout<< "94x H/E cuts coefficient applied"<< std::endl;  
           hovere_endcap_tight_a1      =2.06;
           hovere_endcap_medium_a1     =2.52;
@@ -1337,45 +1380,67 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
             
             // Medium cuts
             if( !use_eval || _eval_el_medium ) {
-                if( !config.PassFloat( "cut_absdEtaIn_barrel_medium"    , fabs(dEtaIn)       ) ) {
+                config.PassCounter("electron_barrel");
+                config.PassCounter("electron_endcap",true,0.0);
+                if( !config.PassFloat( "cut_absdEtaIn_barrel_medium"    , fabs(dEtaIn)        , false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                   config.PassCounter("cut_absdEtaIn_medium");
                 }
-                if( !config.PassFloat( "cut_absdPhiIn_barrel_medium"    , fabs(dPhiIn)       ) ) {
+                if( !config.PassFloat( "cut_absdPhiIn_barrel_medium"    , fabs(dPhiIn)       ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_absdPhiIn_medium");
                 }
-                if( !config.PassFloat( "cut_sigmaIEIE_barrel_medium" , sigmaIEIEFull5x5    ) ) {
+                if( !config.PassFloat( "cut_sigmaIEIE_barrel_medium" , sigmaIEIEFull5x5    ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_sigmaIEIE_medium");
                 }
-                if( !config.PassFloat( "cut_d0_barrel_medium"        , d0           ) ) {
+                if( !config.PassFloat( "cut_d0_barrel_medium"        , d0            ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_d0_medium");
                 }
-                if( !config.PassFloat( "cut_z0_barrel_medium"        , z0           ) ) {
+                if( !config.PassFloat( "cut_z0_barrel_medium"        , z0           ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_z0_medium");
                 }
-                if( !config.PassFloat( "cut_hovere_barrel_medium"    , hovere - hovere_barrel_medium_a1/el_esc - hovere_barrel_medium_a2*rho/el_esc ) ) {
+                if( !config.PassFloat( "cut_hovere_barrel_medium"    , hovere - hovere_barrel_medium_a1/el_esc - hovere_barrel_medium_a2*rho/el_esc  ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_hovere_medium");
                 }
-                if( !config.PassFloat( "cut_ooEmooP_barrel_medium"    , ooEmooP       ) ) {
+                if( !config.PassFloat( "cut_ooEmooP_barrel_medium"    , ooEmooP       ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_ooEmooP_medium");
                 }
-                if( !config.PassFloat( "cut_isoRho_barrel_medium"   ,iso_rho - isorho_barrel_medium_a1 / pt ) ) {
+                if( !config.PassFloat( "cut_isoRho_barrel_medium"   ,iso_rho - isorho_barrel_medium_a1 / pt ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_isoRho_medium");
                 }
-                if( !config.PassInt( "cut_passConvVeto_barrel_medium"   , passConvVeto      ) ) {
+                if( !config.PassInt( "cut_passConvVeto_barrel_medium"   , passConvVeto       ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_ConvVeto_medium");
                 }
-                if( !config.PassInt  ( "cut_misshits_barrel_medium"  , misshits     ) ) {
+                if( !config.PassInt  ( "cut_misshits_barrel_medium"  , misshits      ,false ) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_misshits_medium");
                 }
             }
             
@@ -1518,45 +1583,67 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
             
             // Medium cuts
             if( !use_eval || _eval_el_medium ) {
-                if( !config.PassFloat( "cut_absdEtaIn_endcap_medium"    , fabs(dEtaIn)       ) ) {
+                config.PassCounter("electron_barrel",true,0.0);
+                config.PassCounter("electron_endcap");
+                if( !config.PassFloat( "cut_absdEtaIn_endcap_medium"    , fabs(dEtaIn)      ,false ) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_absdEtaIn_medium");
                 }
-                if( !config.PassFloat( "cut_absdPhiIn_endcap_medium"    , fabs(dPhiIn)       ) ) {
+                if( !config.PassFloat( "cut_absdPhiIn_endcap_medium"    , fabs(dPhiIn)       ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_absdPhiIn_medium");
                 }
-                if( !config.PassFloat( "cut_sigmaIEIE_endcap_medium" , sigmaIEIEFull5x5    ) ) {
+                if( !config.PassFloat( "cut_sigmaIEIE_endcap_medium" , sigmaIEIEFull5x5    ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_sigmaIEIE_medium");
                 }
-                if( !config.PassFloat( "cut_d0_endcap_medium"        , d0           ) ) {
+                if( !config.PassFloat( "cut_d0_endcap_medium"        , d0           ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_d0_medium");
                 }
-                if( !config.PassFloat( "cut_z0_endcap_medium"        , z0           ) ) {
+                if( !config.PassFloat( "cut_z0_endcap_medium"        , z0           ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_z0_medium");
                 }
-                if( !config.PassFloat( "cut_hovere_endcap_medium"    , hovere - hovere_endcap_medium_a1/el_esc - hovere_endcap_medium_a2*rho/el_esc ) ) {
+                if( !config.PassFloat( "cut_hovere_endcap_medium"    , hovere - hovere_endcap_medium_a1/el_esc - hovere_endcap_medium_a2*rho/el_esc ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_hovere_medium");
                 }
-                if( !config.PassFloat( "cut_ooEmooP_endcap_medium"    , ooEmooP       ) ) {
+                if( !config.PassFloat( "cut_ooEmooP_endcap_medium"    , ooEmooP       ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_ooEmooP_medium");
                 }
-                if( !config.PassFloat( "cut_isoRho_endcap_medium"   ,iso_rho - isorho_endcap_medium_a1 / pt ) ) {
+                if( !config.PassFloat( "cut_isoRho_endcap_medium"   ,iso_rho - isorho_endcap_medium_a1 / pt ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_isoRho_medium");
                 }
-                if( !config.PassInt( "cut_passConvVeto_endcap_medium"   , passConvVeto      ) ) {
+                if( !config.PassInt( "cut_passConvVeto_endcap_medium"   , passConvVeto      ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_ConvVeto_medium");
                 }
-                if( !config.PassInt  ( "cut_misshits_endcap_medium"  , misshits     ) ) {
+                if( !config.PassInt  ( "cut_misshits_endcap_medium"  , misshits      ,false) ) {
                     pass_medium=false;
                     if( _eval_el_medium ) continue;
+                } else {
+                    config.PassCounter("cut_misshits_medium");
                 }
             }
             
@@ -1734,6 +1821,7 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
             OUT::el_pt30_n++;
         }
 
+        config.PassCounter("electron_pass");
     }
 
 }
@@ -1891,30 +1979,42 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
 
             // medium
             if( !use_eval || _eval_ph_medium ) {
-                if( !config.PassFloat( "cut_sigmaIEIE_barrel_medium"  , sigmaIEIE         ) ) {
+                config.PassCounter("electron_barrel");
+                config.PassCounter("electron_endcap",true,0.0);
+                if( !config.PassFloat( "cut_sigmaIEIE_barrel_medium"  , sigmaIEIE          ,false) ) {
                     pass_medium=false;
                     pass_sieie_medium=false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_sigmaIEIE_medium");
                 }
-                if( !config.PassFloat( "cut_chIsoCorr_barrel_medium"  , pfChIsoPtRhoCorr  ) ) {
+                if( !config.PassFloat( "cut_chIsoCorr_barrel_medium"  , pfChIsoPtRhoCorr   ,false) ) {
                     pass_medium=false;
                     pass_chIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_chIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_neuIsoCorr_barrel_medium" , pfNeuIsoPtRhoCorr ) ) {
+                if( !config.PassFloat( "cut_neuIsoCorr_barrel_medium" , pfNeuIsoPtRhoCorr  ,false) ) {
                     pass_medium=false;
                     pass_neuIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_newIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_phoIsoCorr_barrel_medium" , pfPhoIsoPtRhoCorr ) ) {
+                if( !config.PassFloat( "cut_phoIsoCorr_barrel_medium" , pfPhoIsoPtRhoCorr  ,false) ) {
                     pass_medium=false;
                     pass_phoIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_phoIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_hovere_barrel_medium" , hovere) ) {
+                if( !config.PassFloat( "cut_hovere_barrel_medium" , hovere ,false) ) {
                     pass_medium=false;
                     pass_hovere_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {
+                    config.PassCounter("cut_hovere_medium");
                 }
             }
 
@@ -1984,30 +2084,42 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
 
             // medium
             if( !use_eval || _eval_ph_medium ) {
-                if( !config.PassFloat( "cut_sigmaIEIE_endcap_medium"  , sigmaIEIE         ) ) {
+                config.PassCounter("electron_barrel",true,0.0);
+                config.PassCounter("electron_endcap");
+                if( !config.PassFloat( "cut_sigmaIEIE_endcap_medium"  , sigmaIEIE          ,false) ) {
                     pass_medium=false;
                     pass_sieie_medium=false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_sigmaIEIE_medium");
                 }
-                if( !config.PassFloat( "cut_chIsoCorr_endcap_medium"  , pfChIsoPtRhoCorr  ) ) {
+                if( !config.PassFloat( "cut_chIsoCorr_endcap_medium"  , pfChIsoPtRhoCorr   ,false) ) {
                     pass_medium=false;
                     pass_chIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_chIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_neuIsoCorr_endcap_medium" , pfNeuIsoPtRhoCorr ) ) {
+                if( !config.PassFloat( "cut_neuIsoCorr_endcap_medium" , pfNeuIsoPtRhoCorr  ,false) ) {
                     pass_medium=false;
                     pass_neuIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_newIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_phoIsoCorr_endcap_medium" , pfPhoIsoPtRhoCorr ) ) {
+                if( !config.PassFloat( "cut_phoIsoCorr_endcap_medium" , pfPhoIsoPtRhoCorr  ,false) ) {
                     pass_medium=false;
                     pass_phoIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_phoIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_hovere_endcap_medium" , hovere) ) {
+                if( !config.PassFloat( "cut_hovere_endcap_medium" , hovere ,false) )  {
                     pass_medium=false;
                     pass_hovere_medium = false;
                     if( _eval_ph_medium ) continue;
+                } else {  
+                    config.PassCounter("cut_hovere_medium");
                 }
             }
 
@@ -2126,6 +2238,7 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         CopyPrefixIndexBranchesInToOut( "ph_", idx );
         OUT::ph_n++;
 
+    config.PassCounter("photon_pass");
     }
 }
 
@@ -2363,35 +2476,52 @@ bool RunModule::FilterEvent( ModuleConfig & config ) const {
 
     bool keep_event = true;
 
+    for( auto const& itr: triggerNames){
+      int triggerid = itr.first ;
+      std::string triggername = itr.second ;
+      bool pass = triggerResults.at(triggerid);
+
+      config.PassCounter(triggername, pass );
+    
+    }
+
     if( !config.PassInt( "cut_el_n"     , OUT::el_n        ) ) { 
+        if (_filterevent_cutflow) return false;
         keep_event=false; 
-        if( printevent ) std::cout << " fail cut_el_n "      << OUT::el_n      << std::endl;
+        //if( printevent ) std::cout << " fail cut_el_n "      << OUT::el_n      << std::endl;
     } 
     if( !config.PassInt( "cut_el_pt30_n", OUT::el_pt30_n   ) ) {
+        if (_filterevent_cutflow) return false;
         keep_event=false;
-        if( printevent ) std::cout << " fail cut_el_pt30_n " << OUT::el_pt30_n << std::endl;
+        //if( printevent ) std::cout << " fail cut_el_pt30_n " << OUT::el_pt30_n << std::endl;
     } 
     if( !config.PassInt( "cut_mu_n"     , OUT::mu_n        ) ) {
+        if (_filterevent_cutflow) return false;
         keep_event=false;
-        if( printevent ) std::cout << " fail cut_mu_n "      << OUT::mu_n      << std::endl;
+        //if( printevent ) std::cout << " fail cut_mu_n "      << OUT::mu_n      << std::endl;
     } 
     if( !config.PassInt( "cut_mu_pt30_n", OUT::mu_pt30_n   ) ) { 
+        if (_filterevent_cutflow) return false;
         keep_event=false;
-        if( printevent ) std::cout << " fail cut_mu_pt30_n " << OUT::mu_pt30_n << std::endl;
+        //if( printevent ) std::cout << " fail cut_mu_pt30_n " << OUT::mu_pt30_n << std::endl;
     } 
     if( !config.PassInt( "cut_mu_pt20_n", OUT::mu_pt20_n   ) ) { 
+        if (_filterevent_cutflow) return false;
         keep_event=false;
-        if( printevent ) std::cout << " fail cut_mu_pt20_n " << OUT::mu_pt20_n << std::endl;
+        //if( printevent ) std::cout << " fail cut_mu_pt20_n " << OUT::mu_pt20_n << std::endl;
     } 
     if( !config.PassInt( "cut_ph_n"     , OUT::ph_n   ) )      { 
+        if (_filterevent_cutflow) return false;
         keep_event=false;
-        if( printevent ) std::cout << " fail cut_ph_n "      << OUT::ph_n      << std::endl;
+        //if( printevent ) std::cout << " fail cut_ph_n "      << OUT::ph_n      << std::endl;
     } 
     if( !config.PassInt( "cut_jet_n"    , OUT::jet_n  ) )      { 
+        if (_filterevent_cutflow) return false;
         keep_event=false;
-        if( printevent ) std::cout << " fail cut_jet_n "     << OUT::jet_n     << std::endl;
+        //if( printevent ) std::cout << " fail cut_jet_n "     << OUT::jet_n     << std::endl;
     } 
     
+    if (keep_event) config.PassCounter("event_pass");
     //if( !config.PassBool( "cut_trig_Ele27_eta2p1_tight", IN::passTrig_HLT_Ele27_eta2p1_WPTight_Gsf) ) keep_event=false;
     //if( !config.PassBool( "cut_trig_Mu27_IsoORIsoTk", (IN::passTrig_HLT_IsoMu27 | IN::passTrig_HLT_IsoTkMu27) ) ) keep_event=false;
     //if( !config.PassBool( "cut_trig_Mu24_IsoORIsoTk", (IN::passTrig_HLT_IsoMu24 | IN::passTrig_HLT_IsoTkMu24) ) ) keep_event=false;
@@ -2403,20 +2533,22 @@ bool RunModule::FilterEvent( ModuleConfig & config ) const {
 }
 
 bool RunModule::FilterTrigger( ModuleConfig & config ) {
+   
 
     std::vector<int> passed_ids;
     // for each configured trigger, get its decision and store the result 
     // in the output branch
-    for( std::map<int, bool>::iterator itr = triggerResults.begin();
-            itr != triggerResults.end() ; ++itr ) {
+    //for( std::map<int, bool>::iterator itr = triggerResults.begin();
+    //        itr != triggerResults.end() ; ++itr ) {
+    for( auto& itr : triggerResults ) {
 
-        if( std::find( IN::passedTriggers->begin(), IN::passedTriggers->end(), itr->first ) 
+        if( std::find( IN::passedTriggers->begin(), IN::passedTriggers->end(), itr.first ) 
                 != IN::passedTriggers->end() ) {
-            itr->second = true;
-            passed_ids.push_back( itr->first );
+            itr.second = true;
+            passed_ids.push_back( itr.first );
         }
         else {
-            itr->second = false;
+            itr.second = false;
         }
     }
 
@@ -3893,7 +4025,6 @@ bool RunModule::calc_constrained_nu_momentum( const TLorentzVector lepton, const
 }
 
 bool RunModule::solve_quadratic( float Aval, float Bval, float Cval, float & solution1, float &solution2 ) const {
-
    float discriminant = Bval*Bval - 4*Aval*Cval;
 
    //std::cout << "DISCRIMINANT = " << discriminant << std::endl;
@@ -4096,6 +4227,7 @@ RunModule::RunModule() {
     _m_w = 80.385;
     _m_z = 91.2;
     _isData = false;
+    _filterevent_cutflow = false;
     _eval_mu_loose    =false;
     _eval_mu_medium   =false;
     _eval_mu_tight    =false;
