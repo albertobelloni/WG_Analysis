@@ -43,8 +43,8 @@ options.filekey = 'ntuple'
 #options.PUPath='/data/users/kakw/Resonances2017/pileuptest/' ## testonly
 #options.PUPath='/data/users/kakw/Resonances2017/pileup3'
 #if options.year==2018: options.PUPath='/afs/cern.ch/work/k/kawong/Resonances2018/pileup'
-#if options.year==2016: options.PUPath='/data2/users/kakw/Resonances2016/pileup/'
 options.PUPath='/data/users/kakw/Resonances%i/pileup/' %options.year
+#options.PUPath='/afs/cern.ch/work/k/kawong/Resonances%i/pileup' %options.year
 #options.usexrd = True
 
 if options.test :
@@ -56,10 +56,9 @@ if options.test :
     options.local = True
 
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
-#output_base = '/data/users/kakw/Resonances%i/' %options.year
-output_base = '/data/users/friccita/WGammaNtuple/'
+output_base = '/data2/users/kakw/Resonances%i/' %options.year
 #output_base = '/afs/cern.ch/work/k/kawong/Resonances%i/' %options.year
-jobtag = '_2019_09_04'
+jobtag = '_2019_08_22_beta'
 
 #version = 'UMDNTuple_0620'
 version_sig = ''
@@ -111,8 +110,8 @@ jobs2017 = [
         #--------------------------
         JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', version=version2017, tags=['NLO'], year=2017),
         JobConf(base, 'WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8', version=version2017, year=2017, tags=['NLO']                        ),
-        #JobConf(base, 'SingleMuon', isData=True, version=version2017, year=2017),
-        #JobConf(base, 'SingleElectron', isData=True, version=version2017, year=2017),
+        JobConf(base, 'SingleMuon', isData=True, version=version2017, year=2017),
+        JobConf(base, 'SingleElectron', isData=True, version=version2017, year=2017),
 
         JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8', version=version2017, year=2017                         ),
         JobConf( base, 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2017 , year=2017 ,tags=['NLO']),
@@ -196,56 +195,56 @@ jobs2017 = [
 
 jobs2016 = [
         JobConf(base, 'SingleMuon', isData=True, version=version2016, year=2016),
-#        JobConf(base, 'SingleElectron', isData=True, version=version2016, year=2016),
-        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']),
-#        JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
-#        JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                     ),
-#     # JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
-        #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']                        ),
-        #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']                         ),
-        #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
-#         JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version="UMDNTuple_0814_2016", year=2016, tags=['NLO']      ),
-#        JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', version=version2016, year=2016, tags=['NLO']),
-#        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
-#        JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
-#        JobConf(base, 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),  
-#        JobConf(base, 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),  
-#        JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),  
-#        JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016), 
-#        JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
-#        JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016), 
+        JobConf(base, 'SingleElectron', isData=True, version=version2016, year=2016),
+        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO'], nfiles = options.nFilesPerJob/2),
+        JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
+        JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                     ),
+        JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
+        JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']                        ),
+        JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']                         ),
+        JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
+        JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version="UMDNTuple_0814_2016", year=2016, tags=['NLO']      ),
+        JobConf( base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', version=version2016, year=2016, tags=['NLO']),
+        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
+        JobConf(base, 'WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
+        JobConf(base, 'WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),  
+        JobConf(base, 'WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),  
+        JobConf(base, 'WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),  
+        JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016), 
+        JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
+        JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016), 
         JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                ),
         JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , version=version2016, year=2016, tags=['NLO']   , nfiles = options.nFilesPerJob/3    ),
-         #JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']     ),
-#        JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016     ),
-#        JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016     ),
-#        JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , version=version2016, year=2016    ),
-#        JobConf(base, 'TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', version=version2016, year=2016, tags=['NLO'] ),
-#        JobConf( base, 'GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
-#        JobConf( base, 'GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
-#        JobConf( base, 'GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
-#        JobConf( base, 'GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016 ),
-#        JobConf( base, 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
+        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016, tags=['NLO']     ),
+        JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016     ),
+        JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016     ),
+        JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8' , version=version2016, year=2016    ),
+        JobConf(base, 'TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8', version=version2016, year=2016, tags=['NLO'] ),
+        JobConf( base, 'GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
+        JobConf( base, 'GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
+        JobConf( base, 'GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
+        JobConf( base, 'GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016 ),
+        JobConf( base, 'GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016),
         #JobConf( base, 'WWTo2L2Nu_13TeV-powheg', version=version2016, year=2016),
         #JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', version=version2016, year=2016, tags=['NLO']     ),
         #JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', version=version2016, year=2016, tags=['NLO']     ),
 
-        #JobConf( base, 'WJetsToLNu_Wpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
-        #JobConf( base, 'WJetsToLNu_Wpt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
-        #JobConf( base, 'WJetsToLNu_Pt-100To250_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
-        #JobConf( base, 'WJetsToLNu_Pt-250To400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
-        #JobConf( base, 'WJetsToLNu_Pt-400To600_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
-        #JobConf( base, 'WJetsToLNu_Pt-600ToInf_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
-        #JobConf( base, 'WToLNu_0J_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
-        #JobConf( base, 'WToLNu_1J_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
-        #JobConf( base, 'WToLNu_2J_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WJetsToLNu_Wpt-0To50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WJetsToLNu_Wpt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WJetsToLNu_Pt-100To250_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WJetsToLNu_Pt-250To400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WJetsToLNu_Pt-400To600_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WJetsToLNu_Pt-600ToInf_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WToLNu_0J_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WToLNu_1J_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
+        JobConf( base, 'WToLNu_2J_13TeV-amcatnloFXFX-pythia8', version=version2016, year=2016),
 
 
         ###### signal stuff ######
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5' , version=version_sig   ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width5' , version=version_sig   ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width5' , version=version_sig   ),
-#        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width5' , version=version2016, year=2016   ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width5' , version=version2016, year=2016   ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width5' , version=version_sig   ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width5' , version=version_sig   ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width5'  , version=version_sig   ),
@@ -273,7 +272,7 @@ jobs2016 = [
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width0p01' , version=version_sig ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width0p01', version=version_sig ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width0p01', version=version_sig ),
-#        JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width0p01' , version=version2016, year=2016 ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width0p01' , version=version2016, year=2016 ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width0p01', version=version_sig ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width0p01', version=version_sig ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3000_width0p01', version=version_sig ),

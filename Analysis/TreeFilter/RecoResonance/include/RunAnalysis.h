@@ -33,7 +33,7 @@ class RunModule : public virtual RunModuleBase {
 			 std::vector<ModuleConfig> & config) ;
         bool execute( std::vector<ModuleConfig> & config ) ;
 
-        void finalize( ) {};
+        void finalize( );
 
         // The ApplyModule function calls any other module defined below
         // in src/RunModule.cxx.  This funciton is not strictly required
@@ -85,6 +85,7 @@ class RunModule : public virtual RunModuleBase {
         bool _eval_el_loose    ;
         bool _eval_el_veryloose;
         bool _needs_nlo_weght ;
+        bool _filterevent_cutflow ;
 
         std::map<int, std::vector<int> > _quality_map;
 
@@ -93,14 +94,17 @@ class RunModule : public virtual RunModuleBase {
 
         std::map<int, bool> triggerResults;
         std::map<int, bool> metfilterResults;
+        std::map<int, std::string> triggerNames;
 
         TFile * _puweight_sample_file;
         TFile * _puweight_data_file;
         TH1F * _puweight_sample_hist;
         TH1D * _puweight_data_hist;
+        TH1D * h_EventWeight;
 
 	RoccoR rc;
         TChain * _input_tree;
+        TFile  * _outfile;
 
 };
 

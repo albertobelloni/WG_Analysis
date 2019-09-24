@@ -9,6 +9,7 @@
 
 #include "TTree.h"
 #include "TH1F.h"
+#include "TH1D.h"
 #include "TChain.h"
 //class TTree;
 //class TChain;
@@ -108,6 +109,11 @@ class CutFlowModule {
 
         // allow for a non-zero weight, but
         // for now assume the weight is 1
+        template <typename Number>
+        void AddCutDecisionFillHists( const std::string & cutname, bool pass, Number val, float weight =1.0);
+        template <typename Number>
+        void FillCutDecisionHists( const std::string & cutname, bool pass, Number val, float weight =1.0 );
+
         void AddCutDecision( const std::string & cutname, bool pass, float weight=1.0);
         void AddCutDecisionFloat( const std::string & cutname, bool pass, float val, float weight=1.0);
         void AddCutDecisionInt( const std::string & cutname, bool pass, int val, float weight=1.0);
@@ -119,7 +125,7 @@ class CutFlowModule {
         bool hasHist( const std::string & name ) { return ( hists.find(name) != hists.end() ); }
         TH1F getHist( const std::string & name ) { return hists.at(name); }
         const std::vector<std::string> & getOrder() { return order; }
-        void createHist( const std::string &basename, const std::string &histname, 
+        void createHist( const std::string &basename, const std::string &histname,
                          int nbin, float xmin, float xmax);
 
         void Print() const;
@@ -141,10 +147,16 @@ class ModuleConfig {
 
         ModuleConfig(const std::string &_name);
 
-        bool PassBool ( const std::string & cutname, const bool  val );
-        bool PassInt  ( const std::string & cutname, const int   val );
-        bool PassFloat( const std::string & cutname, const float val );
-        bool PassAnyIntVector( const std::string & cutname, const std::vector<int> &val );
+        template <class Number>
+        bool PassNum( const std::string &, const Number, const bool , CutType::Type = CutType::FLOAT);
+        template <class Number>
+        bool PassNum( const std::string &, const Number, const std::string & cutflowtag, CutType::Type = CutType::FLOAT); //FIXME to be implemented: Fill cutflow with alternative name (to merge serveral cuts)
+
+        bool PassBool ( const std::string & cutname, const bool  val , const bool = true);
+        bool PassInt  ( const std::string & cutname, const int   val , const bool = true);
+        bool PassFloat( const std::string & cutname, const float val , const bool = true);
+        bool PassAnyIntVector( const std::string & cutname, const std::vector<int> &val , const bool = true);
+        void PassCounter( const std::string & cutname , const bool result = true, const float weight = 1.0);
 
         std::string GetName() const {return name;}
 
@@ -249,6 +261,7 @@ void ParseHistPars( const std::string & line, ModuleConfig& module);
 void ParseDataEntry( const std::string & line, ModuleConfig& module);
 void ReadHeaderLine( const std::string & line, CmdOptions & options);
 void ParseFiles( const std::string & line, CmdOptions& options);
+void MergeRootfile( TDirectory *target, TList *sourcelist );
 
 std::vector<std::string> Tokenize(const std::string & input, const std::string &sep );
 

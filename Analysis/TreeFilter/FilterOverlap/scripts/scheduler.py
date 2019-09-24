@@ -23,7 +23,7 @@ options.batch = ( not options.local )
 options.year = 2016
 ### ATTENTION! Here you specify the directory containing the processed ntuples, on which you want to run FilterOverlap.
 #base = '/data/users/fengyb/WGammaNtuple'
-base = '/data/users/kakw/Resonances2016'
+base = '/data2/users/kakw/Resonances2016'
 
 # ----------------------------
 # The suffix that appears on the end of the output jobs
@@ -57,8 +57,8 @@ jobs1 = [
     JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'               , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'               , tags=['pholap'] , suffix = 'PhOlap'  ,year=2016),
-#    JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
-#    JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'          , tags=['pholap'] , suffix = 'PhOlap'  ,year=2016),
+    JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
+    JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'          , tags=['pholap'] , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'            , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
@@ -139,11 +139,11 @@ if options.test :
 
 ### ATTENTION! Here you list the ntuple types (from RecoResonance) that you want to process, which is also the name of the subdirectory containing them.
 input_dirs =[
-               #'LepGamma_elg_2019_08_20_beta/',
-               #'LepGamma_mug_2019_08_19_beta/',
-               #'LepLep_mumu_2019_08_19_beta/',
-#               'LepLep_elel_2019_08_20_beta/',
-               'LepLep_elel_2019_08_05/',
+               'LepGamma_elg_2019_08_22_beta/',
+               'LepLep_elel_2019_08_22_beta/',
+               'LepGamma_mug_2019_08_22_beta/',
+               'LepLep_mumu_2019_08_22_beta/',
+#               'LepLep_elel_2019_08_05/',
               #'LepLep_mumu_2019_03_14',#'LepLep_elel_2018_08_13',
               #'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
               #'SingleLepNoPhId_el_2019_03_17','SingleLepNoPhId_mu_2019_03_17',

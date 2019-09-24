@@ -16,6 +16,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "TFile.h"
+#include "TKey.h"
+#include "TObject.h"
 
 AnaConfig::AnaConfig()
 {
@@ -117,6 +119,15 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
             TFile * outfile  = TFile::Open(filepath.c_str(), "RECREATE");
 
             outfile->cd();
+
+            // Merge TH1
+            TList* FileList = new TList();
+            BOOST_FOREACH( const std::string &fpath, options.files[fidx].files ) {
+              FileList->Add( TFile::Open(fpath.c_str()) );
+            }
+            MergeRootfile(outfile, FileList);
+
+
             TTree * outtree  = 0;
             std::vector<std::string> name_tok = Tokenize( chain->GetName(), "/" ); 
 
@@ -141,10 +152,52 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
                 outtree->SetDirectory(outfile);
             }
 
+
+
+            TH1D* hfilter;
+            TKey *key = (TKey*) gDirectory->GetListOfKeys()->FindObject("filter");
+            int ifilter = 0;
+            if (key){
+              std::cout<< "found filter";
+              hfilter = (TH1D*) key->ReadObj();
+              int nbinsx = hfilter->GetNbinsX();
+              for (int i = 1; i<nbinsx;i++) {
+                std::cout<< "bin"<< i <<std::endl; 
+                if (strlen(hfilter->GetXaxis()->GetBinLabel(i)) == 0){
+                  ifilter = i-1;
+                  break;
+                }
+              }
+
+              // double bin number of histogram if no more bins are available
+              if (strlen(hfilter->GetXaxis()->GetBinLabel(nbinsx)) > 0){
+                TH1D* htemp = hfilter;
+                hfilter = new TH1D("filter","filter",nbinsx*2,0,nbinsx*2);
+                hfilter->Add(htemp);
+                ifilter = nbinsx;
+                // copy the labels over
+                for (int i = 1; i <= nbinsx; i++){
+                  const char* labeltemp = htemp->GetXaxis()->GetBinLabel(i); 
+                  hfilter->GetXaxis()->SetBinLabel(i,labeltemp);
+                }
+              }
+              std::stringstream labelss;
+              std::string labelstr;
+              labelss << "Total " << (ifilter+1)/2 ;
+              labelstr = labelss.str();
+              hfilter->GetXaxis()->SetBinLabel(ifilter+1, labelstr.c_str());
+              labelss.str("");
+              labelss << "Filter " << (ifilter+1)/2 ;
+              labelstr = labelss.str();
+              hfilter->GetXaxis()->SetBinLabel(ifilter+2,labelstr.c_str());
+            }else {
+              hfilter = new TH1D("filter", "filter", 2, 0, 2);
+              hfilter->GetXaxis()->SetBinLabel(1, "Total");
+              hfilter->GetXaxis()->SetBinLabel(2, "Filter");
+            }
+
+            //return to root directory
             outfile->cd();
-            TH1F * hfilter = new TH1F("filter", "filter", 2, 0, 2);
-            hfilter->GetXaxis()->SetBinLabel(1, "Total");
-            hfilter->GetXaxis()->SetBinLabel(2, "Filter");
 
             runmod.initialize( chain, outtree, outfile, options, getEntries() );
 
@@ -174,10 +227,10 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
 
                 bool save_event = runmod.execute( getEntries() );
 
-                hfilter->Fill(0);
+                hfilter->Fill(ifilter);
                 if( save_event ) {
                     if( !options.disableOutputTree ) outtree->Fill();
-                    hfilter->Fill(1);
+                    hfilter->Fill(ifilter+1);
                     n_saved++;
                 }
             }
@@ -194,16 +247,10 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
                     outfile->mkdir( conf.GetName().c_str() );
                     outfile->cd(conf.GetName().c_str() );
 
-                    BOOST_FOREACH( const std::string & cutname, conf.getCutFlows()[0].getOrder() ) {
-                        std::string befname = cutname+"_before";
-                        std::string aftname = cutname+"_after";
-                        if( conf.getCutFlows()[0].hasHist(befname) ) {
-                            conf.getCutFlows()[0].getHist(befname).Write();
-                        }
-                        if( conf.getCutFlows()[0].hasHist(aftname) ) {
-                            conf.getCutFlows()[0].getHist(aftname).Write();
-                        }
+                    for (auto const & h : conf.getCutFlows()[0].getHists()){
+                      h.second.Write();
                     }
+
                     conf.WriteCutFlowHists( outfile );
                     conf.PrintCutFlows( );
                 }
@@ -211,7 +258,7 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
 
             outfile->cd(dir_path.c_str());
             outtree->Write();
-            hfilter->Write();
+            hfilter->Write("",TObject::kOverwrite);
             outfile->Close();
 
             std::vector<std::string> output_files;
@@ -673,16 +720,35 @@ bool CutConfig::PassAnyIntVector(const std::string &name, const std::vector<int>
     return pass_cuts;
 }
         
-
-bool ModuleConfig::PassInt( const std::string & cutname, const int cutval )
+template <class Number>
+bool ModuleConfig::PassNum( const std::string & cutname, const Number cutval, const bool docutflow , CutType::Type cuttype )
 {
 
     if( HasCut( cutname ) ) {
         const CutConfig & cut_conf = GetCut( cutname );
-        bool result = cut_conf.PassInt( cutname, cutval );
+        bool result;
+        switch (cuttype){
+          case CutType::FLOAT:
+            result = cut_conf.PassFloat( cutname, cutval );
+            break;
+          case CutType::INT:
+            result = cut_conf.PassInt( cutname, cutval );
+            break;
+          case CutType::BOOL:
+            result = cut_conf.PassBool( cutname, cutval );
+            break;
+          default:
+            std::cout<< "WARNING: ModuleConfig::PassNum incorrect cuttype value"<< static_cast<int>(cuttype) << std::endl; 
+            result = cut_conf.PassFloat( cutname, cutval );
+            break;
+        }
 
-        if( cutflows.size() ) { // only assume 1 cutflow for now
-            cutflows[0].AddCutDecisionInt( cutname, result, cutval );
+        if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
+          //std::cout<< "with cutflow"<<std::endl; 
+            cutflows[0].AddCutDecisionFillHists( cutname, result, cutval );
+        }else if (cutflows.size()){
+          //std::cout<< "without cutflow"<<std::endl; 
+            cutflows[0].FillCutDecisionHists( cutname, result, cutval );
         }
 
         return result;
@@ -692,60 +758,32 @@ bool ModuleConfig::PassInt( const std::string & cutname, const int cutval )
         //std::cout<< "no cut"<<cutname<<std::endl; 
         return true;
     }
-
 }
 
-bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval )
+bool ModuleConfig::PassInt( const std::string & cutname, const int cutval, const bool docutflow  )
 {
-
-    if( HasCut( cutname ) ) {
-        const CutConfig & cut_conf = GetCut( cutname );
-        bool result = cut_conf.PassBool( cutname, cutval );
-
-        if( cutflows.size() ) { // only assume 1 cutflow for now
-            cutflows[0].AddCutDecisionBool( cutname, result, cutval );
-        }
-
-        return result;
-    }
-    else {
-        //if the cut doesn't exist then pass
-        //std::cout<< "no cut"<<cutname<<std::endl; 
-        return true;
-    }
-
+    return PassNum( cutname, cutval, docutflow , CutType::INT);
 }
 
-bool ModuleConfig::PassFloat( const std::string & cutname, const float cutval )
+bool ModuleConfig::PassBool( const std::string & cutname, const bool cutval , const bool docutflow  )
 {
-
-    if( HasCut( cutname ) ) {
-        const CutConfig & cut_conf = GetCut( cutname );
-        bool result = cut_conf.PassFloat( cutname, cutval );
-
-        if( cutflows.size() ) { // only assume 1 cutflow for now
-            cutflows[0].AddCutDecisionFloat( cutname, result, cutval );
-        }
-
-        return result;
-    }
-    else {
-        //if the cut doesn't exist then pass
-        return true;
-    }
-      
-
+    return PassNum( cutname, cutval, docutflow , CutType::BOOL);
 }
 
-bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vector<int> &cutval )
+bool ModuleConfig::PassFloat( const std::string & cutname, const float cutval , const bool docutflow )
+{
+    return PassNum( cutname, cutval, docutflow , CutType::FLOAT);
+}
+
+bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vector<int> &cutval, const bool docutflow )
 {
 
     if( HasCut( cutname ) ) {
         const CutConfig & cut_conf = GetCut( cutname );
         bool result = cut_conf.PassAnyIntVector( cutname, cutval );
 
-        if( cutflows.size() ) { 
-            std::cout << "No cutflows for PassAnyIntVector" << std::endl;
+        if( docutflow && cutflows.size() ) { // only assume 1 cutflow for now
+            cutflows[0].AddCutDecision( cutname, result ); //no before/after histogram for vectors
         }
 
         return result;
@@ -757,6 +795,12 @@ bool ModuleConfig::PassAnyIntVector( const std::string & cutname, const std::vec
 
 }
 
+void ModuleConfig::PassCounter( const std::string & cutname , const bool result, const float weight)
+{
+        if( cutflows.size() ) { // only assume 1 cutflow for now
+            cutflows[0].AddCutDecision( cutname, result, weight);
+        }
+}
 
 bool ModuleConfig::HasCut( const std::string &name ) const {
 
@@ -841,7 +885,7 @@ void CutFlowModule::WriteCutFlowHist( TDirectory * dir) const
 {
 
     unsigned nbins = order.size() + 1;
-    TH1F* cuthist = new TH1F( ( GetName() + ":cuthist").c_str(), "cuthist", nbins, 0, nbins );
+    TH1F* cuthist = new TH1F( ( GetName() + "_cuthist").c_str(), "cuthist", nbins, 0, nbins );
     cuthist->GetXaxis()->SetBinLabel( 1, "Total" );
     cuthist->SetBinContent( 1, total );
     for( unsigned binnum = 0; binnum < order.size(); ++binnum ) {
@@ -872,8 +916,9 @@ void CutFlowModule::createHist( const std::string &basename, const std::string &
                                 int nbin, float xmin, float xmax) 
 {
 
+  std::cout<< "insert histograms " << basename << ":"<< histname<< " "<< hists.size()<<std::endl; 
     hists.insert( std::make_pair(histname, 
-                                 TH1F( ( basename + ":" + histname).c_str(), histname.c_str(), 
+                                 TH1F( ( basename + "_" + histname).c_str(), histname.c_str(), 
                                  nbin, xmin, xmax ) ) );
 }
 
@@ -896,52 +941,30 @@ void CutFlowModule::AddCutDecision( const std::string & cutname, bool pass, floa
 
 }
 
+/*
 void CutFlowModule::AddCutDecisionFloat( const std::string & cutname, bool pass, float val, float weight ) {
-
-    AddCutDecision( cutname, pass, weight );
-    // fill hists
-    if( hists.size() ) {
-        std::string befname = cutname + "_before";
-        std::string aftname = cutname + "_after";
-        std::map<std::string, TH1F>::iterator hitr = hists.find(befname);
-        if( hitr != hists.end() ) {
-            hitr->second.Fill( val );
-        }
-        // fill the after hist only when the cut passes
-        if( pass ) {
-            std::map<std::string, TH1F>::iterator hitr = hists.find(aftname);
-            if( hitr != hists.end() ) {
-                hitr->second.Fill( val );
-            }
-        }
-    }
 }
 
 void CutFlowModule::AddCutDecisionInt( const std::string & cutname, bool pass, int val, float weight ) {
-
-    AddCutDecision( cutname, pass, weight );
-    // fill hists
-    if( hists.size() ) {
-        std::string befname = cutname + "_before";
-        std::string aftname = cutname + "_after";
-        std::map<std::string, TH1F>::iterator hitr = hists.find(befname);
-        if( hitr != hists.end() ) {
-            hitr->second.Fill( val );
-        }
-        // fill the after hist only when the cut passes
-        if( pass ) {
-            std::map<std::string, TH1F>::iterator hitr = hists.find(aftname);
-            if( hitr != hists.end() ) {
-                hitr->second.Fill( val );
-            }
-        }
-    }
 }
 
 void CutFlowModule::AddCutDecisionBool( const std::string & cutname, bool pass, bool val, float weight ) {
+} 
+*/
 
+template <typename Number>
+void CutFlowModule::AddCutDecisionFillHists( const std::string & cutname, bool pass, Number val, float weight ) {
+
+    // add cut decision
     AddCutDecision( cutname, pass, weight );
     // fill hists
+    FillCutDecisionHists(cutname, pass, val, weight);
+
+}
+
+template <typename Number>
+void CutFlowModule::FillCutDecisionHists( const std::string & cutname, bool pass, Number val, float weight ) {
+
     if( hists.size() ) {
         std::string befname = cutname + "_before";
         std::string aftname = cutname + "_after";
@@ -958,6 +981,7 @@ void CutFlowModule::AddCutDecisionBool( const std::string & cutname, bool pass, 
         }
     }
 }
+
 void CutFlowModule::Print() const {
 
     // get max width
@@ -1341,3 +1365,115 @@ std::vector<std::string> Tokenize(const std::string & text, const std::string &i
 }
         
     
+void MergeRootfile( TDirectory *target, TList *sourcelist ) {
+  /* 
+   * Copied from $ROOTSYS/tutorials/io/hadd.C 
+   * */
+
+   std::cout << "Target path: " << target->GetPath() << std::endl;
+   TString path( (char*)strstr( target->GetPath(), ":" ) );
+   path.Remove( 0, 2 );
+
+   TFile *first_source = (TFile*)sourcelist->First();
+   first_source->cd( path );
+   TDirectory *current_sourcedir = gDirectory;
+   //gain time, do not add the objects in the list in memory
+   Bool_t status = TH1::AddDirectoryStatus();
+   TH1::AddDirectory(kFALSE);
+
+   // loop over all keys in this directory
+   //TChain *globChain = 0;
+   TIter nextkey( current_sourcedir->GetListOfKeys() );
+   TKey *key, *oldkey=0;
+   while ( (key = (TKey*)nextkey())) {
+
+      //keep only the highest cycle number for each key
+      if (oldkey && !strcmp(oldkey->GetName(),key->GetName())) continue;
+
+      // read object from first source file
+      first_source->cd( path );
+      TObject *obj = key->ReadObj();
+
+      if ( obj->IsA()->InheritsFrom( TH1::Class() ) ) {
+         // descendant of TH1 -> merge it
+
+         //      cout << "Merging histogram " << obj->GetName() << endl;
+         TH1 *h1 = (TH1*)obj;
+
+         // loop over all source files and add the content of the
+         // correspondant histogram to the one pointed to by "h1"
+         TFile *nextsource = (TFile*)sourcelist->After( first_source );
+         while ( nextsource ) {
+
+            // make sure we are at the correct directory level by cd'ing to path
+            nextsource->cd( path );
+            TKey *key2 = (TKey*)gDirectory->GetListOfKeys()->FindObject(h1->GetName());
+            if (key2) {
+               TH1 *h2 = (TH1*)key2->ReadObj();
+               h1->Add( h2 );
+               delete h2;
+            }
+
+            nextsource = (TFile*)sourcelist->After( nextsource );
+         }
+      }
+      else if ( obj->IsA()->InheritsFrom( TTree::Class() ) ) {
+         std::cout << "not copying TTree, name: "
+         << obj->GetName() << " title: " << obj->GetTitle() << std::endl;
+
+   //      // loop over all source files create a chain of Trees "globChain"
+   //      const char* obj_name= obj->GetName();
+
+   //      globChain = new TChain(obj_name);
+   //      globChain->Add(first_source->GetName());
+   //      TFile *nextsource = (TFile*)sourcelist->After( first_source );
+   //      //      const char* file_name = nextsource->GetName();
+   //      // cout << "file name  " << file_name << endl;
+   //      while ( nextsource ) {
+
+   //         globChain->Add(nextsource->GetName());
+   //         nextsource = (TFile*)sourcelist->After( nextsource );
+   //      }
+
+      } else if ( obj->IsA()->InheritsFrom( TDirectory::Class() ) ) {
+         // it's a subdirectory
+
+        std::cout << "Found subdirectory " << obj->GetName() << std::endl;
+
+         // create a new subdir of same name and title in the target file
+         target->cd();
+         TDirectory *newdir = target->mkdir( obj->GetName(), obj->GetTitle() );
+
+         // newdir is now the starting point of another round of merging
+         // newdir still knows its depth within the target file via
+         // GetPath(), so we can still figure out where we are in the recursion
+         MergeRootfile( newdir, sourcelist );
+
+      } else {
+
+         // object is of no type that we know or can handle
+        std::cout << "Unknown object type, name: "
+         << obj->GetName() << " title: " << obj->GetTitle() << std::endl;
+      }
+
+      // now write the merged histogram (which is "in" obj) to the target file
+      // note that this will just store obj in the current directory level,
+      // which is not persistent until the complete directory itself is stored
+      // by "target->Write()" below
+      if ( obj ) {
+         target->cd();
+
+         //!!if the object is a tree, it is stored in globChain...
+         if(obj->IsA()->InheritsFrom( TTree::Class() ))
+           std::cout<< "skip TTree"<<std::endl; 
+         //   globChain->Merge(target->GetFile(),0,"keep");
+         else
+            obj->Write( key->GetName() );
+      }
+
+   } // while ( ( TKey *key = (TKey*)nextkey() ) )
+
+   // save modifications to target file
+   target->SaveSelf(kTRUE);
+   TH1::AddDirectory(status);
+}

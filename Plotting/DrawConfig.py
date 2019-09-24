@@ -31,17 +31,17 @@ ROOT.gStyle.SetPalette(1)
 
 class LegendConfig :
 
-    def __init__(self) : 
+    def __init__(self) :
         pass
 
 class LabelConfig :
 
-    def __init__(self) : 
+    def __init__(self) :
         pass
 
 class HistConfig :
 
-    def __init__(self) : 
+    def __init__(self) :
         pass
 
 
@@ -61,7 +61,7 @@ class DrawConfig :
             self.selection = [self.selection]
 
         self.samples = samples
-    
+
         if self.samples is not None and not isinstance( self.samples, list ) :
             self.samples = [self.samples]
 
@@ -94,13 +94,17 @@ class DrawConfig :
         """ return binomunc key value set in hist_config, default is False """
         return self.hist_config.get('binomunc', False)
 
+    def get_onthefly(self) :
+        """ return onthefly key value set in hist_config, default to true """
+        return self.hist_config.get('doratio', True)
+
     def get_drawhist(self) :
         return self.hist_config.get('drawhist', False)
 
     def get_ylabel(self) :
         """ return y axis label set in hist_config
             if not set, returns Events/ x GeV with bin width calculated from histpars"""
-        ylabel = self.hist_config.get('ylabel', None) 
+        ylabel = self.hist_config.get('ylabel', None)
         if ylabel is None :
             if isinstance( self.histpars, tuple ) :
                 bin_width = ( self.histpars[2] - self.histpars[1] )/self.histpars[0]
@@ -108,9 +112,9 @@ class DrawConfig :
             else :
                 bin_width = 1
                 bin_width_f = 1
-                
 
-            xunit = self.hist_config.get('xunit', 'GeV') 
+
+            xunit = self.hist_config.get('xunit', 'GeV')
             if math.fabs(bin_width_f - bin_width) != 0 :
                 ylabel = 'Events / %.1f %s' %(bin_width_f,xunit)
             else :
@@ -119,12 +123,12 @@ class DrawConfig :
         return ylabel
 
     def get_xlabel(self) :
-
-        xunit = self.hist_config.get('xunit', 'GeV') 
-        return self.hist_config.get('xlabel',"" ) + '[%s]' %xunit
+        xunit = self.hist_config.get('xunit', 'GeV')
+        unitstr = "[%s]" %xunit if xunit else ""
+        return self.hist_config.get('xlabel',"" ) + unitstr
 
     def get_rlabel(self) :
-        rlabel = self.hist_config.get('rlabel', None) 
+        rlabel = self.hist_config.get('rlabel', None)
         if rlabel is None :
             rlabel = 'Data / MC'
 
@@ -134,7 +138,7 @@ class DrawConfig :
         return self.hist_config.get( 'ticks_x', None )
     def get_tick_y_format(self) :
         return self.hist_config.get( 'ticks_y', None )
-    
+
 
     def get_legend_entries(self) :
 
@@ -158,6 +162,8 @@ class DrawConfig :
         return self.hist_config.get('logy', False )
     def get_normalize( self ) :
         return self.hist_config.get('normalize', False )
+    def get_drawopt( self ) :
+        return self.hist_config.get('drawopt', "" )
 
     def get_weight( self ) :
         """ defaults to empty string: no weights
@@ -192,7 +198,7 @@ class DrawConfig :
     def get_labels( self ) :
 
         labels=[]
-        
+
         stattext = self.label_config.get('statsLabel', None )
         if stattext is not None :
             statlabel  = ROOT.TLatex()
@@ -205,12 +211,12 @@ class DrawConfig :
 
         labelStyle = self.label_config.get('labelStyle', None)
         labelLoc = self.label_config.get('labelLoc', None)
-        if labelStyle is None:
+        if labelStyle is None or labelStyle.count('Fancy')==0:
 
             text_dx = self.label_config.get("dx",0)
-            text_x = text_dx +0.18
+            text_x = text_dx +0.17
             text_dy = self.label_config.get("dy",0)
-            text_y = text_dy +0.88
+            text_y = text_dy +0.87
 
             if labelLoc == 'topright' :
                 text_x = 0.75
@@ -222,11 +228,18 @@ class DrawConfig :
             wiplabel = ROOT.TLatex()
             wiplabel.SetNDC()
             wiplabel.SetTextSize( 0.05 )
-            wiplabel.SetText(text_x+0.07, text_y, 'Simulation Work in Progress')
+            wiplabel.SetText(text_x+0.065, text_y, 'Simulation Work in Progress')
             wiplabel.SetTextFont(52)
             labeltext = '36 fb^{-1} (13 TeV)'
+            if labelStyle:
+                if labelStyle.count('2016') :
+                    labeltext = '35.9 fb^{-1} (13 TeV)'
+                if labelStyle.count('2017') :
+                    labeltext = '41.5 fb^{-1} (13 TeV)'
+                if labelStyle.count('2018') :
+                    labeltext = '59.7 fb^{-1} (13 TeV)'
             rootslabel = ROOT.TLatex()
-            rootslabel.SetText(text_dx+0.80, text_dy+0.96, labeltext  )
+            rootslabel.SetText(text_dx+0.75, text_dy+0.93, labeltext  )
             rootslabel.SetTextFont(42)
             rootslabel .SetNDC()
             rootslabel .SetTextSize(0.045)
@@ -241,8 +254,12 @@ class DrawConfig :
                 extText = 'Preliminary'
 
             labeltext = '19.4 fb^{-1} (8 TeV)'
-            if labelStyle.count('13') :
-                labeltext = '36 fb^{-1} (13 TeV)'
+            if labelStyle.count('2016') :
+                labeltext = '35.9 fb^{-1} (13 TeV)'
+            if labelStyle.count('2017') :
+                labeltext = '41.5 fb^{-1} (13 TeV)'
+            if labelStyle.count('2018') :
+                labeltext = '59.7 fb^{-1} (13 TeV)'
 
             rootslabel = ROOT.TLatex()
             cmslabel = ROOT.TLatex()
@@ -292,9 +309,9 @@ class DrawConfig :
         label.SetTextSize( 0.045 )
         xval = 0.6
         yval = 0.7
-        if location is None : 
+        if location is None :
             print 'Please give a location for the label'
-        elif isinstance(location, tuple) : 
+        elif isinstance(location, tuple) :
             xval = location[0]
             yval = location[1]
         elif location == 'TopLeft' :
@@ -356,7 +373,7 @@ class DrawConfig :
     def get_unique_name( self, var ) :
 
         outname = ''
-        
+
         basename = var
 
         # first remove brackets
@@ -396,32 +413,32 @@ class DrawConfig :
 
         for name in self.hist_configs.keys() :
 
-            if type( self.histpars ) is tuple : 
+            if type( self.histpars ) is tuple :
                 if self.var[0].count(':') == 1 : # 2-D histogram
                     if len(self.histpars) == 2 and type( self.histpars[0] ) is list and type(self.histpars[1]) is list : #both axes are variably binned
                         text = 'double %sxarr[%d] = {'%(name, len(self.histpars[0])) + ','.join( [str(x) for x in self.histpars[0]] ) + '}; \n '
                         text += 'double %syarr[%d] = {'%(name, len(self.histpars[1])) + ','.join( [str(y) for y in self.histpars[1]] ) + '}; \n '
-                        text += r' hist_%s = new TH2F( "%s", "", %d, %sxarr, %d, %syarr );' %( name, name, len(self.histpars[0])-1, name, len(self.histpars[1])-1, name ) 
+                        text += r' hist_%s = new TH2F( "%s", "", %d, %sxarr, %d, %syarr );' %( name, name, len(self.histpars[0])-1, name, len(self.histpars[1])-1, name )
                         hist_decs.append(text)
                     else :
                         if len(self.histpars) != 6 :
                             print 'varable expression requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax'
                             return
-                        text = r' hist_%s = new TH2F( "%s", "", %d, %f, %f, %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5]  ) 
+                        text = r' hist_%s = new TH2F( "%s", "", %d, %f, %f, %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5]  )
                         hist_decs.append(text)
                 elif self.var[0].count(':') == 2 and not self.var[0].count('::') : # make a 3-d histogram
                     if len(self.histpars) != 9 :
                         print 'varable expression requests a 3-d histogram, please provide 9 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax'
                         return
-                    text = r' hist_%s = new TH3F( "%s", "", %d, %f, %f, %d, %f, %f, %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5], self.histpars[6], self.histpars[7], self.histpars[8]  ) 
+                    text = r' hist_%s = new TH3F( "%s", "", %d, %f, %f, %d, %f, %f, %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5], self.histpars[6], self.histpars[7], self.histpars[8]  )
                     hist_decs.append(text)
                 else : # 1-d histogram
-                    text = r' hist_%s = new TH1F( "%s", "", %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2] ) 
+                    text = r' hist_%s = new TH1F( "%s", "", %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2] )
                     hist_decs.append(text)
 
             elif type( self.histpars ) is list : # variable rebinning
                 text = 'double %sxarr[%d] = {'%(name, len(self.histpars)) + ','.join( [str(x) for x in self.histpars] ) + '}; \n '
-                text += r' hist_%s = new TH1F( "%s", "", %d, %sxarr );' %( name, name, len(self.histpars)-1, name ) 
+                text += r' hist_%s = new TH1F( "%s", "", %d, %sxarr );' %( name, name, len(self.histpars)-1, name )
                 hist_decs.append(text)
 
             else :
@@ -442,20 +459,20 @@ class DrawConfig :
                     if len(self.hist_config.get('colors', [])) != len( self.selection) :
                         self.hist_config['colors'] = [ROOT.kBlack]*len(self.selection)
                     for samp, sel, color, leg_entry in zip(self.samples, self.selection, self.hist_config['colors'], self.get_legend_entries() ) :
-                        name = self.get_unique_name( self.var[0] ) 
-                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry} 
+                        name = self.get_unique_name( self.var[0] )
+                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry}
 
                 else :
                     for sel in self.selection :
-                        name = self.get_unique_name( self.var[0] ) 
-                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel} 
-            else : 
+                        name = self.get_unique_name( self.var[0] )
+                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel}
+            else :
                 if self.samples and ( len(self.selection) == len( self.samples ) and len( self.var ) == len( self.samples) ) :
                     if len(self.hist_config.get('colors', [])) != len( self.selection) :
                         self.hist_config['colors'] = [ROOT.kBlack]*len(self.selection)
                 for var, samp, sel, color, leg_entry in zip( self.var, self.samples, self.selection, self.hist_config['colors'], self.get_legend_entries() ) :
-                    name = self.get_unique_name( self.var[0] ) 
-                    self.hist_configs[name] = {'var' : var, 'selection' : sel, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry} 
+                    name = self.get_unique_name( self.var[0] )
+                    self.hist_configs[name] = {'var' : var, 'selection' : sel, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry}
 
                 print 'Case when multiple vars is used is not implemented'
         else :
@@ -465,18 +482,18 @@ class DrawConfig :
                     if len(self.hist_config.get('colors', [])) != len( self.selection) :
                         self.hist_config['colors'] = [ROOT.kBlack]*len(self.selection)
                     for samp, sel, color, leg_entry in zip(self.samples, self.selection, self.hist_config['colors'], self.get_legend_entries() ) :
-                        name = self.get_unique_name( self.var[0] ) 
-                        var = self.get_cpp_var_str( self.var[0], branches ) 
+                        name = self.get_unique_name( self.var[0] )
+                        var = self.get_cpp_var_str( self.var[0], branches )
                         selection = self.get_cpp_selection_str( sel, branches )
-                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'cppvar':var, 'cppselection':selection, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry} 
+                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'cppvar':var, 'cppselection':selection, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry}
                 else :
 
                     for sel in self.selection :
-                        name = self.get_unique_name( self.var[0] ) 
-                        var = self.get_cpp_var_str( self.var[0], branches ) 
-                        selection = self.get_cpp_selection_str( sel, branches ) 
-                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'cppvar':var, 'cppselection':selection} 
-    
+                        name = self.get_unique_name( self.var[0] )
+                        var = self.get_cpp_var_str( self.var[0], branches )
+                        selection = self.get_cpp_selection_str( sel, branches )
+                        self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'cppvar':var, 'cppselection':selection}
+
             else : #unclear if this case exists, don't implement for now
                 print 'Case when multiple vars is used is not implemented'
 
@@ -485,7 +502,7 @@ class DrawConfig :
         return [v['cppselection'] for v in self.hist_configs.values()]
 
     def get_cpp_selection_str( self, selection, branches ) :
-        """ Create selection string in c++ 
+        """ Create selection string in c++
 
             branches is a list of branches in the tree
             such that we can search the selection string
@@ -512,12 +529,12 @@ class DrawConfig :
         for idx1, range1 in enumerate(ranges) :
             has_sub_range = False
             for idx2, range2 in enumerate(ranges) :
-                if idx1 == idx2 : 
+                if idx1 == idx2 :
                     continue
                 if range1[0] == range2[0] : #they start at the same place
                     if range1[1] <= range2[1] :
                         has_sub_range = True
-                if range1[1] == range2[1] : # they end at the same place 
+                if range1[1] == range2[1] : # they end at the same place
                     if range1[0] >= range2[0] :
                         has_sub_range = True
                 if range1[0] > range2[0] and range1[1] < range2[1] :
@@ -550,7 +567,7 @@ class DrawConfig :
             if start_bracket < 0 :
                 break
             end_bracket = modified_selection.find( ']', start_bracket )
-            
+
             # put an at->( in place of the first bracket
             modified_selection = modified_selection[:start_bracket] + '->at(' + modified_selection[start_bracket+1:end_bracket] + ')' + modified_selection[end_bracket+1:]
 
@@ -617,7 +634,7 @@ class DrawConfig :
 
         #return modified_var
 
-    
+
     def get_eval_selection_string(self, sample, treename) :
 
         if self.modified_selection is not None :
@@ -663,7 +680,7 @@ class DrawConfig :
         histname = str(uuid.uuid4())
 
         if type( self.histpars ) is tuple :
-            if self.var[0].count(':') == 1 : 
+            if self.var[0].count(':') == 1 :
                 if len(self.histpars) == 2 and type( self.histpars[0] ) is list and type(self.histpars[1]) is list :
                     hist = ROOT.TH2F( histname, '', len(self.histpars[0])-1, array('f', self.histpars[0]), len(self.histpars[1])-1, array('f', self.histpars[1]) )
                 else :
