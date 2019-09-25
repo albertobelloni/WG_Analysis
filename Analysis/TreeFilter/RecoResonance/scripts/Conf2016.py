@@ -297,14 +297,10 @@ def make_final_mug( alg_list, args) :
     #alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
-    #filter_event.cut_mu_pt30_n = ' == 1 ' #AAAAAAAAAAH!
-    filter_event.cut_mu_pt30_n = ' >= 1 '
-    filter_event.cut_ph_n = ' > 0 '
+    filter_event.cut_mu_pt30_n = ' == 1 '
 
     if sec_lep_veto is not 'False' :
-        #filter_event.cut_mu_n = ' == 1 ' # AAAAAAAAAAH!
-        filter_event.cut_mu_n = ' >= 1 '
-        filter_event.cut_el_n = ' == 0 '
+        filter_event.cut_mu_n = ' == 1 '
 
     alg_list.append( filter_event)
 
