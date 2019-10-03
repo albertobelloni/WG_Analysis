@@ -188,7 +188,7 @@ class Sample :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
         self.hist.SetTitle('')
-        if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__"):
+        if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__" or self.isRatio==True):
             #scale = self.cross_section*self.lumi/self.total_events_onthefly
             #analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
             scale = self.scale_calc() 
