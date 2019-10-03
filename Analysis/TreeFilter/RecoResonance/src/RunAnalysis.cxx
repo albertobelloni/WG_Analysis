@@ -1015,6 +1015,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  rcsfs = dtSF;
 	  rcsfserr = dtSFerr;
 	}
+#ifdef EXISTS_gen_n
 	else {
           double mcSF = 1.;
           float genpt = 0.;
@@ -1110,6 +1111,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  rcsfs = mcSF;
 	  rcsfserr = mcSFerr;
 	}
+#endif
 	
 	//////  End Rochester corrections! //////
 
