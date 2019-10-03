@@ -96,7 +96,7 @@ class DrawConfig :
 
     def get_onthefly(self) :
         """ return onthefly key value set in hist_config, default to true """
-        return self.hist_config.get('doratio', True)
+        return self.hist_config.get('onthefly', True)
 
     def get_drawhist(self) :
         return self.hist_config.get('drawhist', False)

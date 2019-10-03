@@ -21,13 +21,14 @@ options = parser.parse_args()
 
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
-datestr   = "2019_09_15"
+datestr   = "2019_09_28"
 
 if options.year == 2016:
     _XSFILE   = 'cross_sections/photon16.py'
     _LUMI     = 36000
-    _SAMPCONF = 'Modules/Resonance.py'
+    _SAMPCONF = 'Modules/Resonance2016.py'
 elif options.year == 2017:
+    datestr   = "2019_09_15"
     _SAMPCONF = 'Modules/Resonance2017.py'
     _XSFILE   = 'cross_sections/photon17.py'
     _LUMI     = 41000
@@ -66,6 +67,8 @@ ltmet = '&&met_pt<25'
 gtmet = '&&met_pt>25'
 phpt50 = "&&ph_pt[0]>50"
 phpt80 = "&&ph_pt[0]>80"
+elpt40 = "&&el_pt[0]>40"
+eleta2p1 = "&&abs(el_eta[0])<2.1"
 invZ = '&& abs(m_lep_ph-91)>15'
 weight="PUWeight*NLOWeight"
 
@@ -76,17 +79,17 @@ def main() :
     sampManElG, sampManMuG = None, None
     sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI, readHists=False , weightHistName = "weighthist")
     sampManMuG.ReadSamples( _SAMPCONF )
-    #sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI ,readHists=False , weightHistName = "weighthist")
-    #sampManElG.ReadSamples( _SAMPCONF )
+    sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI ,readHists=False , weightHistName = "weighthist")
+    sampManElG.ReadSamples( _SAMPCONF )
     #samples = sampManMuG
 
-    #for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
+    for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
     #for ch, samples in [("el",sampManElG),]:
-    for ch, samples in [("mu",sampManMuG),]:
+    #for ch, samples in [("mu",sampManMuG),]:
         labelname = "%i Muon Channel" %options.year if ch == "mu" else "%i Electron Channel" %options.year
         #labelname+=" scaled to 2016 luminosity"
-        if ch == "el": selection = baseel + ph_eb + gtmet + invZ + passpix + phpt80 + "&&el_passVIDTight[0] && ph_passVIDMedium[0]"
-        if ch == "mu": selection = basemu + ph_eb + gtmet  + passpix + phpt80 + "&& mu_passTight[0] && ph_passVIDMedium[0]"
+        if ch == "el": selection = baseel + ph_eb + gtmet + invZ + passcsev + phpt80 + "&&el_passTight[0] && ph_passMedium[0]" + elpt40 + eleta2p1
+        if ch == "mu": selection = basemu + ph_eb + gtmet  + passpix + phpt80 + "&& mu_passTight[0] && ph_passVIDMedium[0]" 
 
 
         ## prepare config
