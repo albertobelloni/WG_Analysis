@@ -125,6 +125,8 @@ namespace OUT {
     std::vector<float>  *mu_trigMatch_dr;
 
     Int_t el_pt30_n;
+    Int_t el_pt35_n;
+    Int_t el_pt40_n;
     std::vector<Bool_t> *el_passVeryLoose;
     std::vector<Bool_t> *el_passLoose;
     std::vector<Bool_t> *el_passMedium;

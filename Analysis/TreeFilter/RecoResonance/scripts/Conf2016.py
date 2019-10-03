@@ -403,7 +403,7 @@ def filter_trigger(do_cutflow = False) :
     if do_cutflow: filter_trigger.do_cutflow = True
 
     # this will store branches for only these triggers
-    filter_trigger.add_var( 'triggerBits', '23:HLT_IsoMu24,31:HLT_IsoTkMu24,58:HLT_Ele27_WPTight_Gsf,109:HLT_Photon175' )
+    filter_trigger.add_var( 'triggerBits', '23:HLT_IsoMu24,31:HLT_IsoTkMu24,58:HLT_Ele27_WPTight_Gsf,60:HLT_Ele27_eta2p1_WPTight_Gsf,109:HLT_Photon175' )
     # this will store branches for all triggers found in the provided tree
     filter_trigger.add_var( 'AuxTreeName', 'UMDNTuple/TrigInfoTree' )
 
@@ -482,9 +482,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt = Filter('FilterElectron')
 
     filt.cut_pt         = el_pt
-    ## change electron eta cut to 2.1
-    ## because of the trigger
-    filt.cut_eta        = ' < 2.1'
+    filt.cut_eta        = ' < 2.5'
     filt.cut_abssceta       = ' <2.5 '
 
     #filt.cut_tight     = ' == True '

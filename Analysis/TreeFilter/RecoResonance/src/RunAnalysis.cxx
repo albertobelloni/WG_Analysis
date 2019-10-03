@@ -65,6 +65,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mu_trigMatch_dr                        = 0;
 
     OUT::el_pt30_n                              = 0;
+    OUT::el_pt35_n                              = 0;
+    OUT::el_pt40_n                              = 0;
     OUT::el_passVeryLoose                       = 0;
     OUT::el_passLoose                           = 0;
     OUT::el_passMedium                          = 0;
@@ -314,6 +316,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mu_trigMatch_dr", &OUT::mu_trigMatch_dr);
 
     outtree->Branch("el_pt30_n", &OUT::el_pt30_n, "el_pt30_n/I"  );
+    outtree->Branch("el_pt35_n", &OUT::el_pt35_n, "el_pt35_n/I"  );
+    outtree->Branch("el_pt40_n", &OUT::el_pt40_n, "el_pt40_n/I"  );
     outtree->Branch("el_passVeryLoose", &OUT::el_passVeryLoose );
     outtree->Branch("el_passLoose", &OUT::el_passLoose );
     outtree->Branch("el_passMedium", &OUT::el_passMedium );
@@ -1234,6 +1238,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
 
     OUT::el_n          = 0;
     OUT::el_pt30_n          = 0;
+    OUT::el_pt35_n          = 0;
+    OUT::el_pt40_n          = 0;
     OUT::el_passVeryLoose->clear();
     OUT::el_passLoose->clear();
     OUT::el_passMedium->clear();
@@ -1819,6 +1825,14 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
 
         if( IN::el_pt->at(idx) > 30 ) {
             OUT::el_pt30_n++;
+        }
+
+        if( IN::el_pt->at(idx) > 35 ) {
+            OUT::el_pt35_n++;
+        }
+
+        if( IN::el_pt->at(idx) > 40 ) {
+            OUT::el_pt40_n++;
         }
 
         config.PassCounter("electron_pass");
