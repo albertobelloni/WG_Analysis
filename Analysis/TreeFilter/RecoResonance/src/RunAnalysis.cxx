@@ -1012,10 +1012,51 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  rcsfserr = dtSFerr;
 	}
 	else {
-	  double u = gRandom->Rndm();
-	  //float genpt   =   OUT::mu_truthMatchMu_pt ->at(idx);
-	  //double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genpt, 0, 0); //MC scale and extra smearing with matched gen muon
-	  double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, 0, 0); //MC scale and extra smearing when matched gen muon is not available
+          double mcSF = 1.;
+          float genpt = 0.;
+          double u = 0.;
+          bool matched = false;
+          
+          // some simple truth matching for rochester corrections
+          float mindr = 0.3;
+          TLorentzVector mulv;
+          mulv.SetPtEtaPhiE( IN::mu_pt->at(idx),
+                             IN::mu_eta->at(idx),
+                             IN::mu_phi->at(idx),
+                             IN::mu_e->at(idx)
+                             );
+          for( int gidx = 0; gidx < IN::gen_n; ++gidx ) {
+            int id = IN::gen_PID->at(gidx);
+            int absid = abs(id);
+            if (absid != 13)
+                continue;
+            int st = IN::gen_status->at(gidx);
+            if (st != 1)
+                continue;
+                
+            TLorentzVector tleplv;
+            tleplv.SetPtEtaPhiE( IN::gen_pt->at(gidx),
+                                 IN::gen_eta->at(gidx),
+                                 IN::gen_phi->at(gidx),
+                                 IN::gen_e->at(gidx)
+                               );
+            
+            float dr = mulv.DeltaR( tleplv );
+
+            if( dr < mindr && tleplv.Pt()/mulv.Pt() < 2 && mulv.Pt()/tleplv.Pt() < 2) {
+                mindr = dr;
+                genpt = tleplv.Pt();
+                matched = true;
+            }
+          }
+          
+          if (matched) {
+	    mcSF = rc.kSpreadMC(Q, pt, eta, phi, genpt, 0, 0); //MC scale and extra smearing with matched gen muon
+          }
+          else {
+	    u = gRandom->Rndm();
+	    mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, 0, 0); //MC scale and extra smearing when matched gen muon is not available
+          }
 	  std::vector<double> mcSF_errs;
 	  //get statistical error (set 1)
 	  double mcSF_statmean = 0.;
@@ -1023,8 +1064,13 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  std::vector<double> mcSF_staterrs;
 	  for (int i = 0; i < 100; i++)
 	    {
-	      //double f = rc.kSpreadMC(Q, pt, eta, phi, genpt, 1, i);
-	      double f = rc.kSmearMC(Q, pt, eta, phi, nl, u, 1, i); // matched gen muon not available
+	      double f = 1.;
+              if (matched) {
+                f = rc.kSpreadMC(Q, pt, eta, phi, genpt, 1, i);
+              }
+              else {
+	        f = rc.kSmearMC(Q, pt, eta, phi, nl, u, 1, i); // matched gen muon not available
+              }
 	      mcSF_staterrs.push_back(f);
 	      mcSF_statmean += f;
 	    }
@@ -1039,8 +1085,13 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  //get systematic errors (set 2-5)
 	  for (int i = 2; i < 6; i++)
 	    {
-	      //double mcSF_witherr = rc.kSpreadMC(Q, pt, eta, phi, genpt, i, 0);
-	      double mcSF_witherr = rc.kSmearMC(Q, pt, eta, phi, nl, u, i, 0); // matched gen muon not available
+	      double mcSF_witherr = 1.;
+              if (matched) {
+                mcSF_witherr = rc.kSpreadMC(Q, pt, eta, phi, genpt, i, 0);
+              }
+              else {
+	        mcSF_witherr = rc.kSmearMC(Q, pt, eta, phi, nl, u, i, 0); // matched gen muon not available
+              }
 	      mcSF_errs.push_back(mcSF_witherr - mcSF);
 	    }
 
@@ -1059,10 +1110,14 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	//////  End Rochester corrections! //////
 
 	float ptrc = pt*rcsfs;
+        
+        if (rcsfs > 3) {
+            std::cout << "WARNING: rcsfs = " << rcsfs << std::endl;
+        }
+        
 	//float ptrc = pt*(rcsfs + rcsfserr); // vary RC up
 	//float ptrc = pt*(rcsfs - rcsfserr); // vary RC down
 
-	OUT::mu_pt_rc->push_back( ptrc );
         if( !config.PassFloat( "cut_pt", ptrc   ) ) continue;
         if( !config.PassFloat( "cut_eta", fabs(eta) ) ) continue;
 
@@ -1216,6 +1271,10 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         OUT::mu_passLoose -> push_back( pass_loose );
 
         OUT::mu_n++;
+        
+        // Write Rochester-corrected pt only after muon is accepted
+        // TODO: Investigate why muon with pt=167.26719 is rejected
+	OUT::mu_pt_rc->push_back( ptrc );
 
         if( ptrc > 20 ) {
             OUT::mu_pt20_n++;
