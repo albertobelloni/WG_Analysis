@@ -55,6 +55,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mu_pt20_n                              = 0;
     OUT::mu_pt30_n                              = 0;
     OUT::mu_pt_rc                               = 0;
+    OUT::mu_e_rc                                = 0;
     OUT::mu_passTight                           = 0;
     OUT::mu_passMedium                          = 0;
     OUT::mu_passLoose                           = 0;
@@ -306,6 +307,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mu_pt20_n", &OUT::mu_pt20_n, "mu_pt20_n/I"  );
     outtree->Branch("mu_pt30_n", &OUT::mu_pt30_n, "mu_pt30_n/I"  );
     outtree->Branch("mu_pt_rc", &OUT::mu_pt_rc            );
+    outtree->Branch("mu_e_rc", &OUT::mu_e_rc            );
     outtree->Branch("mu_passTight", &OUT::mu_passTight            );
     outtree->Branch("mu_passMedium", &OUT::mu_passMedium           );
     outtree->Branch("mu_passLoose", &OUT::mu_passLoose            );
@@ -952,6 +954,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
     OUT::mu_pt20_n             = 0;
     OUT::mu_pt30_n             = 0;
     OUT::mu_pt_rc              -> clear();
+    OUT::mu_e_rc              -> clear();
     OUT::mu_passTight          -> clear();
     OUT::mu_passMedium         -> clear();
     OUT::mu_passLoose          -> clear();
@@ -1218,11 +1221,11 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         if( !config.PassFloat("cut_pfiso_tight",   IN::mu_pfIso->at(idx))   ) continue;
 
         TLorentzVector mulv;
-	mulv.SetPtEtaPhiM( ptrc,
+        mulv.SetPtEtaPhiM( ptrc,
                            IN::mu_eta->at(idx),
                            IN::mu_phi->at(idx),
-			   0.1057
-			   );
+                           0.1057
+                           );
 
         float mindr = 101.0;
         for( int hltidx = 0 ; hltidx < IN::HLTObj_n; ++hltidx ) {
@@ -1280,7 +1283,8 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         
         // Write Rochester-corrected pt only after muon is accepted
         // TODO: Investigate why muon with pt=167.26719 is rejected
-	OUT::mu_pt_rc->push_back( ptrc );
+        OUT::mu_pt_rc->push_back( ptrc );
+        OUT::mu_e_rc->push_back( mulv.E() );
 
         if( ptrc > 20 ) {
             OUT::mu_pt20_n++;
@@ -2709,7 +2713,7 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
         tlv.SetPtEtaPhiE( OUT::mu_pt_rc->at(idx), 
                           OUT::mu_eta->at(idx), 
                           OUT::mu_phi->at(idx), 
-                          OUT::mu_e->at(idx) );
+                          OUT::mu_e_rc->at(idx) );
 
         leptons.push_back(tlv);
     }
