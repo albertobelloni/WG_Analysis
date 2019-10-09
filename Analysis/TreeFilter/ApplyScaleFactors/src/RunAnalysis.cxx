@@ -154,11 +154,13 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     */
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
 
+        std::cout << "Module: " << mod_conf.GetName() << std::endl;
         if( mod_conf.GetName() == "AddMuonSF" ) { 
 	  std::map<std::string, std::string>::const_iterator muyear = mod_conf.GetInitData().find("year");
 	  if (muyear != mod_conf.GetInitData().end())
 	    {
 	      _year_mu = std::stoi(muyear->second);
+	      std::cout << "year = " << _year_mu << std::endl;
 	    }
 
 	  std::map<std::string, std::string>::const_iterator bcdef;
@@ -259,6 +261,18 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                         std::cout << "could not get hist from file " << _sffile_mu_trig_bcdef->GetName() << std::endl;
                     }
                     _sfhists_mu_trig.push_back(std::make_pair(lumi_bcdef, thishist));
+                    hname = mod_conf.GetInitData().find( "HistTrigBCDEFdata" );
+                    thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_bcdef->Get( (hname->second).c_str() ));
+                    if( !thishist ) {
+                        std::cout << "could not get hist from file " << _sffile_mu_trig_bcdef->GetName() << std::endl;
+                    }
+                    _effhists_mu_trig_data.push_back(std::make_pair(lumi_bcdef, thishist));
+                    hname = mod_conf.GetInitData().find( "HistTrigBCDEFmc" );
+                    thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_bcdef->Get( (hname->second).c_str() ));
+                    if( !thishist ) {
+                        std::cout << "could not get hist from file " << _sffile_mu_trig_bcdef->GetName() << std::endl;
+                    }
+                    _effhists_mu_trig_mc.push_back(std::make_pair(lumi_bcdef, thishist));
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
@@ -274,6 +288,18 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                         std::cout << "could not get hist from file " << _sffile_mu_trig_gh->GetName() << std::endl;
                     }
                     _sfhists_mu_trig.push_back(std::make_pair(lumi_gh, thishist));
+                    hname = mod_conf.GetInitData().find( "HistTrigGHdata" );
+                    thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_gh->Get( (hname->second).c_str() ));
+                    if( !thishist ) {
+                        std::cout << "could not get hist from file " << _sffile_mu_trig_gh->GetName() << std::endl;
+                    }
+                    _effhists_mu_trig_data.push_back(std::make_pair(lumi_gh, thishist));
+                    hname = mod_conf.GetInitData().find( "HistTrigGHmc" );
+                    thishist = dynamic_cast<TH2F*>(_sffile_mu_trig_gh->Get( (hname->second).c_str() ));
+                    if( !thishist ) {
+                        std::cout << "could not get hist from file " << _sffile_mu_trig_gh->GetName() << std::endl;
+                    }
+                    _effhists_mu_trig_mc.push_back(std::make_pair(lumi_gh, thishist));
                 }
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
@@ -304,11 +330,11 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             }
         }
         if( mod_conf.GetName() == "AddPhotonSF" ) { 
-	  std::map<std::string, std::string>::const_iterator phyear = mod_conf.GetInitData().find("year");
-	  if (phyear != mod_conf.GetInitData().end())
-	    {
-	      _year_ph = std::stoi(phyear->second);
-	    }
+          std::map<std::string, std::string>::const_iterator phyear = mod_conf.GetInitData().find("year");
+          if (phyear != mod_conf.GetInitData().end())
+            {
+              _year_ph = std::stoi(phyear->second);
+            }
 
             std::map<std::string, std::string>::const_iterator itr;
             std::map<std::string, std::string>::const_iterator hname;
@@ -765,6 +791,13 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         return;
     }
 
+    std::vector<float> trsfs;
+    std::vector<float> trerrs;
+    std::vector<float> treffs_data;
+    std::vector<float> trerrs_data;
+    std::vector<float> treffs_mc;
+    std::vector<float> trerrs_mc;
+    
     std::vector<float> idsfs;
     std::vector<float> iderrsup;
     std::vector<float> iderrsdn;
@@ -774,29 +807,36 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
     std::vector<float> isoerrsdn;
 
 
-    
-    if( OUT::mu_n == 1 )  { // our trigger SFs are only available for single muon triggers
+    for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         float feta = fabs(OUT::mu_eta->at(0));
         float pt   =      OUT::mu_pt_rc ->at(0) ;
 
-	float ptcut = -999.;
-	if (_year_mu == 2016)
-	  ptcut = 26.;
-	else if (_year_mu == 2017)
-	  ptcut = 29.;
-	else if (_year_mu == 2018)
-	  ptcut = 26.;
-	else
-	  std::cout << "ERROR AddMuonSF: year not recognized!" << std::endl;
+        float ptcut = -999.;
+        if (_year_mu == 2016)
+            ptcut = 26.;
+        else if (_year_mu == 2017)
+            ptcut = 29.;
+        else if (_year_mu == 2018)
+            ptcut = 26.;
+        else
+            std::cout << "ERROR AddMuonSF: year not recognized!" << std::endl;
 
         if( pt > ptcut && feta < 2.4 ) {
 
+            
             ValWithErr entry;
-            entry = GetValsRunRange2D( _sfhists_mu_trig, pt, feta );
-
-            OUT::mu_trigSF = entry.val;
-            OUT::mu_trigSFUP = entry.val + entry.err_up;
-            OUT::mu_trigSFDN = entry.val - entry.err_dn;
+            ValWithErr entry_data;
+            ValWithErr entry_mc;
+            entry      = GetValsRunRange2D( _sfhists_mu_trig, pt, feta );
+            entry_data = GetValsRunRange2D( _effhists_mu_trig_data, pt, feta );
+            entry_mc   = GetValsRunRange2D( _effhists_mu_trig_mc, pt, feta );
+            
+            trsfs.push_back( entry.val );
+            trerrs.push_back( entry.err_up );
+            treffs_data.push_back( entry_data.val );
+            trerrs_data.push_back( entry_data.err_up );
+            treffs_mc.push_back( entry_mc.val );
+            trerrs_mc.push_back( entry_mc.err_up);
 
         }
         else {
@@ -804,43 +844,67 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         }
     }
     
+    if( OUT::mu_n == 1 ) {
+
+        OUT::mu_trigSF   = trsfs[0];
+        OUT::mu_trigSFUP = trsfs[0] + trerrs[0];
+        OUT::mu_trigSFDN = trsfs[0] - trerrs[0];
+
+    }
+    else if( OUT::mu_n > 1 ) {
+
+        double eff_data = 1 - (1 - treffs_data[0]) * (1 - treffs_data[1]);
+        double eff_mc   = 1 - (1 - treffs_mc[0]) * (1 - treffs_mc[1]);
+        
+        double err_data = sqrt( pow(trerrs_data[0]/treffs_data[0], 2) + pow(trerrs_data[1]/treffs_data[1], 2) );
+        double err_mc   = sqrt( pow(trerrs_mc[0]/treffs_mc[0], 2) + pow(trerrs_mc[1]/treffs_mc[1], 2) );
+        
+        double sf_val = eff_data/eff_mc;
+        double sf_err = sqrt( pow(err_data/eff_data, 2) + pow(err_mc/eff_mc, 2) );
+                
+        OUT::mu_trigSF   = sf_val;
+        OUT::mu_trigSFUP = sf_val + sf_err;
+        OUT::mu_trigSFDN = sf_val - sf_err;
+
+    }
+    
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         float eta =   OUT::mu_eta->at(idx);
         float pt   =   OUT::mu_pt_rc ->at(idx) ;
-	float phi = OUT::mu_phi->at(idx);
-	float Q = OUT::mu_charge->at(idx);
-	float feta = fabs(eta);
+        float phi = OUT::mu_phi->at(idx);
+        float Q = OUT::mu_charge->at(idx);
+        float feta = fabs(eta);
 
-	ValWithErr entry_id;
-	ValWithErr entry_iso;
-	if (_year_mu == 2016)
-	  { // 2016
-	    entry_id  = GetValsRunRange2D( _sfhists_mu_id,  eta, pt );
-	    entry_iso = GetValsRunRange2D( _sfhists_mu_iso, eta, pt );
-	  } // 2016
-	if (_year_mu == 2017)
-	  { // 2017
-	    entry_id  = GetValsRunRange2D( _sfhists_mu_id,  pt, feta );
-	    entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
-	  } // 2017
-	if (_year_mu == 2018)
-	  { // 2018
-	    entry_id  = GetValsRunRange2D( _sfhists_mu_id,  pt, feta);
-	    entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
-	  } // 2018
-	else
-	  std::cout << "Error AddMuonSF: year not recognized!" << std::endl;
+        ValWithErr entry_id;
+        ValWithErr entry_iso;
+        if (_year_mu == 2016)
+            { // 2016
+            entry_id  = GetValsRunRange2D( _sfhists_mu_id,  eta, pt );
+            entry_iso = GetValsRunRange2D( _sfhists_mu_iso, eta, pt );
+            } // 2016
+        else if (_year_mu == 2017)
+            { // 2017
+            entry_id  = GetValsRunRange2D( _sfhists_mu_id,  pt, feta );
+            entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
+            } // 2017
+        else if (_year_mu == 2018)
+            { // 2018
+            entry_id  = GetValsRunRange2D( _sfhists_mu_id,  pt, feta);
+            entry_iso = GetValsRunRange2D( _sfhists_mu_iso, pt, feta );
+            } // 2018
+        else
+            std::cout << "Error AddMuonSF: year not recognized!" << std::endl;
 
-	idsfs.push_back( entry_id.val );
-	iderrsup.push_back( entry_id.err_up );
-	iderrsdn.push_back( entry_id.err_dn );
-	
-	isosfs.push_back( entry_iso.val );
-	isoerrsup.push_back( entry_iso.err_up);
-	isoerrsdn.push_back( entry_iso.err_dn);
+        idsfs.push_back( entry_id.val );
+        iderrsup.push_back( entry_id.err_up );
+        iderrsdn.push_back( entry_id.err_dn );
 
-	// Tracking sf's are not needed anymore!
+        isosfs.push_back( entry_iso.val );
+        isoerrsup.push_back( entry_iso.err_up);
+        isoerrsdn.push_back( entry_iso.err_dn);
+
+        // Tracking sf's are not needed anymore!
         //trksfs.push_back( entry_trk.val);
         //trkerrsup.push_back( entry_trk.err_up );
         //trkerrsdn.push_back( entry_trk.err_dn );

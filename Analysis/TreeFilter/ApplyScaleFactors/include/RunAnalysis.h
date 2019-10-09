@@ -87,6 +87,8 @@ class RunModule : public virtual RunModuleBase {
         std::vector<std::pair<float, TH2D* > > _sfhists_mu_iso;
         std::vector<std::pair<float, TH2D* > > _sfhists_mu_id;
         std::vector<std::pair<float, TH2F* > > _sfhists_mu_trig;
+        std::vector<std::pair<float, TH2F* > > _effhists_mu_trig_data;
+        std::vector<std::pair<float, TH2F* > > _effhists_mu_trig_mc;
 
         TFile *_sffile_el_id;
         TFile *_sffile_el_trig;
