@@ -63,8 +63,12 @@ def get_muon_sf(options) :
 
     muon_sf.add_var( 'FilePathTrigBCDEF', '%s/2016/MuTrigEfficienciesAndSF_RunBtoF.root' %base_path )
     muon_sf.add_var( 'HistTrigBCDEF', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio' )
+    muon_sf.add_var( 'HistTrigBCDEFdata', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesDATA/pt_abseta_DATA' )
+    muon_sf.add_var( 'HistTrigBCDEFmc', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesMC/pt_abseta_MC' )
     muon_sf.add_var( 'FilePathTrigGH', '%s/2016/MuTrigEfficienciesAndSF_Period4.root' %base_path )
     muon_sf.add_var( 'HistTrigGH', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio' )
+    muon_sf.add_var( 'HistTrigGHdata', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesDATA/pt_abseta_DATA' )
+    muon_sf.add_var( 'HistTrigGHmc', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesMC/pt_abseta_MC' )
 
     muon_sf.add_var( 'FilePathIdBCDEF', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunBCDEF_SF_ID.root' %base_path )
     muon_sf.add_var( 'HistIdBCDEF','NUM_TightID_DEN_genTracks_eta_pt' )
