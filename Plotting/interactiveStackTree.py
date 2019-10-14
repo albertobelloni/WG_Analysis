@@ -16,7 +16,6 @@ p.add_argument('--samplesConf',  default=None,           dest='samplesConf',    
                                                                                        'the file name is given it is assumed to be in the same directory '
                                                                                        'as this script, if a path is given, use that path' ) )
 
-                                                                                       
 p.add_argument('--xsFile',     default=None,  type=str ,        dest='xsFile',         help='path to cross section file.  When calling AddSample in the configuration module, set useXSFile=True to get weights from the provided file')
 p.add_argument('--lumi',     default=None,  type=float ,        dest='lumi',         help='Integrated luminosity (to use with xsFile)')
 p.add_argument('--weightHistName',     default="weighthist",  type=str ,        dest='weightHistName',         help='name of weight histogram')
@@ -26,6 +25,7 @@ p.add_argument('--readHists',     default=False,action='store_true',   dest='rea
 
 p.add_argument('--quiet',     default=False,action='store_true',   dest='quiet',         help='disable information messages')
 p.add_argument('--jupyt',     default=False,action='store_true',   dest='jupyt',         help='use setting for jupyter notebook')
+p.add_argument('--batch',     default=False,action='store_true',   dest='batch',         help='use batch mode')
 p.add_argument('--reload',     default=False,action='store_true',   dest='reld',         help='reload sample manager')
 
 options = p.parse_args()
@@ -48,6 +48,8 @@ if options.jupyt:
         from IPython.display import display, Math, Latex
         import rootnotes
     except ImportError: print "Fail to import jupyt modules"
+elif options.batch:
+    ROOT.gROOT.SetBatch(True)
 else: ROOT.gROOT.SetBatch(False)
 
 
