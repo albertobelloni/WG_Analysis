@@ -1143,7 +1143,7 @@ def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName )
     # for each file get the range to use
     for files, nsplit, filetotevt in zip(split_files, files_nsplit, files_nevt) :
 
-        if totalEvents > 0 :
+        if totalEvents > 0 and totalEvents<filetotevt :
             totevt = totalEvents
         else :
             totevt = filetotevt
