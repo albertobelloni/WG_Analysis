@@ -2256,7 +2256,7 @@ class SampleManager :
 
         self.MakeStack(draw_config, useModel, treeHist, treeSelection )
 
-        self.DrawCanvas(self.curr_stack, draw_config, datahists=['Data'], sighists=self.get_signal_samples())
+        self.DrawCanvas(self.curr_stack, draw_config, datahists=['Data'], sighists=self.get_signal_samples(), errhists = ["__AllStack__"] )
 
     def Draw3DProjections(self, varexp, selection, histpars=None, x_by_y_bin_vals={}, doratio=False, ylabel=None, xlabel=None, rlabel=None, logy=False, ymin=None, ymax=None, ymax_scale=None, rmin=None, rmax=None, showBackgroundTotal=False, backgroundLabel='AllBkg', removeFromBkg=[], addToBkg=[], useModel=False, treeHist=None, treeSelection=None, labelStyle=None, extra_label=None, extra_label_loc=None, generate_data_from_sample=None, replace_selection_for_sample={}, legendConfig=None  ) :
 
@@ -3373,7 +3373,7 @@ class SampleManager :
                 if not ymaxdef: ymax *= pow(ymax/ymin,ymax_scale-1)
                 if not ymindef: ymin *= pow(ymax/ymin,0.9-1)
             else :
-                if not ymaxdef: ymax += (ymax-ymin)*ymax_scale
+                if not ymaxdef: ymax += (ymax-ymin)*(ymax_scale-1)
 
         print maxarray, minarray, ymin, ymax
         return (ymin, ymax)
@@ -3624,6 +3624,8 @@ class SampleManager :
         if errhists :
             errsamps = self.get_samples(name=errhists )
             for samp in errsamps :
+                if not hasattr(samp,"graph") and hasattr(samp, "hist"):
+                    samp.graph = ROOT.TGraphErrors(samp.hist)
                 samp.graph.SetFillStyle(3004)
                 samp.graph.SetFillColor(ROOT.kBlack)
                 samp.graph.Draw('2same')

@@ -192,13 +192,13 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             std::map<std::string, std::string>::const_iterator hname;
 
             itr = mod_conf.GetInitData().find( "FilePathIsoBCDEF" );
-	    hname = mod_conf.GetInitData().find( "HistIsoBCDEF" );
+      	    hname = mod_conf.GetInitData().find( "HistIsoBCDEF" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_iso_bcdef = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_iso_bcdef->IsOpen() ) {
-		  TH2D * thishist =  dynamic_cast<TH2D*>(_sffile_mu_iso_bcdef->Get( (hname->second).c_str() ));
+		            TH2D * thishist =  dynamic_cast<TH2D*>(_sffile_mu_iso_bcdef->Get( (hname->second).c_str() ));
                     if( !thishist ) {
-		      std::cout << "could not get hist from file " << _sffile_mu_iso_bcdef->GetName() << std::endl;
+		                   std::cout << "could not get hist from file " << _sffile_mu_iso_bcdef->GetName() << std::endl;
                     }
                     _sfhists_mu_iso.push_back(std::make_pair(lumi_bcdef,  thishist));
                 }
@@ -211,7 +211,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_iso_gh = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_iso_gh->IsOpen() ) {
-		  TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_iso_gh->Get( (hname->second).c_str() ));
+              		  TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_iso_gh->Get( (hname->second).c_str() ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_iso_gh->GetName() << std::endl;
                     }
@@ -220,13 +220,14 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                 else {
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
+                
             }
             itr = mod_conf.GetInitData().find( "FilePathIdBCDEF" );
             hname = mod_conf.GetInitData().find( "HistIdBCDEF" );
             if( itr != mod_conf.GetInitData().end() ) {
                 _sffile_mu_id_bcdef = TFile::Open( (itr->second).c_str(), "READ" );
                 if( _sffile_mu_id_bcdef->IsOpen() ) {
-		  TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_id_bcdef->Get( (hname->second).c_str() ));
+		            TH2D * thishist = dynamic_cast<TH2D*>(_sffile_mu_id_bcdef->Get( (hname->second).c_str() ));
                     if( !thishist ) {
                         std::cout << "could not get hist from file " << _sffile_mu_id_bcdef->GetName() << std::endl;
                     }

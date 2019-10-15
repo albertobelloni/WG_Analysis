@@ -7,6 +7,8 @@
 ( 'DYJetsToLL_M-50'               , { 'n_evt' : 49030992, 'cross_section' : 2075.14*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from 
 ( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 73165476, 'cross_section' : 2075.14*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
 ( 'ZGTo2LG'                       , { 'n_evt' : 9832116, 'cross_section' : 117.864, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from  total events = 13626718
+( 'tW_top'                        , { 'n_evt' : 5424845, 'cross_section' : 38.09, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NLO from XSDB
+( 'tW_antitop'                    , { 'n_evt' : 5425134, 'cross_section' : 38.06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NLO from XSDB
 ( 'TTJets_DiLept'                 , { 'n_evt' : 6068369, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
 ( 'TTJets_SingleLeptFromT'        , { 'n_evt' : 11957043, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
 ( 'TTJets_SingleLeptFromTbar'     , { 'n_evt' : 11955887, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
@@ -23,7 +25,6 @@
 ( 'WJetsToLNu-amcatnloFXFX'       , { 'n_evt' : 16410910, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), 
  #'WJetsToLNu_HT-100To200'       ,: { 'n_evt' : 10235198, 'cross_section' : 1345., 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  #'WJetsToLNu_HT-200To400'       ,: { 'n_evt' : 4950373, 'cross_section' :  359.7, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
-( 'WJetsToLNu_HT-70To100'         , { 'n_evt' : 10020533, 'cross_section' : 1353,   'gen_eff' : 1.0 , 'k_factor' : 1.21 }), ## LO from XSDB # not in Modules yet
 ( 'WJetsToLNu_HT-100To200'        , { 'n_evt' : 9945478, 'cross_section' :  1345,   'gen_eff' : 1.0 , 'k_factor' : 1.21 }), ## 1346 in XSDB #from SummaryTable1G25ns twiki
 ( 'WJetsToLNu_HT-200To400'        , { 'n_evt' : 4963240, 'cross_section' :  359.7, 'gen_eff' : 1.0 , 'k_factor' : 1.21 }),
 ( 'WJetsToLNu_HT-400To600'        , { 'n_evt' : 1963464, 'cross_section' :  48.91, 'gen_eff' : 1.0 , 'k_factor' : 1.21 }),
@@ -38,7 +39,6 @@
 ( 'GJets_HT-400To600'             , { 'n_evt' : 2529729, 'cross_section' : 277.4, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
 ( 'GJets_HT-600ToInf'             , { 'n_evt' : 2463946, 'cross_section' : 93.38, 'gen_eff' : 1.0, 'k_factor' : 1.0 }),
 ( 'DiPhoton'                      , { 'n_evt' : 19489569, 'cross_section' : 135.1, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # from SummaryTable1G25ns
-
 
 
  ('ResonanceMass200'        , { 'n_evt' : 50000, 'cross_section' : 0.001*21.927083486735327,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
