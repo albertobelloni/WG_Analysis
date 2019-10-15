@@ -497,7 +497,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_hovere_94x = ' == True'
     filt.cut_isorho_94x = ' == True'
 
-
+    ### 94X V2 PID cuts ###
     filt.cut_sigmaIEIE_barrel_tight        = ' < 0.0104 '
     filt.cut_absdEtaIn_barrel_tight        = ' < 0.00255 '
     filt.cut_absdPhiIn_barrel_tight        = ' < 0.022 '
@@ -755,7 +755,7 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
 #    filt.cut_phoIsoCorr_endcap_tight = ' < 2.617 '
 #    filt.cut_hovere_endcap_tight = ' < 0.0213 '
 
-    ### 94X PID ###
+    ### 94X V2 PID ###
     filt.cut_sigmaIEIE_barrel_loose  = ' < 0.0106'
     filt.cut_chIsoCorr_barrel_loose  = ' < 1.694'
     filt.cut_neuIsoCorr_barrel_loose = ' < 24.032 '
