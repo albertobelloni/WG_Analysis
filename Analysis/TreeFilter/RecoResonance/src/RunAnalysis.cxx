@@ -1960,9 +1960,9 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         float sigmaIEIE = IN::ph_sigmaIEIEFull5x5->at(idx);
         float hovere = IN::ph_hOverE->at(idx);
 
-        //float pfChIso  = IN::ph_chIso->at(idx);
-        //float pfNeuIso = IN::ph_neuIso->at(idx);
-        //float pfPhoIso = IN::ph_phoIso->at(idx);
+        float pfChIso  = IN::ph_chIso->at(idx);
+        float pfNeuIso = IN::ph_neuIso->at(idx);
+        float pfPhoIso = IN::ph_phoIso->at(idx);
 
         float pfChIsoRhoCorr = 0.0;
         float pfNeuIsoRhoCorr = 0.0;
