@@ -92,7 +92,7 @@ def get_electron_sf(options) :
     electron_sf.add_var( 'HistRecoHighPt', 'EGamma_SF2D')
     electron_sf.add_var( 'FilePathRecoLowPt',  '%s/2016/EGM2D_BtoH_low_RecoSF_Legacy2016.root'%base_path)
     electron_sf.add_var( 'HistRecoLowPt', 'EGamma_SF2D')
-    electron_sf.add_var( 'FilePathCutID',      '%s/2016/2016LegacyReReco_ElectronTight.root'%base_path)
+    electron_sf.add_var( 'FilePathCutID',      '%s/2016/2016LegacyReReco_ElectronTight_Fall17V2.root'%base_path)
     electron_sf.add_var( 'HistCutID', 'EGamma_SF2D')
 
     return electron_sf
@@ -105,7 +105,7 @@ def get_photon_sf(options) :
 
     photon_sf.add_var( 'year', theyear)
 
-    photon_sf.add_var( 'FilePathId', '%s/2016/2016LegacyReReco_PhotonCutBasedMedium.root' %base_path )
+    photon_sf.add_var( 'FilePathId', '%s/2016/Fall17V2_2016_Medium_photons.root' %base_path )
     photon_sf.add_var( 'HistId', 'EGamma_SF2D' )
 
     photon_sf.add_var( 'FilePathPSveto', '%s/2016/PhotonEVeto_ScalingFactors_80X_Summer16.root' %base_path )
