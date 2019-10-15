@@ -21,7 +21,7 @@ options = parser.parse_args()
 
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
-datestr   = "2019_10_04_beta"
+datestr   = "2019_10_04"
 
 if options.year == 2016:
     _XSFILE   = 'cross_sections/photon16.py'
