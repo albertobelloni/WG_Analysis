@@ -1282,7 +1282,6 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         OUT::mu_n++;
         
         // Write Rochester-corrected pt only after muon is accepted
-        // TODO: Investigate why muon with pt=167.26719 is rejected
         OUT::mu_pt_rc->push_back( ptrc );
         OUT::mu_e_rc->push_back( mulv.E() );
 
@@ -1961,23 +1960,23 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         float sigmaIEIE = IN::ph_sigmaIEIEFull5x5->at(idx);
         float hovere = IN::ph_hOverE->at(idx);
 
-        //float pfChIso  = IN::ph_chIso->at(idx);
-        //float pfNeuIso = IN::ph_neuIso->at(idx);
-        //float pfPhoIso = IN::ph_phoIso->at(idx);
+        float pfChIso  = IN::ph_chIso->at(idx);
+        float pfNeuIso = IN::ph_neuIso->at(idx);
+        float pfPhoIso = IN::ph_phoIso->at(idx);
 
-        //float pfChIsoRhoCorr = 0.0;
-        //float pfNeuIsoRhoCorr = 0.0;
-        //float pfPhoIsoRhoCorr = 0.0;
-        //calc_corr_iso( pfChIso, pfPhoIso, pfNeuIso, IN::rho, sceta, pfChIsoRhoCorr, pfPhoIsoRhoCorr, pfNeuIsoRhoCorr);
+        float pfChIsoRhoCorr = 0.0;
+        float pfNeuIsoRhoCorr = 0.0;
+        float pfPhoIsoRhoCorr = 0.0;
+        calc_corr_iso( pfChIso, pfPhoIso, pfNeuIso, IN::rho, sceta, pfChIsoRhoCorr, pfPhoIsoRhoCorr, pfNeuIsoRhoCorr);
 
-        float pfChIsoRhoCorr  = IN::ph_chIsoCorr->at(idx);
-        float pfNeuIsoRhoCorr = IN::ph_neuIsoCorr->at(idx);
-        float pfPhoIsoRhoCorr = IN::ph_phoIsoCorr->at(idx);
+        //float pfChIsoRhoCorr  = IN::ph_chIsoCorr->at(idx);
+        //float pfNeuIsoRhoCorr = IN::ph_neuIsoCorr->at(idx);
+        //float pfPhoIsoRhoCorr = IN::ph_phoIsoCorr->at(idx);
         float p1_neu = 0;
         float p2_neu = 0;
         float p1_pho = 0;
         // taken from https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Recommended_Working_points_for_2
-        // Updated Dec 2016
+        // Updated May 2019 (94X V2 PID)
         if( iseb ) {
             p1_neu = 0.01512;
             p2_neu = 2.259e-5;
@@ -2325,7 +2324,7 @@ void RunModule::calc_corr_iso( float chIso, float phoIso, float neuIso, float rh
 {
 
     // from https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Selection_implementation_details
-    // updated Dec 2016
+    // updated May 2019 (94X V2 PID)
     
     float ea_ch=0.0;
     float ea_pho=0.0;
