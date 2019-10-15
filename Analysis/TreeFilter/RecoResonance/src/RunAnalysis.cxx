@@ -1282,7 +1282,6 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         OUT::mu_n++;
         
         // Write Rochester-corrected pt only after muon is accepted
-        // TODO: Investigate why muon with pt=167.26719 is rejected
         OUT::mu_pt_rc->push_back( ptrc );
         OUT::mu_e_rc->push_back( mulv.E() );
 
