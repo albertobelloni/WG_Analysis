@@ -718,10 +718,21 @@ void RunModule::AddPhotonSF( ModuleConfig & /*config*/ ) const {
 	    sfs_psv .push_back(res_psv.val );
 	    errs_psv.push_back(res_psv.err_up);
 	  }
-	else if (_year_ph == 2017 || _year_ph == 2018)
+	else if (_year_ph == 2017)
 	  {
 	    ValWithErr res_psv  = PhGetVals1D( _sfhist_ph_psv );
 	    ValWithErr res_csev = PhGetVals1D( _sfhist_ph_csev );
+
+	    sfs_csev .push_back(res_csev.val );
+	    errs_csev.push_back(res_csev.err_up);
+	    
+	    sfs_psv .push_back(res_psv.val );
+	    errs_psv.push_back(res_psv.err_up);
+	  }
+	else if (_year_ph == 2018)
+	  {
+	    ValWithErr res_psv  = GetVals2D( _sfhist_ph_psv, pt, fabs(eta) );
+	    ValWithErr res_csev = GetVals2D( _sfhist_ph_csev, pt, fabs(eta) );
 
 	    sfs_csev .push_back(res_csev.val );
 	    errs_csev.push_back(res_csev.err_up);
