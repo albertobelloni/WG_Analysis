@@ -27,15 +27,21 @@ if options.year == 2016:
     _XSFILE   = 'cross_sections/photon16.py'
     _LUMI     = 36000
     _SAMPCONF = 'Modules/Resonance2016.py'
+    etastr    = "&& !(ph_eta[0]<0 && ph_phi[0]<16*pi/18 && ph_phi[0]>13*pi/18)"
+    lumiratio = 1./(1-3./72)
 elif options.year == 2017:
     #datestr   = "2019_09_15"
     _SAMPCONF = 'Modules/Resonance2017.py'
     _XSFILE   = 'cross_sections/photon17.py'
     _LUMI     = 41000
+    etastr    = "&& !(ph_eta[0]>0 && ph_phi[0]>15*pi/18)"
+    lumiratio = 1./(1-3./72.)
 elif options.year == 2018:
     _SAMPCONF = 'Modules/Resonance2018.py'
     _XSFILE   = 'cross_sections/photon18.py'
     _LUMI     = 59740
+    etastr    = "&& !(ph_phi[0]<5*pi/18 && ph_phi[0]>3*pi/18)" 
+    lumiratio = 1./(1-1./18)
 
 _LUMI     = 36000
 
@@ -78,25 +84,25 @@ def main() :
     #if options.outputDir: f1 = ROOT.TFile("%s/output.root"%(options.outputDir),"RECREATE")
 
     sampManElG, sampManMuG = None, None
-    sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI, readHists=False , weightHistName = "weighthist")
+    sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio, readHists=False , weightHistName = "weighthist")
     sampManMuG.ReadSamples( _SAMPCONF )
-    sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI ,readHists=False , weightHistName = "weighthist")
+    sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,readHists=False , weightHistName = "weighthist")
     sampManElG.ReadSamples( _SAMPCONF )
     #samples = sampManMuG
     plotvarsbase = [# ("mt_lep_met_ph",(100,0,2000)),
-                 ("p_{T}(#gamma)","ph_pt[0]"     ,(100,50,550)),
+                # ("p_{T}(#gamma)","ph_pt[0]"     ,(100,50,550)),
                  ("#eta(#gamma)","ph_eta[0]"    ,(100,-3,3)),
                  ("#phi(#gamma)","ph_phi[0]"    ,(100,-pi,pi)),
-                 ("MET"         ,"met_pt"       ,(100,0,500)),
-                 ("MET #phi"    ,"met_phi"      ,(100,-pi,pi)),
+                # ("MET"         ,"met_pt"       ,(100,0,500)),
+                # ("MET #phi"    ,"met_phi"      ,(100,-pi,pi)),
                 ]
-    plotvarsel=[ ("p_{T}(e)"    ,"el_pt[0]"     ,(100,0,500)),
-                 ("#eta(e)"     ,"el_eta[0]"    ,(100,-3,3)),
-                 ("#phi(e)"     ,"el_phi[0]"    ,(100,-pi,pi)),
+    plotvarsel=[ #("p_{T}(e)"    ,"el_pt[0]"     ,(100,0,500)),
+                 #("#eta(e)"     ,"el_eta[0]"    ,(100,-3,3)),
+                 #("#phi(e)"     ,"el_phi[0]"    ,(100,-pi,pi)),
                  ]
-    plotvarsmu=[ ("p_{T}(#mu)"  ,"mu_pt[0]"     ,(100,0,500)),
-                 ("#eta(#mu)"   ,"mu_eta[0]"    ,(100,-3,3)),
-                 ("#phi(#mu)"   ,"mu_phi[0]"    ,(100,-pi,pi)),
+    plotvarsmu=[ #("p_{T}(#mu)"  ,"mu_pt[0]"     ,(100,0,500)),
+                 #("#eta(#mu)"   ,"mu_eta[0]"    ,(100,-3,3)),
+                 #("#phi(#mu)"   ,"mu_phi[0]"    ,(100,-pi,pi)),
                  ]
 
     for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
@@ -104,8 +110,8 @@ def main() :
     #for ch, samples in [("mu",sampManMuG),]:
         labelname = "%i Muon Channel" %options.year if ch == "mu" else "%i Electron Channel" %options.year
         #labelname+=" scaled to 2016 luminosity"
-        if ch == "el": selection = baseel + ph_eb + gtmet + invZ + passcsev + phpt80 + "&&el_passTight[0] && ph_passMedium[0]" + elpt40 + eleta2p1
-        if ch == "mu": selection = basemu + ph_eb + gtmet  + passpix + phpt80 + "&& mu_passTight[0] && ph_passVIDMedium[0]" 
+        if ch == "el": selection = baseel + ph_eb + gtmet + invZ + passcsev + phpt80 + "&&el_passTight[0] && ph_passMedium[0]" + elpt40 + eleta2p1 + etastr
+        if ch == "mu": selection = basemu + ph_eb + gtmet  + passpix + phpt80 + "&& mu_passTight[0] && ph_passVIDMedium[0]" +etastr
 
 
         ## prepare config
@@ -117,7 +123,7 @@ def main() :
         samples.Draw("mt_lep_met_ph", selection, (100,0,2000), hist_config,legend_config,label_config)
 
         ## save histogram
-        samples.SaveStack("moneymtlepmetph%i%ssamelumi.pdf" %(options.year, ch), options.outputDir, "base")
+        samples.SaveStack("moneymtlepmetph%i%ssamelumieta.pdf" %(options.year, ch), options.outputDir, "base")
         samples.print_stack_count()
         samples.print_stack_count(acceptance=True)
         samples.print_stack_count(dolatex=True)
