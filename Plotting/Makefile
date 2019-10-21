@@ -11,7 +11,7 @@ DIR_MU=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_mu_2019_04_11/WithSF
 DIR_EL=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_el_2019_04_11/WithSF
 #DIR_MUMU=/data/users/friccita/WGammaNtuple/LepLep_mumu_2019_07_12/WithSF
 #DIR_MUMU=/data/users/kakw/Resonances2016/LepLep_mumu_2019_08_05
-DIR_MUMU=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_08_14/WithSF
+DIR_MUMU=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_09_04/WithSF
 DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2019_04_11/WithSF
 
 DIR_MUG=/data2/users/kakw/Resonances2016/LepGamma_mug_2019_09_15

@@ -23,7 +23,7 @@ options = parser.parse_args()
 
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
-_XSFILE   = 'cross_sections/photon15.py'
+_XSFILE   = 'cross_sections/photon16.py'
 _LUMI     = 36000
 _BASEPATH = '/afs/cern.ch/work/f/friccita/WG_Analysis/Plotting/LimitSetting/'
 #_BASEPATH = '/home/friccita/WGamma/WG_Analysis/Plotting/LimitSetting/'
@@ -150,10 +150,12 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
         myweight = '(NLOWeight*PUWeight*mu_trigSF*mu_idSF*mu_isoSF*ph_idSF*ph_csevSF)'
 
 
-    real_sel_sieie_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_sieie_incl, deltaR_real_sel] ) #set pt cut here
+    #real_sel_sieie_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_sieie_incl, deltaR_real_sel] ) #set pt cut here
+    real_sel_sieie_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_40Up, ph_sel_preid, ph_sel_sieie_incl] ) #set pt cut here
     real_sel_sieie_incl = '(' + real_sel_sieie_incl + ')*' + myweight
 
-    real_sel_chiso_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_chiso_incl, deltaR_real_sel] ) #set pt cut here
+    #real_sel_chiso_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_chiso_incl, deltaR_real_sel] ) #set pt cut here
+    real_sel_chiso_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_40Up, ph_sel_preid, ph_sel_chiso_incl] ) #set pt cut here
     real_sel_chiso_incl = '(' + real_sel_chiso_incl + ')*' + myweight
 
     fake_sel_sieie_incl = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid, ph_sel_sieie_incl, deltaR_fake_sel] ) #set pt cut here
@@ -189,6 +191,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     binning_sigIEIE_FR = [0.,0.01022,0.1]
     binning_chIso_FR = [0.,0.441,5.]
     binning_mll = (40, 50., 130.)
+    binning_mt = (100,0.,1000.)
     binning_dr = (40, 0., 4.)
     binning_vtx = (40, 0., 40.)
 
@@ -198,9 +201,11 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     dr_var = 'min(dr_lep_ph,dr_lep2_ph)'
     vtx_var = 'vtx_n'
     pu_var = 'pu_n'
+    mt_var = 'mt_res'
+    mu_pt_var = 'mu_pt_rc[0]'
 
-    #hist_real_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE )
-    #hist_real_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso )
+    hist_real_sigmaIEIE = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE )
+    hist_real_chIso = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso )
 
     #hist_real_sigmaIEIE_FR = clone_sample_and_draw( sampMan, sample, sigIEIE_var, real_sel_sieie_incl, binning_sigIEIE_FR )
     #hist_real_chIso_FR = clone_sample_and_draw( sampMan, sample, chIso_var, real_sel_chiso_incl, binning_chIso_FR )
@@ -215,10 +220,12 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     hist_mll_smp = clone_sample_and_draw( sampMan, sample, mll_var, sel_smp_zpeak, binning_mll )
     hist_dr = clone_sample_and_draw( sampMan, sample, dr_var, predR_sel, binning_dr )
     hist_nvtx = clone_sample_and_draw( sampMan, sample, vtx_var, zpeak_sel, binning_vtx )
+    hist_mt = clone_sample_and_draw( sampMan, sample, mt_var, zpeak_sel, binning_mt )
+    hist_mupt = clone_sample_and_draw( sampMan, sample, mu_pt_var, zpeak_sel, binning_mt )
     hist_npu = clone_sample_and_draw( sampMan, sample, pu_var, zpeak_sel, binning_vtx )
     
-    #sampMan.outputs['%s_sigmaIEIE_real_%s' %(sample,suffix)] = hist_real_sigmaIEIE
-    #sampMan.outputs['%s_chIso_real_%s' %(sample,suffix)] = hist_real_chIso
+    sampMan.outputs['%s_sigmaIEIE_real_%s' %(sample,suffix)] = hist_real_sigmaIEIE
+    sampMan.outputs['%s_chIso_real_%s' %(sample,suffix)] = hist_real_chIso
     #sampMan.outputs['%s_sigmaIEIE_real_FR_%s' %(sample,suffix)] = hist_real_sigmaIEIE_FR
     #sampMan.outputs['%s_chIso_real_FR_%s' %(sample,suffix)] = hist_real_chIso_FR
 
@@ -231,6 +238,8 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     sampMan.outputs['%s_mllsmp_%s' %(sample,suffix)] = hist_mll_smp
     sampMan.outputs['%s_dr_%s' %(sample,suffix)] = hist_dr
     sampMan.outputs['%s_vtxn_%s' %(sample,suffix)] = hist_nvtx
+    sampMan.outputs['%s_mtres_%s' %(sample,suffix)] = hist_mt
+    sampMan.outputs['%s_mu_pt_%s' %(sample,suffix)] = hist_mupt
     sampMan.outputs['%s_pun_%s' %(sample,suffix)] = hist_npu
 
 

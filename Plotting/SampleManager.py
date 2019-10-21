@@ -55,16 +55,17 @@ def f_Dumpfname(func):
     return echo_func
 
 def latex_float(f, u=None):
-    float_str = "{0:.3g}".format(f)
+    if f!=0 and abs(f)<0.1: float_str = "{0:.3e}".format(f)
+    else:          float_str = "{0:.4g}".format(f)
     if "e" in float_str:
         base, exponent = float_str.split("e")
-        if u:
+        if u is not None:
             u=u/10**int(exponent)
             uncer_str = "{0:.3g}".format(u)
-            return r"{0} & \pm {1} \times 10^{{{2}}}".format(base, uncer_str, int(exponent))
-        return r"{0} \times 10^{{{1}}}".format(base, int(exponent))
+            return r"${0}$ & $\pm {1} \times 10^{{{2}}}$".format(base, uncer_str, int(exponent))
+        return r"${0} \times 10^{{{1}}}$&".format(base, int(exponent))
     elif u:
-        return r"{0} & \pm {1:.3g}".format(float_str, u)
+        return r"${0}$ & $\pm {1:.3g}$".format(float_str, u)
     else:
         return float_str
 
@@ -121,7 +122,7 @@ class Sample :
         self.drawRatio = kwargs.get('drawRatio', False)
 
         self.weightmap = kwargs.get('weightmap', None)
-        print "weightmap", self.name, self.weightmap
+        #print "weightmap", self.name, self.weightmap
         if self.weightmap == None:
             self.weightmap = { }
 
@@ -187,7 +188,7 @@ class Sample :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
         self.hist.SetTitle('')
-        if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__"):
+        if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__" or self.isRatio==True):
             #scale = self.cross_section*self.lumi/self.total_events_onthefly
             #analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
             scale = self.scale_calc() 
@@ -286,6 +287,7 @@ class Sample :
         return self.lineStyle
 
     def walk_text(self, index=0):
+        if not self.ofiles: return []
         return list(analysis_utils.walk_root_text(self.ofiles[index]))
 
 class SampleManager :
@@ -2254,7 +2256,7 @@ class SampleManager :
 
         self.MakeStack(draw_config, useModel, treeHist, treeSelection )
 
-        self.DrawCanvas(self.curr_stack, draw_config, datahists=['Data'], sighists=self.get_signal_samples())
+        self.DrawCanvas(self.curr_stack, draw_config, datahists=['Data'], sighists=self.get_signal_samples(), errhists = ["__AllStack__"] )
 
     def Draw3DProjections(self, varexp, selection, histpars=None, x_by_y_bin_vals={}, doratio=False, ylabel=None, xlabel=None, rlabel=None, logy=False, ymin=None, ymax=None, ymax_scale=None, rmin=None, rmax=None, showBackgroundTotal=False, backgroundLabel='AllBkg', removeFromBkg=[], addToBkg=[], useModel=False, treeHist=None, treeSelection=None, labelStyle=None, extra_label=None, extra_label_loc=None, generate_data_from_sample=None, replace_selection_for_sample={}, legendConfig=None  ) :
 
@@ -2435,9 +2437,10 @@ class SampleManager :
 
         self.curr_legend = self.create_standard_legend( step, draw_config=draw_config)
 
-        if self.get_signal_samples():
+        nsigsamp = len(self.get_signal_samples())
+        if nsigsamp:
            ## neeed to plot signal distributions
-           self.curr_sig_legend = self.create_standard_legend(step, draw_config=draw_config, isSignalLegend = True)
+           self.curr_sig_legend = self.create_standard_legend(nsigsamp, draw_config=draw_config, isSignalLegend = True)
         else:
            self.curr_sig_legend = None
 
@@ -2458,6 +2461,7 @@ class SampleManager :
                tmp_sig_legend_entries.append( (samp.hist, samp.legendName, 'L'))
             else:
                tmp_legend_entries.append( ( samp.hist, samp.legendName,  'F') )
+        print "tmp_legend_entries", tmp_legend_entries
 
         self.quietprint( '********************NOT FILLING SIGNAL ENTRY IN LEGEND**********************')
         #for samp in self.get_signal_samples() :
@@ -2845,7 +2849,8 @@ class SampleManager :
             return
 
         else :
-            if sample.chain is not None and sample.chain.GetEntries():
+            if sample.chain is not None: 
+                if sample.chain.GetEntries() == 0: print '\033[1;31m WARNING: No entries from sample %s \033[0m' %sample.name
                 if not self.quiet or sample.isData: print 'Make %s hist %s : \033[1;31m %s\033[0m' %(sample.name, varexp,selection)
                 res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
                 if res < 0 :
@@ -3368,7 +3373,7 @@ class SampleManager :
                 if not ymaxdef: ymax *= pow(ymax/ymin,ymax_scale-1)
                 if not ymindef: ymin *= pow(ymax/ymin,0.9-1)
             else :
-                if not ymaxdef: ymax += (ymax-ymin)*ymax_scale
+                if not ymaxdef: ymax += (ymax-ymin)*(ymax_scale-1)
 
         print maxarray, minarray, ymin, ymax
         return (ymin, ymax)
@@ -3479,7 +3484,7 @@ class SampleManager :
                    print "No stack found"
            return
 
-    def get_stack_count(self, integralrange = None, sort =True, includeData=False, isActive = True, acceptance = False):
+    def get_stack_count(self, integralrange = None, sort =True, includeData=False, isActive = True, acceptance = False, dolatex = False):
         """ integralrange: ntuple: x bin range to be integrated """
         err = array('d',[0])
         ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
@@ -3490,31 +3495,35 @@ class SampleManager :
 
         if acceptance:
             ### to calculate acceptance, divide by overall normalization of the sample
-            result = [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange))/ s.nevt_calc() ,err[0]/ s.nevt_calc()))\
+            result = [(s.legendName if dolatex else s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange))/ s.nevt_calc() ,err[0]/ s.nevt_calc()))\
                          for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.hist]
         else:
-            result = [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
+            result = [(s.legendName if dolatex else s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
                          for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.hist]
 
         if sort: result.sort(key=lambda x: -x[1][0])
         htotal = self.get_stack_aggregate()
 
-        if includeData: result += [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
+        if includeData:
+                result += [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
                          for s in self.get_samples(isActive=True,isData=True)]
-        if htotal: result.append(("TOTAL",(htotal.IntegralAndError(\
+        if htotal and not acceptance:
+                result.append(("TOTAL",(htotal.IntegralAndError(\
                         *ranger(htotal,err,integralrange)), err[0])))
         resultdict = OrderedDict(result)
         return resultdict
 
     def print_stack_count(self, integralrange = None, dolatex=False, **kwargs):
-        result = self.get_stack_count(integralrange, **kwargs).items()
+        result = self.get_stack_count(integralrange, dolatex = dolatex, **kwargs).items()
         if dolatex:
             #result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
-            result = [ (r1,latex_float(*r2)) for r1, r2 in result]
+            #result = [ (r1.replace("gamma","\\gamma ").replace("Gamma","\\gamma ").replace("\\gamma$$\\gamma","\\gamma\\gamma"),
+            result = [ (r1.replace("#","\\"),
+                        latex_float(*r2)) for r1, r2 in result]
             printline = ""
-            for r in result[:-1]: printline+= "%20s & $%s$\\\\\n" %r
-            printline+= "\\hline\\hline\n%20s & $%s$\\\\\n" %result[-1]
-            print printline.replace("gamma","\\gamma ").replace("Gamma","\\gamma ").replace("G","\\gamma ")
+            for r in result[:-1]: printline+= "%20s & %s\\\\\n" %r
+            printline+= "\\hline\\hline\n%20s & %s\\\\\n" %result[-1]
+            print printline
             return
 
         result = [ (r1,)+r2 for r1, r2 in result]
@@ -3522,8 +3531,8 @@ class SampleManager :
         if len(result)>1 and result[-1][0]=="TOTAL":
             totalresult = result[-1]
             result = result[:-1]
-        for r in result: print "%60s %8.3g +/- %5.3g" %r
-        if totalresult: print "="*35+"\n%60s %8.3g +/- %5.3g" %totalresult
+        for r in result: print "%30s %8.3g +/- %5.3g" %r
+        if totalresult: print "="*45+"\n%30s %8.3g +/- %5.3g" %totalresult
         return
 
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
@@ -3590,7 +3599,7 @@ class SampleManager :
 
 
         # draw the signals
-        legendTextSize = draw_config.legend_config.get('legendTextSize', 0.04 )
+        legendTextSize = draw_config.legend_config.get('legendTextSize', 0.035 )
         #print legendTextSize
         if sighists :
             #sigsamps = self.get_samples(name=sighists)
@@ -3615,6 +3624,8 @@ class SampleManager :
         if errhists :
             errsamps = self.get_samples(name=errhists )
             for samp in errsamps :
+                if not hasattr(samp,"graph") and hasattr(samp, "hist"):
+                    samp.graph = ROOT.TGraphErrors(samp.hist)
                 samp.graph.SetFillStyle(3004)
                 samp.graph.SetFillColor(ROOT.kBlack)
                 samp.graph.Draw('2same')
@@ -4164,7 +4175,6 @@ class SampleManager :
 
     # ----------------------------------------------------------------------------
     # TLegend is initialized
-#    def create_standard_legend(self, nentries,draw_config=None ) :
     def create_standard_legend(self, nentries,draw_config=None , isSignalLegend = False) :
 
         legend_config = {}
@@ -4182,15 +4192,14 @@ class SampleManager :
         entryWidth       = legend_config.get('entryWidth', self.entryWidth )
 
         siglegPos        = legend_config.get('siglegPos',  self.siglegPos)
+        fillalpha        = legend_config.get('fillalpha',  False)
 
 
         if legendLoc == 'TopLeft' :
             legend_limits = { 'x1' : 0.2+legendTranslateX, 'y1' : 0.88-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.5*legendWiden+legendTranslateX, 'y2' : 0.88+legendTranslateY }
         elif legendLoc == 'Double' :
-            #legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.90+0.1-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
             legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.6+legendTranslateY ,
-                              'x2' : 0.65*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
-            #legend_limits = { 'x1' : 0.9-0.35*legendWiden+legendTranslateX, 'y1' : 0.90-legendCompress*entryWidth/2.0*nentries+legendTranslateY, 'x2' : 0.9+legendTranslateX, 'y2' : 0.90+legendTranslateY }
+                              'x2' : 0.6*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
         else :
             legend_limits = { 'x1' : 0.9-0.25*legendWiden+legendTranslateX, 'y1' : 0.85-legendCompress*entryWidth*nentries+legendTranslateY,
                               'x2' : 0.90+legendTranslateX,                 'y2' : 0.85+legendTranslateY }
@@ -4198,7 +4207,6 @@ class SampleManager :
         # modify for different canvas size
         if draw_config.get_doratio():
             legend_limits['y1'] = legend_limits['y1']*0.90
-            #legend_limits['y2'] = legend_limits['y2']*1.05
 
         # grab stored legend limits
         if self.legendLimits :
@@ -4214,7 +4222,12 @@ class SampleManager :
         leg = ROOT.TLegend(legend_limits['x1'], legend_limits['y1'],
                            legend_limits['x2'], legend_limits['y2'])
 
-        leg.SetFillColor(ROOT.kWhite)
+        if fillalpha == True:
+            leg.SetFillColorAlpha(ROOT.kWhite,0) # transparent if fillalpha is float or True(0: transparent)
+        elif isinstance(fillalpha,float) and fillalpha<=1 and fillalpha>=0:
+            leg.SetFillColorAlpha(ROOT.kWhite, fillalpha)
+        else:
+            leg.SetFillColor(ROOT.kWhite)
         leg.SetBorderSize(0)
 
         if legendLoc == 'Double' and not isSignalLegend:

@@ -55,6 +55,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mu_pt20_n                              = 0;
     OUT::mu_pt30_n                              = 0;
     OUT::mu_pt_rc                               = 0;
+    OUT::mu_e_rc                                = 0;
     OUT::mu_passTight                           = 0;
     OUT::mu_passMedium                          = 0;
     OUT::mu_passLoose                           = 0;
@@ -65,6 +66,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mu_trigMatch_dr                        = 0;
 
     OUT::el_pt30_n                              = 0;
+    OUT::el_pt35_n                              = 0;
+    OUT::el_pt40_n                              = 0;
     OUT::el_passVeryLoose                       = 0;
     OUT::el_passLoose                           = 0;
     OUT::el_passMedium                          = 0;
@@ -304,6 +307,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mu_pt20_n", &OUT::mu_pt20_n, "mu_pt20_n/I"  );
     outtree->Branch("mu_pt30_n", &OUT::mu_pt30_n, "mu_pt30_n/I"  );
     outtree->Branch("mu_pt_rc", &OUT::mu_pt_rc            );
+    outtree->Branch("mu_e_rc", &OUT::mu_e_rc            );
     outtree->Branch("mu_passTight", &OUT::mu_passTight            );
     outtree->Branch("mu_passMedium", &OUT::mu_passMedium           );
     outtree->Branch("mu_passLoose", &OUT::mu_passLoose            );
@@ -314,6 +318,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mu_trigMatch_dr", &OUT::mu_trigMatch_dr);
 
     outtree->Branch("el_pt30_n", &OUT::el_pt30_n, "el_pt30_n/I"  );
+    outtree->Branch("el_pt35_n", &OUT::el_pt35_n, "el_pt35_n/I"  );
+    outtree->Branch("el_pt40_n", &OUT::el_pt40_n, "el_pt40_n/I"  );
     outtree->Branch("el_passVeryLoose", &OUT::el_passVeryLoose );
     outtree->Branch("el_passLoose", &OUT::el_passLoose );
     outtree->Branch("el_passMedium", &OUT::el_passMedium );
@@ -948,6 +954,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
     OUT::mu_pt20_n             = 0;
     OUT::mu_pt30_n             = 0;
     OUT::mu_pt_rc              -> clear();
+    OUT::mu_e_rc              -> clear();
     OUT::mu_passTight          -> clear();
     OUT::mu_passMedium         -> clear();
     OUT::mu_passLoose          -> clear();
@@ -1011,11 +1018,53 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  rcsfs = dtSF;
 	  rcsfserr = dtSFerr;
 	}
+#ifdef EXISTS_gen_n
 	else {
-	  double u = gRandom->Rndm();
-	  //float genpt   =   OUT::mu_truthMatchMu_pt ->at(idx);
-	  //double mcSF = rc.kSpreadMC(Q, pt, eta, phi, genpt, 0, 0); //MC scale and extra smearing with matched gen muon
-	  double mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, 0, 0); //MC scale and extra smearing when matched gen muon is not available
+          double mcSF = 1.;
+          float genpt = 0.;
+          double u = 0.;
+          bool matched = false;
+          
+          // some simple truth matching for rochester corrections
+          float mindr = 0.3;
+          TLorentzVector mulv;
+          mulv.SetPtEtaPhiE( IN::mu_pt->at(idx),
+                             IN::mu_eta->at(idx),
+                             IN::mu_phi->at(idx),
+                             IN::mu_e->at(idx)
+                             );
+          for( int gidx = 0; gidx < IN::gen_n; ++gidx ) {
+            int id = IN::gen_PID->at(gidx);
+            int absid = abs(id);
+            if (absid != 13)
+                continue;
+            int st = IN::gen_status->at(gidx);
+            if (st != 1)
+                continue;
+                
+            TLorentzVector tleplv;
+            tleplv.SetPtEtaPhiE( IN::gen_pt->at(gidx),
+                                 IN::gen_eta->at(gidx),
+                                 IN::gen_phi->at(gidx),
+                                 IN::gen_e->at(gidx)
+                               );
+            
+            float dr = mulv.DeltaR( tleplv );
+
+            if( dr < mindr && tleplv.Pt()/mulv.Pt() < 2 && mulv.Pt()/tleplv.Pt() < 2) {
+                mindr = dr;
+                genpt = tleplv.Pt();
+                matched = true;
+            }
+          }
+          
+          if (matched) {
+	    mcSF = rc.kSpreadMC(Q, pt, eta, phi, genpt, 0, 0); //MC scale and extra smearing with matched gen muon
+          }
+          else {
+	    u = gRandom->Rndm();
+	    mcSF = rc.kSmearMC(Q, pt, eta, phi, nl, u, 0, 0); //MC scale and extra smearing when matched gen muon is not available
+          }
 	  std::vector<double> mcSF_errs;
 	  //get statistical error (set 1)
 	  double mcSF_statmean = 0.;
@@ -1023,8 +1072,13 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  std::vector<double> mcSF_staterrs;
 	  for (int i = 0; i < 100; i++)
 	    {
-	      //double f = rc.kSpreadMC(Q, pt, eta, phi, genpt, 1, i);
-	      double f = rc.kSmearMC(Q, pt, eta, phi, nl, u, 1, i); // matched gen muon not available
+	      double f = 1.;
+              if (matched) {
+                f = rc.kSpreadMC(Q, pt, eta, phi, genpt, 1, i);
+              }
+              else {
+	        f = rc.kSmearMC(Q, pt, eta, phi, nl, u, 1, i); // matched gen muon not available
+              }
 	      mcSF_staterrs.push_back(f);
 	      mcSF_statmean += f;
 	    }
@@ -1039,8 +1093,13 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  //get systematic errors (set 2-5)
 	  for (int i = 2; i < 6; i++)
 	    {
-	      //double mcSF_witherr = rc.kSpreadMC(Q, pt, eta, phi, genpt, i, 0);
-	      double mcSF_witherr = rc.kSmearMC(Q, pt, eta, phi, nl, u, i, 0); // matched gen muon not available
+	      double mcSF_witherr = 1.;
+              if (matched) {
+                mcSF_witherr = rc.kSpreadMC(Q, pt, eta, phi, genpt, i, 0);
+              }
+              else {
+	        mcSF_witherr = rc.kSmearMC(Q, pt, eta, phi, nl, u, i, 0); // matched gen muon not available
+              }
 	      mcSF_errs.push_back(mcSF_witherr - mcSF);
 	    }
 
@@ -1055,14 +1114,19 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	  rcsfs = mcSF;
 	  rcsfserr = mcSFerr;
 	}
+#endif
 	
 	//////  End Rochester corrections! //////
 
 	float ptrc = pt*rcsfs;
+        
+        if (rcsfs > 3) {
+            std::cout << "WARNING: rcsfs = " << rcsfs << std::endl;
+        }
+        
 	//float ptrc = pt*(rcsfs + rcsfserr); // vary RC up
 	//float ptrc = pt*(rcsfs - rcsfserr); // vary RC down
 
-	OUT::mu_pt_rc->push_back( ptrc );
         if( !config.PassFloat( "cut_pt", ptrc   ) ) continue;
         if( !config.PassFloat( "cut_eta", fabs(eta) ) ) continue;
 
@@ -1157,11 +1221,11 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         if( !config.PassFloat("cut_pfiso_tight",   IN::mu_pfIso->at(idx))   ) continue;
 
         TLorentzVector mulv;
-	mulv.SetPtEtaPhiM( ptrc,
+        mulv.SetPtEtaPhiM( ptrc,
                            IN::mu_eta->at(idx),
                            IN::mu_phi->at(idx),
-			   0.1057
-			   );
+                           0.1057
+                           );
 
         float mindr = 101.0;
         for( int hltidx = 0 ; hltidx < IN::HLTObj_n; ++hltidx ) {
@@ -1216,6 +1280,10 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         OUT::mu_passLoose -> push_back( pass_loose );
 
         OUT::mu_n++;
+        
+        // Write Rochester-corrected pt only after muon is accepted
+        OUT::mu_pt_rc->push_back( ptrc );
+        OUT::mu_e_rc->push_back( mulv.E() );
 
         if( ptrc > 20 ) {
             OUT::mu_pt20_n++;
@@ -1234,6 +1302,8 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
 
     OUT::el_n          = 0;
     OUT::el_pt30_n          = 0;
+    OUT::el_pt35_n          = 0;
+    OUT::el_pt40_n          = 0;
     OUT::el_passVeryLoose->clear();
     OUT::el_passLoose->clear();
     OUT::el_passMedium->clear();
@@ -1821,6 +1891,14 @@ void RunModule::FilterElectron( ModuleConfig & config ) {
             OUT::el_pt30_n++;
         }
 
+        if( IN::el_pt->at(idx) > 35 ) {
+            OUT::el_pt35_n++;
+        }
+
+        if( IN::el_pt->at(idx) > 40 ) {
+            OUT::el_pt40_n++;
+        }
+
         config.PassCounter("electron_pass");
     }
 
@@ -1882,23 +1960,23 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         float sigmaIEIE = IN::ph_sigmaIEIEFull5x5->at(idx);
         float hovere = IN::ph_hOverE->at(idx);
 
-        //float pfChIso  = IN::ph_chIso->at(idx);
-        //float pfNeuIso = IN::ph_neuIso->at(idx);
-        //float pfPhoIso = IN::ph_phoIso->at(idx);
+        float pfChIso  = IN::ph_chIso->at(idx);
+        float pfNeuIso = IN::ph_neuIso->at(idx);
+        float pfPhoIso = IN::ph_phoIso->at(idx);
 
-        //float pfChIsoRhoCorr = 0.0;
-        //float pfNeuIsoRhoCorr = 0.0;
-        //float pfPhoIsoRhoCorr = 0.0;
-        //calc_corr_iso( pfChIso, pfPhoIso, pfNeuIso, IN::rho, sceta, pfChIsoRhoCorr, pfPhoIsoRhoCorr, pfNeuIsoRhoCorr);
+        float pfChIsoRhoCorr = 0.0;
+        float pfNeuIsoRhoCorr = 0.0;
+        float pfPhoIsoRhoCorr = 0.0;
+        calc_corr_iso( pfChIso, pfPhoIso, pfNeuIso, IN::rho, sceta, pfChIsoRhoCorr, pfPhoIsoRhoCorr, pfNeuIsoRhoCorr);
 
-        float pfChIsoRhoCorr  = IN::ph_chIsoCorr->at(idx);
-        float pfNeuIsoRhoCorr = IN::ph_neuIsoCorr->at(idx);
-        float pfPhoIsoRhoCorr = IN::ph_phoIsoCorr->at(idx);
+        //float pfChIsoRhoCorr  = IN::ph_chIsoCorr->at(idx);
+        //float pfNeuIsoRhoCorr = IN::ph_neuIsoCorr->at(idx);
+        //float pfPhoIsoRhoCorr = IN::ph_phoIsoCorr->at(idx);
         float p1_neu = 0;
         float p2_neu = 0;
         float p1_pho = 0;
         // taken from https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Recommended_Working_points_for_2
-        // Updated Dec 2016
+        // Updated May 2019 (94X V2 PID)
         if( iseb ) {
             p1_neu = 0.01512;
             p2_neu = 2.259e-5;
@@ -2246,7 +2324,7 @@ void RunModule::calc_corr_iso( float chIso, float phoIso, float neuIso, float rh
 {
 
     // from https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Selection_implementation_details
-    // updated Dec 2016
+    // updated May 2019 (94X V2 PID)
     
     float ea_ch=0.0;
     float ea_pho=0.0;
@@ -2634,7 +2712,7 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
         tlv.SetPtEtaPhiE( OUT::mu_pt_rc->at(idx), 
                           OUT::mu_eta->at(idx), 
                           OUT::mu_phi->at(idx), 
-                          OUT::mu_e->at(idx) );
+                          OUT::mu_e_rc->at(idx) );
 
         leptons.push_back(tlv);
     }

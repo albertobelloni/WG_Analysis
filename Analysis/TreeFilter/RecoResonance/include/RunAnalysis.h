@@ -115,6 +115,7 @@ namespace OUT {
     Int_t mu_pt20_n;
     Int_t mu_pt30_n;
     std::vector<float> *mu_pt_rc;
+    std::vector<float> *mu_e_rc;
     std::vector<Bool_t> *mu_passTight;
     std::vector<Bool_t> *mu_passMedium;
     std::vector<Bool_t> *mu_passLoose;
@@ -125,6 +126,8 @@ namespace OUT {
     std::vector<float>  *mu_trigMatch_dr;
 
     Int_t el_pt30_n;
+    Int_t el_pt35_n;
+    Int_t el_pt40_n;
     std::vector<Bool_t> *el_passVeryLoose;
     std::vector<Bool_t> *el_passLoose;
     std::vector<Bool_t> *el_passMedium;

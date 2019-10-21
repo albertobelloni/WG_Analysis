@@ -65,6 +65,7 @@ class RunModule : public virtual RunModuleBase {
 
         ValWithErr GetValsFromGraph( const TGraphAsymmErrors *, float pt, bool debug=true ) const;
         template<class HIST> ValWithErr GetVals2D( const HIST*, float pt, float eta) const;
+        template<class HIST> ValWithErr PhGetVals1D( const HIST* ) const;
         template<class HIST> ValWithErr GetValsRunRange2D( const std::vector<std::pair<float, HIST*> > range_hists, float pt, float eta) const;
         float calc_pu_weight( float puval, float mod=1.0 ) const;
         float get_ele_cutid_syst( float pt, float eta) const;
@@ -86,6 +87,8 @@ class RunModule : public virtual RunModuleBase {
         std::vector<std::pair<float, TH2D* > > _sfhists_mu_iso;
         std::vector<std::pair<float, TH2D* > > _sfhists_mu_id;
         std::vector<std::pair<float, TH2F* > > _sfhists_mu_trig;
+        std::vector<std::pair<float, TH2F* > > _effhists_mu_trig_data;
+        std::vector<std::pair<float, TH2F* > > _effhists_mu_trig_mc;
 
         TFile *_sffile_el_id;
         TFile *_sffile_el_trig;
@@ -97,6 +100,7 @@ class RunModule : public virtual RunModuleBase {
         TH2F *_sfhist_el_recolowpt;
 
         TFile *_sffile_ph_id;
+        TFile *_sffile_ph_psv;
         TFile *_sffile_ph_ev;
 
         TH2F *_sfhist_ph_id;
@@ -106,8 +110,8 @@ class RunModule : public virtual RunModuleBase {
         TH1D *_sfhist_pileup_data;
         TH1F *_sfhist_pileup_mc;
 
-        int _run_bcdf_max;
-        int _run_gh_min;
+	int _year_mu;
+	int _year_ph;
 
 };
 
