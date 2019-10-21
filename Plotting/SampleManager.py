@@ -292,7 +292,7 @@ class SampleManager :
     """ Manage input samples and drawn histograms """
 
     def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root',
-            base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = None) :
+            base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = "weighthist") :
 
         #
         # This plotting module assumes that root files are
@@ -3337,7 +3337,7 @@ class SampleManager :
         #if not normalize: samplist+=self.get_samples( name='__AllStack__' )
 
         if ymaxdef is None :
-            if normalize = "Total":
+            if normalize == "Total":
                 maxarray =[samp.hist.GetMaximum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
             elif normalize:
                 maxarray =[samp.hist.GetMaximum()/samp.hist.Integral() for samp in samplist if samp.hist and samp.hist.Integral()>0]
@@ -3346,7 +3346,7 @@ class SampleManager :
             ymax = max(maxarray)
 
         if ymindef is None :
-            if normalize = "Total":
+            if normalize == "Total":
                 minarray =[samp.hist.GetMinimum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
             elif normalize:
                 minarray =[samp.hist.GetMinimum()/samp.hist.Integral() for samp in samplist if samp.hist and samp.hist.Integral()>0]

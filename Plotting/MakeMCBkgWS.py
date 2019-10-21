@@ -16,13 +16,18 @@ from SampleManager import SampleManager
 from argparse import ArgumentParser
 parser = ArgumentParser()
 
+tColor_Off="\033[0m"       # Text Reset
+tPurple="\033[0;35m%s"+tColor_Off       # Purple
+
 parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--outputDir',       default=None,           dest='outputDir',         required=False, help='Output directory to write histograms')
+parser.add_argument('--weightHistName',     default="weighthist",  type=str ,        dest='weightHistName',         help='name of weight histogram')
 parser.add_argument('--useRooFit',       default=False,     action='store_true',      dest='useRooFit',    required=False, help='Make fits using roostats' )
 parser.add_argument('--doSignal',        default=False,     action='store_true',      dest='doSignal',     required=False, help='make signal fits' )
 parser.add_argument('--doWGamma',        default=False,     action='store_true',      dest='doWGamma',     required=False, help='make wgamma fits' )
 parser.add_argument('--doTop',           default=False,     action='store_true',      dest='doTop',        required=False, help='make top fits' )
+parser.add_argument('--doAllTop',        default=False,     action='store_true',      dest='doAllTop',        required=False, help='make all top fits' )
 parser.add_argument('--doTopGamma',      default=False,     action='store_true',      dest='doTopGamma',   required=False, help='make topgamma fits' )
 parser.add_argument('--doZGamma',        default=False,     action='store_true',      dest='doZGamma',     required=False, help='make ZGamma fits' )
 parser.add_argument('--doWJets',         default=False,     action='store_true',      dest='doWJets',      required=False, help='make w+jets fits' )
@@ -37,7 +42,7 @@ options = parser.parse_args()
 
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
-_XSFILE   = 'cross_sections/photon15.py'
+_XSFILE   = 'cross_sections/photon16.py'
 _LUMI     = 36000
 _BASEPATH = '/home/jkunkle/usercode/Plotting/LimitSetting/'
 _SAMPCONF = 'Modules/Resonance.py'
@@ -51,8 +56,8 @@ if options.outputDir is not None :
 
 def main() :
 
-    sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+    sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI , weightHistName=options.weightHistName )
+    sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI , weightHistName=options.weightHistName )
     #sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME)
 
     sampManMuG.ReadSamples( _SAMPCONF )
@@ -73,15 +78,15 @@ def main() :
     sel_base_mu = defs.get_base_selection( 'mu' )
     sel_base_el = defs.get_base_selection( 'el' )
 
-    weight_str_mu = weight_str + '*(mu_trigSF*mu_idSF*mu_isoSF*mu_rcSF*ph_idSF*ph_psvSF*ph_csevSF)'
-    weight_str_el = weight_str + '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF*ph_csevSF)'
+    weight_str_mu = weight_str #+ '*(mu_trigSF*mu_idSF*mu_isoSF*mu_rcSF*ph_idSF*ph_psvSF*ph_csevSF)' ## FIXME
+    weight_str_el = weight_str #+ '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF*ph_csevSF)'
 
     el_ip_str = '( fabs( el_d0[0] ) < 0.05 && fabs( el_dz[0] ) < 0.10 && fabs( el_sc_eta[0] )<= 1.479 ) || ( fabs( el_d0[0] ) < 0.10 && fabs( el_dz[0] ) < 0.20 && fabs( el_sc_eta[0] )> 1.479 )'
 
     el_tight = ' el_passVIDTight[0] == 1'
     el_eta   = ' fabs( el_eta[0] ) < 2.1 '
 
-    ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
+    ph_str         = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
     ph_tightpt_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
 
     met_str = 'met_pt > 25'
@@ -191,7 +196,7 @@ def main() :
                extra_label = "Muon Channel"
             else:
                extra_label = "Electron Channel"
-                                    
+
             if options.doWGamma :
 
                 for name, vardata in kine_vars.iteritems() :
@@ -203,6 +208,12 @@ def main() :
                 for name, vardata in kine_vars.iteritems() :
 
                     get_mc_fit( lepg_samps[ch], 'TTG',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttg,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots")
+
+            if options.doAllTop :
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'AllTop',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttbar,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
             if options.doTop :
 
@@ -237,16 +248,12 @@ def main() :
                     get_mc_fit( lepg_samps[ch], 'GammaGamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_gammagamma,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
             if options.doAll:
-               
+                listall = ["WGamma", "AllTop", "Zgamma","Wjets","GammaGamma"]
+                #[ 'WGamma', 'TTG', 'TTbar', 'Zgamma', 'Wjets', 'GammaGamma']
                 for name, vardata in kine_vars.iteritems() :
 
-                    get_mc_fit( lepg_samps[ch],  [ 'WGamma', 'TTG', 'AllTop', 'Zgamma', 'Wjets', 'GammaGamma' ], seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_backgrounds,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
+                    get_mc_fit( lepg_samps[ch], listall  , seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_backgrounds,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
-            if options.doNonMajor:
-               
-                for name, vardata in kine_vars.iteritems() :
-
-                    get_mc_fit( lepg_samps[ch],  [ 'TTG', 'AllTop', 'Zgamma', 'GammaGamma', 'GJets' ], seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_nonmajor,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
 
     if options.outputDir is not None :
@@ -295,7 +302,7 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
     if not os.path.isdir( plots_dir ) :
        os.makedirs( plots_dir )
 
-    print "\n *****************\n calling get_mc_fit for, ", sampnames, "\n *********************\n"
+    print "\n *****************\n calling get_mc_fit for, ", tPurple %(sampnames), "\n *********************\n"
 
     xmin = xvar.getMin()
     xmax = xvar.getMax()
@@ -330,6 +337,8 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
     #fitManager = FitManager( 'dijet', 3, sampnames, hist_sr, plot_var, ieta, xvar, label, False)
     fitManager = FitManager( 'dijet', hist = hist_sr, xvardata = xvar, label = label, norders = 2 )
     #fitManager = FitManager( 'power', 2, sampnames, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
+    canv = fitManager.draw(  paramlayout = (0.7,0.5,0.82), useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
+    canv.Print("%s/%sbefore.pdf"%(plots_dir, label) )
 
     #fitManager.setup_fit()
     fitManager.run_rootfit( (xmin, xmax) )
