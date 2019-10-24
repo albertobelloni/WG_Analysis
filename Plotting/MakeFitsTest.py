@@ -31,7 +31,7 @@ parser.add_argument( '--combineDir',  dest='combineDir', default=None, help='pat
 options = parser.parse_args()
 
 _WLEPBR = (1.-0.6741)
-_XSFILE   = 'cross_sections/photon15.py'
+_XSFILE   = 'cross_sections/photon16.py'
 _LUMI     = 36000
 
 DEBUG = 1
@@ -89,6 +89,7 @@ def main() :
     #signal_masses   = [900]
     signal_widths  = ['5', '0p01']
 
+    print "doVaropt: ", options.doVarOptimization
     if options.doVarOptimization:
 
         var_opt = {}
@@ -118,7 +119,6 @@ def main() :
                                               useToyBackground=options.useToyBackground,
                                               useHistTemplates=options.useHistTemplates,
                                              )
-                                                     
 
         for opt in var_opt.values() :
             opt.setup( kine_vars )
@@ -162,7 +162,7 @@ def make_jdl( exe_list, output_file ) :
     file_entries.append('getenv = True')
     file_entries.append('# Copy output files when done.  REQUIRED to run in a protected directory')
     file_entries.append('when_to_transfer_output = ON_EXIT_OR_EVICT')
-    file_entries.append('transfer_output = True')
+    #file_entries.append('transfer_output = True')
     file_entries.append('priority=0')
 
     for exe in exe_list :
@@ -373,8 +373,8 @@ class MakeLimits( ) :
             if options.useHistTemplates :
                 wgamma_entry = wgamma_entry.replace( 'dijet', 'datahist' )
 
-            #self.generate_toy_data( kine_vars, sigpars = ['Mass_900_Width_5'], signorms = [1.0], data_norm=20.0)
-            self.generate_toy_data( kine_vars ) 
+            self.generate_toy_data( kine_vars, sigpars = ['Mass_900_Width_5_mu'], signorms = [2.0], data_norm=20.0)
+            #self.generate_toy_data( kine_vars ) 
 
 
         #---------------------------------------
@@ -584,6 +584,7 @@ class MakeLimits( ) :
             ## mix into some fake signal
             if sigpars:
                print "add some fake signals for fun..."
+               print self.signals[sigpars[0]]
                for sigpar, signorm in zip(sigpars, signorms):
                    try:
                        sig = self.signals[sigpar]
@@ -593,7 +594,8 @@ class MakeLimits( ) :
                        raise
                    ws = ofile.Get( sig['workspace'] ) 
                    pdfs.append( ws.pdf( sig['pdf'] ) )
-                   norms.append( ws.var( '%s_norm'%sig['pdf']).getVal() * signorm )
+                   #norms.append( ws.var( '%s_norm'%sig['pdf']).getVal() * signorm )
+                   norms.append( sig['rate']*signorm)
                     
             print "Normalization:: ", norms
         
