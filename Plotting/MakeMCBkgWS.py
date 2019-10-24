@@ -9,8 +9,11 @@ import selection_defs as defs
 from uncertainties import ufloat
 from FitManager import FitManager
 from collections import OrderedDict
+from IPython.core.debugger import Tracer
 #ROOT.TVirtualFitter.SetMaxIterations( 100000 )
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
+import sys
+print sys.version
 
 from SampleManager import SampleManager
 from argparse import ArgumentParser
@@ -22,11 +25,13 @@ tPurple="\033[0;35m%s"+tColor_Off       # Purple
 parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to signal samples in muon channel')
 parser.add_argument('--outputDir',       default=None,           dest='outputDir',         required=False, help='Output directory to write histograms')
+parser.add_argument('--batch',           default=False,     action='store_true',          dest='batch',              required=False, help='Supress X11 output')
 parser.add_argument('--weightHistName',     default="weighthist",  type=str ,        dest='weightHistName',         help='name of weight histogram')
 parser.add_argument('--useRooFit',       default=False,     action='store_true',      dest='useRooFit',    required=False, help='Make fits using roostats' )
 parser.add_argument('--doSignal',        default=False,     action='store_true',      dest='doSignal',     required=False, help='make signal fits' )
 parser.add_argument('--doWGamma',        default=False,     action='store_true',      dest='doWGamma',     required=False, help='make wgamma fits' )
 parser.add_argument('--doTop',           default=False,     action='store_true',      dest='doTop',        required=False, help='make top fits' )
+parser.add_argument('--doTopW',          default=False,     action='store_true',      dest='doTopW',        required=False, help='make topW fits' )
 parser.add_argument('--doAllTop',        default=False,     action='store_true',      dest='doAllTop',        required=False, help='make all top fits' )
 parser.add_argument('--doTopGamma',      default=False,     action='store_true',      dest='doTopGamma',   required=False, help='make topgamma fits' )
 parser.add_argument('--doZGamma',        default=False,     action='store_true',      dest='doZGamma',     required=False, help='make ZGamma fits' )
@@ -45,14 +50,17 @@ _FILENAME = 'tree.root'
 _XSFILE   = 'cross_sections/photon16.py'
 _LUMI     = 36000
 _BASEPATH = '/home/jkunkle/usercode/Plotting/LimitSetting/'
-_SAMPCONF = 'Modules/Resonance.py'
+_SAMPCONF = 'Modules/Resonance2016.py'
 
 
 ROOT.gROOT.SetBatch(False)
-if options.outputDir is not None :
+if options.batch:
     ROOT.gROOT.SetBatch(True)
+if options.outputDir is not None :
     if not os.path.isdir( options.outputDir ) :
         os.makedirs( options.outputDir )
+if options.outputDir is None :
+    options.outputDir = "Plots/" + __file__.rstrip(".py")
 
 def main() :
 
@@ -178,6 +186,7 @@ def main() :
     workspace_wgammalo          = ROOT.RooWorkspace( 'workspace_wgammalo' )
     workspace_ttbar             = ROOT.RooWorkspace( 'workspace_ttbar'    )
     workspace_ttg               = ROOT.RooWorkspace( 'workspace_ttg'      )
+    workspace_tw                = ROOT.RooWorkspace( 'workspace_tw'      )
     workspace_zgamma            = ROOT.RooWorkspace( 'workspace_zgamma'   )
     workspace_wjets             = ROOT.RooWorkspace( 'workspace_wjets'    )
     workspace_backgrounds       = ROOT.RooWorkspace( 'workspace_backgrounds' )
@@ -209,6 +218,12 @@ def main() :
 
                     get_mc_fit( lepg_samps[ch], 'TTG',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttg,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots")
 
+            if options.doTopW : 
+
+                for name, vardata in kine_vars.iteritems() :
+
+                    get_mc_fit( lepg_samps[ch], 'TopW',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_tw,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots")
+
             if options.doAllTop :
 
                 for name, vardata in kine_vars.iteritems() :
@@ -221,8 +236,7 @@ def main() :
 
                     get_mc_fit( lepg_samps[ch], 'AllTop',    seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_ttbar,     extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
-            if options.doZGamma: 
-
+            if options.doZGamma:
 
                 for name, vardata in kine_vars.iteritems() :
 
@@ -236,7 +250,7 @@ def main() :
 
 
             if options.doEleFake:
- 
+
                 for name, vardata in kine_vars.iteritems() :
 
                     get_mc_fit( lepg_samps[ch], 'Z+jets', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_elefake,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
@@ -248,7 +262,7 @@ def main() :
                     get_mc_fit( lepg_samps[ch], 'GammaGamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_gammagamma,  extra_label = extra_label, suffix='%s_%s_%s' %(ch,name,seltag ), plots_dir = options.outputDir + "/plots" )
 
             if options.doAll:
-                listall = ["WGamma", "AllTop", "Zgamma","Wjets","GammaGamma"]
+                listall = ["WGamma", "AllTop", "Zgamma","Wjets","GammaGamma", "TopW"]
                 #[ 'WGamma', 'TTG', 'TTbar', 'Zgamma', 'Wjets', 'GammaGamma']
                 for name, vardata in kine_vars.iteritems() :
 
@@ -260,6 +274,8 @@ def main() :
 
         if options.doTop : 
             workspace_ttbar.writeToFile( '%s/%s.root' %( options.outputDir,workspace_ttbar.GetName() ) )
+        if options.doTopW:
+            workspace_tw.writeToFile( '%s/%s.root' %( options.outputDir,workspace_tw.GetName() ) )
         if options.doTopGamma:
             workspace_ttg.writeToFile( '%s/%s.root' %( options.outputDir,workspace_ttg.GetName() ) )
         if options.doWGamma :
@@ -289,8 +305,12 @@ def main() :
 
         for key, can in sampManMuG.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
+            can.SaveAs('%s/%s.png' %( options.outputDir, key ) )
+            can.SaveAs('%s/%s.C' %( options.outputDir, key ) )
         for key, can in sampManElG.outputs.iteritems() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
+            can.SaveAs('%s/%s.png' %( options.outputDir, key ) )
+            can.SaveAs('%s/%s.C' %( options.outputDir, key ) )
 
         #for key, result in sampManMuG.fitresults.iteritems():
         #    print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManMuG.chi2[key])
@@ -331,28 +351,39 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
 
     ieta = "EB"
 
-    label = '%s_%s_%s'%(outname, suffix, ieta)
-       
+    fitfunc = "dijet"
+    label = '%s_%s_%s_%s'%(outname, suffix, ieta, fitfunc)
+
 
     #fitManager = FitManager( 'dijet', 3, sampnames, hist_sr, plot_var, ieta, xvar, label, False)
-    fitManager = FitManager( 'dijet', hist = hist_sr, xvardata = xvar, label = label, norders = 2 )
+    if fitfunc == "dijet": fitManager = FitManager( 'dijet', hist = hist_sr, xvardata = xvar, label = label, norders = 2 )
     #fitManager = FitManager( 'power', 2, sampnames, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
+    if fitfunc == "power": fitManager = FitManager( 'power', hist_sr, xvar, label, norders =1)
+    if fitfunc == "atlas": fitManager = FitManager( 'atlas', hist_sr, xvar, label, norders =1)
+    #Tracer()()
     canv = fitManager.draw(  paramlayout = (0.7,0.5,0.82), useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
-    canv.Print("%s/%sbefore.pdf"%(plots_dir, label) )
 
     #fitManager.setup_fit()
-    fitManager.run_rootfit( (xmin, xmax) )
+    fitManager.setup_rootfit( (xmin, xmax) )
+    fitManager.func.Draw("same")
+    canv.Print("%s/%sbefore.pdf"%(plots_dir, label) )
+    canv.Print("%s/%sbefore.png"%(plots_dir, label) )
+    canv.Print("%s/%sbefore.C"%(plots_dir, label) )
+    fitManager.run_rootfit()
 
     #fit_distribution( fitManager, sampMan, workspace, logy=True )
     #fitManager.make_func_pdf()
     #fitManager.fit_histogram( workspace )
     """ cast it from TF1 to RooGenericPdf """
+    #Tracer()()
     fitManager.calculate_func_pdf()
     fitManager.get_results( workspace )
     #results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
     #fitManager.save_fit( sampMan, workspace, logy = True, stats_pos='right', extra_label = extra_label)
     canv = fitManager.draw( subplot = "pull", paramlayout = (0.7,0.5,0.82), useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
     canv.Print("%s/%s.pdf"%(plots_dir, label) )
+    canv.Print("%s/%s.png"%(plots_dir, label) )
+    canv.Print("%s/%s.C"%(plots_dir, label) )
 
     return results
 

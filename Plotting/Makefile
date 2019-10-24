@@ -14,8 +14,8 @@ DIR_EL=/data/users/friccita/WGammaNtuple/SingleLepNoPhId_el_2019_04_11/WithSF
 DIR_MUMU=/data/users/friccita/WGammaNtuple/LepGammaNoPhId_mug_2019_09_04/WithSF
 DIR_ELEL=/data/users/friccita/WGammaNtuple/LepLep_elel_2019_04_11/WithSF
 
-DIR_MUG=/data2/users/kakw/Resonances2016/LepGamma_mug_2019_09_15
-DIR_ELG=/data2/users/kakw/Resonances2016/LepGamma_elg_2019_09_15
+DIR_MUG=/data2/users/kakw/Resonances2016/LepGamma_mug_2019_10_04
+DIR_ELG=/data2/users/kakw/Resonances2016/LepGamma_elg_2019_10_04
 #DIR_MUGNoId=/data2/users/kakw/Resonances2016/LepGammaNoPhId_mug_2019_06_11b
 #DIR_ELGNoId=/data2/users/kakw/Resonances2016/LepGammaNoPhId_elg_2019_06_11b
 #DIR_MU=/data2/users/kakw/Resonances2016/LepGammaNoPhId_mug_2019_06_11b
@@ -54,7 +54,7 @@ signal :
 mcbkg : 
 
 	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS
-	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS  --doAllTop --doZGamma --doWJets --doWGamma --doGammaGamma --doAll
+	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS  --doAllTop --doZGamma --doWJets --doWGamma --doGammaGamma --doTopW --doAll --batch
 	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doWGamma
 
 efake : 
