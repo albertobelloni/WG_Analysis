@@ -362,7 +362,6 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
     if fitfunc == "expow": fitManager = FitManager( 'expow', hist_sr, xvar, label, norders =1)
     if fitfunc == "vvdijet": fitManager = FitManager( 'vvdijet', hist_sr, xvar, label, norders =1)
     if fitfunc == "atlas": fitManager = FitManager( 'atlas', hist_sr, xvar, label, norders =1)
-    #Tracer()()
     canv = fitManager.draw(  paramlayout = (0.7,0.5,0.82), useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
 
     #fitManager.setup_fit()
@@ -371,14 +370,12 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
     canv.Print("%s/%sbefore.pdf"%(plots_dir, label) )
     canv.Print("%s/%sbefore.png"%(plots_dir, label) )
     canv.Print("%s/%sbefore.C"%(plots_dir, label) )
-    Tracer()()
     fitManager.run_rootfit()
 
     #fit_distribution( fitManager, sampMan, workspace, logy=True )
     #fitManager.make_func_pdf()
     #fitManager.fit_histogram( workspace )
     """ cast it from TF1 to RooGenericPdf """
-    #Tracer()()
     fitManager.calculate_func_pdf()
     fitManager.get_results( workspace )
     #results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
