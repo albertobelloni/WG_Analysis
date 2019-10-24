@@ -4,6 +4,7 @@ from uncertainties import ufloat
 import uuid
 import re
 import random
+import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
@@ -24,6 +25,14 @@ def f_Obsolete(f):
                 print f.__name__,": This method is obsolete"
                 return f(*args,**kws)
         return f_wrapper
+
+def f_Dumpfname(func):
+    """ decorator to show function name and caller name """
+    @wraps(func)
+    def echo_func(*func_args, **func_kwargs):
+        print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'.format(func.__name__,sys._getframe(1).f_code.co_name))
+        return func(*func_args, **func_kwargs)
+    return echo_func
 
 xname = "Reco mass m(#gamma,e)"
 class FitManager :
@@ -225,19 +234,55 @@ class FitManager :
 
         return self.defs[name][order]
 
-    def add_vars( self, arg_list) :
-        if self.func_name == 'dijet' :
-            for i in range( 1, self.func_norders+1 ) :
-                short_name = 'power'
-                if i > 1 :
-                    short_name = 'logcoef%d' %(i-1)
+    def add_vars_name_power(self, i):
+        if i % 2 == 0:
+            short_name = 'norm%d' %(i/2)
+        else:
+            short_name = 'power%d' %((i-1)/2)
+        return short_name
 
-                long_name = '%s_order%d_%s' %( self.func_name, i, self.label )
-                this_def = self.get_vals( self.func_name, i )
-                var = ROOT.RooRealVar( long_name, long_name, *this_def)
-                ROOT.SetOwnership(var, False)
-                arg_list.add( var  )
-                self.fit_params[short_name] = var
+    def add_vars_name_atlas(self, i):
+        if i ==0:
+            short_name = 'norm'
+        if i ==1:
+            short_name = 'power_num'
+        if i ==2:
+            short_name = 'power_den'
+        if i > 2 :
+            short_name = 'logcoef%d' %(i-2)
+        return short_name
+
+    def add_vars_name_dijet(self, i):
+        if i ==0:
+            short_name = 'norm'
+        if i ==1:
+            short_name = 'power'
+        if i > 1 :
+            short_name = 'logcoef%d' %(i-1)
+        return short_name
+
+    def add_vars( self, arg_list) :
+        irange = range(1,  self.dof )
+        if self.func_name == 'power' :
+            #irange = range( 2* self.func_norders)
+            add_vars_name = self.add_vars_name_power
+        elif self.func_name == 'dijet' :
+            #irange = range(  self.func_norders+1 )
+            add_vars_name = self.add_vars_name_dijet
+        elif self.func_name == 'atlas' :
+            add_vars_name = self.add_vars_name_atlas
+        else: 
+            print tPurple %"*** NO VARIABLE ADDED ***"
+
+        for i in irange:
+            short_name = add_vars_name(i)
+            long_name = '%s_order%d_%s' %( self.func_name, i, self.label )
+            this_def = self.get_vals( self.func_name, i )
+            print short_name, this_def
+            var = ROOT.RooRealVar( long_name, long_name, *this_def)
+            ROOT.SetOwnership(var, False)
+            arg_list.add( var  )
+            self.fit_params[short_name] = var
         return
 
     @f_Obsolete
@@ -275,11 +320,13 @@ class FitManager :
         #        arg_list.add( var_pow )
 
 
+    @f_Dumpfname
     def get_fit_function( self, forceUseRooFit=False ) :
 
         function = ''
 
         if self.func_name == 'dijet' :
+            self.dof = self.func_norders+1
             order_entries = []
 
             log_str = 'TMath::Log10(@0/13000)'
@@ -289,39 +336,62 @@ class FitManager :
             function = 'TMath::Power( @0/13000., @1 + ' + '+'.join( order_entries) + ')'
 
             self.defs['dijet'] = {}
-            self.defs['dijet'][1] = (-16.0,  -20.0,  -10.0)
-            self.defs['dijet'][2] = (-5.0,    -9.0,  -3.0 )
-            self.defs['dijet'][3] = (-1.5,    -5.0,  -1.0 )
+            self.defs['dijet'][0] = ( 1e-10,  0,  1)
+            self.defs['dijet'][1] = (-11.0,  -20.0,  -10.0)
+            self.defs['dijet'][2] = ( -2.0,   -9.0,  -3.0 )
+            self.defs['dijet'][3] = ( -1.5,   -5.0,  -1.0 )
 
             print "function: ", function
 
 
         if self.func_name == 'atlas' :
+            self.dof = self.func_norders+3
 
-            function = 'TMath::Power( (1-(@0/13000.)), @1 ) / ( TMath::Power( @0/13000. , @2+ '
+            function = 'TMath::Power( (1-TMath::Power(@0/13000., 1./3)), @1 ) / ( TMath::Power( @0/13000. , @2+ %s ))'
             order_entries = []
             for i in range( 0, self.func_norders ) :
-                order_entries.append( '@%d*TMath::Log10( @0/13000.)'  %( i+3 ) )
+                order_entries.append( '@%d*TMath::Power(TMath::Log10( @0/13000.),%d)'  %( i+3, i+1 ) )
 
-            function += ' + '.join( order_entries )
-            function += ' ) )'
+            function = function % (' + '.join( order_entries ))
+
+            self.defs['atlas'] = {}
+            self.defs['atlas'][0] = (   1 ,      0, 100000) #norm
+            self.defs['atlas'][1] = (   0 ,      0,  1000)  #power numerator
+            self.defs['atlas'][2] = (   2 ,     -10,   100) #power denominator
+            self.defs['atlas'][3] = (  -1 ,     -10,    10) # log coeff
+            self.defs['atlas'][4] = (  -1 ,     -10,    0)
+            self.defs['atlas'][5] = (  -1 ,     -5,    10)
+            self.defs['atlas'][6] = (  -1 ,     -5,    10)
 
         if self.func_name == 'power' :
+            self.dof = self.func_norders*2
 
             order_entries = []
-            for i in range( 0, self.func_norders ) :
-                order_entries.append( '@%d*TMath::Power( @0, @%d )'  %( i*2+1, i*2+2 ) )
+            order_entries.append( 'TMath::Power( @0 / 200., @1 )' )
+            for i in range( 1, self.func_norders ) :
+                order_entries.append( '@%d*TMath::Power( @0 / 200., @%d )'  %( i*2+1, i*2+2 ) )
 
             function = '+'.join( order_entries )
 
+            self.defs['power'] = {}
+            self.defs['power'][0] = (1000,    0,    1e7)
+            self.defs['power'][1] = (-5,       0,   -10 )
+            self.defs['power'][2] = (-10,    -200,   -1 )
+            self.defs['power'][3] = (5,        0,    10 )
+            self.defs['power'][4] = (10,    -200,    -1 )
+            self.defs['power'][5] = (-10,    -20,     0 )
+
         if forceUseRooFit :
             # different syntax for ROOT and RooFit
+            print tPurple %function
             return function
         else :
             mod_function = function.replace( '@0', 'x' )
-            mod_function = '[0]*' + mod_function
+            #if self.func_name!="power": 
+            mod_function = '[0]*(%s)' %mod_function
             for i in range( 0, 9 ) :
                 mod_function = mod_function.replace( '@%d' %i, '[%d]' %i )
+            print tPurple %mod_function
             return mod_function
 
     @f_Obsolete
@@ -385,7 +455,7 @@ class FitManager :
         elif self.func_name == 'dcbexpo' : self.init_dcbexpo(**setupargs)
         else :
              # generic function maker
-             self.func_pdf = self.MakeROOTObj('RooGenericPdf', '%s_%s'
+             self.func_pdf = ROOT.RooGenericPdf( '%s_%s'
                     %(self.func_name, self.label), self.func_name, func_str, arg_list)
 
         # do fit if requested
@@ -458,32 +528,29 @@ class FitManager :
            print "***************************************\n"
         self.roofitresult = m.save()
 
-    def run_rootfit(self, fitrange=None ):
+    def setup_rootfit(self, fitrange=None ):
         """  fit in ROOT """
         fitrange = self.fitrangehelper(fitrange)
         func_str = self.get_fit_function()
 
         self.func = self.MakeROOTObj( 'TF1', 'tf1_%s' %self.label, func_str, fitrange[0], fitrange[1] )
 
-        if self.func_name == 'dijet' :
+        for i in range( 0, self.dof ) :
+            this_def = self.get_vals( self.func_name, i )
+            print i, this_def[0]
+            self.func.SetParameter( i, this_def[0] )
 
-            self.func.SetParameter( 0, 0.0000001)
-            param = 1
-            for i in range( 1, self.func_norders+1 ) :
-                this_def = self.get_vals( self.func_name, i )
-                self.func.SetParameter( param, this_def[0] )
-                param += 1
-
+    def run_rootfit(self):
         self.hist.Fit( self.func, 'REM' )
-        # do it a few times
-        print "********** fit again *****************"
-        for iparam in xrange( 1, self.func_norders+1 ):
-            self.func.SetParameter( iparam, self.func.GetParameter(iparam))
-        self.hist.Fit( self.func, 'REM' )
-        print "********** fit again *****************"
-        for iparam in xrange( 1, self.func_norders+1 ):
-            self.func.SetParameter( iparam, self.func.GetParameter(iparam))
-        self.hist.Fit( self.func, 'REM' )
+        ## do it a few times
+        #print "********** fit again *****************"
+        #for iparam in xrange( 1, self.func_norders+1 ):
+        #    self.func.SetParameter( iparam, self.func.GetParameter(iparam))
+        #self.hist.Fit( self.func, 'REM' )
+        #print "********** fit again *****************"
+        #for iparam in xrange( 1, self.func_norders+1 ):
+        #    self.func.SetParameter( iparam, self.func.GetParameter(iparam))
+        #self.hist.Fit( self.func, 'REM' )
         return self.func
 
 
@@ -549,24 +616,44 @@ class FitManager :
         if self.func_pdf is not None :
             print 'The PDF Function already exists.  It will be overwritten'
 
-        if self.func_name == 'dijet' :
-            for i in range( 1, self.func_norders+1 ) :
-                fitted_result = self.func.GetParameter(i)
-                fitted_error = self.func.GetParError(i)
+        #if self.func_name == 'power' :
+        for i in range( self.dof ) :
+            fitted_result = self.func.GetParameter(i)
+            fitted_error = self.func.GetParError(i)
 
-                self.defs['dijet'][i] = ( fitted_result, fitted_result - fitted_error, fitted_result + fitted_error )
+            self.defs[self.func_name][i] = ( fitted_result, fitted_result - fitted_error, fitted_result + fitted_error )
 
-            arg_list = self.MakeROOTObj( 'RooArgList' )
-            arg_list.add( self.xvardata )
-            self.add_vars( arg_list )
+        arg_list = self.MakeROOTObj( 'RooArgList' )
+        arg_list.add( self.xvardata )
+        self.add_vars( arg_list )
 
-            for i in range( 1, arg_list.getSize() )  :
-                fitted_error = self.func.GetParError(i)
-                arg_list[i].setError( fitted_error )
+        for i in range( 0, arg_list.getSize() )  :
+            fitted_error = self.func.GetParError(i)
+            print "fitted error: ", tPurple %fitted_error
+            arg_list[i].setError( fitted_error )
 
-            func_str = self.get_fit_function( forceUseRooFit=True)
+        func_str = self.get_fit_function( forceUseRooFit=True)
 
-            self.func_pdf = self.MakeROOTObj( 'RooGenericPdf', '%s_%s' %( self.func_name, self.label), self.func_name, func_str, arg_list)
+        self.func_pdf = self.MakeROOTObj( 'RooGenericPdf', '%s_%s' %( self.func_name, self.label), self.func_name, func_str, arg_list)
+
+        #if self.func_name == 'dijet' :
+        #    for i in range( 1, self.func_norders+1 ) :
+        #        fitted_result = self.func.GetParameter(i)
+        #        fitted_error = self.func.GetParError(i)
+
+        #        self.defs['dijet'][i] = ( fitted_result, fitted_result - fitted_error, fitted_result + fitted_error )
+
+        #    arg_list = self.MakeROOTObj( 'RooArgList' )
+        #    arg_list.add( self.xvardata )
+        #    self.add_vars( arg_list )
+
+        #    for i in range( 1, arg_list.getSize() )  :
+        #        fitted_error = self.func.GetParError(i)
+        #        arg_list[i].setError( fitted_error )
+
+        #    func_str = self.get_fit_function( forceUseRooFit=True)
+
+        #    self.func_pdf = self.MakeROOTObj( 'RooGenericPdf', '%s_%s' %( self.func_name, self.label), self.func_name, func_str, arg_list)
 
 
     def save_fit( self, sampMan=None, workspace = None, logy=False, stats_pos='right' ) :
@@ -665,6 +752,10 @@ class FitManager :
             self.curr_canvases["top"].cd()
         elif not subplot:
             self.canvas = ROOT.TCanvas("cfit%s"%self.label,"Fitter",800,500) #FIXME: change canvas
+            self.canvas.SetTopMargin(0.08)
+            #self.canvas.SetBottomMargin(0.0)
+            self.canvas.SetLeftMargin(0.1)
+            self.canvas.SetRightMargin(0.1)
             self.canvas.SetLogy(dology)
             self.canvas.cd()
 
@@ -728,7 +819,7 @@ class FitManager :
         self.frame.Draw()
         ROOT.gPad.SetTicks(1,1)
         # draw the plot status label
-        self.draw_label(label_config={"dx":-0.05,"dy":-0.03})
+        self.draw_label(label_config={"dx":-0.05,"dy":0.0})
         # draw pull or residual plot
         if subplot:
             self.curr_canvases["bottom"].cd()
@@ -766,8 +857,9 @@ class FitManager :
 
     def getchisquare(self,dof = None):
         if dof is None:
-            #return self.frame.chiSquare("simul2",6) #FIXME: dof
-            return self.frame.chiSquare(6) #FIXME: dof
+            #return self.frame.chiSquare("simul2",6)
+            return self.frame.chiSquare(self.dof) 
+        return self.frame.chiSquare(dof) 
 
     def draw_label(self,**kw):
         draw_config = DrawConfig("","","",**kw)
