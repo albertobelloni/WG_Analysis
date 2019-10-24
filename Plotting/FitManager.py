@@ -241,6 +241,15 @@ class FitManager :
             short_name = 'power%d' %((i-1)/2)
         return short_name
 
+    def add_vars_name_expow(self, i):
+        if i == 0:
+            short_name = 'norm%d' %(i/2)
+        elif i % 2 == 0:
+            short_name = 'expcoef%d' %(i/2)
+        else:
+            short_name = 'powercoef%d' %((i-1)/2)
+        return short_name
+
     def add_vars_name_atlas(self, i):
         if i ==0:
             short_name = 'norm'
@@ -266,10 +275,12 @@ class FitManager :
         if self.func_name == 'power' :
             #irange = range( 2* self.func_norders)
             add_vars_name = self.add_vars_name_power
+        elif self.func_name == 'expow' :
+            add_vars_name = self.add_vars_name_expow
         elif self.func_name == 'dijet' :
             #irange = range(  self.func_norders+1 )
             add_vars_name = self.add_vars_name_dijet
-        elif self.func_name == 'atlas' :
+        elif self.func_name == 'atlas' or self.func_name == "vvdijet":
             add_vars_name = self.add_vars_name_atlas
         else: 
             print tPurple %"*** NO VARIABLE ADDED ***"
@@ -361,20 +372,62 @@ class FitManager :
             self.defs['atlas'][3] = (  -1 ,     -10,    10) # log coeff
             self.defs['atlas'][4] = (  -1 ,     -10,    0)
             self.defs['atlas'][5] = (  -1 ,     -5,    10)
-            self.defs['atlas'][6] = (  -1 ,     -5,    10)
+
+        if self.func_name == 'vvdijet' :
+            self.dof = self.func_norders+3
+
+            if self.func_norders>1:
+                function = 'TMath::Power( (1-(@0/13000.)), @1 ) / ( TMath::Power( @0/13000. , @2*(%s) ))'
+                order_entries = []
+                for i in range( 1, self.func_norders ) :
+                    order_entries.append( 'TMath::Power(TMath::Log10( @0/13000.),%d)'  %( i ) )
+
+                function = function % (' + '.join( order_entries ))
+            else:
+                function = 'TMath::Power( (1-(@0/13000.)), @1 ) / ( TMath::Power( @0/13000. , @2 ))'
+
+            #FIXME not tested IC
+            self.defs['vvdijet'] = {}
+            self.defs['vvdijet'][0] = (   1 ,      0, 100000) #norm
+            self.defs['vvdijet'][1] = (   0 ,      0,  1000)  #power numerator
+            self.defs['vvdijet'][2] = (   2 ,     -10,   100) #power denominator
+            self.defs['vvdijet'][3] = (  -1 ,     -10,    10) # log coeff
+            self.defs['vvdijet'][4] = (  -1 ,     -10,    0)
+            self.defs['vvdijet'][5] = (  -1 ,     -5,    10)
+            self.defs['vvdijet'][6] = (  -1 ,     -5,    10)
+
+        if self.func_name == 'expow' :
+            self.dof = self.func_norders*2+1
+
+            order_entries1, order_entries2 = [], []
+            function =  'TMath::Power( @0 / 13000., %s ) * TMath::Exp(%s)'
+            for i in range( 0, self.func_norders ) :
+                order_entries1.append( '@%d'  %( i*2+1) )
+                order_entries2.append( ('@%d'  %( i*2+2)) + "*@0/13000."*(i+1) )
+
+            function = function %('+'.join( order_entries1 ), "+".join(order_entries2))
+
+            #FIXME not tested IC
+            self.defs['expow'] = {}
+            self.defs['expow'][0] = (1e-5,    0,    1e7)
+            self.defs['expow'][1] = (-5,       0,   -10 )
+            self.defs['expow'][2] = (-10,    -200,   -1 )
+            self.defs['expow'][3] = (5,        0,    10 )
+            self.defs['expow'][4] = (10,    -200,    -1 )
+            self.defs['expow'][5] = (-10,    -20,     0 )
 
         if self.func_name == 'power' :
             self.dof = self.func_norders*2
 
             order_entries = []
-            order_entries.append( 'TMath::Power( @0 / 200., @1 )' )
+            order_entries.append( 'TMath::Power( @0 / 13000., @1 )' )
             for i in range( 1, self.func_norders ) :
-                order_entries.append( '@%d*TMath::Power( @0 / 200., @%d )'  %( i*2+1, i*2+2 ) )
+                order_entries.append( '@%d*TMath::Power( @0 / 13000., @%d )'  %( i*2+1, i*2+2 ) )
 
             function = '+'.join( order_entries )
 
             self.defs['power'] = {}
-            self.defs['power'][0] = (1000,    0,    1e7)
+            self.defs['power'][0] = ( 1,    0,    1e7)
             self.defs['power'][1] = (-5,       0,   -10 )
             self.defs['power'][2] = (-10,    -200,   -1 )
             self.defs['power'][3] = (5,        0,    10 )

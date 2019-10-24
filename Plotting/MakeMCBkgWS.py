@@ -351,7 +351,7 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
 
     ieta = "EB"
 
-    fitfunc = "dijet"
+    fitfunc = "vvdijet"
     label = '%s_%s_%s_%s'%(outname, suffix, ieta, fitfunc)
 
 
@@ -359,6 +359,8 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
     if fitfunc == "dijet": fitManager = FitManager( 'dijet', hist = hist_sr, xvardata = xvar, label = label, norders = 2 )
     #fitManager = FitManager( 'power', 2, sampnames, hist_sr, plot_var, ieta, xvar, label, options.useRooFit)
     if fitfunc == "power": fitManager = FitManager( 'power', hist_sr, xvar, label, norders =1)
+    if fitfunc == "expow": fitManager = FitManager( 'expow', hist_sr, xvar, label, norders =1)
+    if fitfunc == "vvdijet": fitManager = FitManager( 'vvdijet', hist_sr, xvar, label, norders =1)
     if fitfunc == "atlas": fitManager = FitManager( 'atlas', hist_sr, xvar, label, norders =1)
     #Tracer()()
     canv = fitManager.draw(  paramlayout = (0.7,0.5,0.82), useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
@@ -369,6 +371,7 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
     canv.Print("%s/%sbefore.pdf"%(plots_dir, label) )
     canv.Print("%s/%sbefore.png"%(plots_dir, label) )
     canv.Print("%s/%sbefore.C"%(plots_dir, label) )
+    Tracer()()
     fitManager.run_rootfit()
 
     #fit_distribution( fitManager, sampMan, workspace, logy=True )
