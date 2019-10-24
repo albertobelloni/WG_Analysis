@@ -397,15 +397,14 @@ class FitManager :
             self.defs['vvdijet'][6] = (  -1 ,     -5,    10)
 
         if self.func_name == 'expow' :
-            self.dof = self.func_norders*2+1
+            self.dof = self.func_norders+2
 
-            order_entries1, order_entries2 = [], []
-            function =  'TMath::Power( @0 / 13000., %s ) * TMath::Exp(%s)'
+            order_entries = []
+            function =  'TMath::Power( @0 / 13000., @1 ) * TMath::Exp(%s)'
             for i in range( 0, self.func_norders ) :
-                order_entries1.append( '@%d'  %( i*2+1) )
-                order_entries2.append( ('@%d'  %( i*2+2)) + "*@0/13000."*(i+1) )
+                order_entries.append( ('@%d' %(i*2+2)) + "*@0/13000."*(i+1) )
 
-            function = function %('+'.join( order_entries1 ), "+".join(order_entries2))
+            function = function %("+".join(order_entries))
 
             #FIXME not tested IC
             self.defs['expow'] = {}
