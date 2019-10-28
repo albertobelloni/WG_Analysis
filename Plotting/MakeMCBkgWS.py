@@ -351,7 +351,7 @@ def get_mc_fit( sampMan, sampnames, sel_base, eta_cuts, xvar, plot_var, binning,
 
     ieta = "EB"
 
-    fitfunc = "vvdijet"
+    fitfunc = "expow"
     label = '%s_%s_%s_%s'%(outname, suffix, ieta, fitfunc)
 
 
