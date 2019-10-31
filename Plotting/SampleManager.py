@@ -294,7 +294,7 @@ class SampleManager :
     """ Manage input samples and drawn histograms """
 
     def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root',
-            base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = None) :
+            base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = "weighthist") :
 
         #
         # This plotting module assumes that root files are

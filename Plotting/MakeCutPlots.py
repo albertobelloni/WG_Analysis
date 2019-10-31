@@ -14,7 +14,7 @@ parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMu
 parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to electron base directory')
 parser.add_argument('--outputDir',       default=None,           dest='outputDir',          required=False, help='Output directory to write histograms')
 parser.add_argument('--data',            default=False,          dest='data',               required=False, help='Use data or MC')
-parser.add_argument('--batch',           default=False,          dest='batch',              required=False, help='Supress X11 output')
+parser.add_argument('--batch',           default=False,          dest='batch', action='store_true', required=False, help='Supress X11 output')
 parser.add_argument('--year',            default=2016,           dest='year',   type=int,   required=False, help='Set run year')
 
 options = parser.parse_args()
