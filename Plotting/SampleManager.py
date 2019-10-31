@@ -241,9 +241,9 @@ class Sample :
             if totevt!=self.total_events:
                 print "total event from histogram: %.8g total event in imported XS file: %.8g ratio: %g" %(totevt, self.total_events, totevt/self.total_events)
 
-        if readHists :
-            for file in files :
-                self.ofiles.append( ROOT.TFile.Open( file ) )
+        if readHists:
+            for f in files :
+                self.ofiles.append( f )
 
     def AddGroupSamples( self, samplenames ) :
         """ Add subsamples to this sample by samplenames"""
@@ -288,7 +288,7 @@ class Sample :
 
     def walk_text(self, index=0):
         if not self.ofiles: return []
-        return list(analysis_utils.walk_root_text(self.ofiles[index]))
+        return list(analysis_utils.walk_root_text(ROOT.TFile(self.ofiles[index])))
 
 class SampleManager :
     """ Manage input samples and drawn histograms """
@@ -485,7 +485,7 @@ class SampleManager :
         return newsample
 
     #--------------------------------
-    def create_ratio_sample( self, name, num_sample, den_sample, color=ROOT.kBlack, reverseratio=False ,binomunc = False) :
+    def create_ratio_sample( self, name, num_sample, den_sample, color=ROOT.kBlack, reverseratio=False ,binomunc = False, dodiff  = False) :
 
         if name in self.get_sample_names() :
             print 'Sample %s already exists!  Will not create!' %name
@@ -514,7 +514,10 @@ class SampleManager :
         divoptn = ""
         if binomunc:
                 divoptn += "b"
-        ratio_hist.Divide( num_sample.hist, den_sample.hist,1,1,divoptn)
+        if dodiff:
+            ratio_hist.Add( num_sample.hist, den_sample.hist,1,-1)
+        else:
+            ratio_hist.Divide( num_sample.hist, den_sample.hist,1,1,divoptn)
 
 
         ratio_hist.SetMarkerStyle(47)
@@ -2529,12 +2532,12 @@ class SampleManager :
             # times.  to avoid any conflicts, add new samples
             # and draw into those
 
-            newname = hist_name
+            newname = samp+"_"+hist_name
 
-            newsamp = self.clone_sample( oldname=samp, newname=samp+"_"+newname, temporary=True )
+            newsamp = self.clone_sample( oldname=samp, newname=newname, temporary=True )
 
             if readhist:
-                self.read_hist(newsamp, hist_config['var'])
+                self.read_hist(newsamp, hist_config['var'], draw_config)
             elif useModel :
                 self.create_hist( newsamp, treeHist, treeSelection, draw_config.histpars, isModel=True)
             else :
@@ -2565,6 +2568,8 @@ class SampleManager :
 
         if draw_config.get_doratio() :
             #rname = created_samples[0].name + '_ratio'
+            refhist_config = draw_config.hist_configs.items()[0]
+            refname = refhist_config[1]["sample"]+"_"+refhist_config[0]
             for hist_name in draw_config.hist_configs.keys()[1:] :
                 hist_config = draw_config.hist_configs[hist_name]
 
@@ -2583,7 +2588,10 @@ class SampleManager :
                             break
                 reverseratio = draw_config.get_reverseratio()
                 binomunc = draw_config.get_binomunc()
-                rsamp = self.create_ratio_sample( rname, num_sample = draw_config.hist_configs.keys()[0], den_sample=hist_name, color=rcolor, reverseratio=reverseratio,binomunc=binomunc)
+                doratio =  draw_config.get_doratio() 
+                dodiff = doratio == "dodiff"
+                rsamp = self.create_ratio_sample( rname, num_sample = refname
+                         , den_sample=samp+"_"+hist_name, color=rcolor, reverseratio=reverseratio,binomunc=binomunc, dodiff = dodiff)
                 rsamp.legend_entry = hist_config.get('legend_entry', None )
 
         return created_samples
@@ -2628,7 +2636,7 @@ class SampleManager :
                     self.format_hist( sample )
 
     @f_Dumpfname
-    def read_hist( self, sample, histname ) :
+    def read_hist( self, sample, histname , draw_config) :
 
         if isinstance( sample, str) :
             slist = self.get_samples( name=sample )
@@ -2656,7 +2664,7 @@ class SampleManager :
 
                 if not self.quiet : print 'Draw grouped hist %s' %subsampname
 
-                if isModel and subsampname in [s.name for s in self.get_model_samples()] :
+                if subsampname in [s.name for s in self.get_model_samples()] :
                     self.read_hist( subsamp, histname)
                 elif subsampname in self.get_sample_names() :
                     self.read_hist( subsamp, histname) 
@@ -2668,17 +2676,20 @@ class SampleManager :
                     sample.failed_draw=True
 
 
-            self.group_sample( sample, isModel=isModel )
+            self.group_sample( sample )
 
             return True
 
         else :
             sample.failed_draw=False
+            print sample.name
             for f in sample.ofiles:
-                histtemp = f.Get(histname)    
-                #print f, histtemp, histname
+                f = ROOT.TFile(f)
+                histtemp = f.Get(histname)
+                print f, histtemp, histname
                 if histtemp and not sample.hist:
                     sample.hist = histtemp.Clone()
+                    sample.hist.SetDirectory(0) ## safe for TFile::Close
                 elif histtemp:
                     sample.hist.Add(histtemp)
                 else:
@@ -2688,7 +2699,7 @@ class SampleManager :
                 sample.hist.SetTitle( sampname )
                 sample.hist.Sumw2()
                 ROOT.SetOwnership(sample.hist, False )
-            sample.SetHist()
+            sample.InitHist(onthefly = draw_config.get_onthefly())
             return True
 
 
@@ -3539,7 +3550,7 @@ class SampleManager :
         """ Draw Data, Signal and legend. Called by SampleManager.Draw() """
 
         doratio=draw_config.get_doratio()
-        if doratio == True or doratio == 1 :
+        if doratio == True or doratio == 1 or doratio == "dodiff":
             self.create_standard_ratio_canvas()
         elif doratio == 2 :
             self.create_large_ratio_canvas()
@@ -3739,30 +3750,6 @@ class SampleManager :
         drawhist = draw_config.get_drawhist()
 
         ymin, ymax = self.calc_yaxis_limits(draw_config )
-
-        ### calculate y range
-        #calcymax = 0
-        #calcymin = 0.5
-        #for samp in samples :
-        #    hmax = samp.hist.GetMaximum()
-        #    hmin = samp.hist.GetMaximum()
-        #    if normalize and samp.hist.Integral() != 0 :
-        #        hmax = hmax / samp.hist.Integral()
-        #        hmin = hmin / samp.hist.Integral()
-        #    if hmax > calcymax :
-        #        calcymax = hmax
-        #    if hmin < calcymin :
-        #        calcymin = hmin
-
-        #if ymax is None :
-        #    ymax = calcymax
-        #if ymin is None :
-        #    ymin = calcymin
-        #if ymax_scale is not None :
-        #    ymax *= ymax_scale
-        #else :
-        #    ymax *= 1.2
-        #ymin *= 0.8
 
         first = True
         for hist_name, hist_config in draw_config.hist_configs.iteritems() :

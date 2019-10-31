@@ -21,7 +21,7 @@ options = parser.parse_args()
 
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
-datestr   = "2019_10_04"
+datestr   = "2019_10_28"
 
 if options.year == 2016:
     _XSFILE   = 'cross_sections/photon16.py'
@@ -120,7 +120,7 @@ def main() :
         legend_config = {'legendLoc':"Double","legendTranslateX":0.35, "legendCompress":.9, "fillalpha":.5}
 
         ### MT_LEP_MET_PH
-        samples.Draw("mt_lep_met_ph", selection, (100,0,2000), hist_config,legend_config,label_config)
+        samples.Draw("mt_lep_met_ph", selection, (50,0,2000), hist_config,legend_config,label_config)
 
         ## save histogram
         samples.SaveStack("moneymtlepmetph%i%ssamelumieta.pdf" %(options.year, ch), options.outputDir, "base")

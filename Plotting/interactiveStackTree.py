@@ -8,7 +8,7 @@ p = ArgumentParser()
 p.add_argument('--baseDir',      default=None,           dest='baseDir',         help='Path to base directory containing all ntuples')
 p.add_argument('--baseDirModel',      default=None,           dest='baseDirModel', help='Path to base directory containing all ntuples for the model')
 p.add_argument('--fileName',     default='ntuple.root',  dest='fileName',        help='( Default ntuple.root ) Name of files')
-p.add_argument('--treeName',     default='events'     ,  dest='treeName',        help='( Default events ) Name tree in root file')
+p.add_argument('--treeName',     default='UMDNTuple/EventTree'     ,  dest='treeName',        help='( Default events ) Name tree in root file')
 p.add_argument('--treeNameModel',     default='photons'     ,  dest='treeNameModel',help='( Default photons ) Name tree in root file')
 p.add_argument('--samplesConf',  default=None,           dest='samplesConf',     help=('Use alternate sample configuration. '
                                                                                        'Must be a python file that implements the configuration '
@@ -26,7 +26,8 @@ p.add_argument('--readHists',     default=False,action='store_true',   dest='rea
 p.add_argument('--quiet',     default=False,action='store_true',   dest='quiet',         help='disable information messages')
 p.add_argument('--jupyt',     default=False,action='store_true',   dest='jupyt',         help='use setting for jupyter notebook')
 p.add_argument('--batch',     default=False,action='store_true',   dest='batch',         help='use batch mode')
-p.add_argument('--reload',     default=False,action='store_true',   dest='reld',         help='reload sample manager')
+p.add_argument('--reload',     default=False,action='store_true',   dest='reload',         help='reload sample manager')
+p.add_argument('--combine',     default=False,action='store_true',   dest='combine',         help='Combine years')
 
 options = p.parse_args()
 
@@ -40,7 +41,7 @@ import imp
 import ROOT
 from ROOT import RooFit
 from array import array
-if options.reld:
+if options.reload:
         import SampleManager;reload(SampleManager)
 from SampleManager import SampleManager
 if options.jupyt:
@@ -52,6 +53,10 @@ elif options.batch:
     ROOT.gROOT.SetBatch(True)
 else: ROOT.gROOT.SetBatch(False)
 
+_LUMIYEAR = { 16: 35900,
+              17: 41500,
+              18: 59700,
+            }
 
 samples = None
 
@@ -63,17 +68,34 @@ def main() :
         print 'baseDir not found!'
         return
 
-    samples = SampleManager(options.baseDir, options.treeName, mcweight=options.mcweight, treeNameModel=options.treeNameModel, filename=options.fileName, base_path_model=options.baseDirModel, xsFile=options.xsFile, lumi=options.lumi, readHists=options.readHists, quiet=options.quiet, weightHistName=options.weightHistName)
+
+    if options.combine:
+
+        samplelist = {}
+        for year in [16,17,18]:
+            samplelist[year] = SampleManager(options.baseDir %year, options.treeName, mcweight=options.mcweight,
+                        treeNameModel=options.treeNameModel, filename=options.fileName, base_path_model=options.baseDirModel,
+                        xsFile=options.xsFile %year , lumi=options.lumi, readHists=options.readHists,
+                        quiet=options.quiet, weightHistName=options.weightHistName)
+            samplelist[year].ReadSamples( options.samplesConf %year )
+
+            if samples == None:  samples = samplelist[year]
+            else:                samples.Merge(samplelist[year],"%d" year)
+
+    else:
+        samples = SampleManager(options.baseDir, options.treeName, mcweight=options.mcweight, treeNameModel=options.treeNameModel,
+                                filename=options.fileName, base_path_model=options.baseDirModel, xsFile=options.xsFile,
+                                lumi=options.lumi, readHists=options.readHists, quiet=options.quiet, weightHistName=options.weightHistName)
 
 
-    if options.samplesConf is not None :
+        if options.samplesConf is not None :
 
-       samples.ReadSamples( options.samplesConf )
+           samples.ReadSamples( options.samplesConf )
 
-       # print 'Samples ready.\n'  
+       # print 'Samples ready.\n'
 
        # print 'The draw syntax follows that of TTree.Draw.  Examples : '
-       # 
+       #
        # print 'samples.Draw(\'met_et\', \'EventWeight && passcut_ee==1\', \'(300, 0, 300)\'\n'
 
        # print 'The first argument is a branch in the tree to draw'
@@ -120,7 +142,7 @@ def WriteCurrentHists( filename='hist.root') :
         newhist.Write()
 
     file.Close()
-        
+
 #---------------------------------------
 def SaveStack( name, can=None ) :
     if options.outputDir is None :

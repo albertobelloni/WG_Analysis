@@ -14,7 +14,7 @@ parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMu
 parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to electron base directory')
 parser.add_argument('--outputDir',       default=None,           dest='outputDir',          required=False, help='Output directory to write histograms')
 parser.add_argument('--data',            default=False,          dest='data',               required=False, help='Use data or MC')
-parser.add_argument('--batch',           default=False,          dest='batch', action='store_true', required=False, help='Supress X11 output')
+parser.add_argument('--batch',           default=False,          dest='batch',  action="store_true",            required=False, help='Supress X11 output')
 parser.add_argument('--year',            default=2016,           dest='year',   type=int,   required=False, help='Set run year')
 
 options = parser.parse_args()
@@ -24,60 +24,63 @@ _FILENAME = 'tree.root'
 _XSFILE   = 'cross_sections/photon16.py'
 _LUMI     = 36000
 #_BASEPATH = '/home/jkunkle/usercode/Plotting/LimitSetting/'
-_SAMPCONF = 'Modules/Resonance.py'
-datestr   = "2019_09_12b_beta"
+_SAMPCONF = 'Modules/Resonance2016.py'
+datestr   = "2019_10_25_t3test"
 
 if options.year == 2017:
     _SAMPCONF = 'Modules/Resonance2017.py'
     _XSFILE   = 'cross_sections/photon17.py'
     _LUMI     = 41000
 
-hnames = ['FilterMuon/FilterMuon_cut_abseta',
- 'FilterMuon/FilterMuon_cut_chi2_tight',
- 'FilterMuon/FilterMuon_cut_corriso_tight',
- 'FilterMuon/FilterMuon_cut_d0_tight',
- 'FilterMuon/FilterMuon_cut_eta',
- 'FilterMuon/FilterMuon_cut_nPixelHits_tight',
- 'FilterMuon/FilterMuon_cut_nStations_tight',
- 'FilterMuon/FilterMuon_cut_nTrkLayers_tight',
- 'FilterMuon/FilterMuon_cut_pt',
- 'FilterMuon/FilterMuon_cut_trkiso_tight',
- 'FilterMuon/FilterMuon_cut_z0_tight',
- 'FilterElectron/FilterElectron_cut_absdEtaIn_barrel_medium',
- 'FilterElectron/FilterElectron_cut_absdPhiIn_barrel_medium',
- 'FilterElectron/FilterElectron_cut_abseta_crack',
- 'FilterElectron/FilterElectron_cut_abssceta',
- 'FilterElectron/FilterElectron_cut_d0_barrel_medium',
- 'FilterElectron/FilterElectron_cut_eta',
- 'FilterElectron/FilterElectron_cut_hovere_barrel_medium',
- 'FilterElectron/FilterElectron_cut_misshits_barrel_medium',
- 'FilterElectron/FilterElectron_cut_ooEmooP_barrel_medium',
- 'FilterElectron/FilterElectron_cut_passConvVeto_barrel_medium',
- 'FilterElectron/FilterElectron_cut_pfIso30_barrel_medium',
- 'FilterElectron/FilterElectron_cut_pt',
- 'FilterElectron/FilterElectron_cut_sigmaIEIE_barrel_medium',
- 'FilterElectron/FilterElectron_cut_z0_barrel_medium',
- 'FilterPhoton/FilterPhoton_cut_abseta',
- 'FilterPhoton/FilterPhoton_cut_abseta_crack',
- 'FilterPhoton/FilterPhoton_cut_chIsoCorr_barrel_loose',
- 'FilterPhoton/FilterPhoton_cut_chIsoCorr_barrel_medium',
- 'FilterPhoton/FilterPhoton_cut_chIsoCorr_endcap_loose',
- 'FilterPhoton/FilterPhoton_cut_chIsoCorr_endcap_medium',
- 'FilterPhoton/FilterPhoton_cut_eveto',
- 'FilterPhoton/FilterPhoton_cut_hovere_barrel_medium',
- 'FilterPhoton/FilterPhoton_cut_neuIsoCorr_barrel_loose',
- 'FilterPhoton/FilterPhoton_cut_neuIsoCorr_barrel_medium',
- 'FilterPhoton/FilterPhoton_cut_neuIsoCorr_endcap_loose',
- 'FilterPhoton/FilterPhoton_cut_neuIsoCorr_endcap_medium',
- 'FilterPhoton/FilterPhoton_cut_phoIsoCorr_barrel_loose',
- 'FilterPhoton/FilterPhoton_cut_phoIsoCorr_barrel_medium',
- 'FilterPhoton/FilterPhoton_cut_phoIsoCorr_endcap_loose',
- 'FilterPhoton/FilterPhoton_cut_phoIsoCorr_endcap_medium',
+hnames = [#'FilterMuon/FilterMuon_cut_abseta',
+ #'FilterMuon/FilterMuon_cut_chi2_tight',
+ #'FilterMuon/FilterMuon_cut_corriso_tight',
+ #'FilterMuon/FilterMuon_cut_d0_tight',
+ #'FilterMuon/FilterMuon_cut_eta',
+ #'FilterMuon/FilterMuon_cut_nPixelHits_tight',
+ #'FilterMuon/FilterMuon_cut_nStations_tight',
+ #'FilterMuon/FilterMuon_cut_nTrkLayers_tight',
+ #'FilterMuon/FilterMuon_cut_pt',
+ #'FilterMuon/FilterMuon_cut_trkiso_tight',
+ #'FilterMuon/FilterMuon_cut_z0_tight',
+ #'FilterElectron/FilterElectron_cut_absdEtaIn_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_absdPhiIn_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_abseta_crack',
+ #'FilterElectron/FilterElectron_cut_abssceta',
+ #'FilterElectron/FilterElectron_cut_d0_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_eta',
+ #'FilterElectron/FilterElectron_cut_hovere_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_misshits_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_ooEmooP_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_passConvVeto_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_pfIso30_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_pt',
+ #'FilterElectron/FilterElectron_cut_sigmaIEIE_barrel_medium',
+ #'FilterElectron/FilterElectron_cut_z0_barrel_medium',
+ #'FilterPhoton/FilterPhoton_cut_abseta',
+ #'FilterPhoton/FilterPhoton_cut_abseta_crack',
+ #'FilterPhoton/FilterPhoton_cut_chIsoCorr_barrel_loose',
+ #'FilterPhoton/FilterPhoton_cut_chIsoCorr_barrel_medium',
+ #'FilterPhoton/FilterPhoton_cut_chIsoCorr_endcap_loose',
+ #'FilterPhoton/FilterPhoton_cut_chIsoCorr_endcap_medium',
+ #'FilterPhoton/FilterPhoton_cut_eveto',
+ #'FilterPhoton/FilterPhoton_cut_hovere_barrel_medium',
+ #'FilterPhoton/FilterPhoton_cut_neuIsoCorr_barrel_loose',
+ #'FilterPhoton/FilterPhoton_cut_neuIsoCorr_barrel_medium',
+ #'FilterPhoton/FilterPhoton_cut_neuIsoCorr_endcap_loose',
+ #'FilterPhoton/FilterPhoton_cut_neuIsoCorr_endcap_medium',
+ #'FilterPhoton/FilterPhoton_cut_phoIsoCorr_barrel_loose',
+ #'FilterPhoton/FilterPhoton_cut_phoIsoCorr_barrel_medium',
+ #'FilterPhoton/FilterPhoton_cut_phoIsoCorr_endcap_loose',
+ #'FilterPhoton/FilterPhoton_cut_phoIsoCorr_endcap_medium',
  'FilterPhoton/FilterPhoton_cut_pt',
- 'FilterPhoton/FilterPhoton_cut_sigmaIEIE_barrel_loose',
+ 'FilterPhoton/FilterPhoton_cut_muon_dr',
+ 'FilterPhoton/FilterPhoton_cut_electron_dr',
+ #'FilterPhoton/FilterPhoton_cut_sigmaIEIE_barrel_loose',
  'FilterPhoton/FilterPhoton_cut_sigmaIEIE_barrel_medium',
- 'FilterPhoton/FilterPhoton_cut_sigmaIEIE_endcap_loose',
- 'FilterPhoton/FilterPhoton_cut_sigmaIEIE_endcap_medium']
+ #'FilterPhoton/FilterPhoton_cut_sigmaIEIE_endcap_loose',
+ 'FilterPhoton/FilterPhoton_cut_sigmaIEIE_endcap_medium',
+ ]
 
 if options.batch:
     ROOT.gROOT.SetBatch(True)
@@ -99,19 +102,21 @@ if options.baseDirElG is None: options.baseDirElG = "/data2/users/kakw/Resonance
 def main() :
     #if options.outputDir: f1 = ROOT.TFile("%s/output.root"%(options.outputDir),"RECREATE")
 
-#    sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI, readHists=True , weightHistName = "weighthist")
-#    sampManMuG.ReadSamples( _SAMPCONF )
+    sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI, readHists=True , weightHistName = "weighthist")
+    sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI ,readHists=True , weightHistName = "weighthist")
     sampManElG.ReadSamples( _SAMPCONF )
     print options.baseDirElG
     #samples = sampManMuG
 
-    #for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
-    for ch, samples in [("el",sampManElG),]:
-        hname = samples[0].walk_text()
-        hname =  [h[:-7] for h in hname if "_before" in h] # choose cut histograms
+    for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
+    #for ch, samples in [("el",sampManElG),]:
+        #hname = samples[0].walk_text()
+        #hname =  [h[:-7] for h in hname if "_before" in h] # choose cut histograms
+        hname = hnames
         labelname = "%i Muon Channel" %options.year if ch == "mu" else "%i Electron Channel" %options.year
-        samplname = "WGToLNuG-amcatnloFXFX"
+        #samplname = "WGToLNuG-amcatnloFXFX"
+        samplname = "AllTop"
 
         for h in hname:
             ## prepare config
@@ -128,6 +133,16 @@ def main() :
 
             ## save histogram
             samples.SaveStack(xlabel+"%i%s.pdf" %(options.year, ch), options.outputDir, "base")
+
+## cutflow compare
+if False:
+    samples.Merge(samples2016,"2016")
+    hconf =  {"colors":[4,2],"drawopt":"hist text","logy":True,"xunit":"", "ymax_scale":1.8, "doratio":1, "rmax":1.5, "rmin":0.5, "rlabel":"ratio 2017/2016"}
+    lgconf =  {"legend_entries":["t#bar{t} 2017","t#bar{t} 2016"], "legendCompress":0.6}
+    lconf  =  {"extra_label":"Muon Channel", "extra_label_loc":(.17,.82)}
+    samples.CompareHists("FilterPhoton/FilterPhoton_cuthist",["AllTop","AllTop2016"],"",hconf,lconf,lgconf)
+    samples.CompareHists("FilterEvent/FilterEvent_cuthist",["AllTop","AllTop2016"],"",hconf,lconf,lgconf)
+    samples.SaveStack("photoncutflow1617AllTop.pdf","~/public_html","base")
 
 #    selbase_mu = 'mu_pt30_n==1 && mu_n==1'
 #    ## with bad tracker portions excluded
