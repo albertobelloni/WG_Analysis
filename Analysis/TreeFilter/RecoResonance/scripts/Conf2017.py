@@ -244,7 +244,7 @@ def make_final_elg( alg_list, args) :
 
     filter_event = Filter('FilterEvent')
     filter_event.do_cutflow = True
-    filter_event.evalCutflow = True
+    filter_event.add_var('evalCutflow', "true")
     if eleOlap == 'False' :
         filter_event.cut_el_pt30_n = ' > 0 '
         filter_event.cut_ph_n = ' > 0 '
@@ -301,6 +301,7 @@ def make_final_mug( alg_list, args) :
     filter_event.cut_mu_pt30_n = ' == 1 '
     filter_event.cut_ph_n = ' > 0 '
     filter_event.do_cutflow = True
+    filter_event.add_var('evalCutflow', "true")
 
     if sec_lep_veto is not 'False' :
         filter_event.cut_mu_n = ' == 1 '
@@ -798,15 +799,17 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
 
     if do_hists :
         filt.add_hist( 'cut_pt', 100, 0, 200 )
+        filt.add_hist( 'cut_electron_dr', 400, 0, 6 )
+        filt.add_hist( 'cut_muon_dr', 400, 0, 6 )
         filt.add_hist( 'cut_abseta', 50, 0, 5 )
         filt.add_hist( 'cut_abseta_crack', 50, 0, 5 )
         filt.add_hist( 'cut_eveto', 2, 0, 2 )
         filt.add_hist( 'cut_hovere_barrel_medium', 50, 0, 0.1 )
-        filt.add_hist( 'cut_sigmaIEIE_barrel_medium', 50, 0, 0.05 )
+        filt.add_hist( 'cut_sigmaIEIE_barrel_medium', 100, 0, 0.04 )
         filt.add_hist( 'cut_chIsoCorr_barrel_medium', 50, 0, 5 )
         filt.add_hist( 'cut_neuIsoCorr_barrel_medium', 50, 0, 5 )
         filt.add_hist( 'cut_phoIsoCorr_barrel_medium', 50, 0, 5 )
-        filt.add_hist( 'cut_sigmaIEIE_endcap_medium', 50, 0, 0.05 )
+        filt.add_hist( 'cut_sigmaIEIE_endcap_medium', 100, 0, 0.04 )
         filt.add_hist( 'cut_chIsoCorr_endcap_medium', 50, 0, 5 )
         filt.add_hist( 'cut_neuIsoCorr_endcap_medium', 50, 0, 5 )
         filt.add_hist( 'cut_phoIsoCorr_endcap_medium', 50, 0, 5 )

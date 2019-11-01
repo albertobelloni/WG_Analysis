@@ -73,6 +73,7 @@ class RunModule : public virtual RunModuleBase {
         float _m_z;
         bool _isData;
         bool printevent;
+        bool passtrigger;
 
         bool _eval_mu_loose    ;
         bool _eval_mu_medium   ;
