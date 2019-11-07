@@ -308,6 +308,11 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             }
         }
         if( mod_conf.GetName() == "AddElectronSF" ) { 
+            std::map<std::string, std::string>::const_iterator elyear = mod_conf.GetInitData().find("year");
+            if (elyear != mod_conf.GetInitData().end()) {
+                _year_el = std::stoi(elyear->second);
+                std::cout << "year = " << _year_el << std::endl;
+            }
             std::map<std::string, std::string>::const_iterator itr;
             std::map<std::string, std::string>::const_iterator hname;
 
@@ -328,6 +333,30 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             if( itr != mod_conf.GetInitData().end() ){
                 _sffile_el_recolowpt = TFile::Open( (itr->second).c_str(), "READ" );
                 _sfhist_el_recolowpt = dynamic_cast<TH2F*>(_sffile_el_recolowpt->Get( (hname->second).c_str() ) );
+            }
+            itr = mod_conf.GetInitData().find( "FilePathTrigEl" );
+            hname = mod_conf.GetInitData().find( "HistTrigEl" );
+            if( itr != mod_conf.GetInitData().end() ) {
+                _sffile_el_trig = TFile::Open( (itr->second).c_str(), "READ" );
+                if( _sffile_el_trig->IsOpen() ) {
+                    _sfhist_el_trig = dynamic_cast<TH2F*>(_sffile_el_trig->Get( (hname->second).c_str() ));
+                    if( !_sfhist_el_trig ) {
+                        std::cout << "could not get hist from file " << _sffile_el_trig->GetName() << std::endl;
+                    }
+                    hname = mod_conf.GetInitData().find( "HistTrigElData" );
+                    _effhist_el_trig_data = dynamic_cast<TH2F*>(_sffile_el_trig->Get( (hname->second).c_str() ));
+                    if( !_effhist_el_trig_data ) {
+                        std::cout << "could not get hist from file " << _sffile_el_trig->GetName() << std::endl;
+                    }
+                    hname = mod_conf.GetInitData().find( "HistTrigElMC" );
+                    _effhist_el_trig_mc = dynamic_cast<TH2F*>(_sffile_el_trig->Get( (hname->second).c_str() ));
+                    if( !_effhist_el_trig_mc ) {
+                        std::cout << "could not get hist from file " << _sffile_el_trig->GetName() << std::endl;
+                    }
+                }
+                else {
+                    std::cout << "Could not open file " << itr->second << std::endl;
+                }
             }
         }
         if( mod_conf.GetName() == "AddPhotonSF" ) { 
@@ -438,6 +467,71 @@ void RunModule::AddElectronSF( ModuleConfig & /*config*/ ) const {
 
     if( OUT::isData ) {
         return;
+    }
+
+    std::vector<float> trsfs;
+    std::vector<float> trerrs;
+    std::vector<float> treffs_data;
+    std::vector<float> trerrs_data;
+    std::vector<float> treffs_mc;
+    std::vector<float> trerrs_mc;
+
+    for( int idx = 0; idx < OUT::el_n; ++idx ) {
+        float eta = OUT::el_eta->at(idx);
+        float pt  = OUT::el_pt ->at(idx) ;
+
+        float ptcut = -999.;
+        if (_year_el == 2016)
+            ptcut = 35.;
+        else if (_year_el == 2017)
+            ptcut = 40.;
+        else if (_year_el == 2018)
+            ptcut = 35.;
+        else
+            std::cout << "ERROR AddElectronSF: year not recognized!" << std::endl;
+
+        if( !(pt > ptcut && fabs(eta) < 2.4) ) {
+            std::cout << "AddElectronSF -- WARNING : electron pt or eta out of range " << pt << " " << eta << std::endl;
+        }
+
+        ValWithErr entry;
+        ValWithErr entry_data;
+        ValWithErr entry_mc;
+        entry      = GetVals2D( _sfhist_el_trig, eta, pt );
+        entry_data = GetVals2D( _effhist_el_trig_data, eta, pt );
+        entry_mc   = GetVals2D( _effhist_el_trig_mc, eta, pt );
+        
+        trsfs.push_back( entry.val );
+        trerrs.push_back( entry.err_up );
+        treffs_data.push_back( entry_data.val );
+        trerrs_data.push_back( entry_data.err_up );
+        treffs_mc.push_back( entry_mc.val );
+        trerrs_mc.push_back( entry_mc.err_up);
+
+    }
+    
+    if( OUT::el_n == 1 ) {
+
+        OUT::el_trigSF   = trsfs[0];
+        OUT::el_trigSFUP = trsfs[0] + trerrs[0];
+        OUT::el_trigSFDN = trsfs[0] - trerrs[0];
+
+    }
+    else if( OUT::el_n > 1 ) {
+
+        double eff_data = 1 - (1 - treffs_data[0]) * (1 - treffs_data[1]);
+        double eff_mc   = 1 - (1 - treffs_mc[0]) * (1 - treffs_mc[1]);
+        
+        double err_data = sqrt( pow(trerrs_data[0]/treffs_data[0], 2) + pow(trerrs_data[1]/treffs_data[1], 2) );
+        double err_mc   = sqrt( pow(trerrs_mc[0]/treffs_mc[0], 2) + pow(trerrs_mc[1]/treffs_mc[1], 2) );
+        
+        double sf_val = eff_data/eff_mc;
+        double sf_err = sqrt( pow(err_data/eff_data, 2) + pow(err_mc/eff_mc, 2) );
+                
+        OUT::el_trigSF   = sf_val;
+        OUT::el_trigSFUP = sf_val + sf_err;
+        OUT::el_trigSFDN = sf_val - sf_err;
+
     }
 
     std::vector<float> sfs_id;
@@ -820,8 +914,8 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
 
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
-        float feta = fabs(OUT::mu_eta->at(0));
-        float pt   =      OUT::mu_pt_rc ->at(0) ;
+        float feta = fabs(OUT::mu_eta->at(idx));
+        float pt   =      OUT::mu_pt_rc ->at(idx) ;
 
         float ptcut = -999.;
         if (_year_mu == 2016)
@@ -833,27 +927,24 @@ void RunModule::AddMuonSF( ModuleConfig & /*config*/ ) const {
         else
             std::cout << "ERROR AddMuonSF: year not recognized!" << std::endl;
 
-        if( pt > ptcut && feta < 2.4 ) {
-
-            
-            ValWithErr entry;
-            ValWithErr entry_data;
-            ValWithErr entry_mc;
-            entry      = GetValsRunRange2D( _sfhists_mu_trig, pt, feta );
-            entry_data = GetValsRunRange2D( _effhists_mu_trig_data, pt, feta );
-            entry_mc   = GetValsRunRange2D( _effhists_mu_trig_mc, pt, feta );
-            
-            trsfs.push_back( entry.val );
-            trerrs.push_back( entry.err_up );
-            treffs_data.push_back( entry_data.val );
-            trerrs_data.push_back( entry_data.err_up );
-            treffs_mc.push_back( entry_mc.val );
-            trerrs_mc.push_back( entry_mc.err_up);
-
-        }
-        else {
+        if( !(pt > ptcut && feta < 2.4) ) {
             std::cout << "AddMuonSF -- WARNING : muon pt or eta out of range " << pt << " " << feta << std::endl;
         }
+            
+        ValWithErr entry;
+        ValWithErr entry_data;
+        ValWithErr entry_mc;
+        entry      = GetValsRunRange2D( _sfhists_mu_trig, pt, feta );
+        entry_data = GetValsRunRange2D( _effhists_mu_trig_data, pt, feta );
+        entry_mc   = GetValsRunRange2D( _effhists_mu_trig_mc, pt, feta );
+        
+        trsfs.push_back( entry.val );
+        trerrs.push_back( entry.err_up );
+        treffs_data.push_back( entry_data.val );
+        trerrs_data.push_back( entry_data.err_up );
+        treffs_mc.push_back( entry_mc.val );
+        trerrs_mc.push_back( entry_mc.err_up);
+
     }
     
     if( OUT::mu_n == 1 ) {

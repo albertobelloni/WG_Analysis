@@ -85,12 +85,18 @@ def get_electron_sf(options) :
 
     electron_sf = Filter( 'AddElectronSF' )
 
+    electron_sf.add_var( 'year', theyear)
+
     electron_sf.add_var( 'FilePathRecoHighPt', '%s/2018/egammaEffi.txt_EGM2D_updatedAll2018.root'%base_path)
     electron_sf.add_var( 'HistRecoHighPt', 'EGamma_SF2D')
     electron_sf.add_var( 'FilePathRecoLowPt',  '%s/2018/egammaEffi.txt_EGM2D_updatedAll2018.root'%base_path)
     electron_sf.add_var( 'HistRecoLowPt', 'EGamma_SF2D')
     electron_sf.add_var( 'FilePathCutID',      '%s/2018/2018_cutbased_ElectronTightID.root'%base_path)
     electron_sf.add_var( 'HistCutID', 'EGamma_SF2D')
+    electron_sf.add_var( 'FilePathTrigEl', '%s/2018/SF_HLT_Ele32_WPTight_Gsf_2018.root' %base_path )
+    electron_sf.add_var( 'HistTrigEl', 'EGamma_SF2D' )
+    electron_sf.add_var( 'HistTrigElData', 'EGamma_EffData2D' )
+    electron_sf.add_var( 'HistTrigElMC', 'EGamma_EffMC2D' )
 
     return electron_sf
 
