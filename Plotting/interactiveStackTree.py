@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 p = ArgumentParser()
 p.add_argument('--baseDir',      default=None,           dest='baseDir',         help='Path to base directory containing all ntuples')
 p.add_argument('--baseDirModel',      default=None,           dest='baseDirModel', help='Path to base directory containing all ntuples for the model')
-p.add_argument('--fileName',     default='ntuple.root',  dest='fileName',        help='( Default ntuple.root ) Name of files')
+p.add_argument('--fileName',     default='tree.root',  dest='fileName',        help='( Default ntuple.root ) Name of files')
 p.add_argument('--treeName',     default='UMDNTuple/EventTree'     ,  dest='treeName',        help='( Default events ) Name tree in root file')
 p.add_argument('--treeNameModel',     default='photons'     ,  dest='treeNameModel',help='( Default photons ) Name tree in root file')
 p.add_argument('--samplesConf',  default=None,           dest='samplesConf',     help=('Use alternate sample configuration. '
@@ -53,10 +53,10 @@ elif options.batch:
     ROOT.gROOT.SetBatch(True)
 else: ROOT.gROOT.SetBatch(False)
 
-_LUMIYEAR = { 16: 35900,
-              17: 41500,
-              18: 59700,
-            }
+_LUMI  =  { 16: 35900,
+            17: 41500,
+            18: 59700,
+          }
 
 samples = None
 
@@ -64,7 +64,7 @@ def main() :
 
     global samples
 
-    if not options.baseDir.count('/eos/') and not os.path.isdir( options.baseDir ) :
+    if not options.baseDir.count('/eos/') and not os.path.isdir( options.baseDir ) and not options.combine:
         print 'baseDir not found!'
         return
 
@@ -73,14 +73,16 @@ def main() :
 
         samplelist = {}
         for year in [16,17,18]:
+            print options.baseDir %year
+            lumi = options.lumi if options.lumi>0 else _LUMI[year]
             samplelist[year] = SampleManager(options.baseDir %year, options.treeName, mcweight=options.mcweight,
                         treeNameModel=options.treeNameModel, filename=options.fileName, base_path_model=options.baseDirModel,
-                        xsFile=options.xsFile %year , lumi=options.lumi, readHists=options.readHists,
+                        xsFile=options.xsFile %year , lumi=lumi, readHists=options.readHists,
                         quiet=options.quiet, weightHistName=options.weightHistName)
             samplelist[year].ReadSamples( options.samplesConf %year )
 
             if samples == None:  samples = samplelist[year]
-            else:                samples.Merge(samplelist[year],"%d" year)
+            else:                samples.Merge(samplelist[year],"%d" %year)
 
     else:
         samples = SampleManager(options.baseDir, options.treeName, mcweight=options.mcweight, treeNameModel=options.treeNameModel,
