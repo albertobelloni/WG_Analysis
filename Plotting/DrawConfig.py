@@ -28,6 +28,13 @@ ROOT.gROOT.SetBatch(False)
 
 ROOT.gStyle.SetPalette(1)
 
+def f_Obsolete(f):
+        @wraps(f)
+        def f_wrapper(*args, **kws):
+                print "This method is obsolete"
+                return f(*args,**kws)
+        return f_wrapper
+
 
 class LegendConfig :
 
@@ -667,6 +674,7 @@ class DrawConfig :
         else :
             return self.selection[0]
 
+    @f_Obsolete
     def init_hist( self, name ) :
         """
         Initialize histogram

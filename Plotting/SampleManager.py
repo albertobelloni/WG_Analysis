@@ -29,6 +29,9 @@ from DrawConfig import DrawConfig, LegendConfig, LabelConfig, HistConfig
 ROOT.gROOT.SetBatch(False)
 
 ROOT.gStyle.SetPalette(1)
+tColor_Off="\033[0m"                       # Color Reset
+tRed      ="\033[1;31m%s"+tColor_Off       # Red 
+tPurple   ="\033[0;35m%s"+tColor_Off       # Purple
 
 def f_Obsolete(f):
         @wraps(f)
@@ -1806,7 +1809,6 @@ class SampleManager :
 
             if useXSFile and xsname in self.weightMap  :
                 self.weightMap[xsname]['scale'] *= thisscale
-                self.quietprint( 'Update scale for %s' %name)
                 thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
                                 sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
                                 color=plotColor, drawRatio=drawRatio, weightmap= self.weightMap[xsname], lumi=self.lumi, legendName=legend_name)
@@ -2368,12 +2370,18 @@ class SampleManager :
                 yield (xmin, xmax, ymin, ymax)
 
 
+
+    #--------------------------------
+
     def DrawSamples(self, varexp, selection, samples, histpars=None, normalize=False, doratio=False, useTreeModel=False, treeHist=None, treeSelection=None ) :
         if not isinstance( samples, list ) :
             samples = [samples]
 
         self.MakeSameCanvas(samples, varexp, selection, histpars, doratio)
         self.DrawSameCanvas(normalize, doratio)
+
+
+    #--------------------------------
 
     def MakeStack(self, draw_config, useModel=False, treeHist=None, treeSelection=None ) :
 
@@ -2511,6 +2519,7 @@ class SampleManager :
 
 
     #----------------------------------------------------
+
     def MakeSameCanvas(self, draw_config, useStoredBinning=False, preserve_hists=False, useModel=False, treeHist=None, treeSelection=None, readhist = False) :
 
         if not preserve_hists :
@@ -2597,6 +2606,9 @@ class SampleManager :
         return created_samples
 
 
+
+    #--------------------------------
+
     def get_hist( self, sample, histpath ) :
         sampname = sample.name
         print 'Getting hist for %s' %sampname
@@ -2634,6 +2646,9 @@ class SampleManager :
                 sample.hist = thishist
                 if sample.hist is not None :
                     self.format_hist( sample )
+
+
+    #--------------------------------
 
     @f_Dumpfname
     def read_hist( self, sample, histname , draw_config) :
@@ -2703,6 +2718,37 @@ class SampleManager :
             return True
 
 
+    #--------------------------------
+
+    def parsehist(self, histpars, varexp, histname=None):
+
+        if histname==None: histname = str(uuid.uuid4())
+
+        if type( histpars ) is tuple :
+            if varexp.count(':') == 1 :
+                if len(histpars) == 2 and type( histpars[0] ) is list and type(histpars[1]) is list :
+                    return ROOT.TH2F( histname, '', len(histpars[0])-1, array('f', histpars[0]), len(histpars[1])-1, array('f', histpars[1]) )
+                else :
+                    if len(histpars) != 6 :
+                        print 'varable expression, %s,  requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax' %varexp
+                        return
+                    return ROOT.TH2F( histname, '', histpars[0], histpars[1], histpars[2], histpars[3], histpars[4], histpars[5])
+            elif varexp.count(':') == 2 and not varexp.count('::') : # make a 3-d histogram
+                if len(histpars) != 9 :
+                    print 'varable expression, %s,  requests a 3-d histogram, please provide 9 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax' %varexp
+                    return
+                return ROOT.TH3F( histname, '',histpars[0], histpars[1], histpars[2], histpars[3], histpars[4], histpars[5], histpars[6], histpars[7], histpars[8] )
+            else : # 1-d histogram
+                return ROOT.TH1F( histname, '', int(histpars[0]), histpars[1], histpars[2])
+
+        elif type( histpars ) is list :
+            return ROOT.TH1F( histname, '', len(histpars)-1, array('f', histpars))
+        else :
+            print 'No histogram parameters were passed'
+
+
+
+    #--------------------------------
 
     def create_hist( self, sample, varexp, selection, histpars, isModel=False ) :
 
@@ -2718,16 +2764,14 @@ class SampleManager :
 
         sampname = sample.name
 
-        if not self.quiet : print 'Creating hist for %s' %sampname
-        if not self.quiet : print '%s : %s ' %( varexp, selection )
-        if not self.quiet : print histpars
+        #if not self.quiet : print 'Creating hist for %s' %sampname
+        #if not self.quiet : print '%s : %s ' %( varexp, selection )
+        #if not self.quiet : print histpars
 
         ## check that this histogram hasn't been drawn
         #if sample.hist is not None :
         #    print 'Histogram already drawn for %s' %sampname
         #    return
-
-        histname = str(uuid.uuid4())
 
         full_selection = selection
 
@@ -2735,27 +2779,8 @@ class SampleManager :
         sample.enable_parsed_branches( varexp+selection )
 
         sample.hist = None
-        if type( histpars ) is tuple :
-            if varexp.count(':') == 1 :
-                if len(histpars) == 2 and type( histpars[0] ) is list and type(histpars[1]) is list :
-                    sample.hist = ROOT.TH2F( histname, '', len(histpars[0])-1, array('f', histpars[0]), len(histpars[1])-1, array('f', histpars[1]) )
-                else :
-                    if len(histpars) != 6 :
-                        print 'varable expression, %s,  requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax' %varexp
-                        return
-                    sample.hist = ROOT.TH2F( histname, '', histpars[0], histpars[1], histpars[2], histpars[3], histpars[4], histpars[5])
-            elif varexp.count(':') == 2 and not varexp.count('::') : # make a 3-d histogram
-                if len(histpars) != 9 :
-                    print 'varable expression, %s,  requests a 3-d histogram, please provide 9 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax' %varexp
-                    return
-                sample.hist= ROOT.TH3F( histname, '',histpars[0], histpars[1], histpars[2], histpars[3], histpars[4], histpars[5], histpars[6], histpars[7], histpars[8] )
-            else : # 1-d histogram
-                sample.hist= ROOT.TH1F( histname, '', int(histpars[0]), histpars[1], histpars[2])
-
-        elif type( histpars ) is list :
-            sample.hist = ROOT.TH1F( histname, '', len(histpars)-1, array('f', histpars))
-        else :
-            print 'No histogram parameters were passed'
+        histname = str(uuid.uuid4())
+        sample.hist = self.parsehist(histpars, varexp, histname)
 
         if sample.hist is not None :
             sample.hist.SetTitle( sampname )
@@ -2787,6 +2812,7 @@ class SampleManager :
 
         else :
             if sample.chain is not None :
+                if not self.quiet or sample.isData: print 'Creating hist for %s  %s : ' %(sample.name, varexp) + tRed %selection
                 #self.draw_hist( sample, varexp, histname, full_selection, draw_opt='goff' )
                 res = sample.chain.Draw(varexp + ' >> ' + histname, full_selection, 'goff' )
                 if res < 0 :
@@ -2805,6 +2831,9 @@ class SampleManager :
         # wait for draws to finish
         #self.wait_on_draws()
 
+
+    #--------------------------------
+
     def create_hist_new( self, draw_config, sample=None, isModel=False ) :
 
         if sample is None :
@@ -2819,21 +2848,23 @@ class SampleManager :
             sample = slist[0]
 
 
-        # enable branches for all variables matched in the varexp and selection
 
-        sample.hist = draw_config.init_hist(sample.name)
         selection = draw_config.get_selection_string( sample.name )
         varexp    = draw_config.var[0]
         sblind  = draw_config.get_unblind()
         sweight = draw_config.get_weight()
+        #sample.hist = draw_config.init_hist(sample.name)
+        sample.hist = self.parsehist(draw_config.histpars, varexp)
+        if sample.hist is not None :
+            sample.hist.SetTitle( sample.name )
+            sample.hist.Sumw2()
         if sample.isData and isinstance(sblind,str):
                 selection = "(%s)&&(%s)" %(selection,sblind)
         if isinstance(sweight,str) and sweight and not sample.isData:
                 selection = "(%s)*%s" %(selection,sweight)
 
 
-        #if not self.quiet : print selection
-
+        # enable branches for all variables matched in the varexp and selection
         sample.enable_parsed_branches( varexp+selection )
 
         # Draw the histogram.  Use histpars as the bin limits if given
@@ -2861,8 +2892,8 @@ class SampleManager :
 
         else :
             if sample.chain is not None: 
-                if sample.chain.GetEntries() == 0: print '\033[1;31m WARNING: No entries from sample %s \033[0m' %sample.name
-                if not self.quiet or sample.isData: print 'Make %s hist %s : \033[1;31m %s\033[0m' %(sample.name, varexp,selection)
+                if sample.chain.GetEntries() == 0: print tRed %('WARNING: No entries from sample ' + sample.name)
+                if not self.quiet or sample.isData: print 'Make %s hist %s : ' %(sample.name, varexp) + tRed %selection
                 res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
                 if res < 0 :
                     sample.failed_draw=True
@@ -2880,9 +2911,15 @@ class SampleManager :
         #self.wait_on_draws()
 
 
+
+    #--------------------------------
+
     def format_hist( self, sample ) :
         self.AddOverflow( sample.hist )
         sample.SetHist()
+
+
+    #--------------------------------
 
     def AddOverflow(self,  hist ) :
 
@@ -2997,6 +3034,9 @@ class SampleManager :
             self.combine_overflow_bin( hist, 1, 0 )
 
 
+
+    #--------------------------------
+
     def get_single_mod_bins( self, bin, bin_collection ) :
         # for each entry in the bin,
         # make a modified bin
@@ -3008,6 +3048,9 @@ class SampleManager :
             bindn [binentry]-=1
             bin_collection.setdefault( (binentry,), []).append(binup)
             bin_collection.setdefault( (binentry,), []).append(bindn)
+
+
+    #--------------------------------
 
     def get_multi_mod_bins( self, bin, bin_collection ) :
         if not bin_collection :
@@ -3032,6 +3075,9 @@ class SampleManager :
                         bin_collection.setdefault( modbinval+(binentry,), []).append(binup)
                         bin_collection.setdefault( modbinval+(binentry,), []).append(bindn)
 
+
+
+    #--------------------------------
 
     def combine_overflow_bin( self, hist, bin, overbin ) :
 
@@ -3301,9 +3347,9 @@ class SampleManager :
                 if   doratio == True or doratio == 1 :
                     ratiosamp.hist.GetYaxis().SetTitleSize(0.08)
                     ratiosamp.hist.GetYaxis().SetTitleOffset(0.6)
-                    ratiosamp.hist.GetYaxis().SetLabelSize(0.08)
-                    ratiosamp.hist.GetXaxis().SetLabelSize(0.09)
-                    ratiosamp.hist.GetXaxis().SetTitleSize(0.12)
+                    ratiosamp.hist.GetYaxis().SetLabelSize(0.05)
+                    ratiosamp.hist.GetXaxis().SetLabelSize(0.07)
+                    ratiosamp.hist.GetXaxis().SetTitleSize(0.09)
                     ratiosamp.hist.GetXaxis().SetTitleOffset(0.8)
                 elif doratio: #doratio==2 :
                     ratiosamp.hist.GetYaxis().SetTitleSize(0.06)
