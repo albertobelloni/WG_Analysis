@@ -43,7 +43,7 @@ def get_keep_filter(tag=None) :
                  'met_MuonEnDown_phi', 'met_MuonEnUp_phi', 'met_MuonEnUp_pt', 'met_MuonEnDown_pt', ]
 
     jet_basic = ['jet_n', 'jet_pt', 'jet_eta', 'jet_phi', 'jet_e',]
-    jet_addtl = ['jet_CSVLoose_n', 'jet_CSVMedium_n', 'jet_CSVTight_n']
+    jet_addtl = ['jet_CSVLoose_n', 'jet_CSVMedium_n', 'jet_CSVTight_n',"jet_bTagCisvV2" ,"jet_.*"]
 
     event_basic = ['rho', 'pu_n', 'truepu_n', 'vtx_n', 'pdf_id1', 'pdf_id2', 'pdf_scale', 'pdf_x2', 'pdf_x1',
                    'lumiSection', 'eventNumber', 'runNumber', 'bxNumber', 'isData', 'EventWeights','prefweight.*']
@@ -244,6 +244,7 @@ def make_final_elg( alg_list, args) :
 
     filter_event = Filter('FilterEvent')
     filter_event.do_cutflow = True
+    filter_event.add_var('evalCutflow', "true")
     filter_event.evalCutflow = True
     if eleOlap == 'False' :
         filter_event.cut_el_pt30_n = ' > 0 '
@@ -301,6 +302,7 @@ def make_final_mug( alg_list, args) :
     filter_event.cut_mu_pt30_n = ' == 1 '
     filter_event.cut_ph_n = ' > 0 '
     filter_event.do_cutflow = True
+    filter_event.add_var('evalCutflow', "true")
 
     if sec_lep_veto is not 'False' :
         filter_event.cut_mu_n = ' == 1 '
