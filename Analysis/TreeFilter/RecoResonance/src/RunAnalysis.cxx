@@ -248,6 +248,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::trueph_pt                              = 0;
     OUT::trueph_eta                             = 0;
     OUT::trueph_phi                             = 0;
+    OUT::trueph_lep_dr                          = 0;
     OUT::trueph_motherPID                       = 0;
     OUT::trueph_status                          = 0;
     OUT::trueph_isPromptFS                      = 0;
@@ -508,6 +509,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         outtree->Branch("trueph_pt"           , &OUT::trueph_pt                        );
         outtree->Branch("trueph_eta"          , &OUT::trueph_eta                       );
         outtree->Branch("trueph_phi"          , &OUT::trueph_phi                       );
+        outtree->Branch("trueph_lep_dr"       , &OUT::trueph_lep_dr                    );
         outtree->Branch("trueph_motherPID"    , &OUT::trueph_motherPID                 );
         outtree->Branch("trueph_status"       , &OUT::trueph_status                    );
         outtree->Branch("trueph_isPromptFS"   , &OUT::trueph_isPromptFS                );
@@ -3377,6 +3379,7 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
     OUT::trueph_pt->clear();
     OUT::trueph_eta->clear();
     OUT::trueph_phi->clear();
+    OUT::trueph_lep_dr->clear();
     OUT::trueph_motherPID->clear();
     OUT::trueph_status->clear();
     OUT::trueph_isPromptFS->clear();
@@ -3573,6 +3576,15 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
                          );
 
         photlvs.push_back( phlv );
+        
+        float minDR = 99.;
+        for (TLorentzVector truelep : trueleps) {
+            float dR = phlv.DeltaR(truelep);
+            if (dR < minDR) {
+                minDR = dR;
+            }
+        }
+        OUT::trueph_lep_dr->push_back( minDR );
     }
 
     //photon truth match
