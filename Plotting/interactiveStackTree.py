@@ -7,17 +7,17 @@ from argparse import ArgumentParser
 p = ArgumentParser()
 p.add_argument('--baseDir',      default=None,           dest='baseDir',         help='Path to base directory containing all ntuples')
 p.add_argument('--baseDirModel',      default=None,           dest='baseDirModel', help='Path to base directory containing all ntuples for the model')
-p.add_argument('--fileName',     default='ntuple.root',  dest='fileName',        help='( Default ntuple.root ) Name of files')
-p.add_argument('--treeName',     default='events'     ,  dest='treeName',        help='( Default events ) Name tree in root file')
+p.add_argument('--fileName',     default='tree.root',  dest='fileName',        help='( Default ntuple.root ) Name of files')
+p.add_argument('--treeName',     default='UMDNTuple/EventTree'     ,  dest='treeName',        help='( Default events ) Name tree in root file')
 p.add_argument('--treeNameModel',     default='photons'     ,  dest='treeNameModel',help='( Default photons ) Name tree in root file')
-p.add_argument('--samplesConf',  default=None,           dest='samplesConf',     help=('Use alternate sample configuration. '
+p.add_argument('--samplesConf',  default='Modules/Resonance2016.py',           dest='samplesConf',     help=('Use alternate sample configuration. '
                                                                                        'Must be a python file that implements the configuration '
                                                                                        'in the same manner as in the main() of this script.  If only '
                                                                                        'the file name is given it is assumed to be in the same directory '
                                                                                        'as this script, if a path is given, use that path' ) )
 
-p.add_argument('--xsFile',     default=None,  type=str ,        dest='xsFile',         help='path to cross section file.  When calling AddSample in the configuration module, set useXSFile=True to get weights from the provided file')
-p.add_argument('--lumi',     default=None,  type=float ,        dest='lumi',         help='Integrated luminosity (to use with xsFile)')
+p.add_argument('--xsFile',     default='cross_sections/photon16.py',  type=str ,        dest='xsFile',         help='path to cross section file.  When calling AddSample in the configuration module, set useXSFile=True to get weights from the provided file')
+p.add_argument('--lumi',     default=36000,  type=float ,        dest='lumi',         help='Integrated luminosity (to use with xsFile)')
 p.add_argument('--weightHistName',     default="weighthist",  type=str ,        dest='weightHistName',         help='name of weight histogram')
 p.add_argument('--mcweight',     default=None,  type=float ,        dest='mcweight',         help='Weight to apply to MC samples')
 p.add_argument('--outputDir',     default=None,  type=str ,        dest='outputDir',         help='output directory for histograms')

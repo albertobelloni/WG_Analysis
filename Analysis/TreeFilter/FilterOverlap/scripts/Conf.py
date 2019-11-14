@@ -36,12 +36,16 @@ def config_analysis( alg_list, args ) :
 def filter_photon( alg_list, args ) :
 
     pt_cut = args.get('pt_cut' , ' > 10 ' )
+    aeta_cut = args.get('aeta_cut' , ' < 2.6 ' )
+    dr_cut = args.get('dr_cut' , ' > 0.05 ' )
     nph_cut = args.get('nph_cut' , ' == 0 ' )
     isPromptFS_cut = args.get('isPromptFS_cut', None)
     FHPFS_cut = args.get('FHPFS_cut', None)
 
     filter_event = Filter('FilterPhoton')
     filter_event.cut_genph_pt = pt_cut
+    filter_event.cut_genph_aeta = aeta_cut
+    filter_event.cut_genph_dr = dr_cut
     filter_event.cut_n_gen_phot = nph_cut
     if isPromptFS_cut:
         filter_event.cut_genph_isPromptFS = isPromptFS_cut

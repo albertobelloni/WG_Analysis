@@ -63,7 +63,7 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
 
     // print event
     printevent = false;
-    printevent = true;
+    //printevent = true;
     if( IN::eventNumber%100 == 42  ) printevent = true;
     if( printevent ) std::cout << " eventNumber " << IN::eventNumber; //<< std::endl;
 
@@ -136,6 +136,7 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
         float phot_pt = OUT::trueph_pt->at(i);
         float phot_eta = OUT::trueph_eta->at(i);
         float phot_phi = OUT::trueph_phi->at(i);
+        float phot_dr = OUT::trueph_lep_dr->at(i);
       	int phot_mother = OUT::trueph_motherPID->at(i);
       	int phot_status = OUT::trueph_status->at(i);
 
@@ -149,9 +150,11 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
 //bool phot_correctMother = (fabs(phot_mother) == 1) || (fabs(phot_mother) == 2) || (fabs(phot_mother) == 3) || (fabs(phot_mother) == 4) || (fabs(phot_mother) == 5) || (fabs(phot_mother) == 11) || (fabs(phot_mother) == 13) || (fabs(phot_mother) == 15) || (fabs(phot_mother) == 21) || (fabs(phot_mother) == 2212); // gen photon must come from quark, lepton, gluon, or proton
 
 #ifdef EXISTS_trueph_isPromptFS
-      if (printevent) {std::cout<<std::endl << phot_pt<< " "<< phot_eta<<" "<< phot_mother<<" status "<<phot_status<<" isPrompt "<<phot_isPromptFS<<" FHPFS "<<phot_FHPFS; }
+      if (printevent) {std::cout<<std::endl << phot_pt<< " "<< phot_eta<<" "<< phot_mother<<" status "<<phot_status<<" isPrompt "<<phot_isPromptFS<<" FHPFS "<<phot_FHPFS<<" "<<phot_dr; }
 #endif
         if( !config.PassFloat( "cut_genph_pt", phot_pt ) ) continue;
+        if( !config.PassFloat( "cut_genph_aeta", fabs(phot_eta) ) ) continue;
+        if( !config.PassFloat( "cut_genph_dr", phot_dr ) ) continue;
 #ifdef EXISTS_trueph_isPromptFS
         if( !config.PassBool( "cut_genph_isPromptFS", phot_isPromptFS ) ) continue;
 #endif
