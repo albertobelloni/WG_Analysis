@@ -161,6 +161,8 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
 #ifdef EXISTS_trueph_FHPFS
         if( !config.PassBool( "cut_genph_FHPFS", phot_FHPFS ) ) continue;
 #endif
+        bool isr = abs(phot_mother) < 11 || abs(phot_mother) > 16;
+        if( !config.PassBool( "cut_genph_isr", isr ) ) continue;
 
         if (printevent) std::cout<< " pass";
         TLorentzVector phlv;
