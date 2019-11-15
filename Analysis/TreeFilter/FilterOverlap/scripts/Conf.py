@@ -39,8 +39,9 @@ def filter_photon( alg_list, args ) :
     aeta_cut = args.get('aeta_cut' , ' < 2.6 ' )
     dr_cut = args.get('dr_cut' , ' > 0.05 ' )
     nph_cut = args.get('nph_cut' , ' == 0 ' )
-    isPromptFS_cut = args.get('isPromptFS_cut', None)
+    isPromptFS_cut = args.get('isPromptFS_cut', ' == True ')
     FHPFS_cut = args.get('FHPFS_cut', None)
+    isr_cut = args.get('isr_cut' , None )
 
     filter_event = Filter('FilterPhoton')
     filter_event.cut_genph_pt = pt_cut
@@ -51,6 +52,8 @@ def filter_photon( alg_list, args ) :
         filter_event.cut_genph_isPromptFS = isPromptFS_cut
     if FHPFS_cut:
         filter_event.cut_genph_FHPFS = FHPFS_cut
+    if isr_cut:
+        filter_event.cut_genph_isr = isr_cut
 
     alg_list.append( filter_event )
 
@@ -76,4 +79,8 @@ def filter_mtres( alg_list, args ) :
 
         alg_list.append( filter_event )
 
-
+def filter_combined( alg_list, args ) :
+    
+    filter_photon( alg_list, args )
+    filter_genht( alg_list, args )
+    filter_mtres( alg_list, args )
