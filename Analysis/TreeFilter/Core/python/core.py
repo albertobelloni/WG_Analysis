@@ -1254,15 +1254,18 @@ def create_job_desc_file(command_info, kwargs) :
                     'log = condorlog.txt',
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
-                    #'Requirements = TARGET.Machine =!= "siab-1.umd.edu"',
+                    #'Requirements = TARGET.Machine =!= "compute-0-5.privnet"',
+                    #'Requirements = TARGET.Machine == "r540-0-20.privnet"',
                     #'on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)',
                     #'next_job_start_delay=60',
                     #'notify_user = friccita@umd.edu',
                     'notification = Error',
                     'MINUTE      = 60',
+                    'on_exit_hold = (ExitBySignal == True) || (ExitCode != 0)  ',
                     'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60 * $(MINUTE)',
                     'periodic_release = NumJobStarts<5',
-                    '+JobFlavour = longlunch',
+                    #'+JobFlavour = longlunch', #for running on lxplus
+                    #'+IsTestJob = True',
                     #'# Copy output files when done.  REQUIRED to run in a protected directory',
                     #'when_to_transfer_output = ON_EXIT_OR_EVICT',
                     'priority=%d' %priority
@@ -1286,7 +1289,6 @@ def create_job_desc_file(command_info, kwargs) :
                          '# This is the argument line to the Executable',
                          #'MINUTE = 60',
                          #'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60*$(MINUTE)',
-                         #'periodic_release = NumbJobStarts<5',
                          #'Requirements = TARGET.Machine =!= "siab-1.umd.edu"'
                         ]
         # assemble the argument command
