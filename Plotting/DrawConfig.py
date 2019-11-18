@@ -114,18 +114,13 @@ class DrawConfig :
         ylabel = self.hist_config.get('ylabel', None)
         if ylabel is None :
             if isinstance( self.histpars, tuple ) :
-                bin_width = ( self.histpars[2] - self.histpars[1] )/self.histpars[0]
-                bin_width_f = ( self.histpars[2] - self.histpars[1] )/float(self.histpars[0])
+                bin_width = float( self.histpars[2] - self.histpars[1] )/self.histpars[0]
             else :
                 bin_width = 1
-                bin_width_f = 1
 
 
             xunit = self.hist_config.get('xunit', 'GeV')
-            if math.fabs(bin_width_f - bin_width) != 0 :
-                ylabel = 'Events / %.1f %s' %(bin_width_f,xunit)
-            else :
-                ylabel = 'Events / %d %s' %(bin_width, xunit)
+            ylabel = 'Events / %.2g %s' %(bin_width,xunit)
 
         return ylabel
 

@@ -3593,7 +3593,7 @@ class SampleManager :
         return
 
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
-        """ Draw Data, Signal and legend. Called by SampleManager.Draw() """
+        """ Draw Data, Signal and legend. Called by SampleManager.Draw()  as well as CompareSelections()"""
 
         doratio=draw_config.get_doratio()
         if doratio == True or doratio == 1 or doratio == "dodiff":
@@ -3603,7 +3603,6 @@ class SampleManager :
         else :
             self.create_standard_canvas()
 
-        (ymin, ymax) = self.calc_yaxis_limits( draw_config )
 
         self.curr_canvases['top'].cd()
 
@@ -3626,6 +3625,7 @@ class SampleManager :
             topcan.DrawClonePad()
 
         elif isinstance(topcan, ROOT.THStack ) :
+            (ymin, ymax) = self.calc_yaxis_limits( draw_config )
             if topcan.GetHists() == None :
                 print 'Top stack has no hists! Exiting'
                 return
