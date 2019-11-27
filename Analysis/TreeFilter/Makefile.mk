@@ -13,9 +13,11 @@ WORK_AREA = ${WorkArea}
 
 PKG_DIR = $(WORK_AREA)/TreeFilter/$(PACKAGE)
 EXE_DIR = $(PKG_DIR)
-OBJ_DIR = $(PKG_DIR)/obj
+OBJ_DIR = $(PKG_DIR)/obj/$(EXENAME)
 SRC_DIR = $(PKG_DIR)/src
 INC_DIR = $(PKG_DIR)/include
+
+MKDIR_P = mkdir -p
 
 COMMON_DIR = $(WORK_AREA)/TreeFilter/Common
 
@@ -84,7 +86,12 @@ endif
 EXE = $(EXE_DIR)/$(NEWEXENAME)
 
 # Main targets
-all: check $(EXE) 
+all: check objdir $(EXE) 
+
+objdir: ${OBJ_DIR}
+
+${OBJ_DIR}:
+	${MKDIR_P} ${OBJ_DIR}
 
 $(SRC_DIR)/Dict.cxx: $(PKG_DIR)/include/LinkDef.h
 	rootcint -f $@ -c -p $^
