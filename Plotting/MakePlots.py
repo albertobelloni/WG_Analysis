@@ -20,14 +20,18 @@ parser.add_argument( '--baseDirElEl',  dest='baseDirElEl', default=None, help='P
 parser.add_argument( '--baseDirMuEl',  dest='baseDirMuEl', default=None, help='Path to Muon + Electron ntuples')
 parser.add_argument( '--baseDirNoFilt'  ,  dest='baseDirNoFilt'  , default=None, help='Path to single Muon ntuples')
 parser.add_argument( '--baseDirReco'  ,  dest='baseDirReco'  , default=None, help='Path to single Muon ntuples')
-parser.add_argument( '--outputDir'  ,  dest='outputDir'  , default=None, help='Path to output directory, save plots here')
+parser.add_argument( '--outputDir'  ,  dest='outputDir'  , default='Plots', help='Path to output directory, save plots here')
 parser.add_argument( '--makeZCR'  ,  dest='makeZCR'  , default=False, action='store_true', help='Make ZCR plots')
 parser.add_argument( '--makeWCR'  ,  dest='makeWCR'  , default=False, action='store_true', help='Make WCR plots')
+parser.add_argument( '--makeEMu'  ,  dest='makeEMu'  , default=False, action='store_true', help='Make EMu (ttbar dilepton) plots')
 parser.add_argument( '--makeSR'  ,  dest='makeSR'  , default=False, action='store_true', help='Make signal region plots')
 parser.add_argument( '--makeJetBkg'  ,  dest='makeJetBkg'  , default=False, action='store_true', help='Make jet background plots')
 parser.add_argument( '--makeEleBkg'  ,  dest='makeEleBkg'  , default=False, action='store_true', help='Make electron background plots')
 parser.add_argument( '--makeSigTruth'  ,  dest='makeSigTruth'  , default=False, action='store_true', help='Make signal truth plots')
 parser.add_argument( '--makeBkgTruth'  ,  dest='makeBkgTruth'  , default=False, action='store_true', help='Make background truth plots')
+parser.add_argument( '--year', dest='year', default=2016, help='Specify the year', type=int)
+parser.add_argument( '--baseDir'  ,  dest='baseDir'  , default=None, help='Path to ntuples')
+parser.add_argument( '--tag'  ,  dest='tag'  , default=None, help='Ntuple tag (can contain SF dir, example: 2019_11_13/WithSF)')
 
 
 options = parser.parse_args()
@@ -39,77 +43,108 @@ if options.outputDir is not None :
 
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
-_XSFILE   = 'cross_sections/photon15.py'
-_LUMI     = 36000
-_MODULE   = 'Modules/Resonance.py'
+_XSFILE   = 'cross_sections/photon%i.py' % (options.year%2000)
+_LUMI     = 35900
+_MODULE   = 'Modules/Resonance%i.py' % options.year
+
+if options.baseDir and options.tag:
+    if not options.baseDirMu:
+        options.baseDirMu = options.baseDir + '/SingleLep_mu_' + options.tag
+    if not options.baseDirEl:
+        options.baseDirEl = options.baseDir + '/SingleLep_el_' + options.tag
+    if not options.baseDirMuG:
+        options.baseDirMuG = options.baseDir + '/LepGamma_mug_' + options.tag
+    if not options.baseDirElG:
+        options.baseDirElG = options.baseDir + '/LepGamma_elg_' + options.tag
+    if not options.baseDirMuGNoId:
+        options.baseDirMuGNoId = options.baseDir + '/LepGammaNoPhId_mug_' + options.tag
+    if not options.baseDirElGNoId:
+        options.baseDirElGNoId = options.baseDir + '/LepGammaNoPhId_elg_' + options.tag
+    if not options.baseDirMuMu:
+        options.baseDirMuMu = options.baseDir + '/LepLep_mumu_' + options.tag
+    if not options.baseDirElEl:
+        options.baseDirElEl = options.baseDir + '/LepLep_elel_' + options.tag
+    if not options.baseDirMuEl:
+        options.baseDirMuEl = options.baseDir + '/LepLep_muel_' + options.tag
 
 def main() :
-
-
-    sampManReco     = SampleManager( options.baseDirReco  , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManNoFilt   = SampleManager( options.baseDirNoFilt  , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManMu       = SampleManager( options.baseDirMu  , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManEl       = SampleManager( options.baseDirEl  , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManMuG      = SampleManager( options.baseDirMuG , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManElG      = SampleManager( options.baseDirElG , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManMuGNoId  = SampleManager( options.baseDirMuGNoId , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManElGNoId  = SampleManager( options.baseDirElGNoId , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManMuMu     = SampleManager( options.baseDirMuMu, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManElEl     = SampleManager( options.baseDirElEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManMuEl     = SampleManager( options.baseDirMuEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-
-    sampManReco.ReadSamples( _MODULE )
-    sampManNoFilt.ReadSamples( _MODULE )
-    sampManMu.ReadSamples( _MODULE )
-    sampManEl.ReadSamples( _MODULE )
-    sampManMuG.ReadSamples( _MODULE )
-    sampManElG.ReadSamples( _MODULE )
-    sampManMuGNoId.ReadSamples( _MODULE )
-    sampManElGNoId.ReadSamples( _MODULE )
-    sampManMuMu.ReadSamples( _MODULE )
-    sampManElEl.ReadSamples( _MODULE )
-    sampManMuEl.ReadSamples( _MODULE )
 
     #---------------------------------------
     # Z and Z+photon CR plots
     #---------------------------------------
     if options.makeZCR :
+        sampManMuMu     = SampleManager( options.baseDirMuMu, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManElEl     = SampleManager( options.baseDirElEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManMuMu.ReadSamples( _MODULE )
+        sampManElEl.ReadSamples( _MODULE )
+        
         MakeZCRPlots( sampManMuMu, sampManElEl )
+
+    #---------------------------------------
+    # e+mu (ttbar dilepton) CR plots
+    #---------------------------------------
+    if options.makeEMu :
+        sampManMuEl     = SampleManager( options.baseDirMuEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManMuEl.ReadSamples( _MODULE )
 
     #---------------------------------------
     # Single lepton (W) plots
     #---------------------------------------
     if options.makeWCR : 
+        sampManMu       = SampleManager( options.baseDirMu  , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManEl       = SampleManager( options.baseDirEl  , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManMu.ReadSamples( _MODULE )
+        sampManEl.ReadSamples( _MODULE )
+        
         MakeWCRPlots( sampManMu, sampManEl )
 
     #---------------------------------------
     # lepton + photon plots
     #---------------------------------------
     if options.makeSR :
+        sampManMuG      = SampleManager( options.baseDirMuG , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManElG      = SampleManager( options.baseDirElG , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManMuG.ReadSamples( _MODULE )
+        sampManElG.ReadSamples( _MODULE )
+        
         MakeSignalRegionPlots( sampManMuG, sampManElG )
 
     #---------------------------------------
     # Plots for jet background
     #---------------------------------------
     if options.makeJetBkg :
+        sampManMuGNoId  = SampleManager( options.baseDirMuGNoId , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManElGNoId  = SampleManager( options.baseDirElGNoId , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManMuGNoId.ReadSamples( _MODULE )
+        sampManElGNoId.ReadSamples( _MODULE )
+        
         MakeWJetsPlots( sampManMuGNoId, sampManElGNoId )
 
     #---------------------------------------
     # Plots for electron background
     #---------------------------------------
     if options.makeEleBkg :
+        sampManElG      = SampleManager( options.baseDirElG , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManElG.ReadSamples( _MODULE )
+        
         MakeEFakePlots( sampManElG )
 
     #---------------------------------------
     # Make generator level distributions for signal
     #---------------------------------------
     if options.makeSigTruth :
+        sampManNoFilt   = SampleManager( options.baseDirNoFilt  , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManNoFilt.ReadSamples( _MODULE )
+        
         MakeSignalTruthPlots( sampManNoFilt )
 
     #---------------------------------------
     # for bkg studies at truth level
     #---------------------------------------
     if options.makeBkgTruth :
+        sampManReco     = SampleManager( options.baseDirReco  , _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+        sampManReco.ReadSamples( _MODULE )
+        
         MakeBkgTruthPlots( sampManReco )
 
     #---------------------------------------
@@ -201,125 +236,151 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
 
     name = 'ZCRPlots'
     outdir = '%s/%s' %(options.outputDir, name )
+    default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': ''}
 
-    selection_mu = defs.get_base_selection( 'mumu' )
-    selection_el = defs.get_base_selection( 'elel' )
-
-    weight_str = defs.get_weight_str()
-
-    plot_var = 'm_ll'
-
-    full_sel_str_mu = ' %s * ( %s ) ' %( weight_str, selection_mu )
-    full_sel_str_el = ' %s * ( %s ) ' %( weight_str, selection_el )
-
+    zchannels = {
+        'mumu': sampManMu,
+        'elel': sampManEl,
+    }
     
-    sampManMu.Draw( plot_var, full_sel_str_mu, (100, 0, 1000), 
-                   hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]', 'doratio' : 1}, 
-                   label_config={'labelStyle' : 'fancy13'},
-                  )
-
-    if options.outputDir is not None :
-        sampManMu.SaveStack( 'm_ll_mumu.pdf' ,outdir, 'base' ) 
-    else :
-        raw_input('cont')
-
-    sampManEl.Draw( plot_var, full_sel_str_el, (100, 0, 1000), 
-                   hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]', 'doratio' : 1}, 
-                   label_config={'labelStyle' : 'fancy13'},
-                  )
-
-    if options.outputDir is not None :
-        sampManEl.SaveStack( 'm_ll_elel.pdf' , outdir, 'base' ) 
-    else :
-        raw_input('cont')
-
-    selection_ph = 'ph_n==1 && ph_pt[0] > 15 && ph_IsEB[0]'
-
-    full_sel_str_mug = ' %s * ( %s ) ' %( weight_str, ' && '.join( [selection_mu, selection_ph] ) )
-    full_sel_str_elg = ' %s * ( %s ) ' %( weight_str, ' && '.join( [selection_el, selection_ph] ) )
-
-    #sampManMu.Draw( plot_var, full_sel_str_mug, (50, 0, 500), 
-    #               hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]', 'doratio' : 1}, 
-    #               label_config={'labelStyle' : 'fancy13'},
-    #              )
-
-    #if options.outputDir is not None :
-    #    sampManMu.SaveStack( 'm_ll_mumug.pdf' ,outdir, 'base' ) 
-    #else :
-    #    raw_input('cont')
-
-    #sampManEl.Draw( plot_var, full_sel_str_elg, (50, 0, 500), 
-    #               hist_config={'logy' : True, 'xlabel' : 'Dilepton Mass [GeV]', 'doratio' : 1}, 
-    #               label_config={'labelStyle' : 'fancy13'},
-    #              )
-
-    #if options.outputDir is not None :
-    #    sampManEl.SaveStack( 'm_ll_elelg.pdf' , outdir, 'base' ) 
-    #else :
-    #    raw_input('cont')
+    for channel in zchannels:
+        sampMan = zchannels[channel]
+        
+        selection = defs.get_base_selection( channel )
+        weight_str = defs.get_weight_str()
+        full_sel_str = ' %s * ( %s ) ' %( weight_str, selection )
+        
+        EG_eta_bins = [-2.91667, -2.5, -2, -1.566, -1.444, -1, -0.5, 0, 0.5, 1, 1.444, 1.566, 2, 2.5, 2.91667]
+        sampMan.Draw( '%s_eta' % channel[0:2], full_sel_str, EG_eta_bins, 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Lepton #eta', 'xunit': ''}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    legend_config={'fillalpha': 0.7},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'lep_eta_egbins_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
 
 
-    #sampManMu.Draw( 'dr_lep_ph', full_sel_str_mug, (50, 0, 5), 
-    #               hist_config={'logy' : True, 'xlabel' : '#Delta R (#ell, #gamma)', 'doratio' : 1}, 
-    #               label_config={'labelStyle' : 'fancy13'},
-    #              )
-
-    #if options.outputDir is not None :
-    #    sampManMu.SaveStack( 'dr_lep_ph_mumug.pdf', outdir, 'base' ) 
-    #else :
-    #    raw_input('cont')
-
-    #sampManEl.Draw( 'dr_lep_ph', full_sel_str_elg, (50, 0, 5), 
-    #               hist_config={'logy' : True, 'xlabel' : '#Delta R (#ell, #gamma)', 'doratio' : 1}, 
-    #               label_config={'labelStyle' : 'fancy13'},
-    #              )
-
-    #if options.outputDir is not None :
-    #    sampManEl.SaveStack( 'dr_lep_ph_elelg.pdf' , outdir, 'base' )
-    #else :
-    #    raw_input('cont')
-
-    sampManMu.Draw( 'mu_pt[0]', full_sel_str_mu, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Lead Lepton p_{T} [GeV]', 'doratio' : 1}, 
-                   label_config={'labelStyle' : 'fancy13'},
-                  )
-
-    if options.outputDir is not None :
-        sampManMu.SaveStack( 'leadlep_pt_mu.pdf' ,outdir, 'base' ) 
-    else :
-        raw_input('cont')
-
-    sampManEl.Draw( 'el_pt[0]', full_sel_str_el, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Lead Lepton p_{T} [GeV]', 'doratio' : 1}, 
-                   label_config={'labelStyle' : 'fancy13'},
-                  )
-
-    if options.outputDir is not None :
-        sampManEl.SaveStack( 'leadlep_pt_el.pdf' , outdir, 'base' ) 
-    else :
-        raw_input('cont')
+        sampMan.Draw( 'm_ll', full_sel_str, (100, 50, 250), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Dilepton Mass', 'xunit': 'GeV'}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'm_ll_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
 
 
-    sampManMu.Draw( 'mu_pt[1]', full_sel_str_mu, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Sublead Lepton p_{T} [GeV]', 'doratio' : 1}, 
-                   label_config={'labelStyle' : 'fancy13'},
-                  )
+        sampMan.Draw( 'vtx_n', full_sel_str, (50, 0, 50), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'N(vertex)', 'xunit': ''}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'nvtx_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
 
-    if options.outputDir is not None :
-        sampManMu.SaveStack( 'lep_pt_mu.pdf' ,outdir, 'base' ) 
-    else :
-        raw_input('cont')
 
-    sampManEl.Draw( 'el_pt[1]', full_sel_str_el, (50, 0, 500), 
-                   hist_config={'logy' : True, 'xlabel' : 'Sublead Lepton p_{T} [GeV]', 'doratio' : 1}, 
-                   label_config={'labelStyle' : 'fancy13'},
-                  )
+        sampMan.Draw( 'rho', full_sel_str, (50, 0, 50), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : '#rho', 'xunit': ''}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'rho_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
 
-    if options.outputDir is not None :
-        sampManEl.SaveStack( 'lep_pt_el.pdf' , outdir, 'base' ) 
-    else :
-        raw_input('cont')
 
+        sampMan.Draw( 'met_pt', full_sel_str, (50, 0, 200), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'MET p_{T}', 'xunit': 'GeV'}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'met_pt_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+
+
+        sampMan.Draw( 'met_phi', full_sel_str, (60, -math.pi, math.pi), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'MET #phi', 'xunit': ''}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'met_phi_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+
+
+        selection_ph = 'ph_n==1 && ph_pt[0] > 15 && ph_IsEB[0] && ph_passEleVeto[0] && ph_passMedium[0]'
+        label_zg = 'Z + photon'
+
+        full_sel_str_zg = ' %s * ( %s ) ' %( weight_str, ' && '.join( [selection, selection_ph] ) )
+
+        sampMan.Draw( 'm_ll', full_sel_str_zg, (50, 50, 250), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Dilepton Mass', 'xunit': 'GeV'}),
+                    label_config={'labelStyle' : 'fancy2016', 'extra_label': label_zg, 'extra_label_loc':(0.17, 0.87)},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'm_ll_%sg.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+
+
+        sampMan.Draw( 'ph_pt[0]', full_sel_str_zg, (50, 0, 250), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Photon p_{T}', 'xunit': 'GeV'}),
+                    label_config={'labelStyle' : 'fancy2016', 'extra_label': label_zg, 'extra_label_loc':(0.17, 0.87)},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'pho_pt_%sg.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+
+
+        sampMan.Draw( 'dr_lep_ph', full_sel_str_zg, (50, 0, 5), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : '#Delta R (#ell, #gamma)', 'xunit': ''}), 
+                    label_config={'labelStyle' : 'fancy2016', 'extra_label': label_zg, 'extra_label_loc':(0.17, 0.87)},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'dr_lep_ph_%sg.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+
+
+        lep_pt = '%s_pt' % channel[0:2]
+        if channel == 'mumu': # use rochester corrections
+            lep_pt = '%s_pt_rc' % channel[0:2]
+        
+        sampMan.Draw( '%s[0]' % lep_pt, full_sel_str, (50, 0, 500), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Lead Lepton p_{T}', 'xunit': 'GeV'}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'leadlep_pt_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+
+
+        sampMan.Draw( '%s[1]' % lep_pt, full_sel_str, (50, 0, 500), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Sublead Lepton p_{T}', 'xunit': 'GeV'}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'lep_pt_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+
+
+        sampMan.Draw( '%s_eta' % channel[0:2], full_sel_str, (60, -3, 3), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Lepton #eta', 'xunit': ''}),
+                    label_config={'labelStyle' : 'fancy2016'},
+                    legend_config={'fillalpha': 0.7},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'lep_eta_%s.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+        continue
 
 
 def MakeEFakePlots( sampManEl ) :
@@ -917,5 +978,10 @@ def Make2DSignalPlot( sampManMuG, sampManElG ) :
             raw_input('cont')
             
 
-        
+def merge_dicts(x, y):
+    z = x.copy()   # start with x's keys and values
+    z.update(y)    # modifies z with y's keys and values & returns None
+    return z
+
+
 main()
