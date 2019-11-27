@@ -29,3 +29,4 @@ latex
 *.json
 roofit_iterators*
 *.pcm
+Plotting/Plots
