@@ -10,6 +10,7 @@ p.add_argument( '--check'   , dest='check'   , default=False, action='store_true
 p.add_argument( '--clean'   , dest='clean'   , default=False, action='store_true', help='Run cleanup of extra files' )
 p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true', help='Only submit missing output' )
 p.add_argument( '--local'   , dest='local'   , default=False , action='store_true', help='Run locally'                )
+p.add_argument( '--all'     , dest='all'     , default=False , action='store_true', help='Run on all available samples')
 p.add_argument( '--year', dest='year', help='Specify the year', type=int )
 options = p.parse_args()
 
@@ -21,9 +22,19 @@ else :
 options.batch = ( not options.local )
 
 ### ATTENTION! Here you specify the directory containing the ntuples that you want to run over.
-base = '/data/users/friccita/WGammaNtuple/'
+base = '/data/users/mseidel/Resonances%i/' % options.year
 
+### ATTENTION! Here you specify the type of ntuple you want to run over.
+input_dirs = [
+#              'LepLep_elel_2019_04_11','LepLep_mumu_2019_04_11',
+#              'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
+#              'LepGamma_elg_2019_04_11','LepGamma_mug_2019_04_11',
+#              'LepLep_mumu_2019_07_12',
+              #'LepLep_mumu_2019_11_13',
+              'LepLep_elel_2019_11_13',
+]
 
+### ATTENTION! consider using --all to apply SFs to all samples of the input directory
 jobs2016 = [
         #--------------------------
         JobConf(base, 'SingleMuon', isData=True, year=2016         ),
@@ -165,6 +176,18 @@ if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
 if options.year==2018: jobs=jobs2018 
 
+if options.all:
+    # grab all samples in directory
+    samplelist = []
+    for input_dir in input_dirs:
+        samplelist += os.listdir(base+'/'+input_dir)
+    sampleset = set(samplelist)
+
+    jobs = []
+    for sample in sampleset:
+        thisIsData = True if sample in ['SingleMuon', 'SingleElectron', 'EGamma'] else False
+        jobs.append(JobConf(base, sample, isData=thisIsData, year=options.year))
+
 options.nFilesPerJob = 1
 
 options.nproc = 4
@@ -172,15 +195,6 @@ options.treename='UMDNTuple/EventTree'
 options.exename='RunAnalysis'
 options.copyInputFiles=True
 options.enableKeepFilter=False
-
-### ATTENTION! Here you specify the type of ntuple you want to run over.
-input_dirs = [
-#              'LepLep_elel_2019_04_11','LepLep_mumu_2019_04_11',
-#              'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
-#              'LepGamma_elg_2019_04_11','LepGamma_mug_2019_04_11',
-#              'LepLep_mumu_2019_07_12',
-              'LepGammaNoPhId_mug_2019_09_04',
-]
 
 configs = []
 
