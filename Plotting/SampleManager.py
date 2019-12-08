@@ -1512,6 +1512,7 @@ class SampleManager :
 
             #histnameeps = outputDir + '/' + filenamestrip+'.eps'
             histnameeps = outputDir + '/' + filenamestrip+'.C'
+            histnameroot = outputDir + '/' + filenamestrip+'.root'
             histnamepng = outputDir + '/' + filenamestrip+'.png'
             if not (filename.count( '.pdf' ) or filename.count('.png') ):
                 histnamepdf = outputDir + '/' + filenamestrip+'.pdf'
@@ -1523,6 +1524,7 @@ class SampleManager :
             elif len( self.curr_canvases ) == 1  :
                 self.curr_canvases.values()[0].SaveAs(histnamepdf)
                 self.curr_canvases.values()[0].SaveAs(histnameeps)
+                self.curr_canvases.values()[0].SaveAs(histnameroot)
                 self.curr_canvases.values()[0].SaveAs(histnamepng)
             else :
                 if canname is not None :
@@ -1531,6 +1533,7 @@ class SampleManager :
                     else :
                         self.curr_canvases[canname].SaveAs(histnamepdf)
                         self.curr_canvases[canname].SaveAs(histnameeps)
+                        self.curr_canvases[canname].SaveAs(histnameroot)
                         self.curr_canvases[canname].SaveAs(histnamepng)
 
                 else :
@@ -1543,6 +1546,7 @@ class SampleManager :
                     selkey = keys[selidx]
                     self.curr_canvases[selkey].SaveAs(histnamepdf)
                     self.curr_canvases[selkey].SaveAs(histnameeps)
+                    self.curr_canvases[selkey].SaveAs(histnameroot)
                     self.curr_canvases[selkey].SaveAs(histnamepng)
 
 
@@ -2903,8 +2907,9 @@ class SampleManager :
                 sample.failed_draw=True
 
             if sample.hist is not None :
-                 self.AddOverflow( sample.hist )
-                 sample.InitHist(onthefly = draw_config.get_onthefly())
+                if draw_config.get_overflow():
+                    elf.AddOverflow( sample.hist )
+                sample.InitHist(onthefly = draw_config.get_onthefly())
 
         # Group draw parallelization
         # wait for draws to finish

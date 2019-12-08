@@ -127,7 +127,7 @@ class DrawConfig :
     def get_xlabel(self) :
         xunit = self.hist_config.get('xunit', 'GeV')
         unitstr = "[%s]" %xunit if xunit else ""
-        return self.hist_config.get('xlabel',"" ) + unitstr
+        return self.hist_config.get('xlabel',"" ) + " " + unitstr
 
     def get_rlabel(self) :
         rlabel = self.hist_config.get('rlabel', None)
@@ -164,6 +164,8 @@ class DrawConfig :
         return self.hist_config.get('logy', False )
     def get_normalize( self ) :
         return self.hist_config.get('normalize', False )
+    def get_overflow( self ) :
+        return self.hist_config.get('overflow', True )
     def get_drawopt( self ) :
         return self.hist_config.get('drawopt', "" )
 
@@ -213,7 +215,7 @@ class DrawConfig :
 
         labelStyle = self.label_config.get('labelStyle', None)
         labelLoc = self.label_config.get('labelLoc', None)
-        if labelStyle is None or labelStyle.count('Fancy')==0:
+        if labelStyle is None or labelStyle.count('fancy')==0:
 
             text_dx = self.label_config.get("dx",0)
             text_x = text_dx +0.17
@@ -282,7 +284,7 @@ class DrawConfig :
 
             extlabel.SetText( 0.25, 0.93, extText )
             #rootslabel.SetText(0.65, 0.93, '#font[132]{#sqrt{s} = 8 TeV, L = 19.4 fb^{-1} }' )
-
+            cmslabel.SetText(0.17, 0.93, 'CMS')
             rootslabel.SetText(0.73, 0.93, labeltext  )
 
             if not labelStyle.count('paper') :

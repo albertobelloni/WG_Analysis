@@ -310,6 +310,7 @@ namespace OUT {
     std::vector<float> *trueph_pt;
     std::vector<float> *trueph_eta;
     std::vector<float> *trueph_phi;
+    std::vector<float> *trueph_lep_dr;
     std::vector<Int_t> *trueph_motherPID;
     std::vector<Int_t> *trueph_status;
     std::vector<Int_t> *trueph_isPromptFS;

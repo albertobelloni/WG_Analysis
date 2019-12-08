@@ -4,8 +4,8 @@
  # https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV 
  # TTBar total cros section is 815.96 pb, taken from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO
  # https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
-( 'DYJetsToLL_M-50'               , { 'n_evt' : 46294554, 'cross_section' :  6077, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from 
-( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 123584524, 'cross_section' : 6077, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
+( 'DYJetsToLL_M-50'               , { 'n_evt' : 46294554, 'cross_section' : 6077.22, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV
+( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 123584524, 'cross_section' : 6077.22, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
 ( 'ZGTo2LG'                       , { 'n_evt' : 19282022, 'cross_section' : 55.5, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from  total events = 13626718
 ( 'tW_top'                        , { 'n_evt' : 4974435, 'cross_section' : 38.09, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NLO from XSDB
 ( 'tW_antitop'                    , { 'n_evt' : 5375230, 'cross_section' : 38.06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NLO from XSDB
