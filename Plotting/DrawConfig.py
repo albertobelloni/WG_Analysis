@@ -28,6 +28,13 @@ ROOT.gROOT.SetBatch(False)
 
 ROOT.gStyle.SetPalette(1)
 
+def f_Obsolete(f):
+        @wraps(f)
+        def f_wrapper(*args, **kws):
+                print "This method is obsolete"
+                return f(*args,**kws)
+        return f_wrapper
+
 
 class LegendConfig :
 
@@ -107,18 +114,13 @@ class DrawConfig :
         ylabel = self.hist_config.get('ylabel', None)
         if ylabel is None :
             if isinstance( self.histpars, tuple ) :
-                bin_width = ( self.histpars[2] - self.histpars[1] )/self.histpars[0]
-                bin_width_f = ( self.histpars[2] - self.histpars[1] )/float(self.histpars[0])
+                bin_width = float( self.histpars[2] - self.histpars[1] )/self.histpars[0]
             else :
                 bin_width = 1
-                bin_width_f = 1
 
 
             xunit = self.hist_config.get('xunit', 'GeV')
-            if math.fabs(bin_width_f - bin_width) != 0 :
-                ylabel = 'Events / %.1f %s' %(bin_width_f,xunit)
-            else :
-                ylabel = 'Events / %d %s' %(bin_width, xunit)
+            ylabel = 'Events / %.2g %s' %(bin_width,xunit)
 
         return ylabel
 
@@ -197,7 +199,7 @@ class DrawConfig :
             self.label_config
 
 
-    def get_labels( self ) :
+    def get_labels( self , datadrawn = False) :
 
         labels=[]
 
@@ -230,7 +232,8 @@ class DrawConfig :
             wiplabel = ROOT.TLatex()
             wiplabel.SetNDC()
             wiplabel.SetTextSize( 0.05 )
-            wiplabel.SetText(text_x+0.065, text_y, 'Simulation Work in Progress')
+            if datadrawn: wiplabel.SetText(text_x+0.065, text_y, ' Work in Progress')
+            else:         wiplabel.SetText(text_x+0.065, text_y, 'Simulation Work in Progress')
             wiplabel.SetTextFont(52)
             labeltext = '36 fb^{-1} (13 TeV)'
             if labelStyle:
@@ -669,6 +672,7 @@ class DrawConfig :
         else :
             return self.selection[0]
 
+    @f_Obsolete
     def init_hist( self, name ) :
         """
         Initialize histogram
