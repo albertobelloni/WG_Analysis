@@ -2908,7 +2908,7 @@ class SampleManager :
 
             if sample.hist is not None :
                 if draw_config.get_overflow():
-                    elf.AddOverflow( sample.hist )
+                    self.AddOverflow( sample.hist )
                 sample.InitHist(onthefly = draw_config.get_onthefly())
 
         # Group draw parallelization
@@ -3600,6 +3600,7 @@ class SampleManager :
     def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
         """ Draw Data, Signal and legend. Called by SampleManager.Draw()  as well as CompareSelections()"""
 
+        datadrawn  = False # is data drawn?
         doratio=draw_config.get_doratio()
         if doratio == True or doratio == 1 or doratio == "dodiff":
             self.create_standard_ratio_canvas()
@@ -3658,6 +3659,7 @@ class SampleManager :
                 dsamp.hist.DrawNormalized('PE same')
             else :
                 dsamp.hist.Draw('PE same')
+            datadrawn = True
 
 
         # draw the signals
@@ -3727,7 +3729,7 @@ class SampleManager :
             self.curr_sig_legend.Draw()
 
         # draw the plot status label
-        labels = draw_config.get_labels()
+        labels = draw_config.get_labels(datadrawn = datadrawn)
         for lab in labels :
             lab.Draw()
             self.curr_decorations.append( lab )

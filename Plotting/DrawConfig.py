@@ -199,7 +199,7 @@ class DrawConfig :
             self.label_config
 
 
-    def get_labels( self ) :
+    def get_labels( self , datadrawn = False) :
 
         labels=[]
 
@@ -232,7 +232,8 @@ class DrawConfig :
             wiplabel = ROOT.TLatex()
             wiplabel.SetNDC()
             wiplabel.SetTextSize( 0.05 )
-            wiplabel.SetText(text_x+0.065, text_y, 'Simulation Work in Progress')
+            if datadrawn: wiplabel.SetText(text_x+0.065, text_y, ' Work in Progress')
+            else:         wiplabel.SetText(text_x+0.065, text_y, 'Simulation Work in Progress')
             wiplabel.SetTextFont(52)
             labeltext = '36 fb^{-1} (13 TeV)'
             if labelStyle:
