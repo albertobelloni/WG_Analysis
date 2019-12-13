@@ -41,9 +41,9 @@
 ( 'DiPhoton'                      , { 'n_evt' : 19489569, 'cross_section' : 135.1, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # from SummaryTable1G25ns
 
 
- ('ResonanceMass200'        , { 'n_evt' : 50000, 'cross_section' : 50.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
- ('ResonanceMass250'        , { 'n_evt' : 50000, 'cross_section' : 40.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
- ('ResonanceMass300'        , { 'n_evt' : 50000, 'cross_section' : 26.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
+ ('ResonanceMass200'        , { 'n_evt' : 50000, 'cross_section' : 75.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
+ ('ResonanceMass250'        , { 'n_evt' : 50000, 'cross_section' : 50.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
+ ('ResonanceMass300'        , { 'n_evt' : 50000, 'cross_section' : 30.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
  ('ResonanceMass350'        , { 'n_evt' : 50000, 'cross_section' : 20.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
  ('ResonanceMass400'        , { 'n_evt' : 50000, 'cross_section' : 13.46    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
  ('ResonanceMass450'        , { 'n_evt' : 50000, 'cross_section' : 9.00     , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
@@ -63,8 +63,8 @@
  ('ResonanceMass2600'       , { 'n_evt' : 50000, 'cross_section' : 0.001249 , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
  ('ResonanceMass2800'       , { 'n_evt' : 50000, 'cross_section' : 0.000711 , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
  ('ResonanceMass3000'       , { 'n_evt' : 50000, 'cross_section' : 0.000409 , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
- ('ResonanceMass3500'       , { 'n_evt' : 50000, 'cross_section' : 0.00001  , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),  #FIXME no datapoint
- ('ResonanceMass4000'       , { 'n_evt' : 50000, 'cross_section' : 0.000001 , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),  #FIXME no datapoint
+ ('ResonanceMass3500'       , { 'n_evt' : 50000, 'cross_section' : 0.0001   , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),  #FIXME no datapoint
+ ('ResonanceMass4000'       , { 'n_evt' : 50000, 'cross_section' : 0.00003  , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),  #FIXME no datapoint
                 #  ('Zg'                     , { 'n_evt' : 3044343, 'cross_section' : 124.5 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
                 #  ('Wg'                     , { 'n_evt' : 2183649, 'cross_section' : 505.8 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
                 #  ('WgPt500'                , { 'n_evt' : 1393505, 'cross_section' : 0.0117887 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
