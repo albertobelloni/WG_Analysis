@@ -885,7 +885,7 @@ def build_truth( args ) :
 
     truth_filt = Filter('BuildTruth')
 
-    truth_filt.cut_lep_mother = ' == 24 || == -24 ||  == 11 || == -11 || == 12 || == -12 || == 13 || == -13 || == 14 || == -14 || == 15 || == -15 || == 16 || == -16 '
+    truth_filt.cut_lep_mother = ' == 23 || == -23 || == 24 || == -24 ||  == 11 || == -11 || == 12 || == -12 || == 13 || == -13 || == 14 || == -14 || == 15 || == -15 || == 16 || == -16 '
     #truth_filt.cut_lep_status = ' != 23 '
 
     truth_filt.cut_ph_pt = ' > 5 '
