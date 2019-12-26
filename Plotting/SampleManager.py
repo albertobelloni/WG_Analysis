@@ -3587,6 +3587,12 @@ class SampleManager :
             printline+= "\\hline\\hline\n%20s & %s\\\\\n" %result[-1]
             print printline
             return
+        self.print_stackresult(result)
+        return
+
+    def print_stackresult(self,result):
+        if isinstance(result, dict):
+            result = result.items()
 
         result = [ (r1,)+r2 for r1, r2 in result]
         totalresult = None
