@@ -65,13 +65,11 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan   )
 
     samples.AddSample('WGToLNuG-amcatnloFXFXPhCut',
-                      path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutRange',
-                      #path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax',
+                      path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-amcatnloFXFX')
 
     samples.AddSample('WGToLNuG_PtG-130-amcatnloFXFXPhCut',
-                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin',
-                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin',
+                      path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutRange',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-amcatnloFXFX' )
 
     samples.AddSample('WGToLNuG_PtG-500-amcatnloFXFXPhCut',
