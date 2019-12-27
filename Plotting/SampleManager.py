@@ -89,6 +89,9 @@ class Sample :
         # Should not be filled for a sample group
         self.chain = kwargs.get('chain', None)
 
+        # contain RDataFrame
+        self.rd    = None
+
         # link to the hosting sample manager
         self.manager = kwargs.get('manager', None)
 
@@ -213,7 +216,7 @@ class Sample :
             #self.hist.SetNdivisions(509, True )
 
 
-    def AddFiles( self, files, treeName=None, readHists=False , weightHistName=None) :
+    def AddFiles( self, files, treeName=None, readHists=False , weightHistName=None, dataFrame=False) :
         """ Add one or more files and grab the tree named treeName """
 
         if not isinstance(files, list) :
@@ -247,6 +250,10 @@ class Sample :
         if readHists:
             for f in files :
                 self.ofiles.append( f )
+
+        # make RDataFrame
+        if dataFrame:
+            self.rd = ROOT.RDataFrame(self.chain)
 
     def AddGroupSamples( self, samplenames ) :
         """ Add subsamples to this sample by samplenames"""
@@ -297,7 +304,7 @@ class SampleManager :
     """ Manage input samples and drawn histograms """
 
     def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root',
-            base_path_model=None, xsFile=None, lumi=None, readHists=False, quiet=False, weightHistName = "weighthist") :
+            base_path_model=None, xsFile=None, lumi=None, readHists=False, dataFrame=False, quiet=False, weightHistName = "weighthist") :
 
         #
         # This plotting module assumes that root files are
@@ -390,6 +397,7 @@ class SampleManager :
 
         # read histograms instead of trees
         self.readHists = readHists
+        self.dataFrame = dataFrame
 
         self.quiet = quiet
 
@@ -1821,7 +1829,7 @@ class SampleManager :
                                 sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
                                 color=plotColor, drawRatio=drawRatio, scale=thisscale, lumi=self.lumi,  legendName=legend_name)
 
-            thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName)
+            thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName, self.dataFrame)
 
             self.samples.append(thisSample)
 
@@ -4368,3 +4376,9 @@ class SampleManager :
                 ibin = dest_hist.GetBin( xbin )
                 _add_generic_bin( dest_hist, add_hist, ibin )
 
+
+
+if __name__ == "__main__":
+    print "TEST SEQUENCE for RDataFrame"
+
+    
