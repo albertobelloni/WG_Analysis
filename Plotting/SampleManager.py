@@ -243,7 +243,7 @@ class Sample :
 
     #--------------------------------
 
-    def AddFiles( self, files, treeName=None, readHists=False , weightHistName=None, dataFrame=False) :
+    def AddFiles( self, files, treeName=None, readHists=False , weightHistName=None, dataFrame=True) :
         """ Add one or more files and grab the tree named treeName """
 
         if not isinstance(files, list) :
@@ -266,7 +266,6 @@ class Sample :
                         self.weightHist.Add(wh)
                 self.chain.Add(f)
 
-            self.chain.SetBranchStatus('*', 0 )
 
         if self.weightHist:
             totevt = self.weightHist.GetBinContent(2) - self.weightHist.GetBinContent(1)
@@ -281,6 +280,8 @@ class Sample :
         # make RDataFrame
         if dataFrame:
             self.rd = ROOT.RDataFrame(self.chain)
+        else:
+            self.chain.SetBranchStatus('*', 0 ) #FIXME move to Draw function
 
 
     #--------------------------------
@@ -353,10 +354,11 @@ class Sample :
 class SampleFrame(object):
     """ Manage RDataFrame pointers """
 
-    def __init__(self, sampleptr=None):
+    def __init__(self, sampleptr=None, samplemanager=None):
         self.sampleptr = {}
         self.triggered = False # prevent accidental triggering
         self.state = ""
+        self.sm = samplemanager
 
     #--------------------------------
 
@@ -365,12 +367,27 @@ class SampleFrame(object):
 
     #--------------------------------
 
-    def SetDefine(self,*filterexp):
-        return self.SetHelper(filterexp,lambda sp,exp: sp.Define(*exp))
+    def SetDefine(self,*defineexp):
+        return self.SetHelper(defineexp,lambda sp,exp: sp.Define(*exp))
 
     #--------------------------------
 
-    def SetHelper(self,filterexp,function):
+    def SetHisto1D(self,*histo1dexp):
+        return self.SetHelper(histo1dexp,lambda sp,exp: sp.Histo1D(*exp), state = "histo")
+
+    #--------------------------------
+
+    def SetCount(self):
+        return self.SetHelper(" "      ,lambda sp,exp: sp.Count())
+
+    #--------------------------------
+
+    def GetValue(self):
+        return self.SetHelper(" "  ,lambda sp,exp: sp.GetValue(), state=self.state)
+
+    #--------------------------------
+
+    def SetHelper(self,filterexp,function,state=None):
         ## sentinel checks
         if filterexp==None:
             print "noactions: empty string"
@@ -379,10 +396,17 @@ class SampleFrame(object):
             filterexp = (filterexp,) #move it into a tuple if a string is given
 
         ## make new sampleframe
-        sf = SampleFrame()
+        sf = SampleFrame(samplemanager = self.sm)
+        sf.state = state
         for s, sp in  self.sampleptr.iteritems():
             sf.sampleptr[s] = function(sp, filterexp)
         return sf
+
+    def Draw(self, *arg):
+        if self.state == "histo":
+            self.sm.Draw(self,*arg)
+        else:
+            print "Not a Histo"
 
 
 
@@ -403,7 +427,7 @@ class SampleManager(SampleFrame) :
         #
 
         # inheriting attribute and methods from SampleFrame
-        super(SampleManager,self).__init__()
+        super(SampleManager,self).__init__(samplemanager=self)
         self.state = "samplemanager"
 
         #
@@ -2327,14 +2351,16 @@ class SampleManager(SampleFrame) :
         if self.quiet : print "%s :\033[1;36m %s\033[0m" %(varexp,selection)
 
         if self.collect_commands :
-            self.add_draw_config( varexp, selection, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
+            self.add_draw_config( varexp, selection, histpars, hist_config=hist_config, label_config=label_config,
+                        legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
             return
 
-        draw_config = DrawConfig( varexp, selection, histpars, hist_config=hist_config, label_config=label_config, legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
+        if not isinstance(varexp, SampleFrame):
+            command = 'samples.Draw(\'%s\',  \'%s\', %s )' %( varexp, selection, str( histpars ) )
+            self.transient_data['command'] = command
 
-
-        command = 'samples.Draw(\'%s\',  \'%s\', %s )' %( varexp, selection, str( histpars ) )
-        self.transient_data['command'] = command
+        draw_config = DrawConfig( varexp, selection, histpars, hist_config=hist_config, label_config=label_config,
+                legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
 
         self.draw_and_configure( draw_config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
 
@@ -2980,21 +3006,23 @@ class SampleManager(SampleFrame) :
 
         selection = draw_config.get_selection_string( sample.name )
         varexp    = draw_config.var[0]
+        usedataframe = isinstance(varexp, SampleFrame)
         sblind  = draw_config.get_unblind()
         sweight = draw_config.get_weight()
         #sample.hist = draw_config.init_hist(sample.name)
-        sample.hist = self.parsehist(draw_config.histpars, varexp)
-        if sample.hist is not None :
-            sample.hist.SetTitle( sample.name )
-            sample.hist.Sumw2()
-        if sample.isData and isinstance(sblind,str):
-                selection = "(%s)&&(%s)" %(selection,sblind)
-        if isinstance(sweight,str) and sweight and not sample.isData:
-                selection = "(%s)*%s" %(selection,sweight)
-
-
-        # enable branches for all variables matched in the varexp and selection
-        sample.enable_parsed_branches( varexp+selection )
+        if usedataframe:
+            sample.hist = None
+        else:
+            sample.hist = self.parsehist(draw_config.histpars, varexp)
+            if sample.hist is not None :
+                sample.hist.SetTitle( sample.name )
+                sample.hist.Sumw2()
+            if sample.isData and isinstance(sblind,str):
+                    selection = "(%s)&&(%s)" %(selection,sblind)
+            if isinstance(sweight,str) and sweight and not sample.isData:
+                    selection = "(%s)*%s" %(selection,sweight)
+            # enable branches for all variables matched in the varexp and selection
+            sample.enable_parsed_branches( varexp+selection )
 
         # Draw the histogram.  Use histpars as the bin limits if given
         if sample.IsGroupedSample() :
@@ -3020,7 +3048,9 @@ class SampleManager(SampleFrame) :
             return
 
         else :
-            if sample.chain is not None: 
+            if usedataframe:
+                sample.hist = varexp.sampleptr[sample].GetValue()
+            elif sample.chain is not None: 
                 if sample.chain.GetEntries() == 0: print tRed %('WARNING: No entries from sample ' + sample.name)
                 if not self.quiet or sample.isData: print 'Make %s hist %s : ' %(sample.name, varexp) + tRed %selection
                 res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
@@ -4576,12 +4606,16 @@ if __name__ == "__main__":
     # We prepare an input tree to run on
     fileName = "tree.root"
     treeName = "UMDNTuple/EventTree"
-    dir1="test/zzz/"
-    dir2="test/www/"
-    os.makedirs(dir1)
-    os.makedirs(dir2)
-    fill_tree(dir1+treeName, filename, "(int) X * X")
-    fill_tree(dir2+treeName, filename, "(int) X * X * X")
+    confFile = "Modules/ResonanceTest.py"
+    dir1 = "test/zzz/"
+    dir2 = "test/www/"
+    if not os.path.isdir(dir1): os.makedirs(dir1)
+    if not os.path.isdir(dir2): os.makedirs(dir2)
+    fill_tree(treeName, dir1+fileName, "(int) X * X")
+    fill_tree(treeName, dir2+fileName, "(int) X * X * X")
+    samples = SampleManager("test/", treeName, filename=fileName,  xsFile=None,
+                                     lumi=10000, readHists=False)
+    samples.ReadSamples(confFile)
+    print samples.samples
 
 
-    
