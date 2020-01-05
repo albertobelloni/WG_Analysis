@@ -355,10 +355,10 @@ class Sample :
 class SampleFrame(object):
     """ Manage RDataFrame pointers """
 
-    def __init__(self, sampleptr=None, samplemanager=None):
+    def __init__(self, sampleptr=None, samplemanager=None, dataFrame=True):
         self.sampleptr = {}
-        self.triggered = False # prevent accidental triggering
         self.state = ""
+        self.dataFrame = dataFrame
         self.sm = samplemanager
 
     #--------------------------------
@@ -390,6 +390,9 @@ class SampleFrame(object):
 
     def SetHelper(self,filterexp,function,state=None):
         ## sentinel checks
+        if not self.dataFrame:
+            print "DataFrame not available"
+            return self
         if filterexp==None:
             print "noactions: empty string"
             return None
@@ -403,11 +406,15 @@ class SampleFrame(object):
             sf.sampleptr[s] = function(sp, filterexp)
         return sf
 
+    #--------------------------------
+
     def Draw(self, *arg):
         if self.state == "histo":
             self.sm.Draw(self,*arg)
         else:
             print "Not a Histo"
+
+    #--------------------------------
 
     def ShowCount(self, *arg):
         if self.state == "count":
@@ -434,7 +441,7 @@ class SampleManager(SampleFrame) :
         #
 
         # inheriting attribute and methods from SampleFrame
-        super(SampleManager,self).__init__(samplemanager=self)
+        super(SampleManager,self).__init__(samplemanager=self, dataFrame=dataFrame)
         self.state = "samplemanager"
 
         #
@@ -2341,7 +2348,10 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def ShowCount(self, counter, dolatex=False, isActive=True, includeData=False, sort=True):
+    def ShowCount(self, counter=None, dolatex=False, isActive=True, includeData=False, sort=True):
+        if counter == None:
+            print "no counter"
+            return
         ## check that SampleFrame is passed
         if not isinstance(counter, SampleFrame) and counter.state == "count":
             return
