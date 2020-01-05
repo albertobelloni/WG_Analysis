@@ -82,6 +82,7 @@ class Sample :
 
         self.name = name
         self.hist = None
+        self.count = None
         self.loop_hists = []
 
         # list of open files. Only used if extracting histograms
@@ -378,12 +379,12 @@ class SampleFrame(object):
     #--------------------------------
 
     def SetCount(self):
-        return self.SetHelper(" "      ,lambda sp,exp: sp.Count())
+        return self.SetHelper(" "      ,lambda sp,exp: sp.Count(), state = "count")
 
     #--------------------------------
 
     def GetValue(self):
-        return self.SetHelper(" "  ,lambda sp,exp: sp.GetValue(), state=self.state)
+        return self.SetHelper(" "  ,lambda sp,exp: sp.GetValue(), state=self.state + "value")
 
     #--------------------------------
 
@@ -407,6 +408,12 @@ class SampleFrame(object):
             self.sm.Draw(self,*arg)
         else:
             print "Not a Histo"
+
+    def ShowCount(self, *arg):
+        if self.state == "count":
+            return self.sm.ShowCount(self,*arg)
+        else:
+            print "Not a Counter"
 
 
 
@@ -2334,6 +2341,25 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
+    def ShowCount(self, counter, dolatex=False, isActive=True, includeData=False, sort=True):
+        ## check that SampleFrame is passed
+        if not isinstance(counter, SampleFrame) and counter.state == "count":
+            return
+        for sample in self.samples :
+            if sample.isData and not includeData:
+                continue
+            if sample.isActive:
+                self.create_count(sample, counter)
+        result = [(s.legendName if dolatex else s.name,(s.count.n, s.count.s))\
+                         for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.count]
+        if sort: result.sort(key=lambda x: -x[1][0])
+        resultdict = OrderedDict(result)
+        self.print_stackresult(resultdict)
+         ## FIXME add TOTAL
+        return resultdict
+
+    #--------------------------------
+
     def Draw(self, varexp, selection="", histpars=None, hist_config={}, legend_config={}, label_config={},
             treeHist=None, treeSelection=None, generate_data_from_sample=None, replace_selection_for_sample={} , useModel=False ) :
 
@@ -2989,6 +3015,40 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
+    def create_count( self, sample = None, counter = None, onthefly = True) :
+        print "create count", sample
+
+        if isinstance( sample, str) :
+            slist = self.get_samples( name=sample )
+            if not slist :
+                print 'Could not retrieve sample, %s' %sample
+            if len(slist) > 1 :
+                print 'Located multiple samples with name %s' %sample
+            sample = slist[0]
+
+        if sample.IsGroupedSample() :
+            for subsampname in sample.groupedSampleNames :
+                subsamp = self.get_samples( name=subsampname )[0]
+
+                if not self.quiet : print 'Counting grouped sample %s' %subsampname
+                if subsampname in self.get_sample_names() :
+                    self.create_count( subsamp, counter, onthefly )
+
+            self.group_sample_count( sample )
+
+            return
+
+        else :
+            ## retrieve the dataframe object by Sample
+            count = counter.sampleptr[sample].GetValue()
+            if onthefly and not (sample.isData or sample.IsGroupedSample() or sample.name == "__AllStack__" or sample.isRatio==True):
+                scale = sample.scale_calc() 
+            else: scale = sample.scale
+            sample.count = ufloat(count * scale, math.sqrt(count)*scale)
+
+
+    #--------------------------------
+
     def create_hist_new( self, draw_config, sample=None, isModel=False ) :
 
         if sample is None :
@@ -3346,6 +3406,26 @@ class SampleManager(SampleFrame) :
             return
 
 
+
+    #--------------------------------
+
+    def group_sample_count(self, sample) :
+
+        if not sample.IsGroupedSample() :
+            print 'Trying to group a sample that is not a grouped sample'
+            return
+
+        subsamp_names = sample.groupedSampleNames
+        if not self.quiet : print 'RUN GROUPING FOR %s' %sample.name
+        if not self.quiet : print subsamp_names
+
+        subsamps = self.get_samples(name=subsamp_names)
+
+        for samp in subsamps :
+            if samp.IsGroupedSample() :
+                self.group_sample_count( samp )
+
+        sample.count = sum([s.count for s in subsamps if s.count is not None])* sample.scale
 
     #--------------------------------
 
