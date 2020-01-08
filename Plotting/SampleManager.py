@@ -378,8 +378,11 @@ class SampleFrame(object):
 
     #--------------------------------
 
-    def SetCount(self):
-        return self.SetHelper(" "      ,lambda sp,exp: sp.Count(), state = "count")
+    def SetCount(self,weight=None):
+        if weight:
+            return self.SetHelper(" "      ,lambda sp,exp: sp.Sum(weight), state = "count")
+        else:
+            return self.SetHelper(" "      ,lambda sp,exp: sp.Count(), state = "count")
 
     #--------------------------------
 
