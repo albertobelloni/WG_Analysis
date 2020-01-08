@@ -380,7 +380,8 @@ class SampleFrame(object):
 
     def SetCount(self,weight=None):
         if weight:
-            return self.SetHelper(" "      ,lambda sp,exp: sp.Sum(weight), state = "count")
+            sqweight = "%s*%s" %(weight,weight)
+            return self.SetHelper(" "      ,lambda sp,exp: (sp.Sum(weight),sp.Define("sqw",sqweight).Sum("sqw")), state = "count")
         else:
             return self.SetHelper(" "      ,lambda sp,exp: sp.Count(), state = "count")
 
@@ -3052,12 +3053,20 @@ class SampleManager(SampleFrame) :
             return
 
         else :
-            ## retrieve the dataframe object by Sample
-            count = counter.sampleptr[sample].GetValue()
+            ## calculate the appropriate scaling
             if onthefly and not (sample.isData or sample.IsGroupedSample() or sample.name == "__AllStack__" or sample.isRatio==True):
                 scale = sample.scale_calc() 
             else: scale = sample.scale
-            sample.count = ufloat(count * scale, math.sqrt(count)*scale)
+            ## retrieve the dataframe object by Sample
+            #count = counter.sampleptr[sample].GetValue()
+            scounter = counter.sampleptr[sample]
+            if isinstance(scounter, tuple):
+                count = scounter[0].GetValue()
+                errsq = scounter[1].GetValue()
+            else:
+                count = scounter.GetValue()
+                errsq = count
+            sample.count = ufloat(count * scale, math.sqrt(errsq)*scale)
 
 
     #--------------------------------
