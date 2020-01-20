@@ -679,7 +679,7 @@ class DrawConfig :
         """
 
         hist = None
-        histname = str(uuid.uuid4())
+        histname = name + str(uuid.uuid4())
 
         if type( self.histpars ) is tuple :
             if self.var[0].count(':') == 1 :
