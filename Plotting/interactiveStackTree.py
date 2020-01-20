@@ -25,6 +25,7 @@ p.add_argument('--readHists',     default=False,action='store_true',   dest='rea
 
 p.add_argument('--quiet',     default=False,action='store_true',   dest='quiet',         help='disable information messages')
 p.add_argument('--jupyt',     default=False,action='store_true',   dest='jupyt',         help='use setting for jupyter notebook')
+p.add_argument('--nodataFrame', default=True,action='store_false',   dest='dataFrame',   help='backwards compatibility for pre-2019 releases of ROOT')
 p.add_argument('--batch',     default=False,action='store_true',   dest='batch',         help='use batch mode')
 p.add_argument('--reload',     default=False,action='store_true',   dest='reload',         help='reload sample manager')
 p.add_argument('--combine',     default=False,action='store_true',   dest='combine',         help='Combine years')
@@ -78,7 +79,7 @@ def main() :
             samplelist[year] = SampleManager(options.baseDir %year, options.treeName, mcweight=options.mcweight,
                         treeNameModel=options.treeNameModel, filename=options.fileName, base_path_model=options.baseDirModel,
                         xsFile=options.xsFile %year , lumi=lumi, readHists=options.readHists,
-                        quiet=options.quiet, weightHistName=options.weightHistName)
+                        quiet=options.quiet, weightHistName=options.weightHistName, dataFrame = options.dataFrame)
             samplelist[year].ReadSamples( options.samplesConf %year )
 
             if samples == None:  samples = samplelist[year]
@@ -87,7 +88,8 @@ def main() :
     else:
         samples = SampleManager(options.baseDir, options.treeName, mcweight=options.mcweight, treeNameModel=options.treeNameModel,
                                 filename=options.fileName, base_path_model=options.baseDirModel, xsFile=options.xsFile,
-                                lumi=options.lumi, readHists=options.readHists, quiet=options.quiet, weightHistName=options.weightHistName)
+                                lumi=options.lumi, readHists=options.readHists, quiet=options.quiet, 
+                                weightHistName=options.weightHistName, dataFrame = options.dataFrame)
 
 
         if options.samplesConf is not None :
