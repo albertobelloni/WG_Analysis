@@ -537,6 +537,8 @@ class SampleManager :
             samp.name += suffix
             samp.groupedSampleNames = [n+suffix for n in samp.groupedSampleNames]
             samp.manager = self
+            self.stack_order.append(samp.name)
+            if samp.isActive: self.stack_order_original_active.append(samp.name)
         self.samples+= samplemanager.samples
 
     #--------------------------------
@@ -2413,7 +2415,7 @@ class SampleManager :
                 ratio_samp.isSignal = True
 
         #make the stack and fill
-        self.curr_stack = (ROOT.THStack(str(uuid.uuid4()), ''))
+        self.curr_stack = (ROOT.THStack('stack' + str(uuid.uuid4()), ''))
 
         # reverse so that the stack is in the correct order
         orderd_samples = []
@@ -2720,7 +2722,7 @@ class SampleManager :
         #    print 'Histogram already drawn for %s' %sampname
         #    return
 
-        histname = str(uuid.uuid4())
+        histname = sampname + str(uuid.uuid4())
 
         full_selection = selection
 
@@ -2855,18 +2857,37 @@ class SampleManager :
         else :
             if sample.chain is not None: 
                 if sample.chain.GetEntries() == 0: print '\033[1;31m WARNING: No entries from sample %s \033[0m' %sample.name
+                if sample.isData:
+                    selection = selection.replace('prefweight', '1')
                 if not self.quiet or sample.isData: print 'Make %s hist %s : \033[1;31m %s\033[0m' %(sample.name, varexp,selection)
-                res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
+                # Speed up with RDataFrame
+                try:
+                    ROOT.ROOT.EnableImplicitMT()
+                    rdf = ROOT.RDataFrame(sample.chain)
+                    print('Using RDataFrame')
+                    rdf = rdf.Define('varexp', varexp)
+                    rdf = rdf.Define('selection', selection)
+                    axis = sample.hist.GetXaxis()
+                    # FIXME: variable binning
+                    # FIXME: 2d hists
+                    rdf_hist_resultptr = rdf.Histo1D(('rdf_hist', '', axis.GetNbins(), axis.GetXmin(), axis.GetXmax()), 'varexp', 'selection')
+                    rdf_hist = rdf_hist_resultptr.DrawCopy()
+                    res = sample.hist.Add(rdf_hist)
+                except:
+                    print('Using TChain. Please consider switching to ROOT >= 6.18 to use RDataFrame')
+                    res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
                 if res < 0 :
                     sample.failed_draw=True
+                    print('WARNING: failed_draw, unexpected result for sample %s' % sample.name)
                 else :
                     sample.failed_draw=False
             else :
                 sample.failed_draw=True
+                print('WARNING: failed_draw, TChain for sample %s is None' % sample.name)
 
             if sample.hist is not None :
                 if draw_config.get_overflow():
-                    elf.AddOverflow( sample.hist )
+                    self.AddOverflow( sample.hist )
                 sample.InitHist(onthefly = draw_config.get_onthefly())
 
         # Group draw parallelization
