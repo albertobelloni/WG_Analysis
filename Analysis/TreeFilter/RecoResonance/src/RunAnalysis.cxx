@@ -77,6 +77,9 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::el_hasTruthMatchEl                     = 0;
     OUT::el_truthMatchEl_dr                     = 0;
     OUT::el_truthMatchEl_pt                     = 0;
+    OUT::el_hasTruthMatchPh                     = 0;
+    OUT::el_truthMatchPh_dr                     = 0;
+    OUT::el_truthMatchPh_pt                     = 0;
 
     //OUT::ph_chIsoCorr                           = 0;
     //OUT::ph_neuIsoCorr                          = 0;
@@ -103,9 +106,15 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::ph_passPhoIsoCorrLoose                 = 0;
     OUT::ph_passPhoIsoCorrMedium                = 0;
     OUT::ph_passPhoIsoCorrTight                 = 0;
-    OUT::ph_hasTruthMatchPh                 = 0;
+    OUT::ph_hasTruthMatchPh                     = 0;
     OUT::ph_truthMatchPh_dr                     = 0;
     OUT::ph_truthMatchPh_pt                     = 0;
+    OUT::ph_hasTruthMatchEl                     = 0;
+    OUT::ph_truthMatchEl_dr                     = 0;
+    OUT::ph_truthMatchEl_pt                     = 0;
+    OUT::ph_hasTruthMatchMu                     = 0;
+    OUT::ph_truthMatchMu_dr                     = 0;
+    OUT::ph_truthMatchMu_pt                     = 0;
 
     OUT::jet_CSVLoose_n                         = 0;
     OUT::jet_CSVMedium_n                        = 0;
@@ -330,6 +339,9 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("el_hasTruthMatchEl", &OUT::el_hasTruthMatchEl );
     outtree->Branch("el_truthMatchEl_dr", &OUT::el_truthMatchEl_dr   );
     outtree->Branch("el_truthMatchEl_pt", &OUT::el_truthMatchEl_pt      );
+    outtree->Branch("el_hasTruthMatchPh", &OUT::el_hasTruthMatchPh );
+    outtree->Branch("el_truthMatchPh_dr", &OUT::el_truthMatchPh_dr   );
+    outtree->Branch("el_truthMatchPh_pt", &OUT::el_truthMatchPh_pt      );
 
     //outtree->Branch("ph_chIsoCorr", &OUT::ph_chIsoCorr);
     //outtree->Branch("ph_neuIsoCorr", &OUT::ph_neuIsoCorr);
@@ -359,6 +371,12 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("ph_hasTruthMatchPh", &OUT::ph_hasTruthMatchPh );
     outtree->Branch("ph_truthMatchPh_dr", &OUT::ph_truthMatchPh_dr   );
     outtree->Branch("ph_truthMatchPh_pt", &OUT::ph_truthMatchPh_pt      );
+    outtree->Branch("ph_hasTruthMatchEl", &OUT::ph_hasTruthMatchEl );
+    outtree->Branch("ph_truthMatchEl_dr", &OUT::ph_truthMatchEl_dr   );
+    outtree->Branch("ph_truthMatchEl_pt", &OUT::ph_truthMatchEl_pt      );
+    outtree->Branch("ph_hasTruthMatchMu", &OUT::ph_hasTruthMatchMu );
+    outtree->Branch("ph_truthMatchMu_dr", &OUT::ph_truthMatchMu_dr   );
+    outtree->Branch("ph_truthMatchMu_pt", &OUT::ph_truthMatchMu_pt      );
 
 
     outtree->Branch("jet_CSVLoose_n", &OUT::jet_CSVLoose_n, "jet_CSVLoose_n/I"  );
@@ -581,6 +599,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                 std::transform(evalcutflow.begin(), evalcutflow.end(), evalcutflow.begin(), ::tolower);
                 if( evalcutflow=="true") _filterevent_cutflow=true;
                 else                     _filterevent_cutflow=false;
+                std::cout<< "evalCutFlow: "<< _filterevent_cutflow <<std::endl;
             }
 
         }
@@ -1028,7 +1047,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
           bool matched = false;
           
           // some simple truth matching for rochester corrections
-          float mindr = 0.3;
+          float mindr = 10;
           TLorentzVector mulv;
           mulv.SetPtEtaPhiE( IN::mu_pt->at(idx),
                              IN::mu_eta->at(idx),
@@ -2555,6 +2574,7 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
 bool RunModule::FilterEvent( ModuleConfig & config ) const {
 
     bool keep_event = true;
+    bool pass_event = true;
 
     for( auto const& itr: triggerNames){
       int triggerid = itr.first ;
@@ -2564,7 +2584,12 @@ bool RunModule::FilterEvent( ModuleConfig & config ) const {
       config.PassCounter(triggername, pass );
     
     }
-
+    if( printevent ) std::cout << " passtrigger FilterEvent "     << passtrigger     << std::endl;
+    if ( passtrigger ) {
+        config.PassCounter("trigger_pass");
+    } else {
+        if (_filterevent_cutflow) return false; 
+    } 
     if( !config.PassInt( "cut_el_n"     , OUT::el_n        ) ) { 
         if (_filterevent_cutflow) return false;
         keep_event=false; 
@@ -2601,7 +2626,31 @@ bool RunModule::FilterEvent( ModuleConfig & config ) const {
         //if( printevent ) std::cout << " fail cut_jet_n "     << OUT::jet_n     << std::endl;
     } 
     
-    if (keep_event) config.PassCounter("event_pass");
+    if (keep_event) config.PassCounter("event_kept");
+    pass_event=keep_event;
+    if (OUT::ph_n==1 && OUT::mu_n==1 && OUT::mu_pt30_n==1 && OUT::el_n==0){ // muon channel
+       config.PassCounter("mu_basicsel");
+      if (pass_event && OUT::ph_IsEB->at(0))                              config.PassCounter("phEB" ); else pass_event=false;
+      if (pass_event && OUT::ph_passMedium->at(0))                        config.PassCounter("phID");  else pass_event=false;
+      if (pass_event && OUT::ph_pt->at(0)>80)                             config.PassCounter("phpt");  else pass_event=false;
+      if (pass_event && OUT::ph_hasPixSeed->at(0)==0)                     config.PassCounter("phPix"); else pass_event=false;
+      if (pass_event && OUT::mu_passTight->at(0))                         config.PassCounter("muID");  else pass_event=false;
+      if (pass_event && OUT::met_pt>25)                                   config.PassCounter("met");   else pass_event=false;
+      if (pass_event) config.PassCounter("event_pass");
+    }
+    if (OUT::ph_n==1 && OUT::el_n==1 && OUT::el_pt30_n==1 && OUT::mu_n==0){ // electron channel
+       config.PassCounter("el_basicsel");
+      if (pass_event && OUT::ph_passMedium->at(0))                        config.PassCounter("phID");  else pass_event=false;
+      if (pass_event && OUT::ph_pt->at(0)>80)                             config.PassCounter("phpt");  else pass_event=false;
+      if (pass_event && OUT::ph_hasPixSeed->at(0)==0)                     config.PassCounter("phPix"); else pass_event=false;
+      if (pass_event && OUT::el_passTight->at(0))                         config.PassCounter("elID");  else pass_event=false;
+      if (pass_event && OUT::el_pt->at(0)>40 && fabs(OUT::el_eta->at(0))<2.1) config.PassCounter("elpte"); else pass_event=false;
+      if (pass_event && OUT::met_pt>25)                                   config.PassCounter("met");   else pass_event=false;
+      if (pass_event && fabs(OUT::m_lep_ph-_m_z)>15)                      config.PassCounter("invZ");  else pass_event=false;
+      if (pass_event) config.PassCounter("event_pass");
+    }
+
+
     //if( !config.PassBool( "cut_trig_Ele27_eta2p1_tight", IN::passTrig_HLT_Ele27_eta2p1_WPTight_Gsf) ) keep_event=false;
     //if( !config.PassBool( "cut_trig_Mu27_IsoORIsoTk", (IN::passTrig_HLT_IsoMu27 | IN::passTrig_HLT_IsoTkMu27) ) ) keep_event=false;
     //if( !config.PassBool( "cut_trig_Mu24_IsoORIsoTk", (IN::passTrig_HLT_IsoMu24 | IN::passTrig_HLT_IsoTkMu24) ) ) keep_event=false;
@@ -2635,6 +2684,10 @@ bool RunModule::FilterTrigger( ModuleConfig & config ) {
     bool keep_event = true;
 
     if( !config.PassAnyIntVector( "cut_bits", passed_ids ) ) keep_event = false;
+
+    // pass the result to FilterEvent for cutflow
+    passtrigger = keep_event;
+    if( printevent ) std::cout << " passtrigger FilterTrigger "     << passtrigger     << std::endl;
 
     return keep_event;
     
@@ -3424,10 +3477,19 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
     OUT::ph_hasTruthMatchPh->clear();
     OUT::ph_truthMatchPh_pt->clear();
     OUT::ph_truthMatchPh_dr->clear();
+    OUT::ph_hasTruthMatchEl->clear();
+    OUT::ph_truthMatchEl_pt->clear();
+    OUT::ph_truthMatchEl_dr->clear();
+    OUT::ph_hasTruthMatchMu->clear();
+    OUT::ph_truthMatchMu_pt->clear();
+    OUT::ph_truthMatchMu_dr->clear();
 
     OUT::el_hasTruthMatchEl->clear();
     OUT::el_truthMatchEl_pt->clear();
     OUT::el_truthMatchEl_dr->clear();
+    OUT::el_hasTruthMatchPh->clear();
+    OUT::el_truthMatchPh_pt->clear();
+    OUT::el_truthMatchPh_dr->clear();
 
     OUT::mu_hasTruthMatchMu->clear();
     OUT::mu_truthMatchMu_pt->clear();
@@ -3619,9 +3681,64 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
 
         }
 
-        OUT::ph_hasTruthMatchPh->push_back( ( mindr < 100 ) );
+        OUT::ph_hasTruthMatchPh->push_back( ( mindr < 0.4 ) );
         OUT::ph_truthMatchPh_pt->push_back( matchPt );
         OUT::ph_truthMatchPh_dr->push_back( mindr );
+
+        // photon matched to a gen electron
+        mindr = 101.;
+        matchPt = 0;
+        for( int tlepidx = 0; tlepidx < OUT::truelep_n; ++tlepidx ) {
+
+            if( abs( OUT::truelep_PID->at(tlepidx) ) != 11 ) continue;
+
+            TLorentzVector tleplv;
+            tleplv.SetPtEtaPhiE( OUT::truelep_pt->at(tlepidx),
+                                 OUT::truelep_eta->at(tlepidx),
+                                 OUT::truelep_phi->at(tlepidx),
+                                 OUT::truelep_e->at(tlepidx)
+                               );
+
+            float dr = phlv.DeltaR( tleplv );
+
+            if( dr < mindr ) {
+                mindr = dr;
+                matchPt = tleplv.Pt();
+            }
+
+        }
+
+        OUT::ph_hasTruthMatchEl->push_back( ( mindr < 0.4 ) );
+        OUT::ph_truthMatchEl_pt->push_back( matchPt );
+        OUT::ph_truthMatchEl_dr->push_back( mindr );
+
+
+        // photon matched to a gen muon
+        mindr = 101.;
+        matchPt = 0;
+        for( int tlepidx = 0; tlepidx < OUT::truelep_n; ++tlepidx ) {
+
+            if( abs( OUT::truelep_PID->at(tlepidx) ) != 13 ) continue;
+
+            TLorentzVector tleplv;
+            tleplv.SetPtEtaPhiE( OUT::truelep_pt->at(tlepidx),
+                                 OUT::truelep_eta->at(tlepidx),
+                                 OUT::truelep_phi->at(tlepidx),
+                                 OUT::truelep_e->at(tlepidx)
+                               );
+
+            float dr = phlv.DeltaR( tleplv );
+
+            if( dr < mindr ) {
+                mindr = dr;
+                matchPt = tleplv.Pt();
+            }
+
+        }
+
+        OUT::ph_hasTruthMatchMu->push_back( ( mindr < 0.4 ) );
+        OUT::ph_truthMatchMu_pt->push_back( matchPt );
+        OUT::ph_truthMatchMu_dr->push_back( mindr );
 
     }
 
@@ -3658,7 +3775,7 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
 
         }
 
-        OUT::mu_hasTruthMatchMu->push_back( ( mindr < 100 ) );
+        OUT::mu_hasTruthMatchMu->push_back( ( mindr < 0.4 ) );
         OUT::mu_truthMatchMu_pt->push_back( matchPt );
         OUT::mu_truthMatchMu_dr->push_back( mindr );
 
@@ -3697,9 +3814,34 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
 
         }
 
-        OUT::el_hasTruthMatchEl->push_back( ( mindr < 100 ) );
+        OUT::el_hasTruthMatchEl->push_back( ( mindr < 0.4 ) );
         OUT::el_truthMatchEl_pt->push_back( matchPt );
         OUT::el_truthMatchEl_dr->push_back( mindr );
+
+        mindr = 101.;
+        matchPt = 0;
+        for( int tphidx = 0; tphidx < OUT::trueph_n; ++tphidx ) {
+
+            TLorentzVector tphlv;
+            tphlv.SetPtEtaPhiM( OUT::trueph_pt->at(tphidx),
+                                OUT::trueph_eta->at(tphidx),
+                                OUT::trueph_phi->at(tphidx),
+                                0.0
+                              );
+
+
+            float dr = ellv.DeltaR( tphlv );
+
+            if( dr < mindr ) {
+                mindr = dr;
+                matchPt = tphlv.Pt();
+            }
+
+        }
+
+        OUT::el_hasTruthMatchPh->push_back( ( mindr < 0.4 ) );
+        OUT::el_truthMatchPh_pt->push_back( matchPt );
+        OUT::el_truthMatchPh_dr->push_back( mindr );
 
     }
 
@@ -4318,6 +4460,7 @@ RunModule::RunModule() {
     _m_z = 91.2;
     _isData = false;
     _filterevent_cutflow = false;
+    passtrigger = true;
     _eval_mu_loose    =false;
     _eval_mu_medium   =false;
     _eval_mu_tight    =false;

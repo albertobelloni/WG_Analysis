@@ -10,7 +10,7 @@ from functools import wraps
 from DrawConfig import DrawConfig
 from pprint import pprint
 gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
-from ROOT import RooDoubleCB
+#from ROOT import RooDoubleCB
 
 
 ROOT.gStyle.SetPalette(ROOT.kBird)
@@ -1162,6 +1162,7 @@ class FitManager :
         self.xvardata.setUnit("GeV")
         # explicitly require fit range in case of factory function
         self.pdfplotrange = True
+        self.dof = 6
 
     def dcbseterr(self):
         # initial step sizes: set them to be reasonably small

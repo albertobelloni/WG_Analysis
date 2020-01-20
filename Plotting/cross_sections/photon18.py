@@ -4,8 +4,10 @@
  # https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV 
  # TTBar total cros section is 815.96 pb, taken from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO
  # https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
-( 'DYJetsToLL_M-50'               , { 'n_evt' : 100194597, 'cross_section' : 6077.22, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV
-( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 676319, 'cross_section' : 6077.22, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
+( 'DYJetsToLL_M-50'               , { 'n_evt' : 100194597, 'cross_section' : 6077, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from 
+( 'DYJetsToLL_M-50-amcatnloFXFX'  , { 'n_evt' : 193215674, 'cross_section' : 6077, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NNLO cross section from [1] 122055288  6225.42 ## from friccita
+( 'tW_top'                        , { 'n_evt' : 4974435, 'cross_section' : 38.09, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NLO from XSDB
+( 'tW_antitop'                    , { 'n_evt' : 5375230, 'cross_section' : 38.06, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # NLO from XSDB
 ( 'ZGTo2LG'                       , { 'n_evt' : 8816038, 'cross_section' : 55.63, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), # From GenXSecAnalyzer
 ( 'TTJets_DiLept'                 , { 'n_evt' : 28701360, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
 ( 'TTJets_SingleLeptFromT'        , { 'n_evt' : 36442628, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
@@ -39,30 +41,30 @@
 ( 'DiPhoton'                      , { 'n_evt' : 1, 'cross_section' : 135., 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section from HGG AN, total events = 35505641 # kak: changed 248 to 84
 
 
- ('ResonanceMass200'        , { 'n_evt' : 50000, 'cross_section' : 0.001*21.927083486735327,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass250'        , { 'n_evt' : 50000, 'cross_section' : 0.001*7.726802969290064,     'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass300'        , { 'n_evt' : 50000, 'cross_section' : 0.001*3.0727556146293016,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass350'        , { 'n_evt' : 50000, 'cross_section' : 0.001*1.4696457294297705,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass400'        , { 'n_evt' : 50000, 'cross_section' : 0.001*0.6793675228919609,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass450'        , { 'n_evt' : 50000, 'cross_section' : 0.01*0.4289159543374145,     'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass500'        , { 'n_evt' : 50000, 'cross_section' : 0.01*0.24201678069837862,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass600'        , { 'n_evt' : 50000, 'cross_section' : 0.01*0.09504308646628319,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass700'        , { 'n_evt' : 50000, 'cross_section' : 0.01*0.04716196186523957,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass800'        , { 'n_evt' : 50000, 'cross_section' : 0.1*0.03730856115592406,     'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass900'        , { 'n_evt' : 50000, 'cross_section' : 0.1*0.011314780843008422,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass1000'       , { 'n_evt' : 50000, 'cross_section' : 0.1*0.007476947024553767,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass1200'       , { 'n_evt' : 50000, 'cross_section' : 0.1*0.002624063647895483,    'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass1400'       , { 'n_evt' : 50000, 'cross_section' : 0.1*0.0011705907560498234,   'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass1600'       , { 'n_evt' : 50000, 'cross_section' : 0.1*0.0005423464788953168,   'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass1800'       , { 'n_evt' : 50000, 'cross_section' : 1.0*0.00025189913384697943,  'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass2000'       , { 'n_evt' : 50000, 'cross_section' : 1.0*0.00017248982785599164,  'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass2200'       , { 'n_evt' : 50000, 'cross_section' : 1.0*5.991636805639029e-05,   'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass2400'       , { 'n_evt' : 50000, 'cross_section' : 1.0*4.683635776571481e-05,   'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass2600'       , { 'n_evt' : 50000, 'cross_section' : 10.0*2.299282334311407e-05,  'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass2800'       , { 'n_evt' : 50000, 'cross_section' : 10.0*1.3560045437305779e-05, 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass3000'       , { 'n_evt' : 50000, 'cross_section' : 10.0*7.1220417778967944e-06, 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass3500'       , { 'n_evt' : 50000, 'cross_section' : 10.0*2.3028947133131246e-06, 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
- ('ResonanceMass4000'       , { 'n_evt' : 50000, 'cross_section' : 10.0*2.3028947133131246e-06, 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), 
+ ('ResonanceMass200'        , { 'n_evt' : 50000, 'cross_section' : 75.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
+ ('ResonanceMass250'        , { 'n_evt' : 50000, 'cross_section' : 50.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
+ ('ResonanceMass300'        , { 'n_evt' : 50000, 'cross_section' : 30.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
+ ('ResonanceMass350'        , { 'n_evt' : 50000, 'cross_section' : 20.00    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
+ ('ResonanceMass400'        , { 'n_evt' : 50000, 'cross_section' : 13.46    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass450'        , { 'n_evt' : 50000, 'cross_section' : 9.00     , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }), #FIXME no datapoint
+ ('ResonanceMass500'        , { 'n_evt' : 50000, 'cross_section' : 5.755    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass600'        , { 'n_evt' : 50000, 'cross_section' : 2.785    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass700'        , { 'n_evt' : 50000, 'cross_section' : 1.481    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass800'        , { 'n_evt' : 50000, 'cross_section' : 0.836    , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass900'        , { 'n_evt' : 50000, 'cross_section' : 0.4973   , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass1000'       , { 'n_evt' : 50000, 'cross_section' : 0.3075   , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass1200'       , { 'n_evt' : 50000, 'cross_section' : 0.1283   , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass1400'       , { 'n_evt' : 50000, 'cross_section' : 0.0580   , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass1600'       , { 'n_evt' : 50000, 'cross_section' : 0.0281   , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass1800'       , { 'n_evt' : 50000, 'cross_section' : 0.01422  , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass2000'       , { 'n_evt' : 50000, 'cross_section' : 0.00746  , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass2200'       , { 'n_evt' : 50000, 'cross_section' : 0.00402  , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass2400'       , { 'n_evt' : 50000, 'cross_section' : 0.002225 , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass2600'       , { 'n_evt' : 50000, 'cross_section' : 0.001249 , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass2800'       , { 'n_evt' : 50000, 'cross_section' : 0.000711 , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass3000'       , { 'n_evt' : 50000, 'cross_section' : 0.000409 , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),
+ ('ResonanceMass3500'       , { 'n_evt' : 50000, 'cross_section' : 0.0001   , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),  #FIXME no datapoint
+ ('ResonanceMass4000'       , { 'n_evt' : 50000, 'cross_section' : 0.00003  , 'gen_eff' : 1.0 , 'k_factor' : 10.0 }),  #FIXME no datapoint
                 #  ('Zg'                     , { 'n_evt' : 3044343, 'cross_section' : 124.5 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
                 #  ('Wg'                     , { 'n_evt' : 2183649, 'cross_section' : 505.8 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
                 #  ('WgPt500'                , { 'n_evt' : 1393505, 'cross_section' : 0.0117887 , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),

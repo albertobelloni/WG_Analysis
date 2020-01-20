@@ -73,6 +73,7 @@ class RunModule : public virtual RunModuleBase {
         float _m_z;
         bool _isData;
         bool printevent;
+        bool passtrigger;
 
         bool _eval_mu_loose    ;
         bool _eval_mu_medium   ;
@@ -137,6 +138,9 @@ namespace OUT {
     std::vector<Bool_t> *el_hasTruthMatchEl;
     std::vector<float>  *el_truthMatchEl_dr;
     std::vector<float>  *el_truthMatchEl_pt;
+    std::vector<Bool_t> *el_hasTruthMatchPh;
+    std::vector<float>  *el_truthMatchPh_dr;
+    std::vector<float>  *el_truthMatchPh_pt;
 
     //std::vector<float> *ph_chIsoCorr;
     //std::vector<float> *ph_neuIsoCorr;
@@ -167,6 +171,12 @@ namespace OUT {
     std::vector<Bool_t> *ph_hasTruthMatchPh;
     std::vector<float>  *ph_truthMatchPh_dr;
     std::vector<float>  *ph_truthMatchPh_pt;
+    std::vector<Bool_t> *ph_hasTruthMatchEl;
+    std::vector<float>  *ph_truthMatchEl_dr;
+    std::vector<float>  *ph_truthMatchEl_pt;
+    std::vector<Bool_t> *ph_hasTruthMatchMu;
+    std::vector<float>  *ph_truthMatchMu_dr;
+    std::vector<float>  *ph_truthMatchMu_pt;
 
     Int_t jet_CSVLoose_n;
     Int_t jet_CSVMedium_n;
