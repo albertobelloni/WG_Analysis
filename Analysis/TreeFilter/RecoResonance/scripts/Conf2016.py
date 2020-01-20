@@ -20,14 +20,14 @@ def get_keep_filter(tag=None) :
         except for those in remove_filter """
 
     mu_basic = ['mu_n','mu_pt', 'mu_eta', 'mu_phi', 'mu_e', 'mu_charge']
-    mu_addtl = ['mu_isLoose', 'mu_isMedium', 'mu_isTight', 'mu_isSoft', 'mu_isHighPt']
+    mu_addtl = ['mu_isLoose', 'mu_isMedium', 'mu_isTight', 'mu_isSoft', 'mu_isHighPt', 'mu_pfIso']
     el_basic = ['el_n', 'el_phi', 'el_eta', 'el_e', 'el_pt', 'el_charge', 'el_d0', 'el_dz']
     #el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
     #            'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose',
     #            'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
     el_addtl = ['el_phiOrig','el_sc_e', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
                 'el_passVIDHEEP', 'el_passVIDTight', 'el_passVIDVeryLoose',
-                'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
+                'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium', 'el_pfIsoRho']
     ph_basic = ['ph_n', 'ph_phi', 'ph_eta', 'ph_pt','ph_e','ph_hasPixSeed', 'ph_passEleVeto.*', ]
     ph_addtl = ['ph_passVIDLoose', 'ph_passVIDMedium', 'ph_passVIDTight',
                 'ph_sc_phi', 'ph_sc_eta', 'ph_neuIsoCorr', 'ph_phiOrig', 'ph_etaOrig', 'ph_phiWidth', 'ph_ptOrig',
@@ -159,9 +159,10 @@ def make_final_mu( alg_list, args) :
     ph_eta = args.get( 'ph_eta', None )
     sec_lep_veto = args.get( 'sec_lep_veto', 'True' )
     unblind = args.get( 'unblind', 'False' )
+    invertIso = args.get( 'invertIso', False )
 
     # order should be muon, electron, photon, jet
-    alg_list.append( filter_muon( mu_pt ) )
+    alg_list.append( filter_muon( mu_pt, invertIso=invertIso ) )
     alg_list.append( filter_electron( el_pt ) )
     alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta ) )
     alg_list.append( filter_jet( ) )
@@ -192,11 +193,11 @@ def make_final_el( alg_list, args) :
     unblind = args.get( 'unblind', 'False' )
     eleVeto = args.get('eleVeto', 'None' )
     eleOlap = args.get('eleOlap', 'True' )
-
+    invertIso = args.get( 'invertIso', False )
 
     # order should be muon, electron, photon, jet
     alg_list.append( filter_muon(mu_pt ) )
-    alg_list.append( filter_electron(el_pt ) )
+    alg_list.append( filter_electron(el_pt, invertIso=invertIso ) )
     alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta,ele_veto=eleVeto, ele_olap=eleOlap  ) )
     alg_list.append( filter_jet( ) )
 
@@ -414,7 +415,7 @@ def filter_met() :
     return filter_met
 
 
-def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do_hists=False, evalPID='tight' ) :
+def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do_hists=False, evalPID='tight', invertIso=False ) :
     """
        Muon ID cuts
        https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2
@@ -455,6 +456,12 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
     filt.cut_corriso_tight    = ' < 0.25'
     filt.cut_trkiso_tight     = ' < 0.05 '
 
+    if invertIso:
+        for key,var in vars(filt).items():
+            if 'iso' in key:
+                print('Inverting iso', key, var)
+                filt.invert(key)
+
     if apply_corrections :
         filt.add_var( 'apply_corrections', 'true' )
 
@@ -475,7 +482,7 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
 
     return filt
 
-def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_corrections=False, evalPID='medium' ) :
+def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_corrections=False, evalPID='medium', invertIso=False ) :
 
     filt = Filter('FilterElectron')
 
@@ -568,6 +575,12 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_endcap_veryloose      = ' < 0.132 '
     filt.cut_misshits_endcap_veryloose     = ' < 4 '
     filt.cut_passConvVeto_endcap_veryloose = ' == 1 '
+    
+    if invertIso:
+        for key,var in vars(filt).items():
+            if 'iso' in key:
+                print('Inverting iso', key, var)
+                filt.invert(key)
 
 #    ### 80X VID cuts ###
 #    filt.cut_sigmaIEIE_barrel_tight        = ' < 0.00998 '

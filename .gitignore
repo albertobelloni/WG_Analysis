@@ -30,3 +30,4 @@ latex
 roofit_iterators*
 *.pcm
 Plotting/Plots
+.vscode

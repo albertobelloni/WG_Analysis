@@ -3562,7 +3562,7 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
 
           bool pass_W_cuts = true;
 
-          if( IN::gen_motherPID->at(gidx) == id ) pass_W_cuts = false;
+          if( IN::gen_motherPID->at(gidx) == id ) pass_W_cuts = false; // FIXME: we also need the LAST W for comparison to NXLL
           if( pass_W_cuts ){
 
               OUT::trueW_n++;
