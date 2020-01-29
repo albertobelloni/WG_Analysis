@@ -24,12 +24,17 @@ options.batch = ( not options.local )
 ### ATTENTION! Here you specify the directory containing the processed ntuples, on which you want to run FilterOverlap.
 #base = '/data/users/fengyb/WGammaNtuple'
 base = '/data2/users/kakw/Resonances%i/' %options.year
+if options.year == 2016:
+    base = '/data/users/mseidel/Resonances%i/' %options.year
+
 ### ATTENTION! Here you list the ntuple types (from RecoResonance) that you want to process, which is also the name of the subdirectory containing them.
 input_dirs = [
                'LepGamma_elg',
                'LepLep_elel',
                'LepGamma_mug',
                'LepLep_mumu',
+               'SingleLepInvIso_el',
+               'SingleLepInvIso_mu',
 ]
 jobtag = '_2019_12_12_beta'
 

@@ -1,6 +1,6 @@
 # setup CMSSW (without explicitly having a CMSSW release)
 #source /cvmfs/cms.cern.ch/cmsset_default.sh
-cd /cvmfs/cms.cern.ch/slc7_amd64_gcc630/cms/cmssw/CMSSW_9_4_14_UL/src
+cd /cvmfs/cms.cern.ch/slc7_amd64_gcc820/cms/cmssw/CMSSW_11_0_0
 eval `scramv1 runtime -csh`
 cd -
 

@@ -198,6 +198,8 @@ if options.all:
 
     jobs = []
     for sample in sampleset:
+        if sample == 'WithSF':
+            continue
         thisIsData = True if sample in ['SingleMuon', 'SingleElectron', 'EGamma'] else False
         jobs.append(JobConf(base, sample, isData=thisIsData, year=options.year))
 

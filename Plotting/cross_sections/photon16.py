@@ -81,5 +81,30 @@
                 #  ('DiPhoton_M80toInf'      , { 'n_evt' : 13200226, 'cross_section' : 84.0, 'gen_eff' : 1.0 , 'k_factor' : 1.0 })
                   #'ResonanceMass400Width10' : {'n_evt' : 10000, 'cross_section' : 0.4, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
                   #'ResonanceMass2000Width10' : {'n_evt' : 10000, 'cross_section' : 0.004, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+
+  # QCD cross sections from https://cms-gen-dev.cern.ch/xsdb
+  # QCD k factors from event count in inversed iso region
+  ('QCD_Pt-1000toInf_MuEnrichedPt5',               { 'n_evt' : 1, 'cross_section' : 1.62           , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-120to170_MuEnrichedPt5',                { 'n_evt' : 1, 'cross_section' : 25700          , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-15to20_MuEnrichedPt5',                  { 'n_evt' : 1, 'cross_section' : 3616000        , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-170to300_MuEnrichedPt5',                { 'n_evt' : 1, 'cross_section' : 8683           , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-20to30_MuEnrichedPt5',                  { 'n_evt' : 1, 'cross_section' : 3160000        , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-20toInf_MuEnrichedPt15',                { 'n_evt' : 1, 'cross_section' : 269900         , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-300to470_MuEnrichedPt5',                { 'n_evt' : 1, 'cross_section' : 797.3          , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-30to50_MuEnrichedPt5',                  { 'n_evt' : 1, 'cross_section' : 1662000        , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-470to600_MuEnrichedPt5',                { 'n_evt' : 1, 'cross_section' : 79.25          , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-50to80_MuEnrichedPt5',                  { 'n_evt' : 1, 'cross_section' : 452200         , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-600to800_MuEnrichedPt5',                { 'n_evt' : 1, 'cross_section' : 25.25          , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-800to1000_MuEnrichedPt5',               { 'n_evt' : 1, 'cross_section' : 4.723          , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-80to120_MuEnrichedPt5',                 { 'n_evt' : 1, 'cross_section' : 106500         , 'gen_eff' : 1.0 , 'k_factor' : 1.472 }),
+  ('QCD_Pt-120to170_EMEnriched',                   { 'n_evt' : 1, 'cross_section' : 75840          , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
+  ('QCD_Pt-170to300_EMEnriched',                   { 'n_evt' : 1, 'cross_section' : 18830          , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
+  ('QCD_Pt-20to30_EMEnriched',                     { 'n_evt' : 1, 'cross_section' : 5533000        , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
+  ('QCD_Pt-300toInf_EMEnriched',                   { 'n_evt' : 1, 'cross_section' : 1221.0         , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
+  ('QCD_Pt-30to50_EMEnriched',                     { 'n_evt' : 1, 'cross_section' : 6953000        , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
+  ('QCD_Pt-30toInf_DoubleEMEnriched_MGG-40to80',   { 'n_evt' : 1, 'cross_section' : 247000         , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
+  ('QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf',  { 'n_evt' : 1, 'cross_section' : 113100         , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
+  ('QCD_Pt-50to80_EMEnriched',                     { 'n_evt' : 1, 'cross_section' : 19800000*0.114 , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
+  ('QCD_Pt-80to120_EMEnriched',                    { 'n_evt' : 1, 'cross_section' : 417400         , 'gen_eff' : 1.0 , 'k_factor' : 1.975 }),
 ]
 
