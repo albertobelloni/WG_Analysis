@@ -407,7 +407,10 @@ class SampleFrame(object):
         sf = SampleFrame(samplemanager = self.sm)
         sf.state = state
         for s, sp in  self.sampleptr.iteritems():
-            sf.sampleptr[s] = function(sp, filterexp)
+            try:
+                sf.sampleptr[s] = function(sp, filterexp)
+            except TypeError:
+                print "error with sample ", s
         return sf
 
     #--------------------------------
@@ -3131,7 +3134,7 @@ class SampleManager(SampleFrame) :
 
         else :
             if usedataframe:
-                sample.hist = varexp.sampleptr[sample].GetValue()
+                sample.hist = varexp.sampleptr[sample].GetValue().Clone()
             elif sample.chain is not None: 
                 if sample.chain.GetEntries() == 0: print tRed %('WARNING: No entries from sample ' + sample.name)
                 if not self.quiet or sample.isData: print 'Make %s hist %s : ' %(sample.name, varexp) + tRed %selection
