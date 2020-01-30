@@ -2648,7 +2648,7 @@ class SampleManager(SampleFrame) :
         nsigsamp = len(self.get_signal_samples())
         if nsigsamp:
            ## neeed to plot signal distributions
-           self.curr_sig_legend = self.create_standard_legend(nsigsamp, draw_config=draw_config, isSignalLegend = True)
+           self.curr_sig_legend = self.create_standard_legend( step, draw_config=draw_config, isSignalLegend = True, nSigEntries = nsigsamp)
         else:
            self.curr_sig_legend = None
 
@@ -3646,12 +3646,12 @@ class SampleManager(SampleFrame) :
 
                 ratiosamp.hist.SetLineWidth(2)
                 if   doratio == True or doratio == 1 :
-                    ratiosamp.hist.GetYaxis().SetTitleSize(0.08)
-                    ratiosamp.hist.GetYaxis().SetTitleOffset(0.6)
-                    ratiosamp.hist.GetYaxis().SetLabelSize(0.05)
-                    ratiosamp.hist.GetXaxis().SetLabelSize(0.07)
-                    ratiosamp.hist.GetXaxis().SetTitleSize(0.09)
-                    ratiosamp.hist.GetXaxis().SetTitleOffset(0.8)
+                    ratiosamp.hist.GetYaxis().SetTitleSize(0.12)
+                    ratiosamp.hist.GetYaxis().SetTitleOffset(0.5)
+                    ratiosamp.hist.GetYaxis().SetLabelSize(0.11)
+                    ratiosamp.hist.GetXaxis().SetLabelSize(0.11)
+                    ratiosamp.hist.GetXaxis().SetTitleSize(0.12)
+                    ratiosamp.hist.GetXaxis().SetTitleOffset(1.1)
                 elif doratio: #doratio==2 :
                     ratiosamp.hist.GetYaxis().SetTitleSize(0.06)
                     ratiosamp.hist.GetYaxis().SetTitleOffset(0.8)
@@ -4568,7 +4568,7 @@ class SampleManager(SampleFrame) :
 
     # ----------------------------------------------------------------------------
     # TLegend is initialized
-    def create_standard_legend(self, nentries,draw_config=None , isSignalLegend = False) :
+    def create_standard_legend(self, nentries,draw_config=None , isSignalLegend = False, nSigEntries = 0) :
 
         legend_config = {}
         if draw_config is not None :
@@ -4609,8 +4609,9 @@ class SampleManager(SampleFrame) :
             if siglegPos == 'right':
                 legend_sig_temp = {'x1': legend_limits['x2'], 'y1': legend_limits['y1'], 'x2': legend_limits['x2']+0.3*legendWiden, 'y2': legend_limits['y2']}
             elif siglegPos == 'bottom':
-                legend_sig_temp = {'x1': legend_limits['x1'], 'y1': legend_limits['y1']-legendCompress*entryWidth*4.0, 'x2': legend_limits['x2'], 'y2': legend_limits['y1']}
+                legend_sig_temp = {'x1': legend_limits['x1'], 'y1': legend_limits['y1']-legendCompress*entryWidth*nSigEntries, 'x2': legend_limits['x2'], 'y2': legend_limits['y1']}
             legend_limits = legend_sig_temp
+        print('legend_limits', legendLoc, siglegPos, isSignalLegend, legend_limits)
 
         leg = ROOT.TLegend(legend_limits['x1'], legend_limits['y1'],
                            legend_limits['x2'], legend_limits['y2'])
