@@ -33,6 +33,8 @@ input_dirs = [
                'LepLep_elel',
                'LepGamma_mug',
                'LepLep_mumu',
+               'SingleLep_el',
+               'SingleLep_mu',
                'SingleLepInvIso_el',
                'SingleLepInvIso_mu',
 ]
@@ -50,6 +52,13 @@ jobs2016 = [
     JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'  , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'               , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'               , tags=['pholap'] , suffix = 'PhOlap'  ,year=2016),
+    # WJets W pt bins, remove photon overlap with WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 (ISR+FSR),
+    JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , tags=['wpt_lt115_pholap'] , suffix='TrueWPtOlapPhOlap' , year=2016),
+    JobConf(base, 'WJetsToLNu_Pt-100To250_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , tags=['wpt_gt115_k250_pholap'] , suffix='TrueWPtOlapPhOlap' , year=2016),
+    JobConf(base, 'WJetsToLNu_Pt-250To400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , tags=['wpt_k250to400_pholap'] , suffix='TrueWPtOlapPhOlap' , year=2016),
+    JobConf(base, 'WJetsToLNu_Pt-400To600_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , tags=['wpt_k400to600_pholap'] , suffix='TrueWPtOlapPhOlap' , year=2016),
+    JobConf(base, 'WJetsToLNu_Pt-600ToInf_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8' , tags=['wpt_k600_pholap'] , suffix='TrueWPtOlapPhOlap' , year=2016),
+    
     # DYJets, remove photon overlap with ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 (ISR+FSR)
     JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap'] , suffix = 'PhOlap'  ,year=2016),
@@ -153,6 +162,12 @@ for input_dir in input_dirs :
                      'args_tag_mtMin400Max1200'  : { 'function' : 'filter_mtres' , 'mtres_cut' : ' >= 400 && < 1200 ' },
                      'args_tag_mtMin1200'        : { 'function' : 'filter_mtres' , 'mtres_cut' : ' >= 1200 ' },
                      'args_tag_HT_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'trueht_cut' :  ' < 100 ' },
+                     # 2016 W pt-binned
+                     'args_tag_wpt_lt115_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'truewpt_cut' :  ' < 115 ' },
+                     'args_tag_wpt_gt115_k250_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'truewpt_cut' :  ' > 115 ', 'truewpt_bound_hi' : 250., 'truewpt_kneg_hi' : 0.763 },
+                     'args_tag_wpt_k250to400_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'truewpt_bound_lo' : 250., 'truewpt_kneg_lo' : 1.197, 'truewpt_bound_hi' : 400., 'truewpt_kneg_hi' : 0.595 },
+                     'args_tag_wpt_k400to600_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'truewpt_bound_lo' : 400., 'truewpt_kneg_lo' : 1.245, 'truewpt_bound_hi' : 600., 'truewpt_kneg_hi' : 0.400 },
+                     'args_tag_wpt_k600_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'truewpt_bound_lo' : 600., 'truewpt_kneg_lo' : 1.380 },
                      # 2017/2018
                      'args_tag_HT_pholap15'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 15 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'trueht_cut' :  ' < 100 ' },
                      'args_tag_pholap15'           : { 'function' : 'filter_photon', 'pt_cut' : ' > 15 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ' },

@@ -31,13 +31,17 @@ input_dirs = [
 #              'LepGamma_elg_2019_04_11','LepGamma_mug_2019_04_11',
 #              'LepLep_mumu_2019_07_12',
               #'LepLep_mumu_2019_11_13',
-              'LepLep_elel_2019_11_13',
+              #'LepLep_elel_2019_11_13',
+              'SingleLep_el_2019_11_13',
+              'SingleLep_mu_2019_11_13',
+              'SingleLepInvIso_el_2019_11_13',
+              'SingleLepInvIso_mu_2019_11_13',
 ]
 
 ### ATTENTION! consider using --all to apply SFs to all samples of the input directory
 jobs2016 = [
         #--------------------------
-        JobConf(base, 'SingleMuon', isData=True, year=2016         ),
+        # JobConf(base, 'SingleMuon', isData=True, year=2016         ),
         #JobConf(base, 'SingleElectron', isData=True, year=2016        ),
         #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', year=2016                  ),
         #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', year=2016          ),
@@ -57,11 +61,11 @@ jobs2016 = [
         #JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', year=2016  ), 
         #JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', year=2016 ),
         #JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', year=2016  ), 
-        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', year=2016          ),
-        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', year=2016          ),
-        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', year=2016          ),
-        JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', year=2016          ),
-        JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', year=2016 ),
+        # JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', year=2016          ),
+        # JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhOlap', year=2016          ),
+        # JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', year=2016          ),
+        # JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', year=2016          ),
+        # JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8', year=2016 ),
         #JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', year=2016            ),
         #JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', year=2016 ),
         #JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap', year=2016  ),
@@ -75,6 +79,12 @@ jobs2016 = [
         #JobConf( base, 'WWTo2L2Nu_13TeV-powheg', year=2016    ),
         #JobConf(base, 'WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', year=2016  ),
         #JobConf(base, 'WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8', year=2016  ),
+        
+        JobConf(base, 'WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8TrueWPtOlapPhOlap', year=2016),
+        JobConf(base, 'WJetsToLNu_Pt-100To250_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8TrueWPtOlapPhOlap', year=2016),
+        JobConf(base, 'WJetsToLNu_Pt-250To400_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8TrueWPtOlapPhOlap', year=2016),
+        JobConf(base, 'WJetsToLNu_Pt-400To600_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8TrueWPtOlapPhOlap', year=2016),
+        JobConf(base, 'WJetsToLNu_Pt-600ToInf_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8TrueWPtOlapPhOlap', year=2016),
 
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5'     ),
         #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width5'    ),

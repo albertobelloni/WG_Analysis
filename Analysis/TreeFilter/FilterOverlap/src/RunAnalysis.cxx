@@ -95,6 +95,12 @@ bool RunModule::ApplyModule( ModuleConfig & config ) const {
     if( config.GetName() == "FilterMTRes" ) {
         keep_evt &= FilterMTRes( config );
     }
+    if( config.GetName() == "FilterTrueWPt" ) {
+        keep_evt &= FilterTrueWPt( config );
+    }
+    if( config.GetName() == "ApplyTrueWPtKNeg" ) {
+        keep_evt &= ApplyTrueWPtKNeg( config );
+    }
 
     return keep_evt;
 
@@ -123,6 +129,72 @@ bool RunModule::FilterMTRes( ModuleConfig & config ) const {
 
     if(!config.PassFloat( "cut_mtres", OUT::mt_res ) ) keep_event = false;
 
+    return keep_event;
+}
+
+bool RunModule::FilterTrueWPt( ModuleConfig & config ) const {
+
+    bool keep_event = true;
+    
+    // Just accept events without on-shell W bosons
+    if (OUT::trueW_n == 0) {
+        return keep_event;
+    }
+
+    if(!config.PassFloat( "cut_truewpt", OUT::trueW_pt->at(0) ) ) keep_event = false;
+
+    return keep_event;
+}
+
+bool RunModule::ApplyTrueWPtKNeg( ModuleConfig & config ) const {
+
+    bool keep_event = true;
+    
+    double truewpt_bound_lo = -99.;
+    double truewpt_bound_hi = -99.;
+    double truewpt_kneg_lo  = -99.;
+    double truewpt_kneg_hi  = -99.;
+    
+    std::map<std::string, std::string>::const_iterator eitr;
+    eitr = config.GetInitData().find( "truewpt_bound_lo" );
+    if( eitr != config.GetInitData().end() ) Utils::stringToDouble(eitr->second, truewpt_bound_lo);
+    else std::cout << "Warning: ApplyTrueWPtKNeg truewpt_bound_lo unset, output will be invalid." << std::endl;
+    
+    eitr = config.GetInitData().find( "truewpt_bound_hi" );
+    if( eitr != config.GetInitData().end() ) Utils::stringToDouble(eitr->second, truewpt_bound_hi);
+    else  std::cout << "Warning: ApplyTrueWPtKNeg truewpt_bound_hi unset, output will be invalid." << std::endl;
+    
+    eitr = config.GetInitData().find( "truewpt_kneg_lo" );
+    if( eitr != config.GetInitData().end() ) Utils::stringToDouble(eitr->second, truewpt_kneg_lo);
+    else std::cout << "Warning: ApplyTrueWPtKNeg truewpt_kneg_lo  unset, output will be invalid." << std::endl;
+    
+    eitr = config.GetInitData().find( "truewpt_kneg_hi" );
+    if( eitr != config.GetInitData().end() ) Utils::stringToDouble(eitr->second, truewpt_kneg_hi);
+    else std::cout << "Warning: ApplyTrueWPtKNeg truewpt_kneg_hi  unset, output will be invalid." << std::endl;
+    
+    double trueW_pt;
+    if (OUT::trueW_n > 0) {
+        trueW_pt = OUT::trueW_pt->at(0);
+    }
+    else {
+        return keep_event;
+    }
+    double NLOWeight = 1.0;
+    if( OUT::EventWeights->at(0) < 0 ) {
+        NLOWeight = -1.0;
+    }
+    
+    if (NLOWeight < 0) {
+        if (trueW_pt < truewpt_bound_lo) {
+            if (printevent) std::cout << "Modified NLOWeight -> " << NLOWeight * truewpt_kneg_lo << std::endl;
+            OUT::NLOWeight = NLOWeight * truewpt_kneg_lo;
+        }
+        if (trueW_pt > truewpt_bound_hi) {
+            if (printevent) std::cout << "Modified NLOWeight -> " << NLOWeight * truewpt_kneg_hi << std::endl;
+            OUT::NLOWeight = NLOWeight * truewpt_kneg_hi;
+        }
+    }
+    
     return keep_event;
 }
 
