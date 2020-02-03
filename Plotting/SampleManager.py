@@ -373,8 +373,31 @@ class SampleFrame(object):
 
     #--------------------------------
 
-    def SetHisto1D(self,*histo1dexp):
-        return self.SetHelper(histo1dexp,lambda sp,exp: sp.Histo1D(*exp), state = "histo")
+    def SetHisto1DFast(self, var, selection, histpars, weight = None, 
+                        hist_conf={}, legend_conf={}, label_conf={}, save_as = []):
+        print 'Booking 1D hist  ' + var+ "[%i,%g,%g] : "%histpars + tRed %selection
+        sf = self.SetFilter(selection)\
+            .SetDefine("var", var).SetDefine("weight",weight)
+        sf = sf.SetHisto1D("var",histpars, weight="weight")
+
+        # copy configurations
+        sf.hist_conf = hist_conf.copy()
+        sf.legend_conf = legend_conf.copy()
+        sf.label_conf = label_conf.copy()
+        sf.save_as = save_as
+        sf.state = "histo1dfast"
+        return sf
+
+    #--------------------------------
+
+    def SetHisto1D(self, var, histpars, weight = None):
+        # make histogram model
+        histo1dexp = (("dfh1d","dfh1d")+histpars, var)
+        if weight: histo1dexp = (("dfh1d","dfh1d",) + histpars, var, weight)
+
+        sf = self.SetHelper(histo1dexp,lambda sp,exp: sp.Histo1D(*exp), state = "histo1d")
+        sf.histpars = histpars
+        return sf
 
     #--------------------------------
 
@@ -415,9 +438,26 @@ class SampleFrame(object):
 
     #--------------------------------
 
-    def Draw(self, *arg):
-        if self.state == "histo":
-            self.sm.Draw(self,*arg)
+    def DrawSave(self):
+
+        if "histo" in self.state and "fast" in  self.state:
+                self.sm.Draw(self,"",self.histpars, self.hist_conf, self.legend_conf, self.label_conf)
+                self.sm.SaveStack(*self.save_as)
+        else:
+            print "Not a FastHisto"
+    #--------------------------------
+
+    def Draw(self, *arg, **kwarg):
+        """
+        Two forms are possible (second for compatibility, only configs have an effect):
+            Draw(hist_config={}, legend_config={}, label_config={})
+            Draw(varexp, selection, histpars, hist_config={}, legend_config={}, label_config={}) """
+
+        if "histo" in self.state:
+            if len(arg)>1 and isinstance(arg[0],str):
+                self.sm.Draw(self,"",self.histpars, *arg[3:], **kwarg)
+            else:
+                self.sm.Draw(self,"",self.histpars, *arg, **kwarg)
         else:
             print "Not a Histo"
 
@@ -533,6 +573,7 @@ class SampleManager(SampleFrame) :
 
         # read histograms instead of trees
         self.readHists = readHists
+
         self.dataFrame = dataFrame
 
         self.quiet = quiet
@@ -553,6 +594,9 @@ class SampleManager(SampleFrame) :
 
         # keep track if a sample group has been added
         self.added_sample_group=False
+
+
+        ROOT.ROOT.EnableImplicitMT()
 
     #--------------------------------
     def __getitem__(self, index):
@@ -3150,7 +3194,6 @@ class SampleManager(SampleFrame) :
                 if not self.quiet or sample.isData: print 'Make %s hist %s : ' %(sample.name, varexp) + tRed %selection
                 # Speed up with RDataFrame
                 try:
-                    ROOT.ROOT.EnableImplicitMT()
                     rdf = ROOT.RDataFrame(sample.chain)
                     print('Using RDataFrame')
                     rdf = rdf.Define('varexp', varexp)
