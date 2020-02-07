@@ -373,8 +373,31 @@ class SampleFrame(object):
 
     #--------------------------------
 
-    def SetHisto1D(self,*histo1dexp):
-        return self.SetHelper(histo1dexp,lambda sp,exp: sp.Histo1D(*exp), state = "histo")
+    def SetHisto1DFast(self, var, selection, histpars, weight = None, 
+                        hist_conf={}, legend_conf={}, label_conf={}, save_as = []):
+        print 'Booking 1D hist  ' + var+ "[%i,%g,%g] : "%histpars + tRed %selection
+        sf = self.SetFilter(selection)\
+            .SetDefine("var", var).SetDefine("weight",weight)
+        sf = sf.SetHisto1D("var",histpars, weight="weight")
+
+        # copy configurations
+        sf.hist_conf = hist_conf.copy()
+        sf.legend_conf = legend_conf.copy()
+        sf.label_conf = label_conf.copy()
+        sf.save_as = save_as
+        sf.state = "histo1dfast"
+        return sf
+
+    #--------------------------------
+
+    def SetHisto1D(self, var, histpars, weight = None):
+        # make histogram model
+        histo1dexp = (("dfh1d","dfh1d")+histpars, var)
+        if weight: histo1dexp = (("dfh1d","dfh1d",) + histpars, var, weight)
+
+        sf = self.SetHelper(histo1dexp,lambda sp,exp: sp.Histo1D(*exp), state = "histo1d")
+        sf.histpars = histpars
+        return sf
 
     #--------------------------------
 
@@ -407,14 +430,34 @@ class SampleFrame(object):
         sf = SampleFrame(samplemanager = self.sm)
         sf.state = state
         for s, sp in  self.sampleptr.iteritems():
-            sf.sampleptr[s] = function(sp, filterexp)
+            try:
+                sf.sampleptr[s] = function(sp, filterexp)
+            except TypeError:
+                print "error with sample ", s
         return sf
 
     #--------------------------------
 
-    def Draw(self, *arg):
-        if self.state == "histo":
-            self.sm.Draw(self,*arg)
+    def DrawSave(self):
+
+        if "histo" in self.state and "fast" in  self.state:
+                self.sm.Draw(self,"",self.histpars, self.hist_conf, self.legend_conf, self.label_conf)
+                self.sm.SaveStack(*self.save_as)
+        else:
+            print "Not a FastHisto"
+    #--------------------------------
+
+    def Draw(self, *arg, **kwarg):
+        """
+        Two forms are possible (second for compatibility, only configs have an effect):
+            Draw(hist_config={}, legend_config={}, label_config={})
+            Draw(varexp, selection, histpars, hist_config={}, legend_config={}, label_config={}) """
+
+        if "histo" in self.state:
+            if len(arg)>1 and isinstance(arg[0],str):
+                self.sm.Draw(self,"",self.histpars, *arg[3:], **kwarg)
+            else:
+                self.sm.Draw(self,"",self.histpars, *arg, **kwarg)
         else:
             print "Not a Histo"
 
@@ -510,6 +553,7 @@ class SampleManager(SampleFrame) :
         self.curr_stack            = None
         self.curr_legend           = None
         self.curr_sig_legend       = None
+        self.curr_sampleframe      = None
 
         self.legendLimits          = None
 
@@ -529,6 +573,7 @@ class SampleManager(SampleFrame) :
 
         # read histograms instead of trees
         self.readHists = readHists
+
         self.dataFrame = dataFrame
 
         self.quiet = quiet
@@ -549,6 +594,9 @@ class SampleManager(SampleFrame) :
 
         # keep track if a sample group has been added
         self.added_sample_group=False
+
+
+        ROOT.ROOT.EnableImplicitMT()
 
     #--------------------------------
     def __getitem__(self, index):
@@ -2406,7 +2454,8 @@ class SampleManager(SampleFrame) :
 
         self.draw_and_configure( draw_config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
 
-        return self.curr_canvases["base"]
+        #return self.curr_canvases["base"]
+        return self.curr_sampleframe
 
 
 
@@ -2416,6 +2465,9 @@ class SampleManager(SampleFrame) :
         """  calls makestack, implment option to imitate data, helper function for SampleManager.Draw """
 
         self.clear_all()
+
+        self.curr_sampleframe = SampleFrame(samplemanager=self)
+        self.curr_sampleframe.state = "histo"
 
         res = self.draw_active_samples( draw_config )
         if not res :
@@ -3132,8 +3184,9 @@ class SampleManager(SampleFrame) :
             return
 
         else :
+            start = time.time()
             if usedataframe:
-                sample.hist = varexp.sampleptr[sample].GetValue()
+                sample.hist = varexp.sampleptr[sample].GetValue().Clone()
             elif sample.chain is not None: 
                 if sample.chain.GetEntries() == 0: print tRed %('WARNING: No entries from sample ' + sample.name)
                 if sample.isData:
@@ -3141,7 +3194,6 @@ class SampleManager(SampleFrame) :
                 if not self.quiet or sample.isData: print 'Make %s hist %s : ' %(sample.name, varexp) + tRed %selection
                 # Speed up with RDataFrame
                 try:
-                    ROOT.ROOT.EnableImplicitMT()
                     rdf = ROOT.RDataFrame(sample.chain)
                     print('Using RDataFrame')
                     rdf = rdf.Define('varexp', varexp)
@@ -3151,8 +3203,19 @@ class SampleManager(SampleFrame) :
                     # FIXME: 2d hists
                     rdf_hist_resultptr = rdf.Histo1D(('rdf_hist', '', axis.GetNbins(), axis.GetXmin(), axis.GetXmax()), 'varexp', 'selection')
                     rdf_hist = rdf_hist_resultptr.DrawCopy()
+
+                    # save histogram to current sampleframe
+                    if self.curr_sampleframe and rdf_hist_resultptr:
+                        self.curr_sampleframe.sampleptr[sample] = rdf_hist_resultptr
+
                     res = sample.hist.Add(rdf_hist)
-                except:
+
+                ## you don't want to catch keyboard interrupt here
+                except KeyboardInterrupt as ex:
+                        raise ex
+
+                except Exception as ex:
+                    print(ex)
                     print('Using TChain. Please consider switching to ROOT >= 6.18 to use RDataFrame')
                     res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
                 if res < 0 :
@@ -3163,6 +3226,8 @@ class SampleManager(SampleFrame) :
             else :
                 sample.failed_draw=True
                 print('WARNING: failed_draw, TChain for sample %s is None' % sample.name)
+
+            print "time (s): ", time.time()-start
 
             if sample.hist is not None :
                 if draw_config.get_overflow():
@@ -3388,9 +3453,17 @@ class SampleManager(SampleFrame) :
         failed_samples = []
         success_samples = []
         for sample in self.samples :
+
+            # skip blinded data
             if sample.isData:
-                 if not draw_config.get_unblind() :
-                     continue
+                if not draw_config.get_unblind() :
+                    continue
+
+            # skip signal if requested
+            if sample.isSignal:
+                if not draw_config.get_drawsignal():
+                    continue
+
             if sample.isActive :
                 self.create_hist_new( draw_config, sample )
                 if sample.failed_draw :
@@ -4000,7 +4073,7 @@ class SampleManager(SampleFrame) :
         # draw the signals
         legendTextSize = draw_config.legend_config.get('legendTextSize', 0.035 )
         #print legendTextSize
-        if sighists :
+        if sighists and draw_config.get_drawsignal():
             #sigsamps = self.get_samples(name=sighists)
             for samp in sighists :
                 #print samp.isActive
@@ -4060,7 +4133,7 @@ class SampleManager(SampleFrame) :
         if self.curr_legend is not None :
             self.curr_legend.Draw()
 
-        if self.curr_sig_legend is not None:
+        if self.curr_sig_legend is not None and draw_config.get_drawsignal():
             self.curr_sig_legend.Draw()
 
         # draw the plot status label

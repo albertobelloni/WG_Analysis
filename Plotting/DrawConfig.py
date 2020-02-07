@@ -93,6 +93,9 @@ class DrawConfig :
         """ return doratio key value set in hist_config """
         return self.hist_config.get('doratio', False)
 
+    def get_drawsignal(self) :
+        return self.hist_config.get('drawsignal', True)
+
     def get_reverseratio(self) :
         """ return reverseratio key value set in hist_config """
         return self.hist_config.get('reverseratio', False)

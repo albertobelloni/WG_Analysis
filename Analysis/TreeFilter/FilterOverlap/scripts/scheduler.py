@@ -11,8 +11,8 @@ p.add_argument( '--check', dest='check', default=False, action='store_true', hel
 p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true', help='Only submit missing output' )
 p.add_argument( '--local', dest='local', default=False, action='store_true', help='Run locally' )
 p.add_argument( '--step' , dest='step' , default=1    , type=int, help='Run overlap removal steps')
-p.add_argument( '--year', dest='year', help='Specify the year', type=int)
 p.add_argument( '--test', dest='test', default=False, action='store_true', help='Run a test job' )
+p.add_argument( '--year', dest='year', default=2016, help='Run year' , type=int)
 options = p.parse_args()
 
 if not options.check :
@@ -36,7 +36,7 @@ input_dirs = [
                'SingleLepInvIso_el',
                'SingleLepInvIso_mu',
 ]
-jobtag = '_2019_11_13'
+jobtag = '_2019_12_12_beta'
 
 jobs2016 = [
     # WJets HT bins, remove photon overlap with WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 (ISR+FSR),
