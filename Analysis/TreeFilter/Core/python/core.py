@@ -131,15 +131,21 @@ def ParseArgs() :
     
     return parser.parse_args()
 
+
+
+
+
+
 def config_and_run( options, package_name ) :
 
     assert options.noInputFiles or options.files is not None or options.filesDir is not None , 'Must provide a file list via --files or a search directory via --filesDir'
     assert options.outputDir is not None, 'Must provide an output directory via --outputDir'
     assert options.noInputFiles or options.treeName is not None, 'Must provide a tree name via --treeName'
     assert options.module is not None, 'Must provide a module via --module'
-    
+
     #if options.batch and options.noCompileWithCheck :
     #    assert False, "Running noCompileWithCheck with batch mode can result in an executable not being created for a batch job!"
+
 
     if options.copyInputFiles and not ( options.batch or options.condor ) :
         print "Can only copy input files in batch mode"
@@ -249,7 +255,17 @@ def config_and_run( options, package_name ) :
     if re.match( '.*?\.exe', options.exeName ) is None :
         options.exeName = options.exeName + '.exe'
 
-    if options.noCompileWithCheck : 
+    old_brdef_file_name = '%s/TreeFilter/%s/include/BranchDefs.h' %( workarea, package_name )
+    old_header_file_name = '%s/TreeFilter/%s/include/BranchInit.h' %( workarea, package_name )
+    old_source_file_name = '%s/TreeFilter/%s/src/BranchInit.cxx' %(workarea, package_name )
+    old_linkdef_file_name = '%s/TreeFilter/%s/include/LinkDef.h' %(workarea, package_name )
+
+    if ( os.path.isfile(old_brdef_file_name) and
+         os.path.isfile(old_header_file_name) and
+         os.path.isfile(old_source_file_name) and
+         os.path.isfile(old_linkdef_file_name) and
+         options.noCompileWithCheck ) :
+
 
         #-------------------------------------------
         # use nCompileWithCheck when you want to 
@@ -260,10 +276,6 @@ def config_and_run( options, package_name ) :
         # if a diff is found a compilation is triggered
         #-------------------------------------------
 
-        old_brdef_file_name = '%s/TreeFilter/%s/include/BranchDefs.h' %( workarea, package_name )
-        old_header_file_name = '%s/TreeFilter/%s/include/BranchInit.h' %( workarea, package_name )
-        old_source_file_name = '%s/TreeFilter/%s/src/BranchInit.cxx' %(workarea, package_name )
-        old_linkdef_file_name = '%s/TreeFilter/%s/include/LinkDef.h' %(workarea, package_name )
 
         tmpname = str( uuid.uuid4() )
 
@@ -287,7 +299,7 @@ def config_and_run( options, package_name ) :
         if not (filecmp.cmp(  old_brdef_file_name, new_brdef_file_name ) and
                 filecmp.cmp(  old_header_file_name, new_header_file_name ) and
                 filecmp.cmp( old_source_file_name, new_source_file_name )  and
-                filecmp.cmp( old_linkdef_file_name, new_linkdef_file_name ) ) :
+                filecmp.cmp( old_linkdef_file_name, new_linkdef_file_name ) )  :
 
             print '--------------------------------------'
             print 'Difference found in processing code'
@@ -1254,16 +1266,19 @@ def create_job_desc_file(command_info, kwargs) :
                     'log = condorlog.txt',
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
-                    #'Requirements = TARGET.Machine =!= "compute-0-5.privnet"',
-                    #'Requirements = TARGET.Machine == "r540-0-20.privnet"',
                     #'on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)',
-                    #'next_job_start_delay=60',
+                    'next_job_start_delay=2',
                     #'notify_user = friccita@umd.edu',
                     'notification = Error',
                     'MINUTE      = 60',
                     'on_exit_hold = (ExitBySignal == True) || (ExitCode != 0)  ',
                     'periodic_hold = (CurrentTime - JobCurrentStartDate) >= 24*60 * $(MINUTE)',
-                    'periodic_release = NumJobStarts<5',
+                    'periodic_release = NumJobStarts<5 && ((CurrentTime - EnteredCurrentStatus) >= 2 * $(MINUTE))',
+                    'job_machine_attrs = Machine',
+                    'job_machine_attrs_history_length = 5',
+                    'requirements = target.machine =!= MachineAttrMachine1 && target.machine =!= MachineAttrMachine2',
+                    #'Requirements = TARGET.Machine =!= "compute-0-5.privnet"',
+                    #'Requirements = TARGET.Machine == "r540-0-21.privnet"',
                     #'+JobFlavour = longlunch', #for running on lxplus
                     #'+IsTestJob = True',
                     #'# Copy output files when done.  REQUIRED to run in a protected directory',

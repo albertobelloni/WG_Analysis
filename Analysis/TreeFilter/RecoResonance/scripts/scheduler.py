@@ -97,7 +97,7 @@ jobs2018 = [
         JobConf(base,'TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
         JobConf(base,'TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2018,year=2018, tags=['NLO']),
         JobConf(base,'TTJets_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
-        JobConf(base,'WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2018,year=2018, tags=['NLO']),
+        JobConf(base1,'WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2020%2018,year=2018, tags=['NLO']),
         JobConf(base1,'WGToLNuG_PtG-130_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2020%2018,year=2018, tags=['NLO']),
         JobConf(base1,'WGToLNuG_PtG-500_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2020%2018,year=2018, tags=['NLO']),
         JobConf(base,'WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),

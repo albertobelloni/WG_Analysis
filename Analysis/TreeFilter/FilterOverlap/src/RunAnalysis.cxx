@@ -131,7 +131,7 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
     bool keep_event = true;
 
     std::vector<TLorentzVector> gen_phot;
-    for( unsigned i = 0; i < OUT::trueph_n ; i++ ) {
+    for( int i = 0; i < OUT::trueph_n ; i++ ) {
 
         float phot_pt = OUT::trueph_pt->at(i);
         float phot_eta = OUT::trueph_eta->at(i);
