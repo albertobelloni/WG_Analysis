@@ -178,6 +178,7 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
         std::cout<< std::endl; 
     }
     if( !config.PassInt( "cut_n_gen_phot", gen_phot.size() ) ) keep_event=false;
+    if( !config.PassFloat( "cut_lead_genph_pt", gen_phot.size() ? gen_phot[0].Pt() : -1 ) ) keep_event=false;
 
     return keep_event;
     

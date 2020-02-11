@@ -36,6 +36,7 @@ def config_analysis( alg_list, args ) :
 def filter_photon( alg_list, args ) :
 
     pt_cut = args.get('pt_cut' , ' > 10 ' )
+    leadpt_cut = args.get('leadpt_cut' , None )
     aeta_cut = args.get('aeta_cut' , None )
     dr_cut = args.get('dr_cut' , None )
     nph_cut = args.get('nph_cut' , ' == 0 ' )
@@ -45,6 +46,8 @@ def filter_photon( alg_list, args ) :
 
     filter_event = Filter('FilterPhoton')
     filter_event.cut_genph_pt = pt_cut
+    if leadpt_cut:
+        filter_event.cut_lead_genph_pt = leadpt_cut
     if aeta_cut:
         filter_event.cut_genph_aeta = aeta_cut
     if dr_cut:
