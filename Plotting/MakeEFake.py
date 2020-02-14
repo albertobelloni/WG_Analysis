@@ -1,116 +1,44 @@
 #!/usr/bin/env python
-import ROOT
+execfile("MakeBase.py")
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import re
-import numpy as np
+import numpy as np 
 import os
 import uuid
 import math
 import pickle
 import selection_defs as defs
-#from uncertainties import ufloat
+from uncertainties import ufloat
 from FitManager import FitManager
 from DrawConfig import DrawConfig
+import json
 #ROOT.TVirtualFitter.SetMaxIterations( 100000 )
+ROOT.gStyle.SetOptStat(0)
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
-from SampleManager import SampleManager
-from argparse import ArgumentParser
-parser = ArgumentParser()
+##weight = "PUWeight*NLOWeight"
+weight = "NLOWeight"
 
-#parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to muon base directory')
-#parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to electron base directory')
-parser.add_argument('--outputDir',      default=None,           dest='outputDir',         required=False, help='Output directory to write histograms')
-parser.add_argument('--data',           default=False,          dest='data',          required=False, action='store_true', help='Use data or MC')
-parser.add_argument('--useRooFit',       default=False,    action='store_true',      dest='useRooFit', required=False, help='Make fits using roostats' )
-parser.add_argument('--doClosure',       default=False,   action='store_true',       dest='doClosure', required=False, help='make closure tests' )
+ptb=None
+ptbins = [0, 30, 40, 50, 60, 80, 2000]
+#ptbins = [80, 2000]
+ptvar = "ph_pt[0]"
 
-options = parser.parse_args()
+title = "Electron faking photon in Signal region"
 
-_TREENAME = 'UMDNTuple/EventTree'
-_FILENAME = 'tree.root'
-_XSFILE   = 'cross_sections/photon15.py'
-_LUMI     = 36000
-_BASEPATH = '/home/jkunkle/usercode/Plotting/LimitSetting/'
-_SAMPCONF = 'Modules/Resonance.py'
-baseDirElG='/data/users/kakw/Resonances/LepGamma_elg_newblind_2018_09_23_beta' 
+_SAMPCONF = 'Modules/Resonance%i_efake.py' %options.year
 
 
-#def get_cut_defaults( _var, ieta ) :
-#
-#    cut_defaults = {'sigmaIEIE' : { 'EB' : ( 0.012, 0.02 ), 'EE' : ( 0.0, 0.0 ) },
-#                    'chIso'     : { 'EB' : ( 4, 10 ),       'EE' : (4, 10) },
-#                   }
-#
-#    return cut_defaults[_var][ieta]
 
 
-ROOT.gROOT.SetBatch(True)
-if options.outputDir is not None :
-#    ROOT.gROOT.SetBatch(True)
-    if not os.path.isdir( options.outputDir ) :
-        os.makedirs( options.outputDir )
-
-def main() :
-    #sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-    sampManElG= SampleManager( baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
-
-    #sampManMuG.ReadSamples( _SAMPCONF )
-    sampManElG.ReadSamples( _SAMPCONF )
-
-    #sampManMuG.outputs = {}
-    sampManElG.outputs = {}
-
-    sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
-    #sel_base_el = 'ph_n==1 && el_n==1'
-    #sel_base_el = 'ph_n>=1 && el_n>=1'
-    sel_base_el = '1'
-    sel_base_el = 'ph_n>=1 && el_n==1 &&ph_pt[0]>50'
-    sel_base_el = 'ph_n>=1 && el_n==1 &&!( ph_eta[0]<0&&ph_phi[0]>2.3&&ph_phi[0]<2.7)&&!(ph_phi[0]>1.2&&ph_phi[0]<1.5) '
-    sel_base_el = 'ph_n>=1 && el_n==1' 
-    samp = 'Z+jets'
-    if options.data:
-            samp='Data'
-
-    #eta_cuts = ['EB', 'EE']
-    eta_cuts = ['EB']
-
-    workspaces_to_save = {}
-
-    selections = { 'base'    : { 
-                               # 'mu' : {'selection' : sel_base_mu }, 
-                                'el' : { 'selection' : sel_base_el }, 
-                               },
-                  }
-
-    elefake            = ROOT.RooWorkspace( 'elefake' )
-
-    #make_efake( sampManElG, 'Z+jets', sel_base_el,'EB', 'ph_eta', suffix='noOvLrm', closure=False, workspace=elefake, overlaprm=0)
 
 
-    f1 = ROOT.TFile("%s/output.root"%(options.outputDir),"RECREATE")
-
-    #undo scaling by cross section
-#   print "scale ", sampManElG.get_samples(name="DYJetsToLL_M-50")[0].scale
-    if not options.data: sampManElG.get_samples(name="DYJetsToLL_M-50")[0].scale=1.
-    #closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var = "ph_eta",varbins=np.linspace(-1.4,1.4,15),xtitle="photon #eta",mode=2)
-#   closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var = "ph_phi",varbins=np.linspace(-3.1416,3.1416,21),xtitle="photon #phi",mode=2)
-#   closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[-2.4,-1.8,-1.4,-1,-0.6,-0.3,0,0.3,0.6,1,1.4,1.8,2.4], var="ph_eta")
-    #closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=range(20,100,10)+[150,160], mode=1)
-    #closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,30,40,70,100,110], mode=1)
-    #sampManElG.closure( samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,30,40,50,70,90,110,150,160], mode=1)
-    sampManElG.closure( samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[0,30,40,50,60,80], mode=1)
-    #closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[40,1000])
-#    closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,1000])
-#   closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var="jet_n",varbins=range(0,10), mode=2)
-#   closure( sampManElG, 'Wgamma', sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[0,50,250])
-
-    #elefake.writeToFile( '%s/%s.root' %( options.outputDir,elefake.GetName() ) )
-    #for key, can in sampManElG.outputs.iteritems() :
-    f1.Write()
-    f1.Close()
-
-
+def get_param(filename, ptlist=None):
+    js = json.loads(open(filename).read())
+    xlist = np.array(js['ptlist'])
+    sig   = np.array(js['parm']['Nsig'])
+    error = np.array(js['error']['Nsig'])
+    return sig, error
 
 def closure(  sampMan, sample, sel_base, eta_cut, var="ph_pt",
               varbins = range(0,200,25),xtitle="photon p_{T}",
@@ -427,11 +355,11 @@ def zones(h1,h3,h2,h4,suffix):
     ROOT.gPad.SetTicky(2)
     h2.GetYaxis().SetLabelOffset(0.01)
     h2.Draw()
-    
+
     c1.cd(3)
     ROOT.gPad.SetGridx()
     h3.Draw()
-    
+
     c1.cd(4)
     ROOT.gPad.SetGridx()
     ROOT.gPad.SetTicky(2)
@@ -541,17 +469,180 @@ def clone_sample_and_draw( sampMan, samp, var, sel, binning ) :
     sampMan.create_hist( newSamp, var, sel, binning )
     return newSamp.hist
 
+def fillhist(hist, value, error=None ,label= None):
+    for i in range(len(value)):
+        if error == None:
+            hist.SetBinContent(i+1, value[i].n)
+            hist.SetBinError(i+1, value[i].s)
+        else:
+            hist.SetBinContent(i+1, value[i])
+            hist.SetBinError(i+1, error[i])
+        if label:
+            hist.GetXaxis().SetBinLabel(i+1, label[i])
 
-main()
+def pair(x):
+    return zip(x[:-1], x[1:])
 
+def get_subselection(i):
+    if i == 0:          selstr = "&& _VAR_<%g" %ptbins[i+1]
+    elif i == ptsize-1: selstr = "&& _VAR_>=%g" %ptbins[i]
+    else:               selstr = "&& _VAR_>=%g && _VAR_<%g" %tuple(ptbins[i:i+2])
+    return selstr
+
+sampManElG.ReadSamples( _SAMPCONF )
+ch = "el"
+##FIXME encapsulate these functions
+ptname = tuple(map(lambda x: str("%g" %x).replace('.','p'), ptbins))
+ptvarname = ptvar.translate(None,"[]_$")
+ptsize = len(ptname)-1
+mcexplist, mccountlist, dataexplist = [0]*ptsize,[0]*ptsize,[0]*ptsize
+
+
+selbase= baseel + metgt40  + "&&el_passTight[0] && ph_passMedium[0]" + elpt40 + el_eb + invZ
+
+
+hlist = [0]*ptsize
+
+if options.dataFrame:
+    for i in range(ptsize):
+        hlist[i] = {}
+        selstr = get_subselection(i)
+        selection = selbase+ selstr.replace("_VAR_", ptvar)
+        hconf = { "unblind":True, "doratio":True, "xlabel":"m(l,#gamma)"}
+        lconf = {"labelStyle":"%i" %options.year,"extra_label":"%i Electron Channel" %options.year, "extra_label_loc":(.17,.82)}
+        lgconf = {}
+        save_as = ("%s_%s_%ifailpix.pdf"            %(ptvarname,ptname[i],options.year), options.outputDir, "base")
+        save_as1 = ("%s_%s_%ifailpixphmatch.pdf"    %(ptvarname,ptname[i],options.year), options.outputDir, "base")
+        save_as2 = ("%s_%s_%ifailpixphnomatch.pdf"  %(ptvarname,ptname[i],options.year), options.outputDir, "base")
+        save_as3 = ("%s_%s_%ipasspixphnomatch.pdf"  %(ptvarname,ptname[i],options.year), options.outputDir, "base")
+        #hlist[i]["fail1"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+failpix          ,(50,0,500),weight, hconf , lgconf, lconf, save_as, data_exp=True)
+        hlist[i]["fail"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+failpix          ,(50,0,500),weight, hconf , lgconf, lconf, save_as)
+        hlist[i]["failmatch"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+failpix+phmatch  ,(50,0,500),weight,
+                    { "xlabel":"m(l,#gamma)"},lgconf, lconf, save_as1, data_exp = True)
+        hlist[i]["failnomatch"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+failpix+nophmatch,(50,0,500),weight,
+                    { "xlabel":"m(l,#gamma)"},lgconf, lconf, save_as2, data_exp = True)
+        hlist[i]["passnomatch"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+passpix+nophmatch,(50,0,500),weight, 
+                    { "xlabel":"m(l,#gamma)"},lgconf, lconf, save_as3, data_exp = True)
+
+for i in range(ptsize):
+    Na = get_param('data/parms_regA%s.txt'%ptname[i])
+    Nb = get_param('data/parms_regB%s.txt'%ptname[i])
+    Nda = get_param('data/parms_regA_data%s.txt'%ptname[i])
+    Ndb = get_param('data/parms_regB_data%s.txt'%ptname[i])
+    # region D
+    selstr = get_subselection(i)
+    selection = selbase+ selstr.replace("_VAR_", ptvar)
+
+    if not options.dataFrame:
+        sampManElG.Draw("m_lep_ph",selection+failpix,(50,0,500),{"weight":weight, "unblind":True, "doratio":True, "xlabel":"m(l,#gamma)"})
+        count = sampManElG.get_stack_count(includeData=True)
+        sampManElG.Draw("m_lep_ph",selection+failpix+phmatch,(50,0,500),{"weight":weight, "xlabel":"m(l,#gamma)"})
+        nonfakecount = sampManElG.get_stack_count()
+        sampManElG.Draw("m_lep_ph",selection+failpix+nophmatch,(50,0,500),{"weight":weight, "xlabel":"m(l,#gamma)"})
+        fakecount = sampManElG.get_stack_count()
+    else:
+        hlist[i]["fail"].DrawSave()
+        count = sampManElG.get_stack_count(includeData=True)
+        hlist[i]["failmatch"].DrawSave()
+        nonfakecount = sampManElG.get_stack_count()
+        hlist[i]["failnomatch"].DrawSave()
+        fakecount = sampManElG.get_stack_count()
+    print selstr
+    print "ALL COUNT"
+    sampManElG.print_stackresult(count)
+    print "NONFAKE COUNT"
+    sampManElG.print_stackresult(nonfakecount)
+    print "FAKE COUNT"
+    sampManElG.print_stackresult(fakecount)
+
+    datacount = ufloat(*count['Data'] ) -ufloat(*nonfakecount['NonEleFake'])-ufloat(*nonfakecount['OtherEleFakeBackground'])
+    #mcdcount   = ufloat(*count['TOTAL'])-ufloat(*nonfakecount['NonEleFake'])-ufloat(*nonfakecount['OtherEleFakeBackground'])
+    mcdcount   = ufloat(*fakecount['TOTAL'])
+
+    #sampManElG.Draw("m_lep_ph",selection+passpix,(50,0,500),{"weight":weight,  "xlabel":"m(l,#gamma)"})
+    #count = sampManElG.get_stack_count()
+    if not options.dataFrame:
+        sampManElG.Draw("m_lep_ph",selection+passpix+nophmatch,(50,0,500),{"weight":weight,  "xlabel":"m(l,#gamma)"})
+        nonfakecount = sampManElG.get_stack_count()
+    else:
+        hlist[i]["passnomatch"].DrawSave()
+        nonfakecount = sampManElG.get_stack_count()
+    #mcscount   = ufloat(*count['TOTAL'])-ufloat(*nonfakecount['NonEleFake'])-ufloat(*nonfakecount['OtherEleFakeBackground'])
+    mcscount   = ufloat(*nonfakecount['TOTAL'])
+
+
+
+
+    Na = ufloat(*Na)
+    Nb = ufloat(*Nb)
+    Nda = ufloat(*Nda)
+    Ndb = ufloat(*Ndb)
+
+    mcexp = mcdcount*Na/Nb
+    dtexp = datacount*Nda/Ndb
+    print mcscount, mcexp, dtexp
+    mcexplist[i] = mcexp
+    mccountlist[i] = mcscount
+    dataexplist[i] = dtexp
     
 
+xlabel = ["%i-%i" %r for r in pair(ptbins)]
+if ptb:
+    h1= ROOT.TH1F('h1',title,ptb[2]-1,ptb[0],ptb[1])
+    h2= ROOT.TH1F('h2',title,ptb[2]-1,ptb[0],ptb[1])
+    h3= ROOT.TH1F('h3',title,ptb[2]-1,ptb[0],ptb[1])
+else:
+    h1= ROOT.TH1F('h1',title,ptsize,0,ptsize)
+    h2= ROOT.TH1F('h2',title,ptsize,0,ptsize)
+    h3= ROOT.TH1F('h3',title,ptsize,0,ptsize)
+fillhist(h1, mccountlist, label=xlabel)
+fillhist(h2, dataexplist, label=xlabel)
+fillhist(h3, mcexplist, label=xlabel)
+c1 = ROOT.TCanvas('c1','c1')
+#h2.SetMarkerStyle(20)
+#h2.SetMarkerSize(1.1)
+#h2.SetMarkerColor(1)
+#h2.SetLineColor(1)
+#h2.SetLineWidth(2)
+h2.SetFillStyle(3005)
+h2.SetFillColor(1)
+h1.SetLineColor(2)
+h1.SetLineWidth(2)
+h3.SetFillStyle(3004)
+h3.SetFillColor(2)
+h1.GetXaxis().SetLabelSize(0.07)
+h3.GetXaxis().SetTitle('Photon pT [GeV]')
+ymax = max([h.GetMaximum() for h in (h1,h2,h3)])*1.2
+h3.GetYaxis().SetRangeUser(0,ymax)
+h3.Draw('e2')
+h2.Draw('e2 same')
+h1.Draw("same")
+t1 = ROOT.TLegend(0.75,0.75,0.88,0.88)
+t1.AddEntry(h1,"MC Count","L")
+t1.AddEntry(h3,"MC Est","f")
+t1.AddEntry(h2,"Data Est","f")
+t1.Draw()
+c1.SaveAs("~/public_html/fr%i.pdf" %options.year)
+c1.SaveAs("~/public_html/fr%i.png" %options.year)
+c1.SaveAs("~/public_html/fr%i.C" %options.year)
+#f1 = ROOT.TFile("%s/output.root"%(options.outputDir),"RECREATE")
 
+#undo scaling by cross section
+#print "scale ", sampManElG.get_samples(name="DYJetsToLL_M-50")[0].scale
+#if not options.data: sampManElG.get_samples(name="DYJetsToLL_M-50")[0].scale=1.
+#closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var = "ph_eta",varbins=np.linspace(-1.4,1.4,15),xtitle="photon #eta",mode=2)
+#   closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var = "ph_phi",varbins=np.linspace(-3.1416,3.1416,21),xtitle="photon #phi",mode=2)
+#   closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[-2.4,-1.8,-1.4,-1,-0.6,-0.3,0,0.3,0.6,1,1.4,1.8,2.4], var="ph_eta")
+#closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=range(20,100,10)+[150,160], mode=1)
+#closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,30,40,70,100,110], mode=1)
+#sampManElG.closure( samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,30,40,50,70,90,110,150,160], mode=1)
+#   sampManElG.closure( samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[0,30,40,50,60,80], mode=1)
+#closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[40,1000])
+#    closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,1000])
+#    closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var="jet_n",varbins=range(0,10), mode=2)
+#   closure( sampManElG, 'Wgamma', sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[0,50,250])
 
-
-    
-    
-
-
-
-
+#elefake.writeToFile( '%s/%s.root' %( options.outputDir,elefake.GetName() ) )
+#for key, can in sampManElG.outputs.iteritems() :
+#f1.Write()
+#f1.Close()
