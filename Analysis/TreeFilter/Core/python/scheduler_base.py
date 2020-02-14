@@ -1,4 +1,5 @@
 import os
+import subprocess
 from argparse import Namespace
 from check_dataset_completion import check_dataset_completion
 
@@ -60,6 +61,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
             if not isinstance( select_dataset, list ) :
                 select_dataset = [select_dataset]
     
+            proc = subprocess.Popen(['make', 'veryclean'])
+            proc.wait()
             for job in jobs_data :
 
                 if select_dataset :
@@ -141,6 +144,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 if first_data :
                     first_data = False
     
+            proc = subprocess.Popen(['make', 'veryclean'])
+            proc.wait()
             for job in jobs_mc :
                 job_exename = '%s_MC_%s' %(exename, config['tag'] )
     
@@ -260,8 +265,8 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 check_results[filteredDS] = {'res' : this_result, 'origDS' : originalDS }
 
                 #command = check_base%{ 'base': job.base , 'sample' : job.sample, 'outsample' : outsample, 'output' : config['output'], 'input' : config['input'], 'treename' : treename, 'version' : job.version, 'filekey' : filekey}
-                #print command                                                                               
-                #os.system(command)                                                                          
+                #print command
+                #os.system(command)
 
         good_ds = []
         missing_ds = []

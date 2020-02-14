@@ -203,7 +203,7 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
     bool keep_event = true;
 
     std::vector<TLorentzVector> gen_phot;
-    for( unsigned i = 0; i < OUT::trueph_n ; i++ ) {
+    for( int i = 0; i < OUT::trueph_n ; i++ ) {
 
         float phot_pt = OUT::trueph_pt->at(i);
         float phot_eta = OUT::trueph_eta->at(i);
@@ -250,6 +250,7 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
         std::cout<< std::endl; 
     }
     if( !config.PassInt( "cut_n_gen_phot", gen_phot.size() ) ) keep_event=false;
+    if( !config.PassFloat( "cut_lead_genph_pt", gen_phot.size() ? gen_phot[0].Pt() : -1 ) ) keep_event=false;
 
     return keep_event;
     

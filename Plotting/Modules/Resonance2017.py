@@ -66,13 +66,11 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan   )
 
     samples.AddSample('WGToLNuG-amcatnloFXFXPhCut',
-                      path='WGToLNuG_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax',
-                      #path='WGToLNuG_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax',
+                      path='WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-amcatnloFXFX')
 
     samples.AddSample('WGToLNuG_PtG-130-amcatnloFXFXPhCut',
                       path='WGToLNuG_PtG-130_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutRange',
-                      #path='WGToLNuG_PtG-130_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-amcatnloFXFX' )
 
     samples.AddSample('WGToLNuG_PtG-500-amcatnloFXFXPhCut',
@@ -308,10 +306,8 @@ def config_samples(samples) :
 
 
     samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
-                           #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
-                           input_samples = ['WGToLNuG-amcatnloFXFX'],
-                           #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
-                           #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
+                           input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
+                           #input_samples = ['WGToLNuG-amcatnloFXFX'],
                            plotColor = ROOT.kRed-2,
                            isActive=True,
                           )
@@ -323,22 +319,22 @@ def config_samples(samples) :
                            plotColor = ROOT.kYellow,
                           )
 
+    samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
+                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFXPhOlap'],
+                           #input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
+                           plotColor = ROOT.kCyan-5,
+                          )
+
     samples.AddSampleGroup(  'Zgamma', legend_name='Z#gamma',
                            input_samples = ['ZGTo2LG'],
                            plotColor = ROOT.kRed-8,
-                           isActive=False
+                           #isActive=False
                           )
 
     samples.AddSampleGroup(  'Z+jetsLO', legend_name='Z+JetsLO',
                            input_samples = ['DYJetsToLL_M-50'],
                            plotColor = ROOT.kCyan-2,
                            isActive=False,
-                          )
-
-    samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
-                           #input_samples = ['DYJetsToLL_M-50-amcatnloFXFXPhOlap'],
-                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
-                           plotColor = ROOT.kCyan-5,
                           )
 
 
