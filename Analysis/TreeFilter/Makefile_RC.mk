@@ -111,7 +111,7 @@ $(EXE): $(OBJECT_ANA) $(OBJECT_ADDTL) $(LINKDEF)
 
 clean:
 	@echo -e "\n\n===> cleaning directories"
-	rm -f $(OBJ_DIR)/*.o ; rm -f $(SRC_DIR)/Dict.cxx
+	rm -f $(OBJ_DIR)/*.o ; rm -f $(SRC_DIR)/Dict.cxx; rm -f $(OBJ_DIR)/*/*.o
 
 veryclean : 
 	rm -f $(OBJ_DIR)/*.o 
@@ -120,6 +120,19 @@ veryclean :
 	rm -f $(INC_DIR)/LinkDef.h
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
+
+vvclean : 
+	rm -f $(OBJ_DIR)/*.o 
+	rm -f $(SRC_DIR)/Dict.cxx
+	rm -f $(SRC_DIR)/BranchInit.cxx
+	rm -f $(INC_DIR)/LinkDef.h
+	rm -f $(INC_DIR)/BranchDefs.h
+	rm -f $(INC_DIR)/BranchInit.h
+	rm -f $(OBJ_DIR)/*/*.o 
+	rm -f $(OBJ_DIR)/*/*.so
+	rmdir $(OBJ_DIR)/*.exe/
+	rm -f *.exe
+
 check :
 	@if [ ! -f $(WORK_AREA)/TreeFilter/Core/obj/AnalysisBase.o ] ; \
 	    then \

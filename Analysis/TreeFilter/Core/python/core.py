@@ -1,4 +1,5 @@
 import os
+import functools
 import re
 import sys
 import imp
@@ -183,8 +184,12 @@ def config_and_run( options, package_name ) :
     while '' in input_files :
         input_files.remove('')
 
+    input_files_nevt = {}
     if not options.read_file_list :
-        input_files = check_and_filter_input_files( input_files, options.treeName )
+        input_files_nevt = check_and_filter_input_files( input_files, options.treeName )
+        input_files, num_events = zip(*input_files_nevt) if input_files_nevt else ([], [])
+        input_files = list(input_files)
+        input_files_nevt = dict(input_files_nevt)
 
     if not options.noInputFiles and not input_files :
         print 'Did not locate any input files with the path and file name given!  Check the inputs.'
@@ -210,6 +215,7 @@ def config_and_run( options, package_name ) :
                                                options.enableRemoveFilter,
                                                options.removeFilterSelection)
 
+    branches_to_keep.sort()
     if options.enableKeepFilter :
         print 'Will keep %d branches from output file : ' %len(branches_to_keep)
         print '\n'.join(branches_to_keep)
@@ -341,7 +347,7 @@ def config_and_run( options, package_name ) :
     if options.nJobs > 0 and options.nsplit == 0 :
         options.nsplit = options.nJobs
 
-    file_evt_list = get_file_evt_map( input_files, options.nsplit, options.nFilesPerJob, options.totalEvents, options.treeName )
+    file_evt_list = get_file_evt_map( input_files, options.nsplit, options.nFilesPerJob, options.totalEvents, options.treeName , input_files_nevt)
 
     #if options.nproc > 1 and options.nproc > len(file_evt_list) :
     #    options.nproc = len(file_evt_list)
@@ -803,38 +809,68 @@ def get_branch_map_from_tree( tree ) :
 #-----------------------------------------------------------
 def check_and_filter_input_files( input_files, treename ) :
 
+    domultithread = True
+
     logging.info('Run input file checks')
     filtered_files = []
     if not isinstance(input_files, list) :
         input_files = [input_files]
 
-    for filename in input_files :
+    #pfunc = lambda fn:  check_and_filter_input_files_helper( fn , treename )
 
-        pass_filter = True
+    start = time.time()
+    if domultithread:
+        pcount = multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(pcount)
+        pfunc = functools.partial( check_input_file , treename = treename)
+        filtered_files = pool.map( pfunc , input_files)
+        pool.close()
+        filtered_files = [f for f in filtered_files if f] # filter out Falses
+        filtered_files.sort()
+    else:
+        filtered_files = check_and_filter_input_files_helper( input_files ,  treename )
 
-        file = ROOT.TFile.Open( filename )
-        if file == None:
-           ## current fix. Need to check what is wrong
-           print "Remove file %s that seems corrupted??? "%filename
-         
-        else:
-           tree = file.Get( treename )
-           
-           if tree == None :
-               pass_filter = False
-               print 'Removed file %s that did not contain the input tree' %filename
-               print 'Existing top level objects : '
-               for obj in file.GetListOfKeys() :
-                   print obj.GetName()
-
-           if pass_filter :
-               filtered_files.append(filename)
-
-           file.Close()
+    print "time (s): ", time.time()-start
 
 
     logging.info('Found %d input files.  %d Files were removed' %(len(filtered_files), len(input_files) - len(filtered_files) ) )
     return filtered_files
+
+#-----------------------------------------------------------
+def check_and_filter_input_files_helper( filenames ,  treename ) :
+    return [fn for fn in filenames if check_input_file( fn ,  treename )]
+
+#-----------------------------------------------------------
+def check_input_file( filename ,  treename = "UMDNTuple/EventTree") :
+
+    #print filename
+    assert filename, "filename is not empty"
+
+    pass_filter = False
+
+    file = ROOT.TFile.Open( filename )
+    if file == None:
+       ## current fix. Need to check what is wrong
+       print "Remove file %s that seems corrupted??? "%filename
+       pass_filter = False
+
+    else:
+       tree = file.Get( treename )
+
+       if tree == None :
+           pass_filter = False
+           print 'Removed file %s that did not contain the input tree' %filename
+           print 'Existing top level objects : '
+           for obj in file.GetListOfKeys() :
+               print obj.GetName()
+
+       pass_filter = (filename, tree.GetEntries())
+
+       file.Close()
+
+    return pass_filter
+
+#-----------------------------------------------------------
 
 def import_module( module ) :
 
@@ -1102,7 +1138,7 @@ def filter_jobs_for_resubmit( orig_commands, outputDir, outputFile, storagePath=
 
     return commands
 
-def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName ) :
+def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName , input_files_nevt={}) :
 
     if not input_files :
         return []
@@ -1145,12 +1181,20 @@ def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName )
 
     #get the total number of events for each file
     files_nevt = [0]*len(split_files)
+    print "opening TFiles"
+    start = time.time()
     for idx, files in enumerate(split_files) :
-        for file in files :
-            tmp = ROOT.TFile.Open(file)
-            tree = tmp.Get(treeName)
-            files_nevt[idx] += tree.GetEntries()
-            tmp.Close()
+        for f in files :
+            nevt = input_files_nevt.get(f)
+            if nevt == None:
+                print "falling back on TFile::Open ", f
+                tmp = ROOT.TFile.Open(f)
+                tree = tmp.Get(treeName)
+                nevt = tree.GetEntries()
+                tmp.Close()
+            #print nevt, files_nevt[idx], input_files_nevt[f]
+            files_nevt[idx] += nevt 
+    print "time (s): ", time.time()-start
 
     # for each file get the range to use
     for files, nsplit, filetotevt in zip(split_files, files_nsplit, files_nevt) :
