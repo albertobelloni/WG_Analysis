@@ -37,8 +37,10 @@ class RunModule : public virtual RunModuleBase {
 
 
         bool FilterPhoton        ( ModuleConfig & config ) const;
-        bool FilterTrueHT         ( ModuleConfig & config ) const;
+        bool FilterTrueHT        ( ModuleConfig & config ) const;
         bool FilterMTRes         ( ModuleConfig & config ) const;
+        bool FilterTrueWPt       ( ModuleConfig & config ) const;
+        bool ApplyTrueWPtKNeg    ( ModuleConfig & config ) const;
 
     private:
         bool printevent ;

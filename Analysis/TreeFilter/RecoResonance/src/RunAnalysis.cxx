@@ -278,6 +278,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::trueW_pt                              = 0;
     OUT::trueW_eta                             = 0;
     OUT::trueW_phi                             = 0;
+    OUT::trueW_m                               = 0;
     OUT::trueW_motherPID                       = 0;
     OUT::trueW_status                          = 0;
 
@@ -548,6 +549,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         outtree->Branch("trueW_pt"           , &OUT::trueW_pt                        );
         outtree->Branch("trueW_eta"          , &OUT::trueW_eta                       );
         outtree->Branch("trueW_phi"          , &OUT::trueW_phi                       );
+        outtree->Branch("trueW_m"            , &OUT::trueW_m                         );
         outtree->Branch("trueW_motherPID"    , &OUT::trueW_motherPID                 );
         outtree->Branch("trueW_status"       , &OUT::trueW_status                    );
 
@@ -3453,6 +3455,7 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
     OUT::trueW_pt->clear();
     OUT::trueW_eta->clear();
     OUT::trueW_phi->clear();
+    OUT::trueW_m->clear();
     OUT::trueW_motherPID->clear();
     OUT::trueW_status->clear();
 
@@ -3562,17 +3565,133 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
 
           bool pass_W_cuts = true;
 
-          if( IN::gen_motherPID->at(gidx) == id ) pass_W_cuts = false; // FIXME: we also need the LAST W for comparison to NXLL
-          if( pass_W_cuts ){
+          if( IN::gen_motherPID->at(gidx) == id ) pass_W_cuts = false;
+          if( pass_W_cuts || IN::gen_status->at( gidx ) == 62 ){ // first and last W
+          
+            TLorentzVector wlv;
+            wlv.SetPtEtaPhiE( IN::gen_pt ->at(gidx),
+                              IN::gen_eta->at(gidx),
+                              IN::gen_phi->at(gidx),
+                              IN::gen_e  ->at(gidx)
+                            );
 
               OUT::trueW_n++;
               OUT::trueW_pt->push_back( IN::gen_pt->at( gidx ) );
               OUT::trueW_eta->push_back( IN::gen_eta->at( gidx ) );
               OUT::trueW_phi->push_back( IN::gen_phi->at( gidx ) );
+              OUT::trueW_m->push_back( wlv.M() );
               OUT::trueW_motherPID->push_back( IN::gen_motherPID->at( gidx ) );
               OUT::trueW_status->push_back( IN::gen_status->at( gidx ) );
 
           }
+        }
+    }
+    // Handle events with off-shell W bosons (not in event record)
+    // But they can also be just W-less background events
+    if (OUT::trueW_n == 0) {
+        // search LHE leptons
+        int clidx = -1;
+        int nuidx = -1;
+        for( int gidx = 0; gidx < IN::gen_n; ++gidx ) {
+            int id = IN::gen_PID->at(gidx);
+            int absid = abs(id);
+            int st = IN::gen_status->at(gidx);
+            
+            if (st != 23)
+                continue;
+            
+            if( IN::gen_motherPID->at(gidx) == id )
+                continue;
+            
+            if( absid == 11 || absid == 13 || absid == 15 ) {
+                clidx = gidx;
+            }
+            else if( absid == 12 || absid == 14 || absid == 16 ) {
+                nuidx = gidx;
+            }
+        }
+        // LHE off-shell W candidate
+        if (clidx > -1 && nuidx > -1) {
+            if (abs(IN::gen_PID->at(clidx) + IN::gen_PID->at(nuidx)) != 1) {
+                std::cout << "Caution, pdgIds for off-shell W construction do not match: " << IN::gen_PID->at(clidx) << "," << IN::gen_PID->at(nuidx) << std::endl;
+            }
+            TLorentzVector cllv;
+            cllv.SetPtEtaPhiE( IN::gen_pt ->at(clidx),
+                               IN::gen_eta->at(clidx),
+                               IN::gen_phi->at(clidx),
+                               IN::gen_e  ->at(clidx)
+                             );
+            TLorentzVector nulv;
+            nulv.SetPtEtaPhiM( IN::gen_pt ->at(nuidx),
+                               IN::gen_eta->at(nuidx),
+                               IN::gen_phi->at(nuidx),
+                               0.0
+                             );
+            TLorentzVector wlv = cllv + nulv;
+            
+            OUT::trueW_n++;
+            OUT::trueW_pt ->push_back( wlv.Pt()  );
+            if (wlv.Pt() > 0.001)
+                OUT::trueW_eta->push_back( wlv.Eta() );
+            else
+                OUT::trueW_eta->push_back( wlv.Pz() * 1e3 );
+            OUT::trueW_phi->push_back( wlv.Phi() );
+            OUT::trueW_m  ->push_back( wlv.M()   );
+            OUT::trueW_motherPID->push_back( 0 );
+            OUT::trueW_status   ->push_back( 22 );
+            
+            // status-62 W candidate
+            int clidx62 = -1;
+            int nuidx62 = -1;
+            int wcharge =  0;
+            for( int gidx = 0; gidx < IN::gen_n; ++gidx ) {
+                int id = IN::gen_PID->at(gidx);
+                int absid = abs(id);
+                int st = IN::gen_status->at(gidx);
+                
+                // daughters of status-62 W are stable (1) or decayed taus (2)
+                if (st != 1 && st != 2)
+                    continue;
+                // find last one in chain
+                if( IN::gen_motherPID->at(gidx) != id )
+                    continue;
+                
+                if( id == IN::gen_PID->at(clidx) ) {
+                    clidx62 = gidx;
+                    if (id > 0) { // e/mu/tau-
+                        wcharge = -1;
+                    }
+                    else if (id < 0) { // e/mu/tau+
+                        wcharge = +1;
+                    }
+                }
+                else if( id == IN::gen_PID->at(nuidx) ) {
+                    nuidx62 = gidx;
+                }
+            }
+            if (clidx62 > -1 && nuidx62 > -1) {
+                TLorentzVector cllv;
+                cllv.SetPtEtaPhiE( IN::gen_pt ->at(clidx62),
+                                   IN::gen_eta->at(clidx62),
+                                   IN::gen_phi->at(clidx62),
+                                   IN::gen_e  ->at(clidx62)
+                                   );
+                TLorentzVector nulv;
+                nulv.SetPtEtaPhiM( IN::gen_pt ->at(nuidx62),
+                                   IN::gen_eta->at(nuidx62),
+                                   IN::gen_phi->at(nuidx62),
+                                   0.0
+                                   );
+                TLorentzVector wlv = cllv + nulv;
+                
+                OUT::trueW_n++;
+                OUT::trueW_pt ->push_back( wlv.Pt()  );
+                OUT::trueW_eta->push_back( wlv.Eta() );
+                OUT::trueW_phi->push_back( wlv.Phi() );
+                OUT::trueW_m  ->push_back( wlv.M()   );
+                OUT::trueW_motherPID->push_back( 24 * wcharge );
+                OUT::trueW_status   ->push_back( 62 );
+            } 
         }
     }
 

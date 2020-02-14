@@ -342,6 +342,7 @@ namespace OUT {
     std::vector<float> *trueW_pt;
     std::vector<float> *trueW_eta;
     std::vector<float> *trueW_phi;
+    std::vector<float> *trueW_m;
     std::vector<Int_t> *trueW_motherPID;
     std::vector<Int_t> *trueW_status;
 
