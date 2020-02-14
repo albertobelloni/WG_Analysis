@@ -79,8 +79,39 @@ def filter_mtres( alg_list, args ) :
 
         alg_list.append( filter_event )
 
+def filter_wpt( alg_list, args ) :
+
+    truewpt_cut = args.get('truewpt_cut', None )
+
+    if truewpt_cut is not None :
+
+        filter_event = Filter('FilterTrueWPt')
+        filter_event.cut_truewpt = truewpt_cut
+
+        alg_list.append( filter_event )
+
+def apply_wpt_kneg( alg_list, args ) :
+    
+    truewpt_bound_lo = args.get('truewpt_bound_lo', 0. )
+    truewpt_bound_hi = args.get('truewpt_bound_hi', 13000. )
+    truewpt_kneg_lo  = args.get('truewpt_kneg_lo',  1. )
+    truewpt_kneg_hi  = args.get('truewpt_kneg_hi',  1. )
+
+    if (truewpt_kneg_lo != 1. or 
+        truewpt_kneg_hi != 1.):
+
+        filter_event = Filter('ApplyTrueWPtKNeg')
+        filter_event.add_var( 'truewpt_bound_lo', truewpt_bound_lo )
+        filter_event.add_var( 'truewpt_bound_hi', truewpt_bound_hi )
+        filter_event.add_var( 'truewpt_kneg_lo',  truewpt_kneg_lo  )
+        filter_event.add_var( 'truewpt_kneg_hi',  truewpt_kneg_hi  )
+
+        alg_list.append( filter_event )
+
 def filter_combined( alg_list, args ) :
     
     filter_photon( alg_list, args )
     filter_genht( alg_list, args )
     filter_mtres( alg_list, args )
+    filter_wpt( alg_list, args )
+    apply_wpt_kneg( alg_list, args )

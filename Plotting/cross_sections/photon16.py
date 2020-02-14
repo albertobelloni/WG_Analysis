@@ -23,6 +23,10 @@
 ( 'WWG'                           , { 'n_evt' : 827630, 'cross_section' : 0.2147, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM.  # total events = 999400
 ( 'WJetsToLNu-madgraphMLM'        , { 'n_evt' : 29514020, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),# NNLO cross section # 61526.7 in SummaryTable1G25ns
 ( 'WJetsToLNu-amcatnloFXFX'       , { 'n_evt' : 16410910, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), 
+( 'WJetsToLNu_Pt-100To250'        , { 'n_evt' : 1, 'cross_section' : 689.749632 , 'gen_eff' : 1.0 , 'k_factor' : 1. }),
+( 'WJetsToLNu_Pt-250To400'        , { 'n_evt' : 1, 'cross_section' : 24.5069015 , 'gen_eff' : 1.0 , 'k_factor' : 1. }),
+( 'WJetsToLNu_Pt-400To600'        , { 'n_evt' : 1, 'cross_section' : 3.110130566 , 'gen_eff' : 1.0 , 'k_factor' : 1. }),
+( 'WJetsToLNu_Pt-600ToInf'        , { 'n_evt' : 1, 'cross_section' : 0.4683178368 , 'gen_eff' : 1.0 , 'k_factor' : 1. }),
  #'WJetsToLNu_HT-100To200'       ,: { 'n_evt' : 10235198, 'cross_section' : 1345., 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  #'WJetsToLNu_HT-200To400'       ,: { 'n_evt' : 4950373, 'cross_section' :  359.7, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
 ( 'WJetsToLNu_HT-100To200'        , { 'n_evt' : 9945478, 'cross_section' :  1345,   'gen_eff' : 1.0 , 'k_factor' : 1.21 }), ## 1346 in XSDB #from SummaryTable1G25ns twiki
