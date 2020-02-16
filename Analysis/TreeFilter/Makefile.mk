@@ -13,7 +13,7 @@ WORK_AREA = ${WorkArea}
 
 PKG_DIR = $(WORK_AREA)/TreeFilter/$(PACKAGE)
 EXE_DIR = $(PKG_DIR)
-OBJ_DIR = $(PKG_DIR)/obj/$(EXENAME)
+OBJ_DIR = $(PKG_DIR)/obj/
 SRC_DIR = $(PKG_DIR)/src
 INC_DIR = $(PKG_DIR)/include
 
@@ -85,38 +85,42 @@ endif
 
 EXE = $(EXE_DIR)/$(NEWEXENAME)
 
+.SECONDEXPANSION:
 # Main targets
 all: check objdir $(EXE) 
 
 objdir: ${OBJ_DIR}
 
+linkdef: $(SRC_DIR)/Dict.cxx
+
 ${OBJ_DIR}:
 	${MKDIR_P} ${OBJ_DIR}
 
 $(SRC_DIR)/Dict.cxx: $(PKG_DIR)/include/LinkDef.h
-	rootcint -f $@ -c -p $^
+	rootcling -f $@ -c -p $^
 
-$(LINKDEF):  $(SRC_DIR)/Dict.cxx
+$(LINKDEF): $(SRC_DIR)/Dict.cxx
 	g++ -shared -o$@ `root-config --ldflags` $(CXXFLAGS)\
 	-I$(ROOTSYS)/include $^
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cxx
 	g++ $(CXXFLAGS) -c $^ -o $@ $(INC_ADDTL) 
 
-$(EXE): $(OBJECT_ANA) $(OBJECT_ADDTL) $(LINKDEF) 
+$(EXE): $$(OBJECT_ANA) $(OBJECT_ADDTL) $(LINKDEF) 
 	g++ $(CXXFLAGS) -o $@ -g $^ $(COREOBJ) $(OBJ_EXTERN) $(LIBS)\
 	$(LIB_ADDTL)
 
 clean:
 	@echo -e "\n\n===> cleaning directories"
-	rm -f $(OBJ_DIR)/*.o ; rm -f $(SRC_DIR)/Dict.cxx; rm -f $(OBJ_DIR)/*/*.o; 
+	rm -f $(OBJ_DIR)/*.o 
 
 veryclean : 
+	rm -f $(OBJ_DIR)/*.o 
 	rm -f $(SRC_DIR)/Dict.cxx
 	rm -f $(SRC_DIR)/BranchInit.cxx
-	rm -f $(INC_DIR)/LinkDef.h
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
+	rm -f *.exe
 
 vvclean : 
 	rm -f $(OBJ_DIR)/*.o 
@@ -125,9 +129,6 @@ vvclean :
 	rm -f $(INC_DIR)/LinkDef.h
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
-	rm -f $(OBJ_DIR)/*/*.o 
-	rm -f $(OBJ_DIR)/*/*.so
-	rmdir $(OBJ_DIR)/*.exe/
 	rm -f *.exe
 
 check :
