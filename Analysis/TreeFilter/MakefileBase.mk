@@ -26,7 +26,7 @@ BOOSTFLAGS   = \
 	-I/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/$(BOOST_VER)/include\
 	-L/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/$(BOOST_VER)/lib
 
-ROOTLIBS     = $(shell $(ROOTCONFIG) --libs) -lTreePlayer -lTMVA -lRooFit -lTIO
+ROOTLIBS     = $(shell $(ROOTCONFIG) --libs) -lTreePlayer -lTMVA -lRooFit -lRIO
 LIBS         = $(ROOTLIBS) $(BOOSTFLAGS) -lboost_filesystem -lboost_system
 GCCLIBS      = -l$(subst bin/$(CXX),lib64,$(shell which $(CXX)))
 
@@ -52,5 +52,5 @@ $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cxx
 	$(CXX) $(CXXFLAGS) -c $^ -o $@ $(INC_ADDTL)
 
 clean:
-	@echo -e "\n\n===> cleaning directories"
+	@echo -e "\n===> cleaning directories"
 	rm -f $(OBJ_DIR)/*.o 
