@@ -72,6 +72,7 @@ ${OBJ_DIR}:
 
 $(SRC_DIR)/Dict.cxx: $(PKG_DIR)/include/LinkDef.h
 	$(ROOTCINT) -f $@ -c -p $^
+	mv $(SRC_DIR)/Dict_rdict.pcm $(OBJ_DIR)
 
 $(LINKDEF): $(SRC_DIR)/Dict.cxx
 	$(CXX) -shared -o$@ `root-config --ldflags` $(CXXFLAGS)\
