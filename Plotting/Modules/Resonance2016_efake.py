@@ -458,7 +458,7 @@ def config_samples(samples) :
                           )
 
     samples.AddSampleGroup( 'EleFakeBackground',
-                           input_samples = ['Z+jets', 'Zgamma', 'TTbar_DiLep', 'TopW'],
+                           input_samples = ['Z+jets', 'TTbar_DiLep', 'TopW'],
                            isActive=False,
                           )
 

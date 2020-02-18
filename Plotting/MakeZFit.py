@@ -15,53 +15,55 @@ from pprint import pprint
 from uncertainties import ufloat
 from collections import defaultdict
 from FitManager import FitManager
-from DrawConfig import DrawConfig
-from SampleManager import SampleManager
-from argparse import ArgumentParser
+#from DrawConfig import DrawConfig
+#from SampleManager import SampleManager
+#from argparse import ArgumentParser
 
-parser = ArgumentParser()
+#parser = ArgumentParser()
 #parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to muon base directory')
-parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to electron base directory')
-parser.add_argument('--outputDir',      default=None,           dest='outputDir',         required=False, help='Output directory to write histograms')
-parser.add_argument('--step',           default=None,           dest='step',                type=int,        help='select fitting procedures')
-parser.add_argument('--batch',           default=False,     action='store_true',      dest='batch',               help='submit batch jobs')
-parser.add_argument('--binlow',           default=None,           dest='binlow',               help='lower bin')
-parser.add_argument('--binhigh',          default=None,           dest='binhigh',              help='upper bin')
-parser.add_argument('--region',          default=None,           dest='region',              help='control/ signal regions')
-parser.add_argument('--data',           default=False,      action='store_true',         dest='data',          required=False, help='Use data or MC')
-options = parser.parse_args()
-ROOT.TVirtualFitter.SetMaxIterations( 100000 )
-ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
+def addparser(parser):
+    #parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to electron base directory')
+    #parser.add_argument('--outputDir',      default=None,           dest='outputDir',         required=False, help='Output directory to write histograms')
+    parser.add_argument('--step',           default=None,           dest='step',                type=int,        help='select fitting procedures')
+    parser.add_argument('--condor',           default=False,     action='store_true',      dest='condor',               help='submit batch jobs')
+    parser.add_argument('--binlow',           default=None,           dest='binlow',               help='lower bin')
+    parser.add_argument('--binhigh',          default=None,           dest='binhigh',              help='upper bin')
+    parser.add_argument('--region',          default=None,           dest='region',              help='control/ signal regions')
+    #parser.add_argument('--data',           default=False,      action='store_true',         dest='data',          required=False, help='Use data or MC')
+
+execfile("MakeBase.py")
+#options = parser.parse_args()
+#ROOT.TVirtualFitter.SetMaxIterations( 100000 )
+#ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
 
-_TREENAME = 'UMDNTuple/EventTree'
-_FILENAME = 'tree.root'
-_XSFILE   = 'cross_sections/photon16.py'
-_LUMI     = 36000
-_BASEPATH = '/home/jkunkle/usercode/Plotting/LimitSetting/'
-_SAMPCONF = 'Modules/Resonance2016_efake.py'
+#_TREENAME = 'UMDNTuple/EventTree'
+#_FILENAME = 'tree.root'
+#_XSFILE   = 'cross_sections/photon16.py'
+#_LUMI     = 36000
+_SAMPCONF = 'Modules/Resonance%i_efake.py' %options.year
 
 
 ROOT.gStyle.SetPalette(ROOT.kBird) 
-ROOT.gROOT.SetBatch(True)
-if options.outputDir is None :
-    options.outputDir = "Plots/" + __file__.rstrip(".py")
-if options.outputDir is not None :
-    if not os.path.isdir( options.outputDir ) :
-        os.makedirs( options.outputDir )
+#ROOT.gROOT.SetBatch(True)
+#if options.outputDir is None :
+#    options.outputDir = "Plots/" + __file__.rstrip(".py")
+#if options.outputDir is not None :
+#    if not os.path.isdir( options.outputDir ) :
+#        os.makedirs( options.outputDir )
 
 base = 'ph_n==1 && el_n==1'
 baseeta = base + ' && ph_IsEB[0]'# + "&& ph_pt[0]>80"
-passpix = '&& ph_hasPixSeed[0]==0'  #Pixel seed
-failpix = '&& ph_hasPixSeed[0]==1'
+#passpix = '&& ph_hasPixSeed[0]==0'  #Pixel seed
+#failpix = '&& ph_hasPixSeed[0]==1'
 ltmet = '&&met_pt<40'
 gtmet = '&&met_pt>40'
 phpt50 = "&&ph_pt[0]>50"
-UNBLIND = "ph_hasPixSeed[0]==1 || met_pt<40"
-phtight = "&& ph_passTight[0]"
+#UNBLIND = "ph_hasPixSeed[0]==1 || met_pt<40"
+#phtight = "&& ph_passTight[0]"
 phmedium = "&& ph_passMedium[0]"
-elpt40 = "&&el_pt[0]>40"
-eleta2p1 = "&&abs(el_eta[0])<2.1"
+#elpt40 = "&&el_pt[0]>40"
+#eleta2p1 = "&&abs(el_eta[0])<2.1"
 #weight = "PUWeight*NLOWeight"
 weight = "NLOWeight"
 
@@ -107,7 +109,7 @@ parmrange = { "dcb_mass"  :(85,97),
 
 def main() :
 
-    if options.batch:
+    if options.condor:
         ptbins = [0,30,40,50,60,80,1000]
         #ptbins = np.linspace(0,3.1416*4,37)
         regions = 'aABCD'
@@ -118,8 +120,13 @@ def main() :
         i=0
         for r in regions:
           for binlow,binhigh in zip(ptbins[0:-1],ptbins[1:]):
-            pyoption = '%i %g %g %s' %(options.step,binlow,binhigh,r)
+            pyoptionbase = '%i %g %g %s' %(options.step,binlow,binhigh,r)
+            pyoption =""
             if options.data: pyoption+=" --data"
+            if options.batch: pyoption+=" --batch"
+            if options.year: pyoption+=" --year %i" %options.year
+            pyoption = " '%s'" %pyoption.strip(" ")
+            pyoption = '"%s %s"' %(pyoptionbase,pyoption)
             filedatawrite= filedata.replace('[REPLACE]',pyoption)
             writefilename = 'log/condor%i.jdl' %i
             with open(writefilename,'w') as file:
@@ -129,11 +136,11 @@ def main() :
             i+=1
         return
 
-    if options.baseDirElG ==None:
-        options.baseDirElG = "/data/users/kakw/Resonances/LepGamma_elg_newblind_2018_09_23_beta/"
-        options.baseDirElG = "/data2/users/kakw/Resonances2016/LepGamma_elg_2019_10_28"
+#    if options.baseDirElG ==None:
+#        options.baseDirElG = "/data/users/kakw/Resonances/LepGamma_elg_newblind_2018_09_23_beta/"
+#        options.baseDirElG = "/data2/users/kakw/Resonances2016/LepGamma_elg_2019_10_28"
 
-    sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
+#    sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI )
     sampManElG.ReadSamples( _SAMPCONF )
     #sel_base_el = 'ph_n>=1 && el_n==1 &&!( ph_eta[0]<0&&ph_phi[0]>2.3&&ph_phi[0]<2.7)&&!(ph_phi[0]>1.2&&ph_phi[0]<1.5) '
     #sampManElG.deactivate_all_samples()
@@ -157,7 +164,7 @@ def main() :
        #makevariableplots(sampManElG,[0,0.7,1.0,1.479,3],fitrange,basesel=base+"&&ph_pt[0]>80", tag="etaptgt80",var="abs(ph_sc_eta[0])")
        #makevariableplots(sampManElG,[0,0.7,1.0,1.479,3],fitrange,basesel=base+"&&ph_pt[0]<=80",tag="etaptlt80",var="abs(ph_sc_eta[0])")
        #makevariableplots(sampManElG,ptbins,fitrange,basesel=base+phmedium,tag="phi",var="(ph_phi[0]+3.1416+(ph_eta[0]>0)*3.1416*2)")
-       makevariableplots(sampManElG,ptbins,fitrange,basesel=baseeta+phmedium,tag="all")
+       makevariableplots(sampManElG,ptbins,fitrange,basesel=baseeta+phmedium,tag="all%i" %options.year)
        #makevariableplots(sampManElG,[0,30,40,50,60,80,1000],fitrange,basesel=baseeta+passpix+ltmet,tag="regA")
        #makevariableplots(sampManElG,[0,30,40,50,60,80,1000],fitrange,basesel=baseeta+failpix+ltmet,tag="regB")
        #makevariableplots(sampManElG,[0,30,40,50,60,80,1000],fitrange,basesel=baseeta+passpix+gtmet,tag="regS")
@@ -173,6 +180,7 @@ def main() :
        bkgd=["expo","gaus"]
        if options.data: doData, tbase = True, "_data"
        else: doData,tbase=False,""
+       if options.year: tbase+="%i"%options.year
        ic = dict(bkgd=["expo","gaus"],sig="dcbp2",bkgd2="gauszg2",ext="simul2")
 
        binvar = "ph_pt[0]"
@@ -224,7 +232,7 @@ def makevariableplots_simultaneous_zg(samp,ptlist,fitrange,basesel="1",tag="",ic
     parmnames = FitManager.ParamDCB
     #parmnames2 = ["gauszg_mean","gauszg_sig"]
     #parm ,parm2= get_param("data/dcbparms.txt",ptlist), get_param("data/zgparms.txt",ptlist)
-    parm = get_param("data/dcbparms_all.txt",ptlist)
+    parm = get_param("data/%i/dcbparms_all%i.txt"%((options.year,)*2),ptlist)
     fm = FitManager("dcbexpo", xvardata = (0,200,"GeV"))
     iconddcb = {pt:[(n,parm[n][ipt]) for n in parmnames] for ipt,pt in enumerate(ptlist[:-1])}
     #icondgzg = {pt:[(n,parm2[n][ipt]) for n in parmnames2] for ipt,pt in enumerate(ptlist[:-1])}
@@ -253,7 +261,7 @@ def makevariableplots_simultaneous_zg(samp,ptlist,fitrange,basesel="1",tag="",ic
     print "values:"; pprint(parmufloats.items())
     f = lambda p: {x:y for x,y in p.iteritems()}
     data = {'ptlist':ptlist,'parm':f(parmvals),'error':f(parmerrs)}
-    with open('data/parms_%s.txt' %tag,'w') as outfile:
+    with open('data/%i/parms_%s.txt' %(options.year,tag),'w') as outfile:
         json.dump(data,outfile)
 
 def makevariableplots_simultaneous(samp,ptlist,fitrange,basesel="1",tag="",ic = None, dobkgd=True, donorm=True, maxtimes=5, doData=False, var = "ph_pt[0]"):
@@ -263,9 +271,9 @@ def makevariableplots_simultaneous(samp,ptlist,fitrange,basesel="1",tag="",ic = 
     parmufloats, parmvals, parmerrs = defaultdict(list),defaultdict(list),defaultdict(list)
     parmnames = FitManager.ParamDCB
     parmnames2 = ["gauszg_mean","gauszg_sig"]
-    parm ,parm2= get_param("data/dcbparms_all.txt",ptlist), get_param("data/parms_zgamma.txt",ptlist)
-    parmptlist = json.loads(open("data/dcbparms_all.txt").read())['ptlist']
-    parm2ptlist = json.loads(open("data/parms_zgamma.txt").read())['ptlist']
+    parm ,parm2= get_param("data/%i/dcbparms_all%i.txt" %((options.year,)*2),ptlist), get_param("data/%i/parms_zgamma.txt"%options.year,ptlist)
+    parmptlist = json.loads(open("data/%i/dcbparms_all%i.txt"%((options.year,)*2)).read())['ptlist']
+    parm2ptlist = json.loads(open("data/%i/parms_zgamma.txt"%options.year).read())['ptlist']
     fm = FitManager("dcbexpo", xvardata = (0,200,"GeV"))
 
     ## FIXME: need better ways to obtain fitted parameters
@@ -300,7 +308,7 @@ def makevariableplots_simultaneous(samp,ptlist,fitrange,basesel="1",tag="",ic = 
     print "values:"; pprint(parmufloats.items())
     f = lambda p: {x:y for x,y in p.iteritems()}
     data = {'ptlist':ptlist,'parm':f(parmvals),'error':f(parmerrs)}
-    with open('data/parms_%s.txt' %tag,'w') as outfile:
+    with open('data/%i/parms_%s.txt' %(options.year,tag),'w') as outfile:
         json.dump(data,outfile)
 
 def fitting_simultaneous(samples,fm, ptrange,fitranges=((50,180)),var="ph_pt[0]",
@@ -586,7 +594,7 @@ def makevariableplots(samp,ptlist,fitrange,basesel="1",tag="",var="ph_pt[0]"):
         c1.SaveAs(options.outputDir+"/tge_dcb_%s_%s.pdf" %(name,tag))
         c1.SaveAs(options.outputDir+"/tge_dcb_%s_%s.png" %(name,tag))
     data = {'ptlist':ptlist,'parm':parmvals,'error':parmerrs}
-    with open('data/temp/dcbparms_%s.txt' %tag,'w') as outfile:
+    with open('data/%i/dcbparms_%s.txt' %(options.year,tag),'w') as outfile:
         json.dump(data,outfile)
 
 def fitting(samples,fm, ptrange,fitranges=((50,180)),var="ph_pt[0]",basesel = "1",tag=""):

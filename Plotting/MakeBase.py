@@ -15,16 +15,20 @@ parser.add_argument('--baseDirElG',      default=None,           dest='baseDirEl
 parser.add_argument('--baseDirMuMu',      default=None,          dest='baseDirMuMu',        required=False, help='Path to muon base directory')
 parser.add_argument('--baseDirElEl',      default=None,          dest='baseDirElEl',        required=False, help='Path to electron base directory')
 parser.add_argument('--outputDir',       default=None,           dest='outputDir',          required=False, help='Output directory to write histograms')
-parser.add_argument('--data',            default=False,          dest='data',               required=False, help='Use data or MC')
+parser.add_argument('--data',            default=False,          dest='data',   action="store_true",            required=False, help='Use data or MC')
 parser.add_argument('--batch',           default=False,          dest='batch',  action="store_true",            required=False, help='Supress X11 output')
 parser.add_argument('--year',            default=2016,           dest='year',   type=int,   required=False, help='Set run year')
+parser.add_argument('--nodataFrame', default=True,action='store_false',   dest='dataFrame',   help='backwards compatibility for pre-2019 releases of ROOT')
 
+## add additional argument if addparser() is defined
+if "addparser" in locals(): addparser(parser)
 options = parser.parse_args()
 
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
 datestr   = "2019_12_12"
 
+lumiratio = 1.
 if options.year == 2016:
     _XSFILE   = 'cross_sections/photon16.py'
     _LUMI     = 35900
@@ -45,7 +49,7 @@ elif options.year == 2018:
     _LUMI     = 59740
     #etastr    = "&& !(ph_phi[0]<5*pi/18 && ph_phi[0]>3*pi/18)"
     #lumiratio = 1./(1-1./18)
-    datestr   = "2020_01_30"
+    datestr   = "2020_02_11"
 
 
 if options.batch:
@@ -63,6 +67,8 @@ ROOT.gStyle.SetOptStat(0)
 # if no option is given, here are the default directories to read
 if options.baseDirMuG is None: options.baseDirMuG = "/data2/users/kakw/Resonances%i/LepGamma_mug_%s/"%(options.year,datestr)
 if options.baseDirElG is None: options.baseDirElG = "/data2/users/kakw/Resonances%i/LepGamma_elg_%s/"%(options.year,datestr)
+if options.baseDirMuMu is None: options.baseDirMuMu = "/data2/users/kakw/Resonances%i/LepLep_mumu_%s/"%(options.year,datestr)
+if options.baseDirElEl is None: options.baseDirElEl = "/data2/users/kakw/Resonances%i/LepLep_elel_%s/"%(options.year,datestr)
 #options.baseDirElG = "/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/"
 
 baseel = 'ph_n==1 && el_n==1 && el_pt30_n==1 && mu_n==0'
@@ -95,23 +101,26 @@ el_eb =  ' &&abs(el_eta[0])<2.1'
 
 invZ = '&& abs(m_lep_ph-91)>15'
 massZ = '&& abs(m_lep_ph-91)<15'
+nophmatch = "&& !(ph_truthMatchPh_dr[0]<ph_truthMatchEl_dr[0])"
+phmatch = "&& (ph_truthMatchPh_dr[0]<ph_truthMatchEl_dr[0])"
 flatphi = "ph_phi[0]+3.1416*(1+2*(ph_eta[0]>0))"
 
+UNBLIND = "ph_hasPixSeed[0]==1 || met_pt<40"
 weight="PUWeight*NLOWeight"
 pie = 3.1416
 
 ## read MuG samples
 sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio,
-                            readHists=False , weightHistName = "weighthist")
+                            readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame, quiet =True)
 
 ## read ElG samples
 sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,
-                            readHists=False , weightHistName = "weighthist")
+                            readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame)
 
 ## read MuMu samples
 sampManMuMu= SampleManager( options.baseDirMuMu, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio,
-                            readHists=False , weightHistName = "weighthist")
+                            readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame)
 
 ## read ElEl samples
 sampManElEl= SampleManager( options.baseDirElEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,
-                            readHists=False , weightHistName = "weighthist")
+                            readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame, quiet=True)

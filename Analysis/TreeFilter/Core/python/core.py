@@ -1,4 +1,5 @@
 import os
+import functools
 import re
 import sys
 import imp
@@ -116,25 +117,28 @@ def ParseArgs() :
     parser.add_argument('--disableOutputTree', dest='disableOutputTree', default=False, action='store_true', help='Do not write events to the output tree')
 
     parser.add_argument('--copyInputFiles', dest='copyInputFiles', default=False, action='store_true', help='Transfer files to local directory. Only works with batch.')
-    
+
     #-----------------------------
     # Occasionally used
     #-----------------------------
 
     parser.add_argument('--sample', dest='sample', default=None, help='Name of sample.  May be used in cases where the sample name must be known to the c++ code')
-    
+
     parser.add_argument('--moduleArgs', dest='moduleArgs', default=None, help='Arguments to pass to module.  Should be in the form of a dictionary')
 
     parser.add_argument('--write_file_list', dest='write_file_list', default=False, action='store_true', help='Write a text file containing files found on eos.  use --read_file_list to use this file in the future')
 
     parser.add_argument('--read_file_list', dest='read_file_list', default=False, action='store_true', help='Read the file list instaed of looking on eos.  Must have used --write_file_list to create the file' )
-    
+
     return parser.parse_args()
 
 
 
 
 
+#-------------------------------------------
+#          Main config function
+#-------------------------------------------
 
 def config_and_run( options, package_name ) :
 
@@ -183,8 +187,12 @@ def config_and_run( options, package_name ) :
     while '' in input_files :
         input_files.remove('')
 
+    input_files_nevt = {}
     if not options.read_file_list :
-        input_files = check_and_filter_input_files( input_files, options.treeName )
+        input_files_nevt = check_and_filter_input_files( input_files, options.treeName )
+        input_files, num_events = zip(*input_files_nevt) if input_files_nevt else ([], [])
+        input_files = list(input_files)
+        input_files_nevt = dict(input_files_nevt)
 
     if not options.noInputFiles and not input_files :
         print 'Did not locate any input files with the path and file name given!  Check the inputs.'
@@ -210,6 +218,7 @@ def config_and_run( options, package_name ) :
                                                options.enableRemoveFilter,
                                                options.removeFilterSelection)
 
+    branches_to_keep.sort()
     if options.enableKeepFilter :
         print 'Will keep %d branches from output file : ' %len(branches_to_keep)
         print '\n'.join(branches_to_keep)
@@ -286,25 +295,30 @@ def config_and_run( options, package_name ) :
 
         os.mkdir( '/tmp/%s' %tmpname )
 
-        # Write the c++ files having the branch definitions and 
+        # Write the c++ files having the branch definitions and
         # SetBranchAddress calls
-        # Write all output branches in the 
+        # Write all output branches in the
         # header file so that the code will compile
         # only the keep branches will be saved, however
-        #write_header_files(new_brdef_file_name, new_linkdef_file_name, branches,out_branches, [ br['name'] for br in branches ], alg_list )
-        write_header_files(new_brdef_file_name, new_linkdef_file_name, branches,out_branches, branches_to_keep, alg_list )
+        write_header_files(new_brdef_file_name , branches,out_branches, branches_to_keep, alg_list )
 
         write_source_file(new_source_file_name, new_header_file_name, branches, out_branches, branches_to_keep, write_expert_code=options.writeExpertCode )
 
         if not (filecmp.cmp(  old_brdef_file_name, new_brdef_file_name ) and
                 filecmp.cmp(  old_header_file_name, new_header_file_name ) and
-                filecmp.cmp( old_source_file_name, new_source_file_name )  and
-                filecmp.cmp( old_linkdef_file_name, new_linkdef_file_name ) )  :
+                filecmp.cmp( old_source_file_name, new_source_file_name ) ) :
 
             print '--------------------------------------'
             print 'Difference found in processing code'
             print 'Will use new code and will compile'
             print '--------------------------------------'
+            if not filecmp.cmp( old_brdef_file_name,  new_brdef_file_name ) :
+                os.system("diff %s %s" % ( old_brdef_file_name,  new_brdef_file_name  ))
+            if not filecmp.cmp( old_header_file_name, new_header_file_name ) :
+                os.system("diff %s %s" % ( old_header_file_name, new_header_file_name ))
+            if not filecmp.cmp( old_source_file_name, new_source_file_name ) :
+                os.system("diff %s %s" % ( old_source_file_name, new_source_file_name ))
+
 
             # If we need to recompile then a different executable should
             # be made so as to not overwrite an existing one
@@ -341,7 +355,7 @@ def config_and_run( options, package_name ) :
     if options.nJobs > 0 and options.nsplit == 0 :
         options.nsplit = options.nJobs
 
-    file_evt_list = get_file_evt_map( input_files, options.nsplit, options.nFilesPerJob, options.totalEvents, options.treeName )
+    file_evt_list = get_file_evt_map( input_files, options.nsplit, options.nFilesPerJob, options.totalEvents, options.treeName , input_files_nevt)
 
     #if options.nproc > 1 and options.nproc > len(file_evt_list) :
     #    options.nproc = len(file_evt_list)
@@ -601,8 +615,9 @@ def compile_code( alg_list, branches, out_branches, branches_to_keep, workarea, 
     # Write all output branches in the 
     # header file so that the code will compile
     # only the keep branches will be saved, however
-    #write_header_files(brdef_file_name, linkdef_file_name, branches,out_branches, [ br['name'] for br in branches ], alg_list )
-    write_header_files(brdef_file_name, linkdef_file_name, branches,out_branches, branches_to_keep, alg_list )
+    #write_header_files(brdef_file_name, branches,out_branches, [ br['name'] for br in branches ], alg_list )
+    write_header_files(brdef_file_name , branches, out_branches, branches_to_keep, alg_list )
+    write_linkdef_file(linkdef_file_name, branches )
 
     write_source_file(source_file_name, header_file_name, branches, out_branches, branches_to_keep, write_expert_code=writeExpertCode )
 
@@ -725,7 +740,7 @@ def get_branch_map_from_tree( tree ) :
         title = title.replace(']]', '][')
  
         lf = br.GetListOfLeaves()[0]
-        type  = lf.GetTypeName()
+        typen  = lf.GetTypeName()
         size  = lf.GetLen()
         is_range = lf.IsRange()
         # match any number of brackets and get them.  
@@ -788,7 +803,7 @@ def get_branch_map_from_tree( tree ) :
         if varId is not None :
             leafEntry += '/%s' %varId
 
-        prop_dic = {'name' : name, 'type' : type, 'totSize' : totSize, 'arrayStr' : arrayStr, 'leafEntry' : leafEntry, 'sizeEntries' : size_entries }
+        prop_dic = {'name' : name, 'type' : typen, 'totSize' : totSize, 'arrayStr' : arrayStr, 'leafEntry' : leafEntry, 'sizeEntries' : size_entries }
         if name in [d['name'] for d in all_branches] :
             continue
 
@@ -803,38 +818,68 @@ def get_branch_map_from_tree( tree ) :
 #-----------------------------------------------------------
 def check_and_filter_input_files( input_files, treename ) :
 
+    domultithread = True
+
     logging.info('Run input file checks')
     filtered_files = []
     if not isinstance(input_files, list) :
         input_files = [input_files]
 
-    for filename in input_files :
+    #pfunc = lambda fn:  check_and_filter_input_files_helper( fn , treename )
 
-        pass_filter = True
+    start = time.time()
+    if domultithread:
+        pcount = multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(pcount)
+        pfunc = functools.partial( check_input_file , treename = treename)
+        filtered_files = pool.map( pfunc , input_files)
+        pool.close()
+        filtered_files = [f for f in filtered_files if f] # filter out Falses
+        filtered_files.sort()
+    else:
+        filtered_files = check_and_filter_input_files_helper( input_files ,  treename )
 
-        file = ROOT.TFile.Open( filename )
-        if file == None:
-           ## current fix. Need to check what is wrong
-           print "Remove file %s that seems corrupted??? "%filename
-         
-        else:
-           tree = file.Get( treename )
-           
-           if tree == None :
-               pass_filter = False
-               print 'Removed file %s that did not contain the input tree' %filename
-               print 'Existing top level objects : '
-               for obj in file.GetListOfKeys() :
-                   print obj.GetName()
-
-           if pass_filter :
-               filtered_files.append(filename)
-
-           file.Close()
+    print "time (s): ", time.time()-start
 
 
     logging.info('Found %d input files.  %d Files were removed' %(len(filtered_files), len(input_files) - len(filtered_files) ) )
     return filtered_files
+
+#-----------------------------------------------------------
+def check_and_filter_input_files_helper( filenames ,  treename ) :
+    return [fn for fn in filenames if check_input_file( fn ,  treename )]
+
+#-----------------------------------------------------------
+def check_input_file( filename ,  treename = "UMDNTuple/EventTree") :
+
+    #print filename
+    assert filename, "filename is not empty"
+
+    pass_filter = False
+
+    file = ROOT.TFile.Open( filename )
+    if file == None:
+       ## current fix. Need to check what is wrong
+       print "Remove file %s that seems corrupted??? "%filename
+       pass_filter = False
+
+    else:
+       tree = file.Get( treename )
+
+       if tree == None :
+           pass_filter = False
+           print 'Removed file %s that did not contain the input tree' %filename
+           print 'Existing top level objects : '
+           for obj in file.GetListOfKeys() :
+               print obj.GetName()
+
+       pass_filter = (filename, tree.GetEntries())
+
+       file.Close()
+
+    return pass_filter
+
+#-----------------------------------------------------------
 
 def import_module( module ) :
 
@@ -1102,7 +1147,7 @@ def filter_jobs_for_resubmit( orig_commands, outputDir, outputFile, storagePath=
 
     return commands
 
-def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName ) :
+def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName , input_files_nevt={}) :
 
     if not input_files :
         return []
@@ -1128,11 +1173,11 @@ def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName )
     # then each file runs over the full set of events
     files_evtsplit = []
 
-    # determine how many times to split each file.  Do this by 
+    # determine how many times to split each file.  Do this by
     # adding a split to each file until the number
     # of splits is achieved
     files_nsplit = [ 1 ]*len(split_files)
-    n_addtl_split = nsplit - len(split_files) 
+    n_addtl_split = nsplit - len(split_files)
     files_idx = 0
     for sp in range(0, n_addtl_split ) :
         files_nsplit[files_idx] += 1
@@ -1145,12 +1190,20 @@ def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName )
 
     #get the total number of events for each file
     files_nevt = [0]*len(split_files)
+    print "opening TFiles"
+    start = time.time()
     for idx, files in enumerate(split_files) :
-        for file in files :
-            tmp = ROOT.TFile.Open(file)
-            tree = tmp.Get(treeName)
-            files_nevt[idx] += tree.GetEntries()
-            tmp.Close()
+        for f in files :
+            nevt = input_files_nevt.get(f)
+            if nevt == None:
+                print "falling back on TFile::Open ", f
+                tmp = ROOT.TFile.Open(f)
+                tree = tmp.Get(treeName)
+                nevt = tree.GetEntries()
+                tmp.Close()
+            #print nevt, files_nevt[idx], input_files_nevt[f]
+            files_nevt[idx] += nevt 
+    print "time (s): ", time.time()-start
 
     # for each file get the range to use
     for files, nsplit, filetotevt in zip(split_files, files_nsplit, files_nevt) :
@@ -1466,7 +1519,7 @@ def create_job_desc_file(command_info, kwargs) :
 #
 #    return desc_file_name
 
-def write_header_files( brdefname, linkdefname, branches, out_branches=[], keep_branches=[], alg_list=[] ) :
+def write_header_files( brdefname, branches, out_branches=[], keep_branches=[], alg_list=[] ) :
 
     branch_header = open(brdefname, 'w')
     branch_header.write('#ifndef BRANCHDEFS_H\n')
@@ -1533,6 +1586,7 @@ def write_header_files( brdefname, linkdefname, branches, out_branches=[], keep_
 
     branch_header.close()
 
+def write_linkdef_file( linkdefname, branches ) :
     # this file is used to create root dictionaries
     # for vector<vector<>> types.  It will always be
     # created and if no such types exist it will
@@ -1542,26 +1596,61 @@ def write_header_files( brdefname, linkdefname, branches, out_branches=[], keep_
     link_types = []
     for conf in branches :
         if conf['type'].count('vector') > 0 :
-            modtype = conf['type'].replace('vector','std::vector')
+            modtype = conf['type'].replace('vector','std::vector')\
+                                  .replace(' ','')
             link_types.append( modtype )
 
     # remove duplicates
     link_types = set( link_types )
 
-    link_header = open(linkdefname, 'w')
-    link_header.write('#ifdef __CINT__\n')
-    link_header.write('#pragma link off all globals;  \n')
-    link_header.write('#pragma link off all classes;  \n')
-    link_header.write('#pragma link off all functions;\n')
-    link_header.write('#pragma link C++ nestedclasses;\n\n')
+    if os.path.isfile(linkdefname):
+        link_header_orig = open(linkdefname, 'r')
+        original_lines = link_header_orig.readlines()
+        original_lines_reduced = "".join(original_lines).replace(" ",'')
+        link_header_orig.close()
 
-    for type in link_types :
-        link_header.write('#pragma link C++ class %s+;\n' %type)
+        ## find out which link types are not already in the old file
+        new_link_types = [ typ for typ in link_types if "class"+typ not in original_lines_reduced ]
 
-    link_header.write('#endif\n\n')
+        if new_link_types:
+            print "new types found: ", " ".join(new_link_types)
+            print "will recompile Linkdef.h"
+            ## find out where to insert new lines
+            link_header = open(linkdefname, 'w')
+            for i, line in enumerate(original_lines):
+                if "endif" in line:
+                    ## insert new pragmas before endif
+                    for typ in new_link_types :
+                        link_header.write('#pragma link C++ class %s+;\n' %typ)
+                link_header.write(line)
+            link_header.close()
+            proc = subprocess.Popen(['make', 'linkdef'])
+            proc.wait()
+        else:
+            print "no new types"
+    else:
+        ## if Linkdef.h does not exist, make a new one
+        print "Linkdef.h does not exist"
+        print "link types to be included: ", " ".join(new_link_types)
 
-    link_header.close()
-    
+        link_header = open(linkdefname, 'w')
+        link_header.write('#ifdef __CINT__\n')
+        link_header.write('#pragma link off all globals;\n')
+        link_header.write('#pragma link off all classes;\n')
+        link_header.write('#pragma link off all functions;\n')
+        link_header.write('#pragma link C++ nestedclasses;\n\n')
+
+        for typ in link_types :
+            link_header.write('#pragma link C++ class %s+;\n' %typ)
+
+        link_header.write('#endif\n')
+
+        link_header.close()
+
+        # generate dictionary file
+        proc = subprocess.Popen(['make', 'linkdef'])
+        proc.wait()
+
 
 def write_source_file(source_file_name, header_file_name, branches, out_branches=[], keep_branches=[], debugCode=False, write_expert_code=False) :
 

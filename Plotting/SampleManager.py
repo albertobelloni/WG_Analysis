@@ -357,6 +357,7 @@ class SampleFrame(object):
 
     def __init__(self, sampleptr=None, samplemanager=None, dataFrame=True):
         self.sampleptr = {}
+        self.dataset = set() # set of data samples
         self.state = ""
         self.dataFrame = dataFrame
         self.sm = samplemanager
@@ -374,11 +375,24 @@ class SampleFrame(object):
     #--------------------------------
 
     def SetHisto1DFast(self, var, selection, histpars, weight = None, 
-                        hist_conf={}, legend_conf={}, label_conf={}, save_as = []):
-        print 'Booking 1D hist  ' + var+ "[%i,%g,%g] : "%histpars + tRed %selection
-        sf = self.SetFilter(selection)\
-            .SetDefine("var", var).SetDefine("weight",weight)
-        sf = sf.SetHisto1D("var",histpars, weight="weight")
+                        hist_conf={}, legend_conf={}, label_conf={}, save_as = [], data_exp = False):
+        """ data_exp: skip data when True
+                      different var, selection with dict (not implemented yet)
+                      defaults to false
+        """
+
+        print 'Booking 1D hist  ' + var+ "[%i,%g,%g] : "%histpars + tRed %selection + " *%s %s" %(weight, "skipdata" if data_exp else "")
+        sf = self
+        if selection and isinstance(selection, str):
+            sf = self.SetFilter(selection)
+            ## FIXME: case without weights, data requiring different selection
+        if data_exp:
+            sf = sf.SkipData().SetDefine("var", var).SetDefine("weight",weight)
+            #sf = sf.SetDefine("var", var, skipdata=True).SetDefine("weight",weight)
+            sf = sf.SetHisto1D("var",histpars, weight="weight")
+        else:
+            sf = sf.SetDefine("var", var).SetDefine("weight",weight)
+            sf = sf.SetHisto1D("var",histpars, weight="weight")
 
         # copy configurations
         sf.hist_conf = hist_conf.copy()
@@ -386,6 +400,29 @@ class SampleFrame(object):
         sf.label_conf = label_conf.copy()
         sf.save_as = save_as
         sf.state = "histo1dfast"
+        return sf
+
+    #--------------------------------
+
+    def SkipData(self):
+        #sf = SampleFrame(samplemanager = self.sm)
+        #sf.state = self.state
+        #sf.sampleptr = {s: df.Define("nodata","1") for s, df in self.sampleptr.iteritems() if not s.isData}
+        #for s,df in self.sampleptr.viewitems():
+        #    print s, df
+            #if not s.isData:
+        #        sf.sampleptr[s] = df.Define("nodata","1")
+            #else:
+            #    print "skipped ", s
+        sf = SampleFrame(samplemanager = self.sm)
+        for s, sp in  self.sampleptr.iteritems():
+            if not s.isData:
+                try:
+                    sf.sampleptr[s] = sp.Define("nodata","1")
+                except TypeError:
+                    print "error with sample ", s
+            else:
+                sf.dataset.add(sp.Define("nodata","1"))
         return sf
 
     #--------------------------------
@@ -415,7 +452,7 @@ class SampleFrame(object):
 
     #--------------------------------
 
-    def SetHelper(self,filterexp,function,state=None):
+    def SetHelper(self,filterexp,function,state=""):
         ## sentinel checks
         if not self.dataFrame:
             print "DataFrame not available"
@@ -429,6 +466,7 @@ class SampleFrame(object):
         ## make new sampleframe
         sf = SampleFrame(samplemanager = self.sm)
         sf.state = state
+        sf.dataset = self.dataset.copy()
         for s, sp in  self.sampleptr.iteritems():
             try:
                 sf.sampleptr[s] = function(sp, filterexp)
@@ -574,7 +612,6 @@ class SampleManager(SampleFrame) :
         # read histograms instead of trees
         self.readHists = readHists
 
-        self.dataFrame = dataFrame
 
         self.quiet = quiet
 
@@ -596,7 +633,15 @@ class SampleManager(SampleFrame) :
         self.added_sample_group=False
 
 
-        ROOT.ROOT.EnableImplicitMT()
+        if dataFrame:
+            try:
+                ROOT.ROOT.EnableImplicitMT()
+                ROOT.RDataFrame
+            except Exception as ex:
+                 print('Using TChain. Please consider switching to ROOT >= 6.18 to use RDataFrame')
+                 dataFrame = False
+        # store dataframe bit
+        self.dataFrame = dataFrame
 
     #--------------------------------
     def __getitem__(self, index):
@@ -2021,6 +2066,7 @@ class SampleManager(SampleFrame) :
             thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName, self.dataFrame)
             rd = thisSample.getrdataframe()
             self.sampleptr[thisSample] = rd
+            if isData: self.dataset.add(thisSample)
 
             self.samples.append(thisSample)
 
@@ -2455,6 +2501,7 @@ class SampleManager(SampleFrame) :
         self.draw_and_configure( draw_config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
 
         #return self.curr_canvases["base"]
+        self.histpars = histpars
         return self.curr_sampleframe
 
 
@@ -3215,7 +3262,6 @@ class SampleManager(SampleFrame) :
                         raise ex
 
                 except Exception as ex:
-                    print(ex)
                     print('Using TChain. Please consider switching to ROOT >= 6.18 to use RDataFrame')
                     res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
                 if res < 0 :
@@ -4245,7 +4291,8 @@ class SampleManager(SampleFrame) :
                 draw_samp.hist.GetYaxis().SetLabelSize(0.03)
                 draw_samp.hist.SetLineColor( hist_config['color'] )
                 draw_samp.hist.SetLineWidth( 2 )
-                draw_samp.hist.SetMarkerSize( 1 ) ## font size for histogram text option
+                draw_samp.hist.SetMarkerSize( 0 )
+                if "text" in drawopt: draw_samp.hist.SetMarkerSize( 1 ) ## font size for histogram text option
                 draw_samp.hist.SetMarkerStyle( 7 )
                 draw_samp.hist.SetMarkerColor(hist_config['color'])
                 draw_samp.hist.SetStats(0)
