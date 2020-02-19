@@ -34,7 +34,7 @@ SRC_INIT = $(SRC_DIR)/BranchInit.cxx
 SRC_RUN = $(SRC_DIR)/RunAnalysis.cxx
 
 OBJECT_ANA = $(OBJECT_INIT) $(OBJECT_RUN)
-LINKDEF = $(OBJ_DIR)/cintLib.so
+LINKDEF = $(PKG_DIR)/$(OBJ_DIR)/cintLib.so
 
 ifneq  ($(ADDTL_OBJ),) 
 	OBJECT_ADDTL = $(OBJ_DIR)/$(ADDTL_OBJ)
