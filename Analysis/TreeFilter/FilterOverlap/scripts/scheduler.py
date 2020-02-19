@@ -39,8 +39,8 @@ input_dirs = [
                'SingleLepInvIso_mu',
 
 ]
-jobtag = '_2020_02_11'
-#jobtag = '_2019_12_12'
+#jobtag = '_2020_02_11'
+jobtag = '_2019_12_12'
 
 jobs2016 = [
     # WJets HT bins, remove photon overlap with WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 (ISR+FSR),

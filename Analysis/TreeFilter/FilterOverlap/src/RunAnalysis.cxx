@@ -229,8 +229,8 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
         if( !config.PassFloat( "cut_genph_dr", phot_dr ) ) continue;
 #ifdef EXISTS_trueph_isPromptFS
         if( !config.PassBool( "cut_genph_isPromptFS", phot_isPromptFS ) ) continue;
-        bool wgcut = (phot_status==23)||(abs(phot_mother)==24 && phot_isPromptFS)
-        if( !config.PassBool( "cut_genph_wg", wg ) ) continue;
+        bool wgcut = (phot_status==23)||(abs(phot_mother)==24 && phot_isPromptFS);
+        if( !config.PassBool( "cut_genph_wg", wgcut ) ) continue;
 #endif
 #ifdef EXISTS_trueph_FHPFS
         if( !config.PassBool( "cut_genph_FHPFS", phot_FHPFS ) ) continue;
