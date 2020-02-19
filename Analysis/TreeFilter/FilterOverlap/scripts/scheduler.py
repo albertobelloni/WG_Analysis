@@ -39,7 +39,7 @@ input_dirs = [
                'SingleLepInvIso_mu',
 
 ]
-jobtag = '_2020_01_30'
+jobtag = '_2020_02_11'
 #jobtag = '_2019_12_12'
 
 jobs2016 = [
@@ -105,25 +105,25 @@ jobs2017 = [
 
 jobs2018 = [
 #    # WJets HT bins, remove photon overlap with WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8 (ISR+FSR),
-#    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8', tags=['HT_pholap15'], suffix='TrueHTOlapPhOlap', year =2018),
-#    JobConf(base, 'WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8' , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8'               , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-pythia8'              , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    # DYJets, remove photon overlap with ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8 (ISR+FSR)
-#    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8'          , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-#    # TTJets overlapping with TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8 (ISR-only, 10 GeV!)
-#    JobConf(base, 'TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2018),
-#    JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8', tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2018),
-#    JobConf(base, 'TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2018),
-#    # Info for WWTo2L2Nu, do NOT remove photon overlap with WWG_TuneCP5_13TeV-amcatnlo-pythia8 (which has different decay: WWAToLNu2jA, photon pt>20)
-#    # WGamma photon pt bins
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8', tags=['HT_pholap15'], suffix='TrueHTOlapPhOlap', year =2018),
+    JobConf(base, 'WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8' , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8'               , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-pythia8'              , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    # DYJets, remove photon overlap with ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8 (ISR+FSR)
+    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8'          , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    # TTJets overlapping with TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8 (ISR-only, 10 GeV!)
+    JobConf(base, 'TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2018),
+    JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8', tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2018),
+    JobConf(base, 'TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2018),
+    # Info for WWTo2L2Nu, do NOT remove photon overlap with WWG_TuneCP5_13TeV-amcatnlo-pythia8 (which has different decay: WWAToLNu2jA, photon pt>20)
+    # WGamma photon pt bins
     JobConf(base, 'WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8'                , tags=['PtMaxInc'], suffix = 'PhCutMax',year=2018),
     JobConf(base, 'WGToLNuG_PtG-130_TuneCP5_13TeV-amcatnloFXFX-pythia8'        , tags=['PtRange130'], suffix = 'PhCutRange',year=2018),
     JobConf(base, 'WGToLNuG_PtG-500_TuneCP5_13TeV-amcatnloFXFX-pythia8'        , tags=['PtMin500'], suffix = 'PhCutMin',year=2018),
@@ -160,11 +160,13 @@ for input_dir in input_dirs :
                      'input' : input_dir+jobtag,
                      'output' : base + '/' + input_dir+jobtag,
                      'tag' : 'olap_'+input_dir,
-                     'args_tag_pholap'           : { 'function' : 'filter_photon', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ' },
-                     'args_tag_pholapISR'         : { 'function' : 'filter_photon', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.0 ', 'isr_cut' : ' == True ' },
-                     'args_tag_PtMaxInc'         : { 'function' : 'filter_photon', 'leadpt_cut' : ' < 180 ', 'nph_cut' : ' > 0' ,  },
-                     'args_tag_PtRange130'       : { 'function' : 'filter_photon', 'leadpt_cut' : ' > 180 && < 550 ', 'nph_cut' : ' > 0' },
-                     'args_tag_PtMin500'         : { 'function' : 'filter_photon', 'leadpt_cut' : ' > 550 ', 'nph_cut' : ' > 0 ' },
+                     'args_tag_pholap'           : { 'function' : 'filter_photon', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ',
+                                                      'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ' },
+                     'args_tag_pholapISR'         : { 'function' : 'filter_photon', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'aeta_cut' : ' < 2.6 ',
+                                                      'dr_cut' : ' > 0.0 ', 'isr_cut' : ' == True ', 'isPromptFS_cut': ' == True' },
+                     'args_tag_PtMaxInc'         : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' < 180 ', 'nph_cut' : ' > 0' ,  },
+                     'args_tag_PtRange130'       : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' > 180 && < 550 ', 'nph_cut' : ' > 0' },
+                     'args_tag_PtMin500'         : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' > 550 ', 'nph_cut' : ' > 0 ' },
                      'args_tag_HT'               : { 'function' : 'filter_genht' , 'trueht_cut' :  ' < 100 ' },
                      'args_tag_mtMax600'         : { 'function' : 'filter_mtres' , 'mtres_cut' : ' < 600 ' },
                      'args_tag_mtMax1300'        : { 'function' : 'filter_mtres' , 'mtres_cut' : ' < 1300 ' },

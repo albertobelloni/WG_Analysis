@@ -3815,12 +3815,15 @@ class SampleManager(SampleFrame) :
         ymax_scale  = draw_config.get_ymax_scale()
         logy        = draw_config.get_logy()
         normalize = draw_config.get_normalize()
-        ymin,ymax   = ymindef, ymaxdef
-        maxarray, minarray = [], []
 
         samplist = self.get_samples()
         #if not normalize: samplist+=self.get_samples( name='__AllStack__' )
 
+        return self.calc_limits(samplist, ymindef, ymaxdef, ymax_scale, logy, normalize)
+
+    def calc_limits(self,samplist, ymindef=None,ymaxdef=None,ymax_scale=1.2,logy=False,normalize=False):
+        ymin,ymax   = ymindef, ymaxdef
+        maxarray, minarray = [], []
         if ymaxdef is None :
             if normalize == "Total":
                 maxarray =[samp.hist.GetMaximum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
@@ -4425,7 +4428,7 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def Draw2D( self, varexp, selections, sample_names, histpars=None, drawopts='', xlabel=None, ylabel=None) :
+    def Draw2D( self, varexp, selections, sample_names, histpars=None, drawopts='', xlabel=None, ylabel=None, logz = True) :
 
         self.clear_hists()
 
@@ -4449,19 +4452,24 @@ class SampleManager(SampleFrame) :
 
             self.create_hist( newsamp, varexp, selection, histpars)
 
-            if xlabel is not None :
-                newsamp.hist.GetXaxis().SetTitle( xlabel )
-            if ylabel is not None :
-                newsamp.hist.GetYaxis().SetTitle( ylabel )
+            if xlabel is None :
+                xlabel = varexp.split(":")[1]
+            newsamp.hist.GetXaxis().SetTitle( xlabel )
+            if ylabel is None :
+                ylabel = varexp.split(":")[0]
+            newsamp.hist.GetYaxis().SetTitle( ylabel )
 
             created_samples.append(newsamp)
+            zmin, zmax = self.calc_limits(created_samples, ymax_scale=1, logy=logz)
 
         for idx, samp in enumerate(created_samples) :
 
             self.curr_canvases['base%d'%idx] = ROOT.TCanvas('basecan%d'%idx, '')
-            self.curr_canvases['base%d'%idx].SetRightMargin(0.12)
+            self.curr_canvases['base%d'%idx].SetLogz()
+            self.curr_canvases['base%d'%idx].SetRightMargin(0.15)
             self.curr_canvases['base%d'%idx].cd()
 
+            samp.hist.GetZaxis().SetRangeUser(zmin,zmax) # same z scale to all 2D histograms
             samp.hist.Draw(drawopts)
 
 
