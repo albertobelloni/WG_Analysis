@@ -4465,7 +4465,7 @@ class SampleManager(SampleFrame) :
         for idx, samp in enumerate(created_samples) :
 
             self.curr_canvases['base%d'%idx] = ROOT.TCanvas('basecan%d'%idx, '')
-            self.curr_canvases['base%d'%idx].SetLogz()
+            if logz: self.curr_canvases['base%d'%idx].SetLogz()
             self.curr_canvases['base%d'%idx].SetRightMargin(0.15)
             self.curr_canvases['base%d'%idx].cd()
 
