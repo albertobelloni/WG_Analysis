@@ -84,19 +84,21 @@ $(EXE): $$(OBJECT_ANA) $(OBJECT_ADDTL) $(LINKDEF)
 	$(LIB_ADDTL)
 
 
+## remove expendible object files
 veryclean : 
 	rm -f $(OBJ_DIR)/*.o 
-	rm -f $(SRC_DIR)/Dict.cxx
 	rm -f $(SRC_DIR)/BranchInit.cxx
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
 	rm -f *.exe
 
+## complete reset, including LinkDef.h
 vvclean : 
 	rm -f $(OBJ_DIR)/*.o 
+	rm -f $(OBJ_DIR)/*.so 
 	rm -f $(SRC_DIR)/Dict.cxx
-	rm -f $(SRC_DIR)/BranchInit.cxx
 	rm -f $(INC_DIR)/LinkDef.h
+	rm -f $(SRC_DIR)/BranchInit.cxx
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
 	rm -f *.exe

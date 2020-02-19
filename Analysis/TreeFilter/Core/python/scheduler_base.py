@@ -61,7 +61,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
             if not isinstance( select_dataset, list ) :
                 select_dataset = [select_dataset]
     
-            proc = subprocess.Popen(['make', 'veryclean'])
+            proc = subprocess.Popen(['make', 'clean'])
             proc.wait()
             for job in jobs_data :
 
@@ -144,7 +144,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 if first_data :
                     first_data = False
     
-            proc = subprocess.Popen(['make', 'veryclean'])
+            proc = subprocess.Popen(['make', 'clean'])
             proc.wait()
             for job in jobs_mc :
                 job_exename = '%s_MC_%s' %(exename, config['tag'] )
