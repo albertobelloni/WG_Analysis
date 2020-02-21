@@ -40,12 +40,15 @@ def filter_photon( alg_list, args ) :
     aeta_cut = args.get('aeta_cut' , None )
     dr_cut = args.get('dr_cut' , None )
     nph_cut = args.get('nph_cut' , ' == 0 ' )
-    isPromptFS_cut = args.get('isPromptFS_cut', ' == True ')
+    isPromptFS_cut = args.get('isPromptFS_cut', None )
     fhpfs_cut = args.get('fhpfs_cut', None)
-    isr_cut = args.get('isr_cut' , None )
+    isr_cut = args.get('isr_cut' , None)
+    wg_cut = args.get('wg_cut', None)
 
     filter_event = Filter('FilterPhoton')
     filter_event.cut_genph_pt = pt_cut
+    if wg_cut:
+        filter_event.cut_genph_wg = wg_cut
     if leadpt_cut:
         filter_event.cut_lead_genph_pt = leadpt_cut
     if aeta_cut:

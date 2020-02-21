@@ -62,6 +62,7 @@ if options.outputDir is not None :
 
 
 ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetPalette(ROOT.kBird)
 #ROOT.gStyle.SetOptFit(1)
 
 # if no option is given, here are the default directories to read
