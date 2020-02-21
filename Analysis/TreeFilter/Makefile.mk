@@ -34,7 +34,7 @@ SRC_INIT = $(SRC_DIR)/BranchInit.cxx
 SRC_RUN = $(SRC_DIR)/RunAnalysis.cxx
 
 OBJECT_ANA = $(OBJECT_INIT) $(OBJECT_RUN)
-LINKDEF = $(OBJ_DIR)/cintLib.so
+LINKDEF = $(PKG_DIR)/$(OBJ_DIR)/cintLib.so
 
 ifneq  ($(ADDTL_OBJ),) 
 	OBJECT_ADDTL = $(OBJ_DIR)/$(ADDTL_OBJ)
@@ -86,7 +86,6 @@ $(EXE): $$(OBJECT_ANA) $(OBJECT_ADDTL) $(LINKDEF)
 
 veryclean : 
 	rm -f $(OBJ_DIR)/*.o 
-	rm -f $(SRC_DIR)/Dict.cxx
 	rm -f $(SRC_DIR)/BranchInit.cxx
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
@@ -94,14 +93,16 @@ veryclean :
 
 vvclean : 
 	rm -f $(OBJ_DIR)/*.o 
+	rm -f $(OBJ_DIR)/*.so 
 	rm -f $(SRC_DIR)/Dict.cxx
-	rm -f $(SRC_DIR)/BranchInit.cxx
 	rm -f $(INC_DIR)/LinkDef.h
+	rm -f $(SRC_DIR)/BranchInit.cxx
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
 	rm -f *.exe
 
 check :
+	cd ../Core ; make ; cd -
 	@if [ ! -f $(WORK_AREA)/TreeFilter/Core/obj/AnalysisBase.o ] ; \
 	    then \
 	    echo "**************************************" ; \
