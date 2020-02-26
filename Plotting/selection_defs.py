@@ -1,3 +1,6 @@
+import itertools
+from math import pi
+
 def get_base_selection( channel ) :
 
     if channel == 'mu' :
@@ -67,6 +70,101 @@ def get_phid_cut_var( ivar ) :
         return 'ph_sigmaIEIEFull5x5' #ph_sigmaIEIE
 
     assert( 'get_phid_cut_var -- Could not parse selection vars!' )
+
+
+
+badefakesectors = {
+        2016: {
+            "veto" :[],
+            "worst":[],
+            "bad"  :[(( 13,   16  ),(-0.5, 1.0)),
+                     (( 26.5, 31.5),(-1.6, 0.8)),
+                     (( 16.5, 18.5),(-1.5, 1.5)),
+                     (( 23,   24  ),(-0.2, 1.5)),
+                     ((-18.5,-17.5),(-1.4, 1.4)),
+                     ((-27  ,-25  ),( 1.2, 1.5)),
+                     ((-27  ,-25  ),(-1.5,-1.2)),
+                    ],
+            },
+        2017:{
+            "veto"  :[(( 31, 36),( 1.2,1.4))],
+            "worst" :[(( 31, 36),(-0.4,1.6)),
+                      ((-36,-35),(-0.4,1.6))],
+            "bad"   :[(( 0, 3),(-1. ,0.3)),
+                      (( 5, 8),(-1.5,0. )),
+                      ((10,12),(-0.4,1. )),
+                      ((17,22),(-0.6,1.2)),
+                      ((20,26),(-1.2,0.3)),
+                      ],
+            },
+        2018:{
+            "veto"  :[],
+            "worst" :[((5,9),( 0.,  1.4)),
+                      ((6,8),(-1.4,-0.5)),
+                      ],
+            "bad"   :[((  4, 10),(-0.4,1.6)),
+                      ((  5, 13),(-1.6,0.8)),
+                      (( 16, 21),(-0.4,1.4)),
+                      (( 20, 24),(-1. ,0.4)),
+                      ((  0,  3),(-1. ,1. )),
+                      (( 28, 31),(-1.6,0.4)),
+                      ((-19,-15),(-1. ,0.4)),
+                      ((-15,-10),(-1.2,0.4)),
+                      ((-30,-23),(-0.5,1. )),
+                      ((-19,-18),(-1.4,-1.)),
+                      ],
+            },
+        }
+
+def build_bad_efake_sector_string(year, quality):
+    " generate bad efake sector substrings (quality: veto, worst, bad) "
+
+    bstr={}
+    for key, badlist in badefakesectors[year].iteritems():
+        bstr[key]="||".join(itertools.starmap(photonphietastr, badlist))
+    combinedstring = ""
+
+    # veto quality
+    combinedstring += bstr["veto"]
+    if quality == "veto":
+        return combinedstring
+
+    # worst quality only (excludes veto)
+    if quality == "worstonly":
+        if not combinedstring:
+            return bstr["worst"]
+        return "%s && !(%s)" %(bstr["worst"],combinedstring)
+
+    # worst quality
+    if combinedstring: combinedstring += "||"
+    combinedstring += bstr["worst"]
+    if quality == "worst":
+        return combinedstring
+
+    # bad quality only (excludes veto and worst)
+    if quality == "badonly":
+        if not combinedstring:
+            return bstr["bad"]
+        return "%s && !(%s)" %(bstr["bad"],combinedstring)
+
+    ## bad quality
+    if combinedstring: combinedstring += "||"
+    combinedstring += bstr["bad"]
+    if quality == "bad":
+        return combinedstring
+    print "ERROR do not recognise: ", quality
+    raise RuntimeError
+
+def photonphietastr(iphi, eta):
+    assert eta[0]<eta[1],     "eta  order: %g %g" %eta
+    assert iphi[0]<iphi[1],   "iphi order: %g %g" %iphi
+    sel = (eta[0],eta[1], iphitophi(iphi[0]), iphitophi(iphi[1]))
+    return "(ph_eta[0]>%g && ph_eta[0]<%g && ph_phi[0]>%g && ph_phi[0]<%g)" %sel
+
+def iphitophi(iphi):
+    assert iphi<=36 and iphi>=-36
+    return pi/36*iphi
+
 
 
 

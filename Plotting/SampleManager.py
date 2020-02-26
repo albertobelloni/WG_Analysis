@@ -3017,6 +3017,20 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     def parsehist(self, histpars, varexp, histname=None):
+        """ 
+            helper function to parse histogram inputs
+            1D histogram: condition - varexp = "varx"
+                          histpars  - 1. (Nbinx, xbinlow, xbinhigh)
+                                    - 2. [xbins]
+            2D histogram: condition - varexp = "varx:vary"
+                          histpars  - 1. (Nbinx, xbinlow, xbinhigh, Nbiny, ybinlow, ybinhigh)
+                                    - 2. ([xbins],[ybins])
+            3D histogram: condition - varexp = "varx:vary:varz"
+                          histpars  - 1. (Nbinx, xbinlow, xbinhigh,
+                                          Nbiny, ybinlow, ybinhigh,
+                                          Nbinz, zbinlow, zbinhigh)
+        
+        """
 
         if histname==None: histname = str(uuid.uuid4())
 

@@ -2,7 +2,7 @@
 import ROOT
 from itertools import product
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-#import numpy as np
+import numpy as np
 from math import pi
 import os
 import selection_defs as defs
