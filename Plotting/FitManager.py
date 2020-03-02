@@ -10,7 +10,7 @@ from functools import wraps
 from DrawConfig import DrawConfig
 from pprint import pprint
 gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
-#from ROOT import RooDoubleCB
+from ROOT import RooDoubleCB
 
 
 ROOT.gStyle.SetPalette(ROOT.kBird)
@@ -296,40 +296,6 @@ class FitManager :
             self.fit_params[short_name] = var
         return
 
-    @f_Obsolete
-    def add_vars_old(self):
-        pass
-        # These need to be modified to match the format above
-        #if self.func_name == 'atlas' :
-        #    def_num_power = self.get_vals( self.func_name+'_num_power', 1 )
-        #    def_den_power = self.get_vals( self.func_name+'_den_power', 1 )
-
-        #    var_num_power = ROOT.RooRealVar( 'num_power', 'num_power', def_num_power[0], def_num_power[1], def_num_power[2] )
-        #    var_den_power = ROOT.RooRealVar( 'den_power', 'den_power', def_den_power[0], def_den_power[1], def_den_power[2] )
-        #    ROOT.SetOwnership(var_num_power, False)
-        #    ROOT.SetOwnership(var_den_power, False)
-        #    arg_list.add( var_num_power )
-        #    arg_list.add( var_den_power )
-        #    for i in range( 1, self.func_norders+1 ) :
-        #        def_den_logcoef = self.get_vals( self.func_name+'_den_logcoef', i )
-        #        var_den_locoef  = ROOT.RooRealVar( 'den_logcoef_order%d' %i, 'den_logcoef_order%d' %i, def_den_logcoef[0], def_den_logcoef[1], def_den_logcoef[2] )
-        #        ROOT.SetOwnership(var_den_locoef, False)
-        #        #var.SetName( '%s_order%d' %( self.func_name, i ) )
-        #        arg_list.add( var_den_locoef  )
-
-        #if self.func_name == 'power' :
-        #    for i in range( 1, self.func_norders+1 ) :
-        #        this_def_coef = self.get_vals( self.func_name+'_coef', i )
-        #        this_def_pow  = self.get_vals( self.func_name+'_pow', i )
-
-        #        var_coef = ROOT.RooRealVar( 'coef%d' %i, 'coef%d'%i, this_def_coef[0], this_def_coef[1], this_def_coef[2] )
-        #        ROOT.SetOwnership(var_coef, False)
-        #        var_pow = ROOT.RooRealVar( 'pow%d' %i, 'pow%d'%i, this_def_pow[0], this_def_pow[1], this_def_pow[2] )
-        #        ROOT.SetOwnership(var_pow, False)
-
-        #        arg_list.add( var_coef )
-        #        arg_list.add( var_pow )
-
 
     @f_Dumpfname
     def get_fit_function( self, forceUseRooFit=False ) :
@@ -548,6 +514,7 @@ class FitManager :
         run the RooFit Fitter and MIGRAD, HESSE and MINOS
         """
         self.fitrange = self.fitrangehelper(fitrange)
+        print self.fitrange
         self.xvardata.setRange("runfit",*self.fitrange)
         self.func_pdf.fitTo( self.datahist,
                              RooFit.Save(),
@@ -615,50 +582,6 @@ class FitManager :
                 plist[name] = ufloat(parm.getVal(),parm.getError()) if parm else None
         return plist
 
-
-    @f_Obsolete
-    def runfit_oldcomments(self):
-            pass
-            #nll = self.func_pdf.createNLL(self.datahist) ;
-            #m = ROOT.RooMinimizer(nll)
-            #m.setStrategy(2)
-            #raw_input('cont2')
-            ##// Activate verbose logging of MINUIT parameter space stepping
-            #m.setVerbose(ROOT.kTRUE)
-            #raw_input('cont3')
-            ##// Call MIGRAD to minimize the likelihood
-            #m.simplex()
-            #raw_input('cont3.5')
-            #m.migrad()
-            #raw_input('cont4')
-            ##// Print values of all parameters, that reflect values (and error estimates)
-            ##// that are back propagated from MINUIT
-            #self.func_pdf.getParameters(ROOT.RooArgSet(self.xvar)).Print("s")
-            #raw_input('cont5')
-            ##// Disable verbose logging
-            #m.setVerbose(ROOT.kFALSE)
-            #raw_input('cont6')
-            ##// Run HESSE to calculate errors from d2L/dp2
-            #m.hesse()
-            #raw_input('cont7')
-            ##// Print value (and error) of sigma_g2 parameter, that reflects
-            ##// value and error back propagated from MINUIT
-            ##cb_cut.Print()
-            ##raw_input('cont10')
-            #self.cb_sigma.Print()
-            ##raw_input('cont11')
-            ##cb_power.Print()
-            ##raw_input('cont12')
-            ##cb_m0.Print()
-            #raw_input('cont13')
-            ##// Run MINOS on sigma_g2 parameter only
-            #m.minos(ROOT.RooArgSet(self.cb_sigma))
-            #raw_input('cont14')
-            #self.cb_sigma.Print()
-            #raw_input('cont15')
-            ##// Print value (and error) of sigma_g2 parameter, that reflects
-            ##// value and error back propagated from MINUIT
-            ##sigma_g2.Print() ;
 
     def calculate_func_pdf( self ) :
         """
@@ -734,11 +657,14 @@ class FitManager :
             sampMan.outputs[self.label] = can
 
     def get_results( self, workspace = None) :
+        print "get_results",workspace, self.datahist
 
 
         results = {}
         for param in self.fit_params.values() :
+            ## FIXME getErrorHi ??
             results[param.GetName()] = ufloat( param.getValV(), param.getErrorHi() )
+            print param.GetName(), ufloat( param.getValV(), param.getErrorHi( ))
 
 
         #power_res = ufloat( power.getValV(), power.getErrorHi() )
@@ -746,13 +672,16 @@ class FitManager :
         #int_res   = ufloat( integral, math.sqrt( integral ) )
 
         results['integral'] = self.Integral( )
-        integral_var = ROOT.RooRealVar('%s_norm' %( self.func_pdf.GetName() ), 'normalization', results['integral'].n )
+        integral_var = ROOT.RooRealVar('%s_norm' %( self.func_pdf.GetName() ), 
+                        'normalization', results['integral'].n )
         integral_var.setError( results['integral'].s )
 
+        print "importing"
         if workspace is not None :
-            getattr( workspace , 'import' ) ( self.datahist )
-            getattr( workspace , 'import' ) ( self.func_pdf )
-            getattr( workspace , 'import' ) ( integral_var )
+            ## NOTE getattr is needed to escape python keyword import
+            getattr( workspace, "import" ) ( self.datahist )
+            getattr( workspace, "import" ) ( self.func_pdf )
+            getattr( workspace, "import" ) ( integral_var  )
 
 
         return results
@@ -848,17 +777,21 @@ class FitManager :
             self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[0]))
             print "plotparm"
             print plotparm
-            pmlayout = kw.get("paramlayout",(0.65,0.9,0.8))
+            pmlayout = kw.get("paramlayout",(0.65,0.9,0.7))
             ## toggle off parameters with None in layout
             if  pmlayout:
                 if useOldsetup:
                    # make the param names short
                    for name, param in self.fit_params.iteritems() :
                        param.SetName( name )
-                   self.func_pdf.paramOn( self.frame, ROOT.RooFit.ShowConstants(True), ROOT.RooFit.Layout(*pmlayout), ROOT.RooFit.Format("NBNEU" , ROOT.RooFit.FixedPrecision(2)) )
+                   self.func_pdf.paramOn( self.frame, ROOT.RooFit.ShowConstants(True),
+                                          ROOT.RooFit.Layout(*pmlayout),
+                                          ROOT.RooFit.Format("NBNEU" ,
+                                          ROOT.RooFit.FixedPrecision(2)) )
                    # to make the border size zero for the parameters
                    # this seems like a dangerous way to do, but currrently can not find a better way
-                   self.frame.findObject("%s_paramBox"%self.func_pdf.GetName()).SetBorderSize(0)
+                   self.frame.findObject("%s_paramBox"%self.func_pdf.GetName())\
+                                                            .SetBorderSize(0)
                 else:
                    self.func_pdf.paramOn(self.frame,
                             RooFit.Layout(*pmlayout)).Draw()
@@ -871,7 +804,9 @@ class FitManager :
         self.frame.Draw()
         ROOT.gPad.SetTicks(1,1)
         # draw the plot status label
-        self.draw_label(label_config={"dx":-0.05,"dy":0.0})
+        label_config = kw.get("label_config",{})
+        label_config.update({"dx":-0.05,"dy":0.0})
+        self.draw_label(label_config=label_config)
         # draw pull or residual plot
         if subplot:
             self.curr_canvases["bottom"].cd()
@@ -886,7 +821,7 @@ class FitManager :
                self.subframe.GetYaxis().SetRangeUser(-5.0,5.0)
                self.subframe.GetXaxis().SetTitle("m_{T} [GeV]")
             ROOT.gPad.SetTicks(1,1)
-            chi  =self.getchisquare() ##FIXME
+            chi  =self.getchisquare()
             print "Printed Chi: ",chi
             # print chi-sq
             self.latex = ROOT.TLatex()
@@ -1010,12 +945,12 @@ class FitManager :
         cut2_vals   = (  1.5,       1.,       2.5  )
         power2_vals = (  4.0,       0.,       5.0  )
 
-        cb_cut1   = self.MakeROOTObj('RooRealVar', 'cb_cut1_%s'   %self.label,   'Cut1'  ,  cut1_vals[0],   cut1_vals[1],   cut1_vals[2],   '')
-        cb_sigma  = self.MakeROOTObj('RooRealVar', 'cb_sigma_%s'  %self.label,   'Width' ,  sigma_vals[0],  sigma_vals[1],  sigma_vals[2],  'GeV')
-        cb_power1 = self.MakeROOTObj('RooRealVar', 'cb_power1_%s' %self.label,   'Power' ,  power1_vals[0], power1_vals[1], power1_vals[2], '')
-        cb_m0     = self.MakeROOTObj('RooRealVar', 'cb_mass_%s'   %self.label,   'mass'  ,  mass_vals[0],   mass_vals[1],   mass_vals[2],   'GeV')
-        cb_cut2   = self.MakeROOTObj('RooRealVar', 'cb_cut2_%s'   %self.label,   'Cut2'  ,  cut2_vals[0],   cut2_vals[1],   cut2_vals[2],   '')
-        cb_power2 = self.MakeROOTObj('RooRealVar', 'cb_power2_%s' %self.label,   'Power' ,  power2_vals[0], power2_vals[1], power2_vals[2], '')
+        cb_cut1   = ROOT.RooRealVar('cb_cut1_%s'   %self.label,   'Cut1'  ,  cut1_vals[0],   cut1_vals[1],   cut1_vals[2],   '')
+        cb_sigma  = ROOT.RooRealVar('cb_sigma_%s'  %self.label,   'Width' ,  sigma_vals[0],  sigma_vals[1],  sigma_vals[2],  'GeV')
+        cb_power1 = ROOT.RooRealVar('cb_power1_%s' %self.label,   'Power' ,  power1_vals[0], power1_vals[1], power1_vals[2], '')
+        cb_m0     = ROOT.RooRealVar('cb_mass_%s'   %self.label,   'mass'  ,  mass_vals[0],   mass_vals[1],   mass_vals[2],   'GeV')
+        cb_cut2   = ROOT.RooRealVar('cb_cut2_%s'   %self.label,   'Cut2'  ,  cut2_vals[0],   cut2_vals[1],   cut2_vals[2],   '')
+        cb_power2 = ROOT.RooRealVar('cb_power2_%s' %self.label,   'Power' ,  power2_vals[0], power2_vals[1], power2_vals[2], '')
 
         # fix a few params in the signal fit
         cb_cut2.setConstant()
@@ -1027,7 +962,9 @@ class FitManager :
         cb_power1.setConstant()
         cb_power1.setError(0.0)
 
-        self.func_pdf = self.MakeROOTObj('RooDoubleCB', 'cb_%s'%self.label, 'Double Sided Crystal Ball Lineshape', self.xvardata, cb_m0, cb_sigma, cb_cut1, cb_power1, cb_cut2, cb_power2)
+        self.dof = 3
+
+        self.func_pdf = ROOT.RooDoubleCB( 'cb_%s'%self.label, 'Double Sided Crystal Ball Lineshape', self.xvardata, cb_m0, cb_sigma, cb_cut1, cb_power1, cb_cut2, cb_power2)
 
         self.fit_params['cb_cut1'] = cb_cut1
         self.fit_params['cb_sigma'] = cb_sigma

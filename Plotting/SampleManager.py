@@ -195,10 +195,15 @@ class Sample :
     #--------------------------------
 
     def scale_calc(self, onthefly=True):
+        if self.cross_section <=0 or self.lumi <=0:
+            print "no valid luminosity or cross section - not scaling"
+            return 1
         if onthefly:
-            return analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
+            return analysis_utils.scale_calc(self.cross_section, self.lumi,
+                    self.total_events_onthefly, self.gen_eff, self.k_factor)
         else:
-            return analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events         , self.gen_eff, self.k_factor)
+            return analysis_utils.scale_calc(self.cross_section, self.lumi,
+                    self.total_events         , self.gen_eff, self.k_factor)
 
 
     #--------------------------------
@@ -209,8 +214,9 @@ class Sample :
             print "Nevents invalid for Data sample"
             return -1
         if self.IsGroupedSample():
-            return sum([ samp.nevt_calc() for samp in self.groupedSamples ]) 
-        return analysis_utils.nevents_calc(self.cross_section, self.lumi, self.gen_eff, self.k_factor)
+            return sum([ samp.nevt_calc() for samp in self.groupedSamples ])
+        return analysis_utils.nevents_calc(self.cross_section, self.lumi,
+                        self.gen_eff, self.k_factor)
 
 
     #--------------------------------
@@ -219,13 +225,17 @@ class Sample :
         self.hist.SetLineColor( self.color )
         self.hist.SetMarkerColor( self.color )
         self.hist.SetTitle('')
-        if onthefly and not (self.isData or self.IsGroupedSample() or self.name == "__AllStack__" or self.isRatio==True):
+        if onthefly and not (self.isData or self.IsGroupedSample() or \
+                self.name == "__AllStack__" or self.isRatio==True):
             #scale = self.cross_section*self.lumi/self.total_events_onthefly
-            #analysis_utils.scale_calc(self.cross_section, self.lumi, self.total_events_onthefly, self.gen_eff, self.k_factor)
-            scale = self.scale_calc() 
+            #analysis_utils.scale_calc(self.cross_section, self.lumi,
+            # self.total_events_onthefly, self.gen_eff, self.k_factor)
+            scale = self.scale_calc()
         else: scale = self.scale
         self.hist.Scale( scale )
-        self.quietprint( 'XS: %f  sample lumi: %f sample total events otf: %g logged: %g' %( self.cross_section, self.lumi, getattr(self,"total_events_onthefly",-1), self.total_events))
+        self.quietprint( 'XS: %f  sample lumi: %f sample total events otf: %g logged: %g'\
+                    %( self.cross_section, self.lumi,
+                        getattr(self,"total_events_onthefly",-1), self.total_events))
         self.quietprint( 'Scale %s by %f logged value: %f' %( self.name, scale, self.scale ))
         #raise RuntimeError
         if self.isData :
@@ -512,8 +522,9 @@ class SampleFrame(object):
 class SampleManager(SampleFrame) :
     """ Manage input samples and drawn histograms, inherits SampleFrame """
 
-    def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events', filename='ntuple.root',
-            base_path_model=None, xsFile=None, lumi=None, readHists=False, dataFrame=True, quiet=False, weightHistName = "weighthist") :
+    def __init__(self, base_path, treeName=None, mcweight=1.0, treeNameModel='events',
+            filename='ntuple.root', base_path_model=None, xsFile=None, lumi=1,
+            readHists=False, dataFrame=True, quiet=False, weightHistName = "weighthist") :
 
         #
         # This plotting module assumes that root files are
@@ -539,7 +550,8 @@ class SampleManager(SampleFrame) :
         # the name of the tree to read
         self.treeName        = treeName
 
-        # the name of weighed event count histogram; Don't import and override hard coded totevt if none
+        # the name of weighed event count histogram; Don't import and override
+        # hard coded totevt if none
         self.weightHistName  = weightHistName
 
         # Name of the file.  This can be overwritten in the configuration module
@@ -3017,6 +3029,20 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     def parsehist(self, histpars, varexp, histname=None):
+        """ 
+            helper function to parse histogram inputs
+            1D histogram: condition - varexp = "varx"
+                          histpars  - 1. (Nbinx, xbinlow, xbinhigh)
+                                    - 2. [xbins]
+            2D histogram: condition - varexp = "varx:vary"
+                          histpars  - 1. (Nbinx, xbinlow, xbinhigh, Nbiny, ybinlow, ybinhigh)
+                                    - 2. ([xbins],[ybins])
+            3D histogram: condition - varexp = "varx:vary:varz"
+                          histpars  - 1. (Nbinx, xbinlow, xbinhigh,
+                                          Nbiny, ybinlow, ybinhigh,
+                                          Nbinz, zbinlow, zbinhigh)
+        
+        """
 
         if histname==None: histname = str(uuid.uuid4())
 
@@ -3046,7 +3072,8 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def create_hist( self, sample, varexp, selection, histpars, isModel=False ) :
+    def create_hist( self, sample, varexp, selection, histpars, isModel=False,
+                    overflow=True) :
 
         if isinstance( sample, str) :
             slist = self.get_samples( name=sample )
@@ -3091,9 +3118,9 @@ class SampleManager(SampleFrame) :
                 if not self.quiet : print 'Draw grouped hist %s' %subsampname
 
                 if isModel and subsampname in [s.name for s in self.get_model_samples()] :
-                    self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel )
+                    self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel ,overflow=overflow)
                 elif subsampname in self.get_sample_names() :
-                    self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel )
+                    self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel ,overflow=overflow)
 
             sample.failed_draw=False
             for subsampname in sample.groupedSampleNames :
@@ -3119,7 +3146,8 @@ class SampleManager(SampleFrame) :
                 sample.failed_draw=True
 
             if sample.hist is not None :
-                self.format_hist( sample )
+                if overflow: self.AddOverflow( sample.hist )
+                sample.SetHist()
 
             return True
 
@@ -3295,6 +3323,7 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
+    @f_Dumpfname
     def AddOverflow(self,  hist ) :
 
         # account for overflow and underflow
