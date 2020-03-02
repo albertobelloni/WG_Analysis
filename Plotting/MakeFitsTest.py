@@ -10,26 +10,25 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 import json
 
-from SampleInfo2 import SampleInfo
+from SampleInfo import SampleInfo
 
 ## need to read the xsection info
 import analysis_utils
 
 parser = ArgumentParser()
 
-parser.add_argument( '--baseDir', help='path to workspace directory' )
-parser.add_argument( '--outputDir', default=None, help='name of output diretory for cards')
-#parser.add_argument( '--doStatTests', action='store_true', help='run statistical tests of WGamma background')
+parser.add_argument( '--baseDir',                            help='path to workspace directory' )
+parser.add_argument( '--outputDir',     default=None,        help='name of output diretory for cards')
+#parser.add_argument( '--doStatTests',  action='store_true', help='run statistical tests of WGamma background')
 #parser.add_argument( '--doWJetsTests', action='store_true', help='run tests of Wjets background' )
-#parser.add_argument( '--doFinalFit',  action='store_true', help='run fit to data and background' )
-parser.add_argument( '--doVarOpt',     action='store_true', help='run variable optimization' )
-#parser.add_argument( '--doJetOpt',      action='store_true', help='run jet veto optimization' )
-parser.add_argument( '--useHistTemp', action='store_true', help='use histogram templates' )
-parser.add_argument( '--useToySignal', action='store_true', help='use gaussian as signal' )
-parser.add_argument( '--useToyBackground',  action='store_true', help='use exponential as background ' )
-parser.add_argument( '--noRunCombine',     action='store_true', help='Dont run combine, use existing results' )
-parser.add_argument( '--combineDir',      default=None,        help='path to combine directory' )
-parser.add_argument( '--condor',  action='store_true', help='run condor jobs' )
+#parser.add_argument( '--doFinalFit',   action='store_true', help='run fit to data and background' )
+parser.add_argument( '--doVarOpt',      action='store_true', help='run variable optimization' )
+parser.add_argument( '--useHistTemp',   action='store_true', help='use histogram templates' )
+parser.add_argument( '--useToySignal',  action='store_true', help='use gaussian as signal' )
+parser.add_argument( '--useToyBkgd',    action='store_true', help='use exponential as background ' )
+parser.add_argument( '--noRunCombine',  action='store_true', help='Dont run combine, use existing results' )
+parser.add_argument( '--combineDir',    default=None,        help='path to combine directory' )
+parser.add_argument( '--condor',        action='store_true', help='run condor jobs' )
 
 options = parser.parse_args()
 
@@ -152,6 +151,7 @@ def main() :
 #                     #{ 'name' : 'ph_pt'          , 'color' : ROOT.kMagenta },
 #                   }
 
+        ROOT.RooRandom.randomGenerator().SetSeed(int(time.time()))
         var_opt = MakeLimits(  var=  "mt_res" ,
                                wskeys = ws_keys,
                                masspoints  = signal_masses,
@@ -164,7 +164,7 @@ def main() :
                                #outputDir='%s/%s/%s' %( options.outputDir, 'VarOpt', var['name'] ),
                                outputDir=options.outputDir,
                                useToySignal=options.useToySignal,
-                               useToyBackground=options.useToyBackground,
+                               useToyBackground=options.useToyBkgd,
                              )
 
         var_opt.setup()
