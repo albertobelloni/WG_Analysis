@@ -24,6 +24,8 @@ if options.dataDir is not None :
 fitmlist = []
 
 def main() :
+    sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, lumi=-1)
+    sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, lumi=-1)
     sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG.ReadSamples( _SAMPCONF )
 
@@ -191,7 +193,7 @@ def makeselstring(ch="el"):
     ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 50 && !ph_hasPixSeed[0]'
     ph_tightpt_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && !ph_hasPixSeed[0]'
 
-    met_str = 'met_pt > 25'
+    met_str = 'met_pt > 40'
 
     Zveto_str = 'fabs(m_lep_ph-91)>15.0'
 
@@ -283,6 +285,7 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
 
         ## make histogram
         sampMan.create_hist( samp, var, full_sel_sr, signal_binning[iwidth][mass] )
+        print "Integral: ", samp.hist.Integral()
 
         ## fit histogram
         fit_sample( samp.hist, xvar, workspace, full_suffix, sample_params, lconf)

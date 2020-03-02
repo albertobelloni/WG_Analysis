@@ -25,8 +25,8 @@ class SampleInfo() :
        #self.channel = kwargs.get('channel', 'mu')
 
        # analysis eta region: EB (probably never changed.)
-       self.eta     = kwargs.get('eta',     'EB')
-       self.wstag   = kwargs.get('wstag',   'base')
+       #self.eta     = kwargs.get('eta',     'EB')
+       #self.wstag   = kwargs.get('wstag',   'base')
 
        # analysis variable
        #self.var     = kwargs.get('var',     'mt_fulltrans')
@@ -58,7 +58,9 @@ class SampleInfo() :
 
    def GetPDFName( self, var, channel="mu", year = 2016 ):
        if self.isSignal:
-          return "_".join( [ self.pdf_prefix, self.sigpar, channel, var, self.wstag, self.eta ] )
+          tmp =  "_".join( [ self.pdf_prefix, self.sigpar, channel+str(year), var ] )
+          print "pdfname:",tmp
+          return tmp
        else:
           return "_".join( [ self.pdf_prefix, channel+str(year), self.name.lower()] )
 
@@ -66,15 +68,15 @@ class SampleInfo() :
        parlist = []
        for ipar_prefix in self.params_prefix:
            if self.isSignal:
-              parlist.append( "_".join( [ ipar_prefix, self.sigpar, channel, var, self.wstag, self.eta ] ) )
+              parlist.append( "_".join( [ ipar_prefix, self.sigpar, channel+str(year), var ] ) )
            else:
               parlist.append( "_".join( [ ipar_prefix,
                   channel+str(year), self.name.lower() ] ) )
        return parlist
 
 
-   def SetOutputName( self, outputDir ):
-       self.outputfname = outputDir + '/' + self.name + '/' + self.GetRootFileName()  + '.root'
+   def GetOutputName( self, outputDir , channel = "mu", year = 2016):
+       return outputDir + '/' + self.name + '/' + channel+str(year)+self.GetRootFileName()
 
    def SetNorm( self, norm, err):
        self.norm = ( norm, err )
