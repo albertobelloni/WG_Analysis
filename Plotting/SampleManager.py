@@ -3060,7 +3060,7 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def create_hist( self, sample, varexp, selection, histpars, isModel=False ) :
+    def create_hist( self, sample, varexp, selection, histpars, isModel=False, overflow=True ) :
 
         if isinstance( sample, str) :
             slist = self.get_samples( name=sample )
@@ -3105,9 +3105,9 @@ class SampleManager(SampleFrame) :
                 if not self.quiet : print 'Draw grouped hist %s' %subsampname
 
                 if isModel and subsampname in [s.name for s in self.get_model_samples()] :
-                    self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel )
+                    self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel ,overflow=overflow)
                 elif subsampname in self.get_sample_names() :
-                    self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel )
+                    self.create_hist( subsamp, varexp, selection, histpars, isModel=isModel ,overflow=overflow)
 
             sample.failed_draw=False
             for subsampname in sample.groupedSampleNames :
@@ -3133,7 +3133,8 @@ class SampleManager(SampleFrame) :
                 sample.failed_draw=True
 
             if sample.hist is not None :
-                self.format_hist( sample )
+                if overflow: self.AddOverflow( sample.hist )
+                sample.SetHist()
 
             return True
 
@@ -3309,6 +3310,7 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
+    @f_Dumpfname
     def AddOverflow(self,  hist ) :
 
         # account for overflow and underflow
