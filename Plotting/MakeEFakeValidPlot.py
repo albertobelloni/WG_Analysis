@@ -62,56 +62,56 @@ worststr = defs.build_bad_efake_sector_string(options.year, "worst")
 badstr = defs.build_bad_efake_sector_string(options.year, "bad")
 
 for stag, samplename in [("zjet","Z+jets"), ("data","Data")]:
-#    ### photon pT vs phi
-#    hbin = (list(np.linspace(-3.1416,3.1416,73)),[20,25,30,35,40,45,50,60,80,85])
-#    hrate = transferrate2dplotmaker(samples, "ph_pt[0]:ph_phi[0]", sel,
-#                                    samplename, hbin, "ptVSphi_%ielg_%s_colz.pdf"%(year,stag))
-#    hrate.Draw("SURF2")
-#    samples.SaveStack("trf2D_ptVSphi_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
-#    # met bias (A*D/B/S = est/S)
-#    hrate = metbias2dplotmaker(samples, "ph_pt[0]:ph_phi[0]", sel1, samplename, hbin,plotopt = "CONT4")
-#    samples.SaveStack("metbias2D_ptVSphi_%ielg_%s_cont4.pdf" %(year,stag), options.outputDir, "base0")
-#
-#    ### photon eta vs phi
+    ### photon pT vs phi
+    hbin = (list(np.linspace(-3.1416,3.1416,73)),[20,25,30,35,40,45,50,60,80,85])
+    hrate = transferrate2dplotmaker(samples, "ph_pt[0]:ph_phi[0]", sel,
+                                    samplename, hbin, "ptVSphi_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_ptVSphi_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+    # met bias (A*D/B/S = est/S)
+    hrate = metbias2dplotmaker(samples, "ph_pt[0]:ph_phi[0]", sel1, samplename, hbin,plotopt = "CONT4")
+    samples.SaveStack("metbias2D_ptVSphi_%ielg_%s_cont4.pdf" %(year,stag), options.outputDir, "base0")
+
+    ### photon eta vs phi
     hbin = (144,-36,36,20,-2,2)
-#    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_phi[0]/3.1415927*36", sel,
-#                                    samplename, hbin, "etaVSphi_%ielg_%s_colz.pdf"%(year,stag))
-#    hrate.Draw("SURF2")
-#    samples.SaveStack("trf2D_etaVSphi_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
-#
+    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_phi[0]/3.1415927*36", sel,
+                                    samplename, hbin, "etaVSphi_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_etaVSphi_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+
     ### photon eta vs phi (worst mask)
-#    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_phi[0]/3.1415927*36", "%s && !(%s)" %(sel, worststr),
-#                                    samplename, hbin, "etaVSphi_worst_%ielg_%s_colz.pdf"%(year,stag))
-#    hrate.Draw("SURF2")
-#    samples.SaveStack("trf2D_etaVSphi_worst_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
-#
-#    ### photon eta vs phi (bad mask)
-#    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_phi[0]/3.1415927*36", "%s && !(%s)" %(sel, badstr),
-#                                    samplename, hbin, "etaVSphi_bad_%ielg_%s_colz.pdf"%(year,stag))
-#    hrate.Draw("SURF2")
-#    samples.SaveStack("trf2D_etaVSphi_bad_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
-#
-#    ### photon eta vs pT
+    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_phi[0]/3.1415927*36", "%s && !(%s)" %(sel, worststr),
+                                    samplename, hbin, "etaVSphi_worst_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_etaVSphi_worst_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+
+    ### photon eta vs phi (bad mask)
+    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_phi[0]/3.1415927*36", "%s && !(%s)" %(sel, badstr),
+                                    samplename, hbin, "etaVSphi_bad_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_etaVSphi_bad_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+
+    ### photon eta vs pT
     hbin = ([20,25,30,35,40,45,50,60,80,85],list(np.linspace(-2,2,21)))
-#    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", sel, samplename, hbin, "ptVSeta_%ielg_%s_colz.pdf"%(year,stag))
-#    hrate.Draw("SURF2")
-#    samples.SaveStack("trf2D_ptVSeta_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
-#
-#    ### photon eta vs pT (bad mask)
-#    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", "%s && !(%s)" %(sel,badstr),
-#                                    samplename, hbin, "ptVSeta_bad_%ielg_%s_colz.pdf"%(year,stag))
-#    hrate.Draw("SURF2")
-#    samples.SaveStack("trf2D_ptVSeta_bad_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", sel, samplename, hbin, "ptVSeta_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_ptVSeta_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
 
     ### photon eta vs pT (bad mask)
-#    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", "%s && (%s)" %(sel,badstr),
-#                                    samplename, hbin, "ptVSeta_badtag_%ielg_%s_colz.pdf"%(year,stag))
-#    hrate.Draw("SURF2")
-#    samples.SaveStack("trf2D_ptVSeta_badtag_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
-#
-#    # met bias (A*D/B/S = est/S)
-#    hrate = metbias2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", sel1, samplename, hbin, plotopt = "CONT4")
-#    samples.SaveStack("metbias2D_ptVSeta_%ielg_%s_cont4.pdf" %(year,stag), options.outputDir, "base0")
+    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", "%s && !(%s)" %(sel,badstr),
+                                    samplename, hbin, "ptVSeta_bad_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_ptVSeta_bad_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+
+    ### photon eta vs pT (bad mask)
+    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", "%s && (%s)" %(sel,badstr),
+                                    samplename, hbin, "ptVSeta_badtag_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_ptVSeta_badtag_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+
+    # met bias (A*D/B/S = est/S)
+    hrate = metbias2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", sel1, samplename, hbin, plotopt = "CONT4")
+    samples.SaveStack("metbias2D_ptVSeta_%ielg_%s_cont4.pdf" %(year,stag), options.outputDir, "base0")
 
 lconf = {"labelStyle":str(year),"extra_label":"%i Muon Channel" %year, "extra_label_loc":(.17,.82)}
 lgconf={#"legendWiden":1.5,
