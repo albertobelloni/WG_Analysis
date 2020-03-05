@@ -275,6 +275,7 @@ class Sample :
                         self.weightHist = wh
                     else:
                         self.weightHist.Add(wh)
+                    rf.Close()
                 self.chain.Add(f)
 
 
@@ -2513,7 +2514,7 @@ class SampleManager(SampleFrame) :
         self.draw_and_configure( draw_config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
 
         #return self.curr_canvases["base"]
-        self.histpars = histpars
+        self.curr_sampleframe.histpars = histpars
         return self.curr_sampleframe
 
 
@@ -3255,6 +3256,7 @@ class SampleManager(SampleFrame) :
 
 
             self.group_sample( sample, isModel=isModel )
+            sample.InitHist(onthefly = draw_config.get_onthefly())
 
             return
 
@@ -3262,7 +3264,7 @@ class SampleManager(SampleFrame) :
             start = time.time()
             if usedataframe:
                 sample.hist = varexp.sampleptr[sample].GetValue().Clone()
-            elif sample.chain is not None: 
+            elif sample.chain is not None:
                 if sample.chain.GetEntries() == 0: print tRed %('WARNING: No entries from sample ' + sample.name)
                 if sample.isData:
                     selection = selection.replace('prefweight', '1')
@@ -3661,7 +3663,7 @@ class SampleManager(SampleFrame) :
                 #sample.hist.Draw()
             #sample.hist.Scale(sample.scale)
 
-        sample.InitHist()
+        #sample.InitHist()
 
 
     #--------------------------------
@@ -4022,17 +4024,24 @@ class SampleManager(SampleFrame) :
         err = array('d',[0])
         ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
 
-        if integralrange and isinstance(integralrange,(list,tuple)) and len(integralrange)==2:
+        if integralrange and isinstance(integralrange,(list,tuple)) \
+                                            and len(integralrange)==2:
             print "use range %g, %g" %integralrange
             ranger  = lambda h, e, r: map(h.FindBin, r)+[e]
 
         if acceptance:
-            ### to calculate acceptance, divide by overall normalization of the sample
-            result = [(s.legendName if dolatex else s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange))/ s.nevt_calc() ,err[0]/ s.nevt_calc()))\
-                         for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.hist]
+            ### to calculate acceptance, divide by overall normalization
+            ###  of the sample
+            result = [(s.legendName if dolatex else s.name,
+                     (s.hist.IntegralAndError(*ranger(s.hist,err,integralrange))\
+                      / s.nevt_calc() ,err[0]/ s.nevt_calc()))\
+                      for s in self.get_samples(isActive=isActive,isData=False)\
+                      if s.name != "ratio" and s.hist]
         else:
-            result = [(s.legendName if dolatex else s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
-                         for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.hist]
+            result = [(s.legendName if dolatex else s.name,
+           (s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
+                      for s in self.get_samples(isActive=isActive,isData=False)\
+                        if s.name != "ratio" and s.hist]
 
         if sort: result.sort(key=lambda x: -x[1][0])
         htotal = self.get_stack_aggregate()

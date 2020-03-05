@@ -1,33 +1,35 @@
 #!/usr/bin/env python
-import ROOT
-from itertools import product
-import numpy as np
-from math import pi
-import os
-import selection_defs as defs
-from SampleManager import SampleManager, f_Obsolete
-ROOT.PyConfig.IgnoreCommandLineOptions = True
-
 from argparse import ArgumentParser
-parser = ArgumentParser()
-parser.add_argument('--baseDirMuG',      default=None,          dest='baseDirMuG',          required=False, help='Path to muon base directory')
-parser.add_argument('--baseDirElG',      default=None,          dest='baseDirElG',          required=False, help='Path to electron base directory')
-parser.add_argument('--baseDirMuMu',     default=None,          dest='baseDirMuMu',         required=False, help='Path to muon base directory')
-parser.add_argument('--baseDirElEl',     default=None,          dest='baseDirElEl',         required=False, help='Path to electron base directory')
-parser.add_argument('--outputDir',       default=None,          dest='outputDir',           required=False, help='Output directory to write histograms')
-parser.add_argument('--dataDir',         default=None,          dest='dataDir',             required=False, help='IO directory to data')
-parser.add_argument('--data',            default=False,         dest='data',      action="store_true",      help='Use data or MC')
-parser.add_argument('--batch',           default=False,         dest='batch',     action="store_true",      help='Supress X11 output')
-parser.add_argument('--year',            default=2016,          dest='year',   type=int,    required=False, help='Set run year')
-parser.add_argument('--nodataFrame',     default=True,          dest='dataFrame',  action='store_false',    help='backwards compatibility for pre-2019 releases of ROOT')
+if "parser" not in locals(): parser = ArgumentParser()
+parser.add_argument('--baseDirMuG',      default=None,          help='Path to muon base directory')
+parser.add_argument('--baseDirElG',      default=None,          help='Path to electron base directory')
+parser.add_argument('--baseDirMuMu',     default=None,          help='Path to muon base directory')
+parser.add_argument('--baseDirElEl',     default=None,          help='Path to electron base directory')
+parser.add_argument('--outputDir',       default=None,          help='Output directory to write histograms')
+parser.add_argument('--dataDir',         default=None,          help='IO directory to data')
+parser.add_argument('--data',            action="store_true",   help='Use data or MC')
+parser.add_argument('--batch',           action="store_true",   help='Supress X11 output')
+parser.add_argument('--year',            default=2016,          type=int,            help='Set run year')
+parser.add_argument('--nodataFrame',     dest='dataFrame',  action='store_false',    help='backwards compatibility for pre-2019 releases of ROOT')
 #parser.add_argument('--weightHistName',     default="weighthist",  type=str ,        dest='weightHistName',         help='name of weight histogram')
 
 ## add additional argument if addparser() is defined
 if "addparser" in locals(): addparser(parser)
 options = parser.parse_args()
 
-_TREENAME = 'UMDNTuple/EventTree'
+import ROOT
+from itertools import product
+import numpy as np
+from math import pi
+import os
+import sys
+import selection_defs as defs
+from SampleManager import SampleManager, f_Obsolete
+#ROOT.PyConfig.IgnoreCommandLineOptions = True
+
+
 _FILENAME = 'tree.root'
+_TREENAME = 'UMDNTuple/EventTree'
 datestr   = "2019_12_12"
 
 lumiratio = 1.
@@ -104,9 +106,13 @@ metgt40 = '&&met_pt>40'
 
 ph_eb =  ' && ph_IsEB[0]'
 el_eb =  ' &&abs(el_eta[0])<2.1'
+elaetalt =  ' &&abs(el_eta[0])<%.3g'
 
 invZ = '&& abs(m_lep_ph-91)>15'
 massZ = '&& abs(m_lep_ph-91)<15'
+invzlt = '&& abs(m_lep_ph-91)>%i'
+csvmed = " && jet_CSVMedium_n>1"
+
 nophmatch = "&& !(ph_truthMatchPh_dr[0]<ph_truthMatchEl_dr[0])"
 phmatch = "&& (ph_truthMatchPh_dr[0]<ph_truthMatchEl_dr[0])"
 flatphi = "ph_phi[0]+3.1416*(1+2*(ph_eta[0]>0))"
