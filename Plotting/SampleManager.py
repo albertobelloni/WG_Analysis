@@ -17,8 +17,7 @@ from array import array
 import time
 import analysis_utils
 from functools import wraps
-from uncertainties import ufloat
-from uncertainties import umath
+from uncertainties import ufloat, umath
 import pickle
 import core
 import subprocess
@@ -30,48 +29,68 @@ ROOT.gROOT.SetBatch(False)
 
 ROOT.gStyle.SetPalette(1)
 tColor_Off="\033[0m"                       # Color Reset
-tRed      ="\033[1;31m%s"+tColor_Off       # Red 
+tRed      ="\033[1;31m%s"+tColor_Off       # Red
 tPurple   ="\033[0;35m%s"+tColor_Off       # Purple
 
 def f_Obsolete(f):
-        @wraps(f)
-        def f_wrapper(*args, **kws):
-                print "This method is obsolete"
-                return f(*args,**kws)
-        return f_wrapper
 
-def f_Fixme(f):
-        @wraps(f)
-        def f_wrapper(*args, **kws):
-                print "FIXME"
-                print "\033[1;31m FIXME \033[0m"
-                return f(*args,**kws)
-        return f_wrapper
+    @wraps(f)
+    def f_wrapper(*args, **kws):
+            print "This method is obsolete"
+            return f(*args,**kws)
 
+    return f_wrapper
 
 def f_Dumpfname(func):
     """ decorator to show function name and caller name """
+
     @wraps(func)
     def echo_func(*func_args, **func_kwargs):
-        print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'.format(func.__name__,sys._getframe(1).f_code.co_name))
+        print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'\
+                        .format(func.__name__,sys._getframe(1).f_code.co_name))
         return func(*func_args, **func_kwargs)
+
     return echo_func
 
 def latex_float(f, u=None):
+
     if f!=0 and abs(f)<0.1: float_str = "{0:.3e}".format(f)
     else:          float_str = "{0:.4g}".format(f)
+
     if "e" in float_str:
+
         base, exponent = float_str.split("e")
+
         if u is not None:
+
             u=u/10**int(exponent)
             uncer_str = "{0:.3g}".format(u)
-            return r"${0}$ & $\pm {1} \times 10^{{{2}}}$".format(base, uncer_str, int(exponent))
-        return r"${0} \times 10^{{{1}}}$&".format(base, int(exponent))
+            return r"${0}$ & $\pm {1} \times 10^{{{2}}}$"\
+                        .format(base, uncer_str, int(exponent))
+
+        return r"${0} \times 10^{{{1}}}$&"\
+                        .format(base, int(exponent))
+
     elif u:
         return r"${0}$ & $\pm {1:.3g}$".format(float_str, u)
+
     else:
         return float_str
 
+
+def normalizebybin( hist ):
+    ## or h.Scale(1., "width")
+
+    if not isinstance( hist, ROOT.TH1 ):
+        raise TypeError
+
+    for i in range(1,hist.GetNbinsX()+1):
+        y  = hist.GetBinContent(i)
+        ye = hist.GetBinError(i)
+        wd = hist.GetBinWidth(i)
+        hist.SetBinContent(i, y /wd)
+        hist.SetBinError  (i, ye/wd)
+    return
 
     #--------------------------------
 
@@ -359,7 +378,44 @@ class Sample :
 
     def walk_text(self, index=0):
         if not self.ofiles: return []
-        return list(analysis_utils.walk_root_text(ROOT.TFile(self.ofiles[index])))
+        return list( analysis_utils.walk_root_text\
+                         ( ROOT.TFile( self.ofiles[index] ) ) )
+
+
+    #--------------------------------
+
+
+    def acceptance( self, irange = None, option = "" ):
+        """ calculate acceptance from integral """
+
+        return self.integral( irange, option, norm = self.nevt_calc() )
+
+
+    #--------------------------------
+
+
+    def integral( self, irange = None, option = "", norm = None):
+        """ calculate integral. option='width' for bin width normalization"""
+
+        if not self.hist:
+            raise TypeError("No histogram is found")
+        err = array('d',[0])
+
+        ## set bin to first and last one if whole range is needed
+        ## range is given in bin number and inclusive
+        ## h.Integral( n, n ) is same as h.GetBinContent( n )
+        if irange == None:
+            minibin, maxibin = 1, h.GetNbinsX()
+        else:
+            minibin = self.hist.FindBin(r[0])
+            maxibin = self.hist.FindBin(r[1])
+
+        ## calculate integral and error
+        intg = self.hist.IntegralAndError( minibin, maxibin, err, option )
+        error = err[0]
+
+        if norm: return intg/norm, error/norm
+        return intg, error
 
 
 
@@ -385,7 +441,7 @@ class SampleFrame(object):
 
     #--------------------------------
 
-    def SetHisto1DFast(self, var, selection, histpars, weight = None, 
+    def SetHisto1DFast(self, var, selection, histpars, weight = None,
                         hist_conf={}, legend_conf={}, label_conf={}, save_as = [], data_exp = False):
         """ data_exp: skip data when True
                       different var, selection with dict (not implemented yet)
@@ -780,7 +836,7 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
     def Merge(self, samplemanager, suffix= ""):
-        """ Merge SampleManagers 
+        """ Merge SampleManagers
             suffix: add suffix to sample names of the merged SampleManager
             destructive to merged SampleManager
         """
@@ -1838,7 +1894,8 @@ class SampleManager(SampleFrame) :
             else:
                ifirst = 1
             err = ROOT.Double()
-            integral = samp.hist.IntegralAndError( ifirst, samp.hist.GetNbinsX(), err )
+            integral = samp.hist.IntegralAndError( ifirst,
+                            samp.hist.GetNbinsX(), err )
 
             if samp.isSignal :
                 signal_entries[samp.name] = ufloat(integral, err)
@@ -2483,37 +2540,52 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def Draw(self, varexp, selection="", histpars=None, hist_config={}, legend_config={}, label_config={},
-            treeHist=None, treeSelection=None, generate_data_from_sample=None, replace_selection_for_sample={} , useModel=False ) :
-
-        """ Draw 1D histogram with all active samples  """
+    def Draw(self, varexp, selection="", histpars=None,
+                   hist_config = {}, legend_config = {}, label_config = {},
+                   treeHist=None, treeSelection=None, useModel=False,
+                   generate_data_from_sample = None,
+                   replace_selection_for_sample = {} ):
         """
-            Arguments:
-                    - varexp: plot variable
-                    - selection: selection passed to all samples
-                    - histpars: for 1D histogram, a tuple with (Nbins, lower bound, upper bound)
-                                for variable bins use a list [] of bin boundaries
-                                for 2D histogram, either a 6-tuple, or a tuple with two lists
+        Draw 1D histogram with all active samples
 
-            produces a histogram and displayed through a TCanvas"""
+        Arguments:
+                - varexp: plot variable
+                - selection: selection passed to all samples
+                - histpars: for 1D histogram, a tuple with (Nbins, lower bound,
+                  upper bound) for variable bins use a list [] of bin
+                  boundaries for 2D histogram, either a 6-tuple, or a tuple
+                  with two lists
+
+        produces a histogram and displayed through a TCanvas
+        """
 
         if self.quiet : print "%s :\033[1;36m %s\033[0m" %(varexp,selection)
 
         if self.collect_commands :
-            self.add_draw_config( varexp, selection, histpars, hist_config=hist_config, label_config=label_config,
-                        legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
+
+            self.add_draw_config( varexp, selection, histpars,
+                                          hist_config   = hist_config,
+                                          label_config  = label_config,
+                                          legend_config = legend_config,
+                     replace_selection_for_sample=replace_selection_for_sample )
             return
 
         if not isinstance(varexp, SampleFrame):
-            command = 'samples.Draw(\'%s\',  \'%s\', %s )' %( varexp, selection, str( histpars ) )
+            command = 'samples.Draw(\'%s\',  \'%s\', %s )' \
+                                %( varexp, selection, str( histpars ) )
             self.transient_data['command'] = command
 
-        draw_config = DrawConfig( varexp, selection, histpars, hist_config=hist_config, label_config=label_config,
-                legend_config=legend_config, replace_selection_for_sample=replace_selection_for_sample  )
+        draw_config = DrawConfig( varexp, selection, histpars,
+                                          hist_config   = hist_config,
+                                          label_config  = label_config,
+                                          legend_config = legend_config,
+                    replace_selection_for_sample=replace_selection_for_sample )
 
-        self.draw_and_configure( draw_config, generate_data_from_sample=generate_data_from_sample, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
+        self.draw_and_configure( draw_config, treeHist=treeHist,
+                        generate_data_from_sample=generate_data_from_sample,
+                        useModel=useModel,
+                        treeSelection=treeSelection )
 
-        #return self.curr_canvases["base"]
         self.curr_sampleframe.histpars = histpars
         return self.curr_sampleframe
 
@@ -2521,24 +2593,31 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def draw_and_configure( self, draw_config, generate_data_from_sample=None, useModel=False, treeHist=None, treeSelection=None ) :
-        """  calls makestack, implment option to imitate data, helper function for SampleManager.Draw """
+    def draw_and_configure( self, draw_config, generate_data_from_sample=None,
+                          useModel=False, treeHist=None, treeSelection=None ) :
+        """
+             calls makestack, implment option to imitate data,
+             helper function for SampleManager.Draw
+        """
 
         self.clear_all()
 
         self.curr_sampleframe = SampleFrame(samplemanager=self)
         self.curr_sampleframe.state = "histo"
 
+        ### histograms for most MC samples are filled here
         res = self.draw_active_samples( draw_config )
         if not res :
             return
 
         if generate_data_from_sample is not None :
             samp_list = self.get_samples( name=generate_data_from_sample )
+
             if samp_list :
                 rand = ROOT.TRandom3()
                 rand.SetSeed( int( time.time() ) )
                 nbins = samp_list[0].hist.GetNbinsX()
+
                 for bin in range( 1, nbins+1 ) :
                     newval = rand.Poisson( samp_list[0].hist.GetBinContent(bin) )
                     samp_list[0].hist.SetBinContent( bin, newval )
@@ -2557,7 +2636,8 @@ class SampleManager(SampleFrame) :
                     self.get_samples(name=name).hist = samp.hist
                     self.get_samples(name=name).legendName = samp.legendName
 
-        if isinstance( draw_config.histpars, tuple) and len(draw_config.histpars) == 4 :
+        if isinstance( draw_config.histpars, tuple) \
+                                        and len(draw_config.histpars) == 4 :
             if isinstance( draw_config.histpars[3], list ) :
                 self.variable_rebinning(binning=draw_config.histpars[3])
             else :
@@ -2565,7 +2645,10 @@ class SampleManager(SampleFrame) :
 
         self.MakeStack(draw_config, useModel, treeHist, treeSelection )
 
-        self.DrawCanvas(self.curr_stack, draw_config, datahists=['Data'], sighists=self.get_signal_samples(), errhists = ["__AllStack__"] )
+        self.DrawCanvas(self.curr_stack, draw_config,
+                                datahists=['Data'],
+                                sighists=self.get_signal_samples(),
+                                errhists = ["__AllStack__"] )
 
 
     #--------------------------------
@@ -2690,12 +2773,15 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def MakeStack(self, draw_config, useModel=False, treeHist=None, treeSelection=None ) :
+    def MakeStack(self, draw_config, useModel=False, treeHist=None,
+                        treeSelection=None ) :
 
         # Get info for summed sample
         bkg_name = '__AllStack__'
         # get all stacked histograms and add them
         stack_samples = self.get_samples( name=self.get_stack_order() )
+        doratio = draw_config.get_doratio()
+        normalize = draw_config.get_normalize()
 
         if stack_samples :
             sum_hist = stack_samples[0].hist.Clone(bkg_name)
@@ -2703,26 +2789,34 @@ class SampleManager(SampleFrame) :
                 sum_hist.Add(samp.hist)
 
             stack_sum = sum_hist.Integral()
-            self.create_sample( bkg_name, isActive=False, hist=sum_hist, temporary=True )
+            if normalize == "ByBin":
+                sum_hist.Scale(1,"width")
+            stack_sum_after = sum_hist.Integral("width")
+            self.create_sample( bkg_name, isActive=False, hist=sum_hist,
+                                temporary=True )
 
         print "stack_sum", stack_sum
-        doratio = draw_config.get_doratio()
-        normalize = draw_config.get_normalize()
+        print "stack_sum after bin width normalization", stack_sum_after
 
         if doratio :
-            # when stacking, the ratio is made with respect to the data.  Find the sample that
-            # is labeled as data.  Throw an error if one data sample is not found
+            # when stacking, the ratio is made with respect to the data.  Find
+            # the sample that is labeled as data.  Throw an error if one data
+            # sample is not found
+
             data_samples = self.get_samples(isData=True, isActive=True)
             if not data_samples :
                 print 'MakeStack - ERROR : No data samples found!'
             assert len(data_samples)>=1
 
-            self.create_ratio_sample( 'ratio', num_sample=data_samples[0], den_sample='__AllStack__' )
+            self.create_ratio_sample( 'ratio', num_sample = data_samples[0],
+                                               den_sample = bkg_name )
 
             # make ratio histograms for signal samples
             signal_samples = self.get_samples( isSignal=True, drawRatio=True )
             for sample in signal_samples :
-                ratio_samp = self.create_ratio_sample( sample.name + '_ratio', num_sample=data_samples[0], den_sample=sample )
+                ratio_samp = self.create_ratio_sample( sample.name + '_ratio',
+                                                 num_sample = data_samples[0],
+                                                 den_sample = sample )
                 ratio_samp.hist.SetLineColor( sample.color )
                 ratio_samp.isSignal = True
 
@@ -2741,7 +2835,10 @@ class SampleManager(SampleFrame) :
             samp.hist.SetFillColor( samp.color )
             samp.hist.SetLineColor( ROOT.kBlack )
             samp.hist.SetLineWidth( 1 )
-            if normalize: samp.hist.Scale(1./stack_sum)
+            if normalize == "ByBin":
+                normalizebybin( samp.hist )
+            elif normalize:
+                samp.hist.Scale(1./stack_sum)
             self.curr_stack.Add(samp.hist, 'HIST')
 
         # additional formatting
@@ -2852,14 +2949,17 @@ class SampleManager(SampleFrame) :
 
             newname = samp+"_"+hist_name
 
-            newsamp = self.clone_sample( oldname=samp, newname=newname, temporary=True )
+            newsamp = self.clone_sample( oldname=samp, newname=newname,
+                                         temporary=True )
 
             if readhist:
                 self.read_hist(newsamp, hist_config['var'], draw_config)
             elif useModel :
-                self.create_hist( newsamp, treeHist, treeSelection, draw_config.histpars, isModel=True)
+                self.create_hist( newsamp, treeHist, treeSelection,
+                                  draw_config.histpars, isModel=True )
             else :
-                self.create_hist( newsamp, hist_config['var'], selection, draw_config.histpars)
+                self.create_hist( newsamp, hist_config['var'],
+                                  selection, draw_config.histpars)
 
             created_samples.append( newsamp )
 
@@ -2867,11 +2967,17 @@ class SampleManager(SampleFrame) :
             print 'No hists were created'
             return created_samples
 
-        if isinstance( draw_config.histpars, tuple) and len(draw_config.histpars) == 4 :
+        if isinstance( draw_config.histpars, tuple) and \
+                len(draw_config.histpars) == 4 :
+
             if isinstance( draw_config.histpars[3], list ) :
-                self.variable_rebinning(binning=draw_config.histpars[3], samples=created_samples, useStoredBinning=useStoredBinning)
+                self.variable_rebinning(binning=draw_config.histpars[3],
+                                        samples=created_samples,
+                                        useStoredBinning=useStoredBinning)
             else :
-                self.variable_rebinning(threshold=draw_config.histpars[3], samples=created_samples, useStoredBinning=useStoredBinning)
+                self.variable_rebinning(threshold=draw_config.histpars[3],
+                                        samples=created_samples,
+                                        useStoredBinning=useStoredBinning)
 
         if draw_config.get_doratio() :
             self.create_top_canvas_for_ratio('same')
@@ -2906,7 +3012,7 @@ class SampleManager(SampleFrame) :
                             break
                 reverseratio = draw_config.get_reverseratio()
                 binomunc = draw_config.get_binomunc()
-                doratio =  draw_config.get_doratio() 
+                doratio =  draw_config.get_doratio()
                 dodiff = doratio == "dodiff"
                 rsamp = self.create_ratio_sample( rname, num_sample = refname
                          , den_sample=samp+"_"+hist_name, color=rcolor, reverseratio=reverseratio,binomunc=binomunc, dodiff = dodiff)
@@ -2991,7 +3097,7 @@ class SampleManager(SampleFrame) :
                 if subsampname in [s.name for s in self.get_model_samples()] :
                     self.read_hist( subsamp, histname)
                 elif subsampname in self.get_sample_names() :
-                    self.read_hist( subsamp, histname) 
+                    self.read_hist( subsamp, histname)
 
             sample.failed_draw=False
             for subsampname in sample.groupedSampleNames :
@@ -3029,45 +3135,78 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def parsehist(self, histpars, varexp, histname=None):
-        """ 
+    def parsehist(self, histpars, varexp, histname=None,
+                             returnmodel = False):
+        """
             helper function to parse histogram inputs
+            return histogram type and model
             1D histogram: condition - varexp = "varx"
                           histpars  - 1. (Nbinx, xbinlow, xbinhigh)
                                     - 2. [xbins]
             2D histogram: condition - varexp = "varx:vary"
-                          histpars  - 1. (Nbinx, xbinlow, xbinhigh, Nbiny, ybinlow, ybinhigh)
+                          histpars  - 1. (Nbinx, xbinlow, xbinhigh,
+                                          Nbiny, ybinlow, ybinhigh)
                                     - 2. ([xbins],[ybins])
             3D histogram: condition - varexp = "varx:vary:varz"
                           histpars  - 1. (Nbinx, xbinlow, xbinhigh,
                                           Nbiny, ybinlow, ybinhigh,
-                                          Nbinz, zbinlow, zbinhigh)
-        
+                                          Nbinz, zbinlow, zbinhigh
+
+            if returnmodel is True, only the function model is
+            returned. This is used by RDataFrame booking
+
         """
 
         if histname==None: histname = str(uuid.uuid4())
 
         if type( histpars ) is tuple :
             if varexp.count(':') == 1 :
-                if len(histpars) == 2 and type( histpars[0] ) is list and type(histpars[1]) is list :
-                    return ROOT.TH2F( histname, '', len(histpars[0])-1, array('f', histpars[0]), len(histpars[1])-1, array('f', histpars[1]) )
+                if len(histpars) == 2 and type( histpars[0] ) is list and \
+                                          type( histpars[1] ) is list :
+                    fx = ROOT.TH2F
+                    model = ( histname, '',
+                            len(histpars[0])-1, array('f', histpars[0]),
+                            len(histpars[1])-1, array('f', histpars[1]) )
                 else :
                     if len(histpars) != 6 :
-                        print 'varable expression, %s,  requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax' %varexp
+                        print 'varable expression, %s,  requests a 2-d'\
+                               'histogram, please provide 6 hist parameters,'\
+                               'nbinsx, xmin, xmax, nbinsy, ymin, ymax' %varexp
                         return
-                    return ROOT.TH2F( histname, '', histpars[0], histpars[1], histpars[2], histpars[3], histpars[4], histpars[5])
-            elif varexp.count(':') == 2 and not varexp.count('::') : # make a 3-d histogram
+
+                    fx = ROOT.TH2F
+                    model = ( histname, '',
+                              histpars[0], histpars[1], histpars[2],
+                              histpars[3], histpars[4], histpars[5] )
+
+            elif varexp.count(':') == 2 and not varexp.count('::') :
+
+                # make a 3-d histogram
                 if len(histpars) != 9 :
-                    print 'varable expression, %s,  requests a 3-d histogram, please provide 9 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax' %varexp
+                    print 'varable expression, %s,  requests a 3-d histogram,'\
+                          'please provide 9 hist parameters, nbinsx, xmin,'\
+                          'xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax' %varexp
                     return
-                return ROOT.TH3F( histname, '',histpars[0], histpars[1], histpars[2], histpars[3], histpars[4], histpars[5], histpars[6], histpars[7], histpars[8] )
+                fx = ROOT.TH3F
+                model = ( histname, '',
+                          histpars[0], histpars[1], histpars[2],
+                          histpars[3], histpars[4], histpars[5],
+                          histpars[6], histpars[7], histpars[8] )
             else : # 1-d histogram
-                return ROOT.TH1F( histname, '', int(histpars[0]), histpars[1], histpars[2])
+                fx = ROOT.TH1F
+                model = (histname,'',int(histpars[0]), histpars[1], histpars[2])
 
         elif type( histpars ) is list :
-            return ROOT.TH1F( histname, '', len(histpars)-1, array('f', histpars))
+            fx = ROOT.TH1F
+            model = ( histname, '', len(histpars)-1, array('f', histpars))
         else :
             print 'No histogram parameters were passed'
+            return
+
+        if returnmodel:
+            return model
+
+        return fx(*model)
 
 
 
@@ -3185,7 +3324,7 @@ class SampleManager(SampleFrame) :
         else :
             ## calculate the appropriate scaling
             if onthefly and not (sample.isData or sample.IsGroupedSample() or sample.name == "__AllStack__" or sample.isRatio==True):
-                scale = sample.scale_calc() 
+                scale = sample.scale_calc()
             else: scale = sample.scale
             ## retrieve the dataframe object by Sample
             #count = counter.sampleptr[sample].GetValue()
@@ -3202,6 +3341,7 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     def create_hist_new( self, draw_config, sample=None, isModel=False ) :
+        """ Used by Draw(). Use draw_config instead of the old version """
 
         if sample is None :
             sample = draw_config.samples[0]
@@ -3222,28 +3362,36 @@ class SampleManager(SampleFrame) :
         sblind  = draw_config.get_unblind()
         sweight = draw_config.get_weight()
         #sample.hist = draw_config.init_hist(sample.name)
+
         if usedataframe:
             sample.hist = None
+
         else:
             sample.hist = self.parsehist(draw_config.histpars, varexp)
             if sample.hist is not None :
                 sample.hist.SetTitle( sample.name )
                 sample.hist.Sumw2()
+
             if sample.isData and isinstance(sblind,str):
                     selection = "(%s)&&(%s)" %(selection,sblind)
+
             if isinstance(sweight,str) and sweight and not sample.isData:
                     selection = "(%s)*%s" %(selection,sweight)
-            # enable branches for all variables matched in the varexp and selection
+
+            # enable branches for variables matched in the varexp and selection
             sample.enable_parsed_branches( varexp+selection )
 
-        # Draw the histogram.  Use histpars as the bin limits if given
+
         if sample.IsGroupedSample() :
+
             for subsampname in sample.groupedSampleNames :
+
                 subsamp = self.get_samples( name=subsampname )[0]
 
                 if not self.quiet : print 'Draw grouped hist %s' %subsampname
 
-                if isModel and subsampname in [s.name for s in self.get_model_samples()] :
+                if isModel and subsampname in \
+                        [s.name for s in self.get_model_samples()] :
                     self.create_hist_new( draw_config, subsamp, isModel=isModel )
                 elif subsampname in self.get_sample_names() :
                     self.create_hist_new( draw_config, subsamp, isModel=isModel )
@@ -3265,25 +3413,25 @@ class SampleManager(SampleFrame) :
             if usedataframe:
                 sample.hist = varexp.sampleptr[sample].GetValue().Clone()
             elif sample.chain is not None:
-                if sample.chain.GetEntries() == 0: print tRed %('WARNING: No entries from sample ' + sample.name)
-                if sample.isData:
-                    selection = selection.replace('prefweight', '1')
-                if not self.quiet or sample.isData: print 'Make %s hist %s : ' %(sample.name, varexp) + tRed %selection
+
+                if sample.chain.GetEntries() == 0:
+                   print tRed %('WARNING: No entries from sample ' + sample.name)
+
+                if not self.quiet or sample.isData:
+                    print 'Make %s hist %s : ' %(sample.name, varexp) \
+                            + tRed %selection
+
                 # Speed up with RDataFrame
                 try:
-                    rdf = ROOT.RDataFrame(sample.chain)
-                    print('Using RDataFrame')
-                    rdf = rdf.Define('varexp', varexp)
-                    rdf = rdf.Define('selection', selection)
-                    axis = sample.hist.GetXaxis()
-                    # FIXME: variable binning
-                    # FIXME: 2d hists
-                    rdf_hist_resultptr = rdf.Histo1D(('rdf_hist', '', axis.GetNbins(), axis.GetXmin(), axis.GetXmax()), 'varexp', 'selection')
+
+                    rdf_hist_resultptr = self. create_hist_rdfhelper( sample,
+                                    varexp, selection, draw_config.histpars)
                     rdf_hist = rdf_hist_resultptr.DrawCopy()
 
                     # save histogram to current sampleframe
                     if self.curr_sampleframe and rdf_hist_resultptr:
-                        self.curr_sampleframe.sampleptr[sample] = rdf_hist_resultptr
+                        self.curr_sampleframe.sampleptr[sample] = \
+                                                    rdf_hist_resultptr
 
                     res = sample.hist.Add(rdf_hist)
 
@@ -3292,16 +3440,24 @@ class SampleManager(SampleFrame) :
                         raise ex
 
                 except Exception as ex:
-                    print('Using TChain. Please consider switching to ROOT >= 6.18 to use RDataFrame')
-                    res = sample.chain.Draw(varexp + ' >> ' + sample.hist.GetName(), selection , 'goff' )
+                    print('Falling back to TChain. '\
+                   'Please consider switching to ROOT >= 6.18 to use RDataFrame')
+
+                    drawstr = varexp + ' >> ' + sample.hist.GetName()
+                    res = sample.chain.Draw( drawstr, selection , 'goff' )
+
                 if res < 0 :
                     sample.failed_draw=True
-                    print('WARNING: failed_draw, unexpected result for sample %s' % sample.name)
+                    print('WARNING: failed_draw, '\
+                            'unexpected result for sample %s' % sample.name)
+
                 else :
                     sample.failed_draw=False
+
             else :
                 sample.failed_draw=True
-                print('WARNING: failed_draw, TChain for sample %s is None' % sample.name)
+                print('WARNING: failed_draw, '\
+                        'TChain for sample %s is None' % sample.name)
 
             print "time (s): ", time.time()-start
 
@@ -3314,6 +3470,23 @@ class SampleManager(SampleFrame) :
         # wait for draws to finish
         #self.wait_on_draws()
 
+
+
+    #--------------------------------
+
+
+    def create_hist_rdfhelper( self, sample, varexp, selection, histpars ):
+
+        rdf = ROOT.RDataFrame(sample.chain)
+        rdf = rdf.Define('varexp', varexp)
+        rdf = rdf.Define('selection', selection)
+
+        ht = self.parsehist( histpars, varexp, 'rdf_hist',
+                             returnmodel = True )
+
+        rdf_hist_resultptr = rdf.Histo1D( ht , 'varexp', 'selection')
+
+        return rdf_hist_resultptr
 
 
     #--------------------------------
@@ -3850,28 +4023,49 @@ class SampleManager(SampleFrame) :
         samplist = self.get_samples()
         #if not normalize: samplist+=self.get_samples( name='__AllStack__' )
 
-        return self.calc_limits(samplist, ymindef, ymaxdef, ymax_scale, logy, normalize)
+        return self.calc_yranges(samplist, ymindef, ymaxdef, ymax_scale, logy, normalize)
 
-    def calc_limits(self,samplist, ymindef=None,ymaxdef=None,ymax_scale=1.2,logy=False,normalize=False):
+    def calc_yranges( self, samplist, ymindef = None, ymaxdef = None,
+                            ymax_scale = 1.2, logy = False, normalize = False ):
+        """ Calculate y axis ranges """
+
         ymin,ymax   = ymindef, ymaxdef
         maxarray, minarray = [], []
+
         if ymaxdef is None :
+
             if normalize == "Total":
-                maxarray =[samp.hist.GetMaximum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
-            elif normalize:
-                maxarray =[samp.hist.GetMaximum()/samp.hist.Integral() for samp in samplist if samp.hist and samp.hist.Integral()>0]
+                maxarray =[samp.hist.GetMaximum()/samp.hist.GetBinContent(1) \
+                                for samp in samplist \
+                                if samp.hist and samp.hist.GetBinContent(1)>0]
+
+            elif normalize and normalize != "ByBin":
+                maxarray =[samp.hist.GetMaximum()/samp.hist.Integral() \
+                                for samp in samplist \
+                                if samp.hist and samp.hist.Integral()>0]
             else:
-                maxarray =[samp.hist.GetMaximum() for samp in samplist if samp.hist]
+                maxarray =[samp.hist.GetMaximum()
+                        for samp in samplist if samp.hist]
+
             ymax = max(maxarray)
 
         if ymindef is None :
+
             if normalize == "Total":
-                minarray =[samp.hist.GetMinimum()/samp.hist.GetBinContent(1) for samp in samplist if samp.hist and samp.hist.GetBinContent(1)>0]
-            elif normalize:
-                minarray =[samp.hist.GetMinimum()/samp.hist.Integral() for samp in samplist if samp.hist and samp.hist.Integral()>0]
+                minarray =[samp.hist.GetMinimum()/samp.hist.GetBinContent(1) \
+                                for samp in samplist\
+                                if samp.hist and samp.hist.GetBinContent(1)>0]
+
+            elif normalize and normalize != "ByBin":
+                minarray =[samp.hist.GetMinimum()/samp.hist.Integral() \
+                                for samp in samplist \
+                                if samp.hist and samp.hist.Integral()>0]
+
             else:
-                minarray =[samp.hist.GetMinimum(0) for samp in samplist if samp.hist]
-            ymin = min(minarray) 
+                minarray =[samp.hist.GetMinimum(0) \
+                        for samp in samplist if samp.hist]
+
+            ymin = min(minarray)
 
         if ymax_scale is None :
             ymax_scale = 1.2
@@ -3879,17 +4073,20 @@ class SampleManager(SampleFrame) :
         # scale ymax, only if default is not given
         if ymin and ymax:
             if logy:
+
                 # log scale only makes sense with positive numbers
                 if ymax<=0:
                     ymax=None
                 if ymin<=0:
                     ymin=None
+
                 if not ymaxdef: ymax *= pow(ymax/ymin,ymax_scale-1)
                 if not ymindef: ymin *= pow(ymax/ymin,0.9-1)
+
             else :
+
                 if not ymaxdef: ymax += (ymax-ymin)*(ymax_scale-1)
 
-        print maxarray, minarray, ymin, ymax
         return (ymin, ymax)
 
 
@@ -3983,7 +4180,7 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def get_stack_pdf(self,method=1):
+    def get_stack_pdf(self,method=1, bywidth = False):
         """ extract unit normalized pdf after Draw command """
         if method==1:
             samp= self.get_samples(name='__AllStack__')
@@ -3994,24 +4191,32 @@ class SampleManager(SampleFrame) :
         if method==2:
             h2=self.get_stack_aggregate()
             if h2==None: return
-        h2.Scale(1./h2.Integral())
+
+        ## normalize according to method: width if content is scaled by bin
+        if bywidth:
+            h2.Scale(1./h2.Integral("width"))
+        else:
+            h2.Scale(1./h2.Integral())
+
         return h2
 
 
     #--------------------------------
 
     def get_stack_aggregate(self):
-           if hasattr(self,"curr_stack") and isinstance(self.curr_stack, ROOT.THStack):
-                 h1 = self.curr_stack.GetStack().Last().Clone()
-                 h1.SetMarkerStyle(15)
-                 h1.SetMarkerColor(1)
-                 h1.SetMarkerSize(.75)
-                 h1.SetLineWidth(2)
-                 xtitle = self.curr_stack.GetXaxis().GetTitle()
-                 ytitle = self.curr_stack.GetYaxis().GetTitle()
-                 h1.GetXaxis().SetTitle(xtitle)
-                 h1.GetYaxis().SetTitle(ytitle)
-                 return h1
+        """ Get aggregate histogram from current stack """
+         if hasattr(self,"curr_stack") and \
+                 isinstance(self.curr_stack, ROOT.THStack):
+             h1 = self.curr_stack.GetStack().Last().Clone()
+             h1.SetMarkerStyle(15)
+             h1.SetMarkerColor(1)
+             h1.SetMarkerSize(.75)
+             h1.SetLineWidth(2)
+             xtitle = self.curr_stack.GetXaxis().GetTitle()
+             ytitle = self.curr_stack.GetYaxis().GetTitle()
+             h1.GetXaxis().SetTitle(xtitle)
+             h1.GetYaxis().SetTitle(ytitle)
+             return h1
            else:
                    print "No stack found"
            return
@@ -4019,37 +4224,29 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def get_stack_count(self, integralrange = None, sort =True, includeData=False, isActive = True, acceptance = False, dolatex = False):
+    def get_stack_count( self, integralrange = None, sort = True,
+                       includeData = False, isActive = True,
+                       acceptance = False, dolatex = False, bywidth = False ):
         """ integralrange: ntuple: x bin range to be integrated """
-        err = array('d',[0])
-        ranger  = lambda h, e, r: [0,h.GetNbinsX(),e] # when r is none
 
-        if integralrange and isinstance(integralrange,(list,tuple)) \
-                                            and len(integralrange)==2:
-            print "use range %g, %g" %integralrange
-            ranger  = lambda h, e, r: map(h.FindBin, r)+[e]
+        samplelist      = self.get_samples(isActive=isActive,isData=False)
+        data_samplelist = self.get_samples(isActive=isActive,isData=True)
 
-        if acceptance:
-            ### to calculate acceptance, divide by overall normalization
-            ###  of the sample
-            result = [(s.legendName if dolatex else s.name,
-                     (s.hist.IntegralAndError(*ranger(s.hist,err,integralrange))\
-                      / s.nevt_calc() ,err[0]/ s.nevt_calc()))\
-                      for s in self.get_samples(isActive=isActive,isData=False)\
-                      if s.name != "ratio" and s.hist]
-        else:
-            result = [(s.legendName if dolatex else s.name,
-           (s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
-                      for s in self.get_samples(isActive=isActive,isData=False)\
-                        if s.name != "ratio" and s.hist]
+        ## one line magic
+        result = [ ( s.legendName if dolatex else s.name,
+                   ( s.acceptance if acceptance else s.integral )\
+                                        ( integralrange, option ) )\
+                    for s in samplelist if s.name != "ratio" and s.hist ]
 
         if sort: result.sort(key=lambda x: -x[1][0])
         htotal = self.get_stack_aggregate()
 
         if includeData:
-                result += [(s.name,(s.hist.IntegralAndError(*ranger(s.hist,err,integralrange)),err[0]))\
-                         for s in self.get_samples(isActive=True,isData=True)]
+            result += [ (s.name, (s.acceptance if acceptance else s.integral)\
+                                 ( irange, option ) for s in data_samplelist ]
+
         if htotal and not acceptance:
+
                 result.append(("TOTAL",(htotal.IntegralAndError(\
                         *ranger(htotal,err,integralrange)), err[0])))
         resultdict = OrderedDict(result)
@@ -4092,7 +4289,8 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    def DrawCanvas(self, topcan, draw_config, datahists=[], sighists=[], errhists=[] ) :
+    def DrawCanvas(self, topcan, draw_config,
+                         datahists=[], sighists=[], errhists=[] ) :
         """ Draw Data, Signal and legend. Called by SampleManager.Draw()  as well as CompareSelections()"""
 
         datadrawn  = False # is data drawn?
@@ -4133,9 +4331,9 @@ class SampleManager(SampleFrame) :
             topcan.Draw()
             logy = draw_config.get_logy()
             if ymin and not (logy and ymin<=0):
-                topcan.SetMinimum(ymin) 
+                topcan.SetMinimum(ymin)
                 print "SetMinimum ",ymin
-            if ymax and not (logy and ymax<=0): 
+            if ymax and not (logy and ymax<=0):
                 topcan.SetMaximum(ymax)
                 print "SetMaximum ",ymax
             self.set_stack_default_formatting( topcan, doratio, logy=logy)
@@ -4149,6 +4347,8 @@ class SampleManager(SampleFrame) :
             if normalize == "Total":
                 dsamp.hist.Scale(1./dsamp.hist.GetBinContent(1)) # assume total is the first bin
                 dsamp.hist.Draw('PE same')
+            elif normalize == "ByBin":
+                normalizebybin( dsamp.hist )
             elif normalize:
             #dsamp.hist.SetMarkerStyle(8)
                 dsamp.hist.DrawNormalized('PE same')
@@ -4165,19 +4365,27 @@ class SampleManager(SampleFrame) :
             for samp in sighists :
                 #print samp.isActive
                 if samp.isActive :
+
                     print 'Draw Signal hist ', samp.name
-                    #samp.hist.SetLineWidth(3)
                     samp.hist.SetLineStyle(samp.getLineStyle())
                     samp.hist.SetStats(0)
+
+                    ## normalize signal samples
                     if normalize == "Total":
-                        samp.hist.Scale(1./samp.hist.GetBinContent(1)) # assume total is the first bin
+                        samp.hist.Scale(1./samp.hist.GetBinContent(1))
                         samp.hist.Draw('HIST same')
+
+                    elif normalize == "ByBin":
+                        normalizebybin( dsamp.hist )
+
                     elif normalize :
                         samp.hist.DrawNormalized('HIST same')
+
                     else :
                         samp.hist.Draw('HIST same')
-                    #entry = self.curr_legend.AddEntry( samp.hist, samp.legendName, 'L')
-                    entry = self.curr_sig_legend.AddEntry( samp.hist, samp.legendName, 'L')
+
+                    entry = self.curr_sig_legend.AddEntry( samp.hist,
+                                                           samp.legendName, 'L')
                     entry.SetTextSize(legendTextSize)
 
         if errhists :
@@ -4189,14 +4397,16 @@ class SampleManager(SampleFrame) :
                 samp.graph.SetFillColor(ROOT.kBlack)
                 samp.graph.Draw('2same')
 
-                entry = self.curr_legend.AddEntry( samp.graph, 'Total uncertainty', 'F')
+                entry = self.curr_legend.AddEntry( samp.graph,
+                                                   'Total uncertainty', 'F')
                 entry.SetTextSize(legendTextSize)
 
 
         if doratio :
             self.curr_canvases['bottom'].cd()
             ratiosamps =  self.get_samples( isRatio=True )
-            self.set_ratio_default_formatting( self.curr_canvases['bottom'], ratiosamps, draw_config )
+            self.set_ratio_default_formatting( self.curr_canvases['bottom'],
+                                               ratiosamps, draw_config )
 
             for idx, samp in enumerate(ratiosamps) :
                 drawopt = 'same'
@@ -4345,6 +4555,8 @@ class SampleManager(SampleFrame) :
                     draw_samp.hist.Scale(1.0/draw_samp.hist.GetBinContent(1))
                 elif normalize and draw_samp.hist.Integral() != 0  :
                     draw_samp.hist.Scale(1.0/draw_samp.hist.Integral())
+                elif normalize == "ByBin":
+                    normalizebybin( draw_samp.hist )
 
                 if ymin is not None and ymax is not None and ymin<ymax:
                     print "set %s histogram y range: %g, %g" %(draw_samp.name, ymin, ymax)
@@ -4498,7 +4710,7 @@ class SampleManager(SampleFrame) :
             newsamp.hist.GetYaxis().SetTitle( ylabel )
 
             created_samples.append(newsamp)
-            zmin, zmax = self.calc_limits(created_samples, ymax_scale=1, logy=logz)
+            zmin, zmax = self.calc_yranges(created_samples, ymax_scale=1, logy=logz)
 
         for idx, samp in enumerate(created_samples) :
 

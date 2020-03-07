@@ -39,20 +39,21 @@ def f_Dumpfname(func):
 def import_workspace( ws , objects):
     """ import objects into workspace """
 
-    if not isinstance(list, objects):
+    if not isinstance( objects, list ):
         objects = [objects,]
 
     ## NOTE getattr is needed to escape python keyword import
     for o in objects:
-        getattr( ws, "import", o )
+        getattr( ws, "import" ) ( o )
 
 xname = "Reco mass m(#gamma,e)"
 class FitManager :
     """ Aim to collect all fitting machinery here """
 
-    ParamDCB = ["dcb_mass"   ,"dcb_sigma" ,
-               "dcb_alpha1" ,"dcb_power1",
-               "dcb_alpha2" ,"dcb_power2"]
+    ParamDCB = [ "dcb_mass"  , "dcb_sigma" ,
+                 "dcb_alpha1", "dcb_power1",
+                 "dcb_alpha2", "dcb_power2", ]
+
     setuparray = {
                     "cb":
                         [("cb_mass"  ,"Mass"  ,90,80,100),
