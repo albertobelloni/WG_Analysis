@@ -89,18 +89,33 @@ badefakesectors = {
         2017:{
             "veto"  :[(( 31, 36),( 1.2,1.4))],
             "worst" :[(( 31, 36),(-0.4,1.6)),
-                      ((-36,-35),(-0.4,1.6))],
-            "bad"   :[(( 0, 3),(-1. ,0.3)),
-                      (( 5, 8),(-1.5,0. )),
-                      ((10,12),(-0.4,1. )),
-                      ((17,22),(-0.6,1.2)),
-                      ((20,26),(-1.2,0.3)),
+                      ((-36,-35),(-0.4,1.6)),
+                      (( 17, 22),(-0.6,1.2)),
+                      (( 20, 26),(-1.2,0.3)),
+                      (( 10, 12),(-0.6,1. )),
+                      (( 30, 31),(-1. ,0. )),
+                      ],
+            "bad"   :[((  0,  3),(-1. ,0.3)),
+                      ((  3,  5),( 0. ,1.2)),
+                      ((  5,  8),(-1.5,0. )),
+                      ((-28,-26),(-0.4,0.4)),
+                      ((-18,-16),(-1. ,0.4)),
+                      ((-25,-23),(-1.6,0.2)),
+                      ((-20,-18),(-1.6,-0.6)),
+                      ((-12,-10),(-1.2,0. )),
+                      ((-14,-13),(-1.,-0.4)),
+                      (( 22, 25),( 0.4,0.6)),
+                      (( 22, 23),( 0.2,0.4)),
+                      (( 28, 32),(-1.2,0.4)),
+                      (( 31, 36),(-0.8,-0.4)),
                       ],
             },
         2018:{
             "veto"  :[],
             "worst" :[((5,9),( 0.,  1.4)),
                       ((6,8),(-1.4,-0.5)),
+                      ((21,23),(-1.,0.)),
+                      ((6,8),(-0.2,0.)),
                       ],
             "bad"   :[((  4, 10),(-0.4,1.6)),
                       ((  5, 13),(-1.6,0.8)),
@@ -133,10 +148,11 @@ def build_bad_efake_sector_string(year, quality):
     if quality == "worstonly":
         if not combinedstring:
             return bstr["worst"]
-        return "%s && !(%s)" %(bstr["worst"],combinedstring)
+        return "(%s) && !(%s)" %(bstr["worst"],combinedstring)
 
     # worst quality
-    if combinedstring: combinedstring += "||"
+    #if combinedstring: combinedstring += "||"
+    if combinedstring: combinedstring =  "(%s)||" %combinedstring
     combinedstring += bstr["worst"]
     if quality == "worst":
         return combinedstring
@@ -145,13 +161,15 @@ def build_bad_efake_sector_string(year, quality):
     if quality == "badonly":
         if not combinedstring:
             return bstr["bad"]
-        return "%s && !(%s)" %(bstr["bad"],combinedstring)
+        return "(%s) && !(%s)" %(bstr["bad"],combinedstring)
 
     ## bad quality
-    if combinedstring: combinedstring += "||"
+    if combinedstring: combinedstring =  "(%s)||" %combinedstring
     combinedstring += bstr["bad"]
     if quality == "bad":
         return combinedstring
+    if quality == "normal":
+        return "!(%s)" %combinedstring
     print "ERROR do not recognise: ", quality
     raise RuntimeError
 
