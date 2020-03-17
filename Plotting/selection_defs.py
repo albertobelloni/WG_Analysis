@@ -1,13 +1,13 @@
 def get_base_selection( channel ) :
 
     if channel == 'mu' :
-        return 'mu_pt30_n==1 && mu_n==1 && el_n==0 '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
+        return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && mu_passTight[0] '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
     if channel == 'el' :
-        return 'el_pt30_n==1 && el_n==1 && mu_n==0 ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
+        return 'el_pt30_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && HLT_Ele27_WPTight_Gsf ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
     if channel == 'mumu' :
         return 'mu_pt30_n>=1 && mu_n==2 && mu_passTight[0] && mu_passTight[1] '  # require 1 muon with pt > 30 and 2 muons with pt > 10 
     if channel == 'elel' :
-        return 'el_pt30_n>=1 && el_n==2 && el_passTight[0] && el_passTight[1] ' # require 1 electron with pt > 30 and 2 electrons with pt > 10
+        return 'el_pt30_n>=1 && el_n==2 && el_pt[0]>35 && el_passTight[0] && el_hasTrigMatch[0] ' # require 1 electron with pt > 30 and 2 electrons with pt > 10
     if channel == 'muel' :
         return 'mu_pt30_n>=1 && el_n==1  '  # require 1 muon with pt > 30 and 2 muons with pt > 10 
 
@@ -15,7 +15,7 @@ def get_weight_str( ) :
 
     #return ' ( NLOWeight * PUWeight + isData ) '
     #return ' ( isData ? isData : PUWeight * NLOWeight )'
-    return ' ( isData ? isData : PUWeight * NLOWeight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * Alt$(prefweight,1) )'
+    return ' ( isData ? isData : PUWeight * NLOWeight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * prefweight )'
 
 def get_phid_selection( sel1, sel2='' ) :
 
