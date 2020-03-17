@@ -6,51 +6,26 @@
 #
 # Compile the local package and link to the Core package
 #
-# Tasks : CLEANUP
 ################################################################################
 
+include ../MakefileBase.mk
 WORK_AREA = ${WorkArea}
 
-PKG_DIR = $(WORK_AREA)/TreeFilter/$(PACKAGE)
-EXE_DIR = $(PKG_DIR)
-OBJ_DIR = $(PKG_DIR)/obj/$(EXENAME)
-SRC_DIR = $(PKG_DIR)/src
-INC_DIR = $(PKG_DIR)/include
+PKG_DIR = $(WORK_AREA)/TreeFilter/$(PACKAGE)/
 
 MKDIR_P = mkdir -p
 
 COMMON_DIR = $(WORK_AREA)/TreeFilter/Common
 
-ROOTCONFIG   = root-config
+INCLUDE      = $(ROOTCXXFLAGS) $(BOOSTFLAGS) $(COREINC) $(COMMONINC)\
+	-I$(PKG_DIR)
 
-BOOST_VER    = 1.57.0-ikhhed
-
-ROOTCXXFLAGS = $(shell $(ROOTCONFIG) --cflags)
-BOOSTFLAGS   = \
-	-I/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/$(BOOST_VER)/include\
-	-L/cvmfs/cms.cern.ch/$(SCRAM_ARCH)/external/boost/$(BOOST_VER)/lib
-
-ROOTLIBS     = $(shell $(ROOTCONFIG) --libs) -lTreePlayer -lTMVA -lRooFit
-LIBS         = $(ROOTLIBS) $(BOOSTFLAGS) -lboost_filesystem -lboost_system
 
 COREINC = -I$(WORK_AREA)/TreeFilter/Core/include
 COMMONINC = -I$(WORK_AREA)/TreeFilter/Common/include
 COREOBJ = $(WORK_AREA)/TreeFilter/Core/obj/AnalysisBase.o\
 	$(WORK_AREA)/TreeFilter/Core/obj/Util.o
 
-DEBUG        = false
-INCLUDE      = $(ROOTCXXFLAGS) $(BOOSTFLAGS) $(COREINC) $(COMMONINC)\
-	-I$(PKG_DIR)
-
-# Activate debug compilation with:
-# %> make DEBUG=true
-ifeq ($(DEBUG),true)
-	CXXFLAGS     = -O0 -Wall -ggdb -fPIC -I$(INC_DIR) $(INCLUDE)
-	LDFLAGS      = -O0 -Wall -ggdb -I$(INC_DIR) $(INCLUDE) 
-else
-	CXXFLAGS     = -O2 -Wall -fPIC -I$(INC_DIR) $(INCLUDE)
-	LDFLAGS      = -O2 -I$(INC_DIR) $(INCLUDE) $(LIBS) 
-endif
 
 OBJECT_INIT = $(OBJ_DIR)/BranchInit.o
 OBJECT_RUN = $(OBJ_DIR)/RunAnalysis.o
@@ -59,7 +34,7 @@ SRC_INIT = $(SRC_DIR)/BranchInit.cxx
 SRC_RUN = $(SRC_DIR)/RunAnalysis.cxx
 
 OBJECT_ANA = $(OBJECT_INIT) $(OBJECT_RUN)
-LINKDEF = $(OBJ_DIR)/cintLib.so
+LINKDEF = $(PKG_DIR)/$(OBJ_DIR)/cintLib.so
 
 ifneq  ($(ADDTL_OBJ),) 
 	OBJECT_ADDTL = $(OBJ_DIR)/$(ADDTL_OBJ)
@@ -83,42 +58,53 @@ ifeq ($(strip $(EXENAME) ), )
 	NEWEXENAME=RunAnalysis.exe
 endif
 
-EXE = $(EXE_DIR)/$(NEWEXENAME)
+OBJECT_BASE = check objdir $(EXE) 
+EXE = $(EXE_DIR)$(NEWEXENAME)
 
 # Main targets
-all: check objdir $(EXE) 
 
 objdir: ${OBJ_DIR}
+
+linkdef: $(SRC_DIR)/Dict.cxx
 
 ${OBJ_DIR}:
 	${MKDIR_P} ${OBJ_DIR}
 
 $(SRC_DIR)/Dict.cxx: $(PKG_DIR)/include/LinkDef.h
-	rootcint -f $@ -c -p $^
+	$(ROOTCINT) -f $@ -c -p $^
+	mv $(SRC_DIR)/Dict_rdict.pcm $(OBJ_DIR)
 
-$(LINKDEF):  $(SRC_DIR)/Dict.cxx
-	g++ -shared -o$@ `root-config --ldflags` $(CXXFLAGS)\
+$(LINKDEF): $(SRC_DIR)/Dict.cxx
+	$(CXX) -shared -o$@ `root-config --ldflags` $(CXXFLAGS)\
 	-I$(ROOTSYS)/include $^
 
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cxx
-	g++ $(CXXFLAGS) -c $^ -o $@ $(INC_ADDTL) 
 
-$(EXE): $(OBJECT_ANA) $(OBJECT_ADDTL) $(LINKDEF) 
-	g++ $(CXXFLAGS) -o $@ -g $^ $(COREOBJ) $(OBJ_EXTERN) $(LIBS)\
+$(EXE): $$(OBJECT_ANA) $(OBJECT_ADDTL) $(LINKDEF) 
+	$(CXX) $(CXXFLAGS) -o $@ -g $^ $(COREOBJ) $(OBJ_EXTERN) $(LIBS)\
 	$(LIB_ADDTL)
 
-clean:
-	@echo -e "\n\n===> cleaning directories"
-	rm -f $(OBJ_DIR)/*.o ; rm -f $(SRC_DIR)/Dict.cxx
 
+## remove expendible object files
 veryclean : 
 	rm -f $(OBJ_DIR)/*.o 
-	rm -f $(SRC_DIR)/Dict.cxx
 	rm -f $(SRC_DIR)/BranchInit.cxx
-	rm -f $(INC_DIR)/LinkDef.h
 	rm -f $(INC_DIR)/BranchDefs.h
 	rm -f $(INC_DIR)/BranchInit.h
+	rm -f *.exe
+
+## complete reset, including LinkDef.h
+vvclean : 
+	rm -f $(OBJ_DIR)/*.o 
+	rm -f $(OBJ_DIR)/*.so 
+	rm -f $(SRC_DIR)/Dict.cxx
+	rm -f $(INC_DIR)/LinkDef.h
+	rm -f $(SRC_DIR)/BranchInit.cxx
+	rm -f $(INC_DIR)/BranchDefs.h
+	rm -f $(INC_DIR)/BranchInit.h
+	rm -f *.exe
+
 check :
+	cd ../Core ; make ; cd -
 	@if [ ! -f $(WORK_AREA)/TreeFilter/Core/obj/AnalysisBase.o ] ; \
 	    then \
 	    echo "**************************************" ; \

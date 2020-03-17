@@ -267,7 +267,7 @@ def make_final_elg( alg_list, args) :
     if unblind is not 'True' :
         filter_blind = Filter( 'FilterBlind' )
         #filter_blind.cut_mt_lep_met_ph = ' < 100 '
-        filter_blind.cut_mt_res = ' < 100 '
+        #filter_blind.cut_mt_res = ' < 100 '
 
         filter_blind.add_var( 'isData', args.get('isData', ' == False' ) )
         alg_list.append( filter_blind )

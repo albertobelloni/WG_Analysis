@@ -203,7 +203,7 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
     bool keep_event = true;
 
     std::vector<TLorentzVector> gen_phot;
-    for( unsigned i = 0; i < OUT::trueph_n ; i++ ) {
+    for( int i = 0; i < OUT::trueph_n ; i++ ) {
 
         float phot_pt = OUT::trueph_pt->at(i);
         float phot_eta = OUT::trueph_eta->at(i);
@@ -229,12 +229,15 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
         if( !config.PassFloat( "cut_genph_dr", phot_dr ) ) continue;
 #ifdef EXISTS_trueph_isPromptFS
         if( !config.PassBool( "cut_genph_isPromptFS", phot_isPromptFS ) ) continue;
+        bool wgcut = (phot_status==23)||(abs(phot_mother)==24 && phot_isPromptFS);
+        if( !config.PassBool( "cut_genph_wg", wgcut ) ) continue;
 #endif
 #ifdef EXISTS_trueph_FHPFS
         if( !config.PassBool( "cut_genph_FHPFS", phot_FHPFS ) ) continue;
 #endif
         bool isr = abs(phot_mother) < 11 || abs(phot_mother) > 16;
         if( !config.PassBool( "cut_genph_isr", isr ) ) continue;
+
 
         if (printevent) std::cout<< " pass";
         TLorentzVector phlv;
@@ -250,6 +253,7 @@ bool RunModule::FilterPhoton( ModuleConfig & config ) const {
         std::cout<< std::endl; 
     }
     if( !config.PassInt( "cut_n_gen_phot", gen_phot.size() ) ) keep_event=false;
+    if( !config.PassFloat( "cut_lead_genph_pt", gen_phot.size() ? gen_phot[0].Pt() : -1 ) ) keep_event=false;
 
     return keep_event;
     

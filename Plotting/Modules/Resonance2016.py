@@ -386,7 +386,7 @@ def config_samples(samples) :
                            isActive=False,
                           )
 
-    samples.AddSampleGroup(  'WgammaLO', legend_name='W#gamma LO',
+    samples.AddSampleGroup(  'WGammaLO', legend_name='W#gamma LO',
 #                           #input_samples = ['WGToLNuG-madgraphMLMPhCut', 'WGToLNuG_PtG-130-madgraphMLMPhCut','WGToLNuG_PtG-500-madgraphMLMPhCut' ],
                            input_samples = ['WGToLNuG-madgraphMLMMTResCut', 'WGToLNuG_PtG-130-madgraphMLMMTResCut','WGToLNuG_PtG-500-madgraphMLMMTResCut' ],
 #                           #input_samples = ['WGToLNuG_PtG-130-madgraphMLMPhCut','WGToLNuG_PtG-500-madgraphMLMPhCut' ],
@@ -408,7 +408,7 @@ def config_samples(samples) :
                                             'WJetsToLNu_HT-2500ToInf',
                            ],
                            plotColor = ROOT.kBlue-2,
-                           isActive=False,
+                           #isActive=False,
                           )
 ##>>
     samples.AddSampleGroup( 'TTG', legend_name='t#bar{t}#gamma',
@@ -458,19 +458,19 @@ def config_samples(samples) :
     samples.AddSampleGroup( 'TTbar_DiLep', legend_name='t#bar{t} dileptonic',
                            input_samples = ['TTJets_DiLept'],
                            plotColor = ROOT.kMagenta+2,
-                           isActive=True,
+                           isActive=False,
                           )
 
     samples.AddSampleGroup( 'TTbar_SingleLep', legend_name='t#bar{t} semileptonic',
                            input_samples = ['TTJets_SingleLeptFromTbar', 'TTJets_SingleLeptFromT'],
                            plotColor = ROOT.kGreen+2,
-                           isActive=True,
+                           isActive=False,
                           )
 
     samples.AddSampleGroup( 'AllTop', legend_name='t#bar{t}',
                            input_samples = ['TTbar_DiLep', 'TTbar_SingleLep'],
                            plotColor = ROOT.kGreen+3,
-                           isActive=False,
+                           isActive=True,
                           )
 
     samples.AddSampleGroup( 'TopW', legend_name='tW',
@@ -490,7 +490,7 @@ def config_samples(samples) :
                            isActive=False,
                           )
     samples.AddSampleGroup( 'MCBackgroundLO', legend_name='MC Background',
-                           input_samples = ['WgammaLO', 'Wjets', 'TTbar_DiLep', 'TTbar_SingleLep'],
+                           input_samples = ['WGammaLO', 'Wjets', 'TTbar_DiLep', 'TTbar_SingleLep'],
                            isActive=False,
                           )
     samples.AddSampleGroup( 'JetBackground', legend_name='Jet Background',

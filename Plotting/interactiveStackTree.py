@@ -42,6 +42,7 @@ import imp
 import ROOT
 from ROOT import RooFit
 from array import array
+import numpy as np
 if options.reload:
         import SampleManager;reload(SampleManager)
 from SampleManager import SampleManager
