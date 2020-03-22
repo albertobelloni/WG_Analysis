@@ -403,11 +403,27 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                 _sffile_ph_psv = TFile::Open((itr->second).c_str(), "READ");
                 if (_sffile_ph_psv->IsOpen()) {
                     hname = mod_conf.GetInitData().find("HistPSveto");
-                    _sfhist_ph_psv = dynamic_cast<TH2D *>(
-                        _sffile_ph_psv->Get((hname->second).c_str()));
-                    if (!_sfhist_ph_psv)
-                        std::cout << "Could not get PSV hist from file "
-                                  << _sffile_ph_ev->GetName() << std::endl;
+                    if (_year_ph == 2016) {
+                        _sfhist_ph_psv = dynamic_cast<TH2D *>(
+                            _sffile_ph_psv->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_psv)
+                            std::cout << "Could not get PSV hist from file "
+                                      << _sffile_ph_psv->GetName() << std::endl;
+                    }
+                    if (_year_ph == 2017) {
+                        _sfhist_ph_psv_2017 = dynamic_cast<TH1F *>(
+                            _sffile_ph_psv->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_psv_2017)
+                            std::cout << "Could not get PSV hist from file "
+                                      << _sffile_ph_psv->GetName() << std::endl;
+                    }
+                    if (_year_ph == 2018) {
+                        _sfhist_ph_psv_2018 = dynamic_cast<TH2F *>(
+                            _sffile_ph_psv->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_psv_2018)
+                            std::cout << "Could not get PSV hist from file "
+                                      << _sffile_ph_psv->GetName() << std::endl;
+                    }
                 } else {
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
@@ -417,11 +433,27 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                 _sffile_ph_ev = TFile::Open((itr->second).c_str(), "READ");
                 if (_sffile_ph_ev->IsOpen()) {
                     hname = mod_conf.GetInitData().find("HistCSEveto");
-                    _sfhist_ph_csev =
-                        dynamic_cast<TH2D *>(_sffile_ph_ev->Get((hname->second).c_str()));
-                    if (!_sfhist_ph_csev)
-                        std::cout << "Could not get CSEV hist from file "
-                                  << _sffile_ph_ev->GetName() << std::endl;
+                    if (_year_ph == 2016) {
+                        _sfhist_ph_csev =
+                            dynamic_cast<TH2D *>(_sffile_ph_ev->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_csev)
+                            std::cout << "Could not get CSEV 2D hist from file "
+                                      << _sffile_ph_ev->GetName() << std::endl;
+                    }
+                    if (_year_ph == 2017) {
+                        _sfhist_ph_csev_2017 =
+                            dynamic_cast<TH1F *>(_sffile_ph_ev->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_csev_2017)
+                            std::cout << "Could not get CSEV 2D hist from file "
+                                      << _sffile_ph_ev->GetName() << std::endl;
+                    }
+                    if (_year_ph == 2018) {
+                        _sfhist_ph_csev_2018 =
+                            dynamic_cast<TH2F *>(_sffile_ph_ev->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_csev_2018)
+                            std::cout << "Could not get CSEV 2D hist from file "
+                                      << _sffile_ph_ev->GetName() << std::endl;
+                    }
                 } else {
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
@@ -782,8 +814,8 @@ void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
             sfs_psv.push_back(res_psv.val);
             errs_psv.push_back(res_psv.err_up);
         } else if (_year_ph == 2017) {
-            ValWithErr res_psv = PhGetVals1D(_sfhist_ph_psv);
-            ValWithErr res_csev = PhGetVals1D(_sfhist_ph_csev);
+            ValWithErr res_psv = PhGetVals1D(_sfhist_ph_psv_2017);
+            ValWithErr res_csev = PhGetVals1D(_sfhist_ph_csev_2017);
 
             sfs_csev.push_back(res_csev.val);
             errs_csev.push_back(res_csev.err_up);
@@ -791,8 +823,8 @@ void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
             sfs_psv.push_back(res_psv.val);
             errs_psv.push_back(res_psv.err_up);
         } else if (_year_ph == 2018) {
-            ValWithErr res_psv = GetVals2D(_sfhist_ph_psv, pt, fabs(eta));
-            ValWithErr res_csev = GetVals2D(_sfhist_ph_csev, pt, fabs(eta));
+            ValWithErr res_psv = GetVals2D(_sfhist_ph_psv_2018, pt, fabs(eta));
+            ValWithErr res_csev = GetVals2D(_sfhist_ph_csev_2018, pt, fabs(eta));
 
             sfs_csev.push_back(res_csev.val);
             errs_csev.push_back(res_csev.err_up);
