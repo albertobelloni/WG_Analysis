@@ -109,6 +109,10 @@ class RunModule : public virtual RunModuleBase {
         TH2F *_sfhist_ph_id;
         TH2D *_sfhist_ph_csev;
         TH2D *_sfhist_ph_psv;
+        TH1F *_sfhist_ph_csev_2017;
+        TH1F *_sfhist_ph_psv_2017;
+        TH2F *_sfhist_ph_csev_2018;
+        TH2F *_sfhist_ph_psv_2018;
 
         TH1D *_sfhist_pileup_data;
         TH1F *_sfhist_pileup_mc;
