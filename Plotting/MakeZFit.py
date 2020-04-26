@@ -80,7 +80,7 @@ fitrange2 = {-1 :((60,170),),    ## -1 default
              30 : ((75,170),),
               }
 fitrange3 = {-1 :((70,140),),}    ## -1 default; for two gaussians
-fitrange4 = {-1 :((70,150),)*5,     ## -1 default; for expo bkgd
+fitrange4 = {-1 :((70,150),)*3,     ## -1 default; for expo bkgd
             #  0 :((75,180),),
             # 30 :((80,180),),
              }
@@ -94,6 +94,11 @@ parmrange = { "dcb_mass"  :(85,97),
               "dcb_power1":(0 ,110),
               "dcb_alpha2":(0 ,5) ,
               "dcb_power2":(0 ,10)}
+
+
+
+### ---------------------------------------------------------------------------
+
 
 def main() :
 
@@ -176,9 +181,12 @@ def main() :
 
     elif options.step == 2:
 
-       ### complex fit
 
        print "STEP 2 MULTIPLE PDF FIT"
+
+       ##  first remove samples with bad scales
+       sampManElG["GJets"].groupsampleNames = ['GJets_HT-200To400',
+                          'GJets_HT-400To600', 'GJets_HT-600ToInf']
 
        bkgd=["expo","gaus"]
 
@@ -209,7 +217,7 @@ def main() :
        if options.binlow:
            ptbins = [float(options.binlow), float(options.binhigh)]
            tbase+=options.binlow.replace('.',"p")
-       if options.region: 
+       if options.region:
            doregions = options.region
        else:
            doregions = 'ABCDa'
@@ -217,34 +225,39 @@ def main() :
 
        print 'DOregions: %s bins %f %f' %(doregions,ptbins[0],ptbins[1])
 
+       fitconfig = dict( maxtimes=20, doData=doData, ic = ic, var=binvar,
+                         useparms = True )
+
        if 'A' in doregions:
            makevariableplots_simultaneous( sampManElG, ptbins, fitrange4,
                                  basesel=base+passpix+ltmet+phmedium+add,
-                                 tag="regA"+tbase, ic=ic, maxtimes=20,
-                                 doData=doData, var=binvar )
+                                 tag="regA"+tbase,  **fitconfig )
 
        if 'B' in doregions:
            makevariableplots_simultaneous( sampManElG, ptbins, fitrange4,
                                  basesel=base+failpix+ltmetfail+phmedium+add,
-                                 tag="regB"+tbase, ic=ic, maxtimes=20,
-                                 doData=doData, var=binvar )
+                                 tag="regB"+tbase,  **fitconfig )
 
        if 'D' in doregions:
            makevariableplots_simultaneous( sampManElG, ptbins, fitrange4,
                                  basesel=base+failpix+gtmetfail+phmedium+add,
-                                 tag="regD"+tbase, ic=ic, maxtimes=20,
-                                 doData=doData, var=binvar )
+                                 tag="regD"+tbase,  **fitconfig )
 
        if not doData:
            if 'a' in doregions:
                makevariableplots_simultaneous( sampManElG, ptbins, fitrange4,
-                  basesel=base ,tag="all", ic=ic, maxtimes=20, var=binvar )
+                  basesel=base ,tag="all",   **fitconfig )
 
            if 'C' in doregions or 'S' in doregions:
                makevariableplots_simultaneous( sampManElG, ptbins, fitrange4,
                                 basesel=base+passpix+gtmet+phmedium,
-                                tag="regS", ic=ic, maxtimes=20, var=binvar )
+                                tag="regS",  **fitconfig )
     return
+
+
+
+
+### ---------------------------------------------------------------------------
 
 
 def get_param(filename):
@@ -254,53 +267,78 @@ def get_param(filename):
     return parm
 
 
-def makevariableplots_simultaneous(samp,ptlist,fitrange,basesel="1",tag="",ic = None, dobkgd=True, donorm=True, maxtimes=5, doData=False, var = "ph_pt[0]"):
+### ---------------------------------------------------------------------------
+
+
+def get_ic( parmfn, parmnames, ptlist ):
+    parm = get_param(parmfn)
+    parmptlist = json.loads( open(parmfn).read() ) ['ptlist']
+    return { pt: [(n,parm[n][parmptlist.index(pt)] ) for n in parmnames ] \
+                                                    for pt in ptlist[:-1]}
+
+
+### ---------------------------------------------------------------------------
+
+
+def makevariableplots_simultaneous( samp, ptlist, fitrange, basesel = "1",
+        tag = "", ic = None, dobkgd = True, donorm = True, maxtimes = 5,
+        doData = False, var = "ph_pt[0]", useparms = True):
     """ extended pdf fit """
+
     if ic is None: ic = dict(sig="dcbp",bkgd="gaus", ext="simul")
     if "icparm" not in ic: ic["icparm"] = dict()
-    parmufloats, parmvals, parmerrs = defaultdict(list),defaultdict(list),defaultdict(list)
+
+    parmufloats = defaultdict(list)
+    parmvals, parmerrs = defaultdict(list),defaultdict(list)
     parmnames = FitManager.ParamDCB
     parmnames2 = ["gauszg_mean","gauszg_sig"]
 
     ## Get Z+jet/ Zg shape from parameter files
-    parm2 = get_param("data/efake/%i/parms_zgamma.txt"%options.year)
-    parm2ptlist = json.loads(open("data/efake/%i/parms_zgamma.txt"%options.year).read())['ptlist']
-    icondgzg = {pt:[(n,parm2[n][parm2ptlist.index(pt)]) for n in parmnames2] for pt in ptlist[:-1]}
+    parm2fn = "data/efake/%i/parms_zgamma.txt"%options.year
+    icondgzg = get_ic( parm2fn, parmnames2, ptlist )
     print "icondgzg"; pprint (icondgzg)
 
-    #parm = get_param("data/efake/%i/dcbparms_all%i.txt" %((options.year,)*2))
-    #parmptlist = json.loads(open("data/efake/%i/dcbparms_all%i.txt"%((options.year,)*2)).read())['ptlist']
-    #iconddcb = {pt:[(n,parm[n][parmptlist.index(pt)]  ) for n in parmnames]  for pt in ptlist[:-1]}
-    #print "iconddcb"; pprint (iconddcb)
+    parmfn = "data/efake/%i/dcbparms_all%i.txt" %((options.year,)*2)
+    iconddcb = get_ic( parmfn, parmnames, ptlist )
+    print "iconddcb"; pprint (iconddcb)
 
     ## set up fit manager
-    fm = FitManager("dcbexpo", xvardata = (50,200,"GeV"))
-
-    ## FIXME: need better ways to obtain fitted parameters
-    #ieighty = parmptlist.index(80) # search for pt80 parameter
-    #iconddcb = {pt:[(n,parm[n][ieighty]) for n in parmnames] for ipt,pt in enumerate(ptlist[:-1])}
-    #icondgzg = {pt:[(n,parm2[n][ieighty]) for n in parmnames2] for ipt,pt in enumerate(ptlist[:-1])}
-
-
+    fm = FitManager("dcbexpo", xvardata = (50,250,"GeV"))
 
     for ptrange in zip(ptlist[:-1],ptlist[1:]):
         ptrange = tuple(ptrange)
         ptname = tuple(map(lambda x: str(x).replace('.','p'), ptrange))
         #xp.append(ptrange)
-        #ic['icparm']['dcbp'] = [("x",50,200)]+iconddcb[ptrange[0]] # FIXME: move up a fx level
-        ic['icparm']['gauszg'] = [("x",50,200)]+icondgzg[ptrange[0]] # FIXME: move up a fx level
+        if useparms:
+            ## do some operations here
+            icdcbtemp = iconddcb[ptrange[0]]
 
-        ### fitting step
-        ptfitrange = fitrange.get(ptrange[0],fitrange[-1]) # get default if entry doesnt exist
-        values, stackcount = fitting_simultaneous(samp, fm, ptrange, ptfitrange, basesel=basesel, var = var,
-                tag=tag, ic = ic, xbins=(100,50,250), dobkgd =dobkgd, maxtimes = maxtimes, doData=doData, donorm=donorm)
+            for p in ["dcb_sigma","dcb_mass"]:
+                re_parm = getparm( FitManager.setuparray["dcbp"], p )
+                replaceparm( icdcbtemp, re_parm )
+            ic['icparm']['dcbp']   = [("x",50,250)]+icdcbtemp
+
+            ic['icparm']['gauszg'] = [("x",50,250)]+icondgzg[ptrange[0]]
+
+        ### NOTE fitting step
+        # get default if entry doesnt exist
+        ptfitrange = fitrange.get(ptrange[0],fitrange[-1])
+        values, stackcount = fitting_simultaneous(samp, fm, ptrange, ptfitrange,
+                              basesel = basesel, var = var, tag = tag, ic = ic,
+                              #xbins=(20,50,250),
+                              xbins=[50,]+range(75,85,5) + range(85,95,1) + range(95,110,5)+range(110,250,10) +[250,],
+                              #xbins = range(50, 251, 1),
+                              dobkgd = dobkgd,
+                              maxtimes = maxtimes,
+                              doData = doData,
+                              donorm = donorm)
 
         if donorm: make_normalization_comparison(fm,values,stackcount,ptname,tag)
 
         for name,val in values.items():
             if val is None: #for case of non-initiated variable
                 parmvals[name].append(-1)
-                parmerrs[name].append(-1) 
+                parmerrs[name].append(-1)
             elif val.s>0: #check if the value is fitted
                 parmvals[name].append(val.n) #value
                 parmerrs[name].append(val.s) #uncertainty
@@ -315,6 +353,11 @@ def makevariableplots_simultaneous(samp,ptlist,fitrange,basesel="1",tag="",ic = 
     data = {'ptlist':ptlist,'parm':f(parmvals),'error':f(parmerrs)}
     with open('data/efake/%i/parms_%s.txt' %(options.year,tag),'w') as outfile:
         json.dump(data,outfile)
+
+
+
+
+### ---------------------------------------------------------------------------
 
 
 def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt[0]",
@@ -337,24 +380,7 @@ def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt
     if readcache:  f = ROOT.TFile("data/efake/zfitcache.root")
     if writecache: f = ROOT.TFile("data/efake/zfitcache.root", "RECREATE")
 
-    if dobkgd:
 
-        ### plot non-DY contribution
-        if readcache:
-            h1 = f.Get("hallmc")
-        else:
-            samples.deactivate_sample(["Z+jets"])
-
-            samples.Draw("m_lep_ph","%s&&%s>%g&&%s<%g"\
-                    %( basesel, var, ptrange[0], var, ptrange[1] ), xbins,
-            { "weight": weight ,"logy":1,"ymin":10,'ymax':1e6, "overflow":False})
-
-            h1 = samples.get_samples(name='__AllStack__')[0].hist.Clone("hallmc")
-            fm.addhist(h1,"bkgdhist_pt_%s_%s" %ptname,bkgd = "nonefake")
-
-            if writecache: h1.Write()
-
-            samples.activate_sample(["Z+jets"])
 
     if readcache:
 
@@ -363,52 +389,84 @@ def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt
             if not dobkgd:
                 h0=f.Get("hallbkgd")
         else:
-            h1 = f.Get("hbkgd")
+            h1 = f.Get("hallbkgd")
+
+        if dobkgd:
+            ### get non-DY contribution
+            h0 = f.Get("hallnonzee")
+            fm.addhist(h0,"bkgdhist_pt_%s_%s" %ptname,bkgd = "nonzee")
 
     else:
 
         ## set up histogram config (set unblind if we use data)
-        hconf = { "weight": weight ,"logy": 1, "ymin": 10,'ymax': 1e6,
-             "unblind": UNBLIND, "doratio": True, "rmax": 3, "overflow": False }
-        if not doData:
-            hconf = { "weight": weight ,"logy" : 1, "ymin": 10,
-                    'ymax': 1e6, "overflow": False }
+        hconf_data = { "weight": weight, "logy": 1, "ymin": 10, 'ymax': 1e6,
+                       "unblind": UNBLIND, "doratio": True, "rmax": 3,
+                       "overflow": False }
+        hconf_blind = { "weight": weight ,"logy" : 1, "ymin": 10, 'ymax': 1e6,
+                        "overflow": False }
+        hconf = hconf_data if doData else hconf_blind
+        sel = "%s&&%s>%g&&%s<%g" %( basesel, var, ptrange[0], var, ptrange[1])
 
         ## fill histogram
-        samples.Draw("m_lep_ph","%s&&%s>%g&&%s<%g"\
-                %( basesel, var, ptrange[0], var, ptrange[1]), xbins, hconf)
+        sampframe = samples.Draw("m_lep_ph", sel, xbins, hconf)
+        samples.print_stack_count( includeData = doData )
 
         ## save figure
-        savename = "thstack_mlepph%s" %("_data" if doData else "")+\
-                     ("_%s+" %ptname) +tag
+        savename = "thstack_mlepph%s" %("_data" if doData else "")+ \
+                     "_%s_%s" %ptname +tag
 
-        samples.SaveStack(savename+".pdf",
-                outputDir = options.outputDir, canname ="base")
-        samples.SaveStack(savename+".png",
-                outputDir = options.outputDir, canname ="base")
+        samples.SaveStack(savename+".pdf", options.outputDir, "base")
+        samples.SaveStack(savename+".png", options.outputDir, "base")
+
+        ## obtain distribution for fitting
+        ## EGamma/SingleElectron for data and stack sum for MC
+        if doData:
+            dataname = "EGamma" if options.year ==2018 else "SingleElectron"
+            h1 = samples.get_samples(name=dataname)[0].hist.Clone("hdata")
+        else:
+            h1 = samples.get_samples(name='__AllStack__')[0]\
+                        .hist.Clone("hallbkgd")
+            #regulate(h1,10)
 
         if doData and not dobkgd:
-
             ## if dobkgd is not toggled, we use whole background
             ## for visualization in data-based fits
-
             h0 = samples.get_samples(name='__AllStack__')[0]\
                         .hist.Clone("hallbkgd")
             fm.addhist(h0,"mchist_pt_%s_%s" %ptname, bkgd="allmc")
             if writecache: h0.Write()
 
-        if doData:
-            dataname = "EGamma" if options.year ==2018 else "SingleElectron"
-            h1 = samples.get_samples(name=dataname)[0].hist.Clone("hdata")
-            if writecache: h1.Write()
-        else:
-            h1 = samples.get_samples(name='__AllStack__')[0]\
-                        .hist.Clone("hallbkgd")
-            #regulate(h1,10)
-            if writecache:
-                h1.Write()
+        if dobkgd:
+            ## plot non-Zee contribution
+            samples.deactivate_sample(["Z+jets"])
+
+            sampframe.Draw("m_lep_ph", sel , xbins, hconf_blind)
+            samples.print_stack_count()
+            if not options.batch: raw_input("continue")
+
+            h0 = samples.get_samples(name='__AllStack__')[0]\
+                        .hist.Clone("hallnonzee")
+            fm.addhist(h0,"bkgdhist_pt_%s_%s" %ptname,bkgd = "nonzee")
+
+            if writecache: h0.Write()
+
+            samples.activate_sample(["Z+jets"])
+
+        ### draw again for correct weight normalization
+        if isinstance(xbins, list):
+            hconf["normalize"] = "Width"
+            sampframe .Draw("m_lep_ph", sel, xbins, hconf)
+
+            ## save figure
+            savename = "thstack_mlepph%s" %("_data" if doData else "")+ \
+                         "_%s_%s_varwidth" %ptname +tag
+
+            samples.SaveStack(savename+".pdf", options.outputDir, "base")
+            samples.SaveStack(savename+".png", options.outputDir, "base")
 
     fm.addhist(h1,"datahist_pt_%s_%s" %ptname)
+    if writecache:
+        h1.Write()
 
     ## get stack count
     if readcache:
@@ -420,7 +478,7 @@ def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt
                       "NonEleFake":             fx(hstack,2),
                       "OtherEleFakeBackground": fx(hstack,3)}
     else:
-        samples.print_stack_count(fitranges[-1])
+        samples.print_stack_count( fitranges[-1])
         stackcount = samples.get_stack_count(fitranges[-1])
 
         if writecache:
@@ -443,20 +501,23 @@ def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt
         f.Close()
 
     #### NOTE NOTE fitting step
-    corefitting_simultaneous(fm, ptrange,fitranges,
-        tag=tag,ic = ic, maxtimes =maxtimes)
+    corefitting_simultaneous( fm, ptrange, fitranges, tag = tag, ic = ic,
+                             maxtimes = maxtimes )
+    c=fm.draw(" ",logy=0,paramlayout=(0.55,0.9,0.82),subplot="pull", component=True)
+    c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_final" %ptname + tag+ ".pdf")
+    c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_final" %ptname + tag+ ".png")
     c=fm.draw(" ",(1,1e6),logy=1,paramlayout=(0.55,0.9,0.82),subplot="pull", component=True)
-    #c=fm.draw(" ",logy=0,paramlayout=(0.55,0.9,0.82),subplot="pull", component=True)
-    c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_" %ptname + tag+ ".pdf")
-    c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_" %ptname + tag+ ".png")
+    c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_finallog" %ptname + tag+ ".pdf")
+    c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_finallog" %ptname + tag+ ".png")
 
     #samples.curr_canvases["top"].cd()
     #fm.func_pdf.asTF(ROOT.RooArgList(fm.xvardata)).Draw("L same")
     #samples.SaveStack("thstack_postfit_mlepph_%s_%s.pdf" %ptrange,
     #                    outputDir = "temp/", canname ="top")
     c = fm.get_correlations()
-    c.SaveAs(options.outputDir+"/simult_correlations_%s_%s_" %ptname+tag+".pdf")
-    c.SaveAs(options.outputDir+"/simult_correlations_%s_%s_" %ptname+tag+".png")
+    if c: ## if no fit result
+        c.SaveAs(options.outputDir+"/simult_correlations_%s_%s_" %ptname+tag+".pdf")
+        c.SaveAs(options.outputDir+"/simult_correlations_%s_%s_" %ptname+tag+".png")
 
     values = fm.get_parameter_values()
     print "VALUES"
@@ -465,9 +526,14 @@ def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt
     pprint(stackcount)
     return values, stackcount
 
+
+
+### ---------------------------------------------------------------------------
+
+
 def corefitting_simultaneous(fm, ptrange,fitranges=((50,180)),
             tag="", ic=None, maxtimes =5):
-    """ 
+    """
         Helper function of fitting_simultaneous
         Provide Core Fitting functionality
         Hard-coded retries and break out of loops using return
@@ -489,19 +555,22 @@ def corefitting_simultaneous(fm, ptrange,fitranges=((50,180)),
         chi = fm.getchisquare()
         print "\nCHI ORIGINAL: ", chi
         for fr in fitranges:
-            fr = tuple(round(x+random.normalvariate(0,5)) for x in fr)
-            print fr
-            fr = (max(50,min(90,fr[0])), max(100,min(195,fr[1])))
-            print fr
+            #fr = tuple(round(x+random.normalvariate(0,5)) for x in fr)
+            #print fr
+            #fr = (max(50,min(90,fr[0])), max(100,min(195,fr[1])))
+            #print fr
+            fr = (50,190)
 
 
             print "NOW FITTING mass range %g to %g" %fr + " for pT bin of %g,%g" %ptrange
-            froo_dcb = fm.run_fit_minuit(fr)
+            froo_dcb = fm.run_fit(fr)
+            #froo_dcb = fm.run_fit_chi2(fr)
             print "FINISH fitting range %g to %g"%fr + " for pT bin of %g,%g" %ptrange
             #fm.fitresult.Print()
             fm.frame.Print()
             ## draw result
-            c=fm.draw(" ",(1,1e6),logy=1,paramlayout=(0.55,0.9,0.82),subplot="pull", component=True)
+            #c=fm.draw(" ",(1,1e6),logy=1,paramlayout=(0.55,0.9,0.82),subplot="pull", component=True)
+            c=fm.draw(" ",paramlayout=(0.55,0.9,0.82),subplot="pull", component=True)
             c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_try%s%s.pdf" %(ptname +(itry, tag)) )
             c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_try%s%s.png" %(ptname +(itry, tag)) )
             chi = fm.getchisquare()
@@ -509,14 +578,19 @@ def corefitting_simultaneous(fm, ptrange,fitranges=((50,180)),
             sigerrtoval = fm.defs['Nsig'].getError()/ fm.defs['Nsig'].getVal()
             print  "Nsig : %g +- %g" %(fm.defs['Nsig'].getVal(),fm.defs['Nsig'].getError())
             if not options.batch: raw_input("continue")
-            if (chi<itry and sigerrtoval<.5) or (itry>maxtimes/2 and chi<bestchi*2 and sigerrtoval<.5):
+            if (chi*2<itry and sigerrtoval<.5) or (itry>maxtimes/2 and chi<bestchi*2 and sigerrtoval<.5):
                 print "\n *** FINISH TRIALS AT %i-TH TRY W/ CHI2 OF %g *** \n" %(itry, chi)
-                c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_final%s.pdf" %(ptname +(tag,)) )
-                c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_final%s.png" %(ptname +(tag,)) )
+                c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_finalfit%s.pdf" %(ptname +(tag,)) )
+                c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_finalfit%s.png" %(ptname +(tag,)) )
                 if not options.batch: raw_input("finishing")
                 return
             bestchi = min(bestchi,chi)
             print "\nbestchi: ",bestchi
+
+
+
+### ---------------------------------------------------------------------------
+
 
 def make_normalization_comparison(fm,values,stackcount,ptrange,tag):
     ## make normalization comparison plot
@@ -594,6 +668,11 @@ def make_normalization_comparison(fm,values,stackcount,ptrange,tag):
 # ('TOTAL', 593949.0483624678, 2062.3060481613993)]
 
 
+
+
+### ---------------------------------------------------------------------------
+
+
 def makevariableplots_simultaneous_zg( samp, ptlist, fitrange, basesel="1",
                                        tag="", ic = None, dobkgd=True,
                                        donorm=False, maxtimes=5, doData=False):
@@ -626,7 +705,7 @@ def makevariableplots_simultaneous_zg( samp, ptlist, fitrange, basesel="1",
         for name,val in values.items():
             if val is None: #for case of non-initiated variable
                 parmvals[name].append(-1)
-                parmerrs[name].append(-1) 
+                parmerrs[name].append(-1)
             elif val.s>0: #check if the value is fitted
                 parmvals[name].append(val.n) #value
                 parmerrs[name].append(val.s) #uncertainty
@@ -638,6 +717,11 @@ def makevariableplots_simultaneous_zg( samp, ptlist, fitrange, basesel="1",
     data = {'ptlist':ptlist,'parm':f(parmvals),'error':f(parmerrs)}
     with open('data/efake/%i/parms_%s.txt' %(options.year,tag),'w') as outfile:
         json.dump(data,outfile)
+
+
+### ---------------------------------------------------------------------------
+
+
 def sethbin(h,i,value):
     if value is None: return
     if isinstance(value,tuple):
@@ -646,10 +730,62 @@ def sethbin(h,i,value):
     h.SetBinError  (i,value.s)
 
 
+
+
+### ---------------------------------------------------------------------------
+
+
+def getparm(ic, parmname):
+    """ Return parm of a certain name """
+    index = findparmindex(ic, parmname)
+    return ic[index]
+
+def findparm(ic, parmname):
+    """ Return array of matching parameter names """
+    return [i[0] == parmname for i in ic]
+
+def findparmindex(ic, parmname):
+    """ Return index of parm array matching a parameter name. Helper function """
+
+    found = findparm(ic, parmname)
+
+    if sum(found) > 1:
+        print "WARNING: more than one parm found at replaceparm()"
+    if sum(found) == 0:
+        print ic, parm
+        raise IndexError
+
+    return found.index(True)
+
+def replaceparm(ic, parm):
+    """
+        Replace an item in initial condition list
+        Because the order is fixed, we cannot use dict
+    """
+
+    ### NOTE the same parameter could appear twice
+    ###      only the first one is selected here
+
+    index = findparmindex(ic, parm[0])
+
+
+    ic[index] = parm
+
+    return
+
+
+### ---------------------------------------------------------------------------
+
+
 def setlinestyle(t,width=2,color=2):
         """ works with TH1 and TGraph"""
         t.SetLineColor(color)
         t.SetLineWidth(width)
+
+
+
+### ---------------------------------------------------------------------------
+
 
 def regulate(h1, scale = 1):
     """  add uncertainty to non-zero bin and remove negative bins """
@@ -661,6 +797,11 @@ def regulate(h1, scale = 1):
         if y>0: h1.SetBinError(i,ye_new)
         print i, y, ye, ye_new
 
+
+
+### ---------------------------------------------------------------------------
+
+
 def addline(graph,y):
     left_edge  = graph.GetXaxis().GetXmin()
     right_edge = graph.GetXaxis().GetXmax()
@@ -671,6 +812,11 @@ def addline(graph,y):
     oneline.SetLineWidth(2)
     oneline.SetLineColor(ROOT.kRed)
     return oneline
+
+
+
+### ---------------------------------------------------------------------------
+
 
 def makevariableplots(samp,ptlist,fitrange,basesel="1",tag="",var="ph_pt[0]"):
     parmnames = FitManager.ParamDCB
@@ -749,6 +895,11 @@ def makevariableplots(samp,ptlist,fitrange,basesel="1",tag="",var="ph_pt[0]"):
     with open( ofname, 'w' ) as outfile:
         json.dump(data,outfile)
 
+
+
+### ---------------------------------------------------------------------------
+
+
 def fitting(samples,fm, ptrange,fitranges=((50,180)),var="ph_pt[0]",basesel = "1",tag=""):
     froo_dcb = fm.setup_fit((50,195))
 
@@ -786,7 +937,14 @@ def fitting(samples,fm, ptrange,fitranges=((50,180)),var="ph_pt[0]",basesel = "1
     values = fm.get_parameter_values()
     return values
 
+
+
+### ---------------------------------------------------------------------------
+
+
 class Xpoints:
+
+
     def __init__(self):
         self.xpoints, self.xerrs = [],[]
 
@@ -799,6 +957,8 @@ class Xpoints:
             self.xpoints[-1] = xpoints[-2] + 2*xerrs[-2]
             self.xerrs[-1]   = xerrs[-2]
         return self.xpoints, self.xerrs
+
+
 
 main()
 
