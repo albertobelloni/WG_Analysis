@@ -377,12 +377,12 @@ class FitManager :
             #FIXME not tested IC
             self.defs['vvdijet'] = {}
             self.defs['vvdijet'][0] = (   1 ,      0, 100000) #norm
-            self.defs['vvdijet'][1] = (   0 ,      0,  1000)  #power numerator
+            self.defs['vvdijet'][1] = (   0 ,      0,   1000)  #power numerator
             self.defs['vvdijet'][2] = (   2 ,     -10,   100) #power denominator
             self.defs['vvdijet'][3] = (  -1 ,     -10,    10) # log coeff
-            self.defs['vvdijet'][4] = (  -1 ,     -10,    0)
-            self.defs['vvdijet'][5] = (  -1 ,     -5,    10)
-            self.defs['vvdijet'][6] = (  -1 ,     -5,    10)
+            self.defs['vvdijet'][4] = (  -1 ,     -10,     0)
+            self.defs['vvdijet'][5] = (  -1 ,     -5,     10)
+            self.defs['vvdijet'][6] = (  -1 ,     -5,     10)
 
         if self.func_name == 'expow' :
             self.dof = self.func_norders+2
@@ -396,12 +396,12 @@ class FitManager :
 
             #FIXME not tested IC
             self.defs['expow'] = {}
-            self.defs['expow'][0] = (1e-5,    0,    1e7)
-            self.defs['expow'][1] = (-5,       0,   -10 )
-            self.defs['expow'][2] = (-10,    -200,   -1 )
-            self.defs['expow'][3] = (5,        0,    10 )
-            self.defs['expow'][4] = (10,    -200,    -1 )
-            self.defs['expow'][5] = (-10,    -20,     0 )
+            self.defs['expow'][0] = ( 1e-5,    0,    1e7 )
+            self.defs['expow'][1] = ( -5,       0,   -10 )
+            self.defs['expow'][2] = ( -10,    -200,   -1 )
+            self.defs['expow'][3] = ( 5,        0,    10 )
+            self.defs['expow'][4] = ( 10,    -200,    -1 )
+            self.defs['expow'][5] = ( -10,    -20,     0 )
 
         if self.func_name == 'power' :
             self.dof = self.func_norders*2
@@ -482,6 +482,7 @@ class FitManager :
         func_str = self.get_fit_function()
         fitrange = self.fitrangehelper(fitrange)
 
+        self.defs = OrderedDict()
         #arg_list = ROOT.RooArgList()
         #ROOT.SetOwnership(arg_list, False)
 
@@ -514,9 +515,10 @@ class FitManager :
                                          rf.Range("runfit"),
                                          rf.SumCoefRange("runfit"),
                                          #rf.Range(*self.fitrange),
-                                         #rf.Extended(),
+                                         rf.Extended(),
+                                         rf.Minos(),
                                          rf.SumW2Error(True),
-                                         ROOT.RooCmdArg( 'Strategy', 3 ) ,
+                                         rf.Strategy( 3 ) ,
                                          rf.Save(ROOT.kTRUE))
         return
 
@@ -525,11 +527,16 @@ class FitManager :
             - To be used with weighted data
         """
         self.fitrange = self.fitrangehelper(fitrange)
-#        self.option = ROOT.RooLinkedList()
- #       self.option.Add(rf.Range(*self.fitrange))
-        self.fitresult = self.func_pdf.chi2FitTo( self.datahist,ROOT.RooLinkedList())
-        #rf.Range(*self.fitrange))
-                     #rf.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 1) ,
+        self.roolinkedlist =  ROOT.RooLinkedList()
+        self.optionlist = [ rf.Range(*self.fitrange),
+                            rf.SumW2Error(True),
+                            rf.Save(ROOT.kTRUE),
+                            ROOT.RooCmdArg( 'Strategy', 1) ,
+                          ]
+        for opt in self.optionlist:
+            self.roolinkedlist.Add(opt)
+        self.fitresult = self.func_pdf.chi2FitTo( self.datahist,
+                                                  self.roolinkedlist )
                      #rf.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) ,
                      #rf.Save(ROOT.kTRUE))
         return
@@ -540,10 +547,10 @@ class FitManager :
         """
         self.fitrange = self.fitrangehelper(fitrange)
         print self.fitrange
-        self.xvardata.setRange("runfit",*self.fitrange)
+        #self.xvardata.setRange("runfit",*self.fitrange)
         self.func_pdf.fitTo( self.datahist,
                              rf.Save(),
-                             rf.Range("runfit"),
+                             #rf.Range("runfit"),
                              rf.SumW2Error(True),
                              ROOT.RooCmdArg( 'Strategy', 3 ) )
         if debug:
@@ -692,7 +699,7 @@ class FitManager :
 
     def get_correlations(self):
         ROOT.gStyle.SetOptStat(0)
-        if not self.fitresult: return
+        if not self.fitresult: return None
         self.curr_canvases["corr"] = ROOT.TCanvas("c_corr","correlation",400,400)
         self.curr_canvases["corr"].SetLeftMargin(0.15)
         self.curr_canvases["corr"].SetRightMargin(0.15)
@@ -752,11 +759,19 @@ class FitManager :
         if component:
             hlist = [h for h in self.datahistlist.values() if h!= self.datahist]
             for h in hlist:
-                h.plotOn(self.frame,rf.DataError(ROOT.RooAbsData.SumW2),
-                    rf.DrawOption("B"),rf.DataError(ROOT.RooAbsData.None),
-                        rf.XErrorSize(0),rf.FillColor(ROOT.kBlue-10))
-                print "PLOTONN: ", h
-        self.datahist.plotOn(self.frame,rf.DataError(ROOT.RooAbsData.SumW2))
+                h.plotOn( self.frame,
+                                rf.DataError(ROOT.RooAbsData.Poisson),
+                                #rf.DataError(ROOT.RooAbsData.None),
+                                #rf.DrawOption("B"),
+                                rf.DrawOption("B2"),
+                                #rf.DrawOption("ef3"),
+                                rf.XErrorSize(0),
+                                rf.FillColor(ROOT.kBlue-10)
+                        )
+                print "plot data: " , h
+        self.datahist.plotOn(self.frame,
+#                            rf.DataError(ROOT.RooAbsData.Poisson) ## FIXME needed for extended model fit in efakes, but not MC background fit
+                            )
 
         #
         # old setup fitted for the signal and MC bkg fits
@@ -771,9 +786,8 @@ class FitManager :
             plotparm   = [self.frame,]
             #if  self.pdfplotrange and self.fitrange:
             #    plotparm.append(rf.Range(*self.fitrange))
-            #if True: ## FIXME
 
-            plotparm+=[rf.NormRange("runfit"),rf.Range("runfit")]
+            #plotparm+=[rf.NormRange("runfit"),rf.Range("runfit")]
 
             if component == True:
                 component = self.components
@@ -781,10 +795,11 @@ class FitManager :
             if isinstance(component,list):
 
                 for i,comp in enumerate(map(rf.Components,component)):
-                    self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[i+1]+[comp,]))
+                    args = plotparm+FitManager.LineDefs[i+1]+[comp,]
+                    self.func_pdf.plotOn(*args)
 
-                    print "PLOTONN2: ", i, comp, 
-                    plotparm+ FitManager.LineDefs[i+1]+[comp,]
+                    print "plot pdf: ", i, comp
+                    print "arguments: ", args
 
             self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[0]))
             print "plotparm"

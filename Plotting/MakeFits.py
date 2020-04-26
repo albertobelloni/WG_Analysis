@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from functools import wraps
 import sys
 import ROOT
@@ -8,6 +9,7 @@ import subprocess
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from argparse import ArgumentParser
 from collections import OrderedDict
+import selection_defs as defs
 import json
 
 from SampleInfo import SampleInfo
@@ -34,7 +36,9 @@ options = parser.parse_args()
 
 _WLEPBR = (1.-0.6741)
 _XSFILE   = 'cross_sections/photon16_smallsig2.py'
-_LUMI     = 36000
+_LUMI16   = 36000
+_LUMI17   = 41000
+_LUMI18   = 59740
 
 DEBUG = 1
 
@@ -65,45 +69,35 @@ def f_Dumpfname(func):
 
 def main() :
 
-    #ws_keys = {
-    #            'Wgamma'   : 'workspace_wgamma',
-    #            'top'      : 'workspace_top',
-    #            'signal'   : 'workspace_signal',
-    #            'wjets'    : 'workspace_wjets',
-    #            'data'     : 'workspace_data',
-    #            ## toy model
-    #            'toysignal': 'workspace_toy_signal',
-    #            'toybkg'   : 'workspace_toy_background',
-    #            ## toy data
-    #            'toydata'  : 'workspace_toy_data',
-    #          }
     ws_keys = {
               # this can be made to a class
-                 'signal'   : SampleInfo ( pdf_prefix = 'cb_MG',
-                                params_prefix = [ 'cb_cut1_MG',
-                                                  'cb_cut2_MG',
-                                                  'cb_mass_MG',
-                                                  'cb_sigma_MG',
-                                                  'cb_power1_MG',
-                                                  'cb_power2_MG' ],
-                                         useLumi = True, useMET = True, usePDF = True,),
-                 'WGamma'        : SampleInfo( name = 'WGamma',      useLumi = True,
-                                                 useMET = False, usePDF = False, ),
-                 'TTbar'         : SampleInfo( name = 'TTbar',       useLumi = False,
-                                                 useMET = False, usePDF = False, ),
-                 'TTG'           : SampleInfo( name = 'TTG',         useLumi = False,
-                                                 useMET = False, usePDF = False, ),
-                 'Wjets'         : SampleInfo( name = 'Wjets',       useLumi = False,
-                                                 useMET = False, usePDF = False, ),
-                 'Zgamma'        : SampleInfo( name = 'Zgamma',      useLumi = False,
-                                                 useMET = False, usePDF = False, ),
-                 'GammaGamma'    : SampleInfo( name = 'GammaGamma',  useLumi = False,
-                                                 useMET = False, usePDF = False, ),
-                 'Backgrounds'   : SampleInfo( name = 'Backgrounds', useLumi = False,
-                                                 useMET = False, usePDF = False, ),
-                 'toydata'       : {'pdf': 'toydata'},
-                 'toysignal'     : {'pdf': 'gauss'},
-                 'toybkg'        : {'pdf': 'exp'},
+              'signal'   : SampleInfo ( pdf_prefix = 'cb_MG',
+                             params_prefix = [ 'cb_cut1_MG',
+                                               'cb_cut2_MG',
+                                               'cb_mass_MG',
+                                               'cb_sigma_MG',
+                                               'cb_power1_MG',
+                                               'cb_power2_MG' ],
+                           useLumi = True, useMET = True, usePDF = True,),
+              'All'        : SampleInfo( name = 'All', useLumi = True,
+                                            useMET = False, usePDF = False, ),
+              'WGamma'        : SampleInfo( name = 'WGamma', useLumi = True,
+                                            useMET = False, usePDF = False, ),
+              'TTbar'         : SampleInfo( name = 'TTbar', useLumi = False,
+                                             useMET = False, usePDF = False, ),
+              'TTG'           : SampleInfo( name = 'TTG',   useLumi = False,
+                                             useMET = False, usePDF = False, ),
+              'Wjets'         : SampleInfo( name = 'Wjets', useLumi = False,
+                                             useMET = False, usePDF = False, ),
+              'Zgamma'        : SampleInfo( name = 'Zgamma', useLumi = False,
+                                             useMET = False, usePDF = False, ),
+              'GammaGamma'    : SampleInfo( name = 'GammaGamma',
+                            useLumi = False, useMET = False, usePDF = False, ),
+              'Backgrounds' : SampleInfo( name = 'Backgrounds',
+                            useLumi = False, useMET = False, usePDF = False, ),
+              'toydata'       : {'pdf': 'toydata'},
+              'toysignal'     : {'pdf': 'gauss'},
+              'toybkg'        : {'pdf': 'exp'},
              }
 
 
@@ -120,6 +114,14 @@ def main() :
     global binid
     def binid(ibin): return "".join(map(str,ibin.values()))
 
+    global lumi
+    def lumi(ibin): 
+        year = ibin['year']
+        if year == 2016: return _LUMI16
+        if year == 2017: return _LUMI17
+        if year == 2018: return _LUMI18
+        raise RuntimeError
+
     if options.outputDir is None :
         options.outputDir = "/home/kakw/efake/WG_Analysis/Plotting/data/higgs/"
     if options.outputDir is not None :
@@ -130,7 +132,8 @@ def main() :
         options.baseDir = "/home/kakw/efake/WG_Analysis/Plotting/data/"
 
     if options.combineDir == None:
-        options.combineDir == "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/"
+        #options.combineDir == "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/"
+        options.combineDir == "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_11_0_0/src/"
 
     #signal_masses   = [900]
     #signal_masses   = [200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1200, 1400,
@@ -140,16 +143,6 @@ def main() :
 
     if options.doVarOpt:
 
-#        var_opt = {}
-
-#        kine_vars = {
-#                      'name' : 'mt_res'   , 'color' : ROOT.kBlack , 'range' : [150, 3000]
-#                     #{ 'name' : 'mt_incl_lepph_z', 'color' : ROOT.kBlue},
-#                     #{ 'name' : 'm_incl_lepph_z' , 'color' : ROOT.kRed },
-#                     #{ 'name' : 'mt_rotated' , 'color' : ROOT.kRed },
-#                     #{ 'name' : 'mt_constrwmass' , 'color' : ROOT.kGreen },
-#                     #{ 'name' : 'ph_pt'          , 'color' : ROOT.kMagenta },
-#                   }
 
         ROOT.RooRandom.randomGenerator().SetSeed(int(time.time()))
         var_opt = MakeLimits(  var=  "mt_res" ,
@@ -157,14 +150,18 @@ def main() :
                                masspoints  = signal_masses,
                                widthpoints = signal_widths,
                                #backgrounds=['WGamma', 'TTG', 'TTbar', 'Wjets', 'Zgamma'],
-                               backgrounds=['WGamma'],
+                               #backgrounds = ['WGamma'],
+                               backgrounds = ['All'],
                                #backgrounds=['Backgrounds'],
-                               baseDir=options.baseDir,
-                               bins=bins,
-                               #outputDir='%s/%s/%s' %( options.outputDir, 'VarOpt', var['name'] ),
-                               outputDir=options.outputDir,
-                               useToySignal=options.useToySignal,
-                               useToyBackground=options.useToyBkgd,
+                               baseDir = options.baseDir,
+                               bins = bins,
+                               cutsetlist = "ABC",
+                               outputDir = options.outputDir,
+                               useToySignal = options.useToySignal,
+                               useToyBackground = options.useToyBkgd,
+                               # don't put norms in new file
+                               keeplNorms = False,
+                               noShapeUnc = True,
                              )
 
         var_opt.setup()
@@ -174,14 +171,17 @@ def main() :
         if not options.noRunCombine :
 
             if options.condor:
+                ### run condor jobs
                 jdl_name = '%s/job_desc.jdl'  %( options.outputDir )
                 make_jdl( combine_jobs, jdl_name )
 
                 os.system( 'condor_submit %s' %jdl_name )
 
+                print tPurple% "WARNING: unstable method"
                 #wait_for_jobs( 'run_combine')
-                wait_for_jobs( 'kakw') ### FIXME extremely error prone
+                wait_for_jobs( 'kakw')
             else:
+                ### run local shell commands in parallel
                 var_opt.run_commands()
 
         raw_input("continue")
@@ -206,20 +206,17 @@ def make_jdl( exe_list, output_file ) :
 
     base_dir = os.path.dirname( output_file )
 
-    file_entries = []
-    file_entries.append('#Use only the vanilla universe')
-    file_entries.append('universe = vanilla')
-    file_entries.append('# This is the executable to run.  If a script,')
-    file_entries.append('#   be sure to mark it "#!<path to interp>" on the first line.')
-    file_entries.append('# Filename for stdout, otherwise it is lost')
-    file_entries.append('# Copy the submittor environment variables.  Usually required.')
-    file_entries.append('getenv = True')
-    file_entries.append('# Copy output files when done.  REQUIRED to run in a protected directory')
-    file_entries.append('Requirements = (TARGET.OpSysMajorVer == 7)')
-
-    file_entries.append('when_to_transfer_output = ON_EXIT_OR_EVICT')
-    #file_entries.append('transfer_output = True')
-    file_entries.append('priority=0')
+    file_entries = [
+    'universe = vanilla',
+    '# This is the executable to run.  If a script,',
+    '# be sure to mark it "#!<path to interp>" on the first line.',
+    '# Filename for stdout, otherwise it is lost',
+    '# Copy the submittor environment variables',
+    'getenv = True',
+    '# Require to run on SL/CentOS7',
+    'Requirements = (TARGET.OpSysMajorVer == 7)',
+    'when_to_transfer_output = ON_EXIT_OR_EVICT',
+    ]
 
     for exe in exe_list :
 
@@ -267,24 +264,10 @@ def Width_str2float( width ):
 
 def wait_for_jobs( job_tag ) :
 
-    #while 1 :
-    #    status = subprocess.Popen( ['bjobs'], stdout=subprocess.PIPE).communicate()[0]
-
-    #    n_limits = 0
-
-    #    for line in status.split('\n') :
-    #        if line.count(job_tag ) :
-    #            n_limits += 1
-
-    #    if n_limits == 0 :
-    #        return
-    #    else :
-    #        print '%d Jobs still running' %n_limits
-    #    time.sleep( 1.0 * 60 )
-
     while 1 :
         time.sleep(20)
-        status = subprocess.Popen( ['condor_q'], stdout=subprocess.PIPE).communicate()[0]
+        status = subprocess.Popen( ['condor_q'], stdout=subprocess.PIPE) \
+                           .communicate()[0]
 
         n_limits = 0
 
@@ -298,7 +281,17 @@ def wait_for_jobs( job_tag ) :
             print '%d Jobs still running' %(n_limits-1)
 
 
+# ---------------------------------------------------
 
+def import_workspace( ws , objects):
+    """ import objects into workspace """
+
+    if not isinstance( objects, list ):
+        objects = [objects,]
+
+    ## NOTE getattr is needed to escape python keyword import
+    for o in objects:
+        getattr( ws, "import") ( o )
 
 # ---------------------------------------------------
 
@@ -312,15 +305,19 @@ class MakeLimits( ) :
         self.var              = kwargs.get('var'        ,  None )
         self.masspoints       = kwargs.get('masspoints' ,  None )
         self.widthpoints      = kwargs.get('widthpoints',  None )
+        self.cutsetlist       = kwargs.get('cutsetlist' ,  None )
         self.baseDir          = kwargs.get('baseDir'    ,  None )
         self.outputDir        = kwargs.get('outputDir'  ,  None )
         self.bins             = kwargs.get('bins'       ,  None )
         self.bkgnames         = kwargs.get('backgrounds',  None )
 
-        self.wskeys = kwargs.get('wskeys', None)
+        self.wskeys           = kwargs.get('wskeys'     ,  None )
 
         self.useToySignal     = kwargs.get('useToySignal',     False )
         self.useToyBackground = kwargs.get('useToyBackground', False )
+
+        self.keepNorms        = kwargs.get('keepNorms', False )
+        self.noShapeUnc       = kwargs.get('noShapeUnc', False)
 
 
         self.wstag = kwargs.get('wsTag', 'base' )
@@ -373,7 +370,7 @@ class MakeLimits( ) :
 
         if not self.useToySignal:
            print "have to load cross sections for signals for normalization. :( "
-           self.weightMap,_ = analysis_utils.read_xsfile( _XSFILE, _LUMI, print_values=True )
+           self.weightMap,_ = analysis_utils.read_xsfile( _XSFILE, 1, print_values=True )
 
 
 
@@ -497,6 +494,9 @@ class MakeLimits( ) :
 
 
 
+# ---------------------------------------------------
+
+    ## FIXME move to SampleInfo
 
 # ---------------------------------------------------
 
@@ -512,11 +512,13 @@ class MakeLimits( ) :
 
             for mass in self.masspoints:
 
+                cuttag = defs.selectcuttag(mass) ## returns A, B, C
+
                 sigpar = "_".join( ['M'+ str(mass), 'W'+width] )
 
                 card_path = '%s/wgamma_test_%s_%s.txt' %(outputdir, self.var, sigpar )
 
-                self.generate_card( card_path, sigpar )
+                self.generate_card( card_path, sigpar, cuttag = cuttag )
 
                 self.allcards[sigpar] =  card_path
 
@@ -527,7 +529,7 @@ class MakeLimits( ) :
 
 
     @f_Dumpfname
-    def generate_card( self, outputCard, sigpar,  tag='base' ) :
+    def generate_card( self, outputCard, sigpar,  tag='base' , cuttag = "") :
         """
 
             generates card
@@ -535,6 +537,7 @@ class MakeLimits( ) :
                 outputCard      output card?
                 sigpar          list of signal parameters
                 tag             tag (still used?)
+                cuttag          tag for cutset used (for background shape)
             output:
                 none
 
@@ -575,16 +578,14 @@ class MakeLimits( ) :
         #signal_norm = 1.0
 
         ############################################
-        ##  shape decaration 
+        ##  shape decaration
         ##  num of lines: (SIG+BKG+DATA=1)XCH
         ##
-        ##  shapes Resonance mu_2016 /sigfit/2016/wssignal_M350_W5_mu.root wssignal_M350_W5_mu:cb_MG_M350_W5_mu2016
-        ##  shapes Resonance el_2016 /sigfit/2016/wssignal_M350_W5_el.root wssignal_M350_W5_el:cb_MG_M350_W5_el2016
-        ##  shapes Resonance mu_2018 /sigfit/2018/wssignal_M350_W5_mu.root wssignal_M350_W5_mu:cb_MG_M350_W5_mu2018
-        ##  shapes Resonance el_2018 /sigfit/2018/wssignal_M350_W5_el.root wssignal_M350_W5_el:cb_MG_M350_W5_el2018
-        ##  shapes WGamma el_2018    /higgs/WGamma/mu2016workspace_wgamma_dijet.root workspace_wgamma_dijet:dijet_mu2016_wgamma
-        ##  shapes data_obs el_2018  /higgs/toydata/wtoydata.root workspace_toydata:toydata_mu_2016_mt_res_base
-        ##  shapes data_obs el_2018  /higgs/toydata/wtoydata.root workspace_toydata:toydata_mu_2016_mt_res_base
+        ##  shapes Resonance mu_2016 2016/wssignal_M350_W5_mu.root ws:cbmu2016
+        ##  shapes Resonance el_2016 2016/wssignal_M350_W5_el.root ws:cbel2016
+        ##  shapes Resonance mu_2018 2018/wssignal_M350_W5_mu.root ws:cbmu2018
+        ##  shapes WGamma el_2018    higgs/dijet.root ws:dijet_mu2016_wgamma
+        ##  shapes data_obs el_2018  higgs/wtoydata.root ws:toydata_mu2016
         ############################################
 
 
@@ -602,13 +603,13 @@ class MakeLimits( ) :
                     bkg_entry = bkg_entry.replace('dijet', 'datahist' )
                 card_entries.append( 'shapes %s %s %s %s:%s' %( bkgname.ljust( max_name_len ),
                     bin_id, bkg.GetOutputName(options.outputDir,**ibin).ljust( max_path_len ), bkg.GetWSName(),
-                    bkg.GetPDFName( self.var , ibin['channel'], ibin['year']) ) )
+                    bkg.GetPDFName( self.var , ibin['channel'] + cuttag, ibin['year']) ) )
 
         for ibin in viablebins:
             bin_id = binid(ibin)
             ###  DATA (=1) X CH
             data = self.datas[self.dataname+binid(ibin)]
-            card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, data['file'], data['workspace'], data['data'] ) )
+            card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, data['file'], data['workspace'], data['data'][cuttag] ) )
 
         card_entries.append( section_divider )
 
@@ -650,7 +651,9 @@ class MakeLimits( ) :
             #for bkgdic in self.backgrounds :
             for bkgname, bkg in self.backgrounds.iteritems():
                 #rate_entries.append( str(bkgdic['norm'][bin_id]) )
-                rate_entries.append( bkg.norm[0] )
+                jbin = ibin['channel']+cuttag+str(ibin["year"])
+                print jbin
+                rate_entries.append( bkg.norm[jbin][0] )
                 #bkg rate
                 #rate_entries.append( str(1.0) )
 
@@ -679,9 +682,9 @@ class MakeLimits( ) :
 
         lumi_vals = ["%-13g "%1.025] * (len(all_binids)*( len(self.backgrounds) + 1 ))
         #lumi_vals = ['1.025'] + [ '1.025' if bkg.useLumi else '-' for bkg in self.backgrounds.values() ]
-        bkg_vals = (['       -     '] + ["%-13g " %1.20]*len(self.backgrounds) )*len(all_binids)
-        signal_met = ( ["%-13g " %1.03] + ['       -     ']*len(self.backgrounds) )*len( all_binids)
-        signal_pdf = ( ["%-13g " %1.05] + ['       -     ']*len(self.backgrounds) )*len( all_binids)
+        bkg_vals = (['-'+' '*13] + ["%-13g " %1.20]*len(self.backgrounds) )*len(all_binids)
+        signal_met = ( ["%-13g " %1.03] + ['-'+' '*13]*len(self.backgrounds) )*len( all_binids)
+        signal_pdf = ( ["%-13g " %1.05] + ['-'+' '*13]*len(self.backgrounds) )*len( all_binids)
 
         card_entries.append( 'lumi  lnN   ' + ''.join(lumi_vals) )
         #card_entries.append( 'bkgelse   lnN    ' + '    '.join(bkg_vals    ) )
@@ -697,7 +700,7 @@ class MakeLimits( ) :
         #parameter errors
         for iparname, iparval in self.params.iteritems():
             ## FIXME stopgap measure 
-            if any([ibin['channel']+str(ibin['year']) in iparname for ibin in viablebins]):
+            if any([ ibin['channel']+cuttag+str(ibin["year"]) in iparname for ibin in viablebins]):
                 #card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
                 card_entries.append('%s flatParam'%iparname)
 
@@ -757,11 +760,8 @@ class MakeLimits( ) :
        workspace = ROOT.RooWorkspace( '_'.join(['workspace', self.dataname, binid(ibin)]) )
 
 
-       suffix = "%s_%s_%s"%(binid(ibin), self.var, self.wstag)
+       datasetname={}
 
-       pdfs = []
-       norms = []
-       xvar = None
        #if bkgname != 'WGamma':
        #   print "[ \033[1;31mProblem running the toy data generation process. Skip %s. Only play with WGamma for now\033[0m  ]"%bkgname
        #   continue
@@ -773,98 +773,111 @@ class MakeLimits( ) :
 
        #ws = ofile.Get( bkg['workspace'] )
        ws = ofile.Get( bkg.GetWSName() )
+       print  bkg.GetOutputName( self.outputDir ,**ibin ), ":", bkg.GetWSName( )
+       print ofile, ws
 
-       if options.useHistTemp :
-           print hist_key
-           pdfs.append(ws.data( hist_key ))
-           norms.append(pdfs[-1].sumEntries())
-       else :
-           #norms.append( ws.var( '%s_norm'%bkg['pdf'] ).getVal() )
-           #pdfs.append(  ws.pdf( bkg['pdf'] ) )
-           #norms.append( ws.var('%s_norm'%bkg.GetPDFName(self.var, self.bins[0]['channel'])).getVal() )
-           norms.append( bkg.norm[0] )
-           pdfs.append( ws.pdf( bkg.GetPDFName(self.var, **ibin)) )
+       for cutset in self.cutsetlist:
+           pdfs = []
+           norms = []
+           xvar = None
+           jbin = ibin.copy()
+           jbin['channel'] += cutset ## add cutset tag
+           suffix = "%s_%s_%s"%(binid(jbin), self.var, self.wstag)
 
-       if xvar is None :
-           xvar = ws.var( self.xvarname )
-
-       ofile.Close()
-
-       ## mix into some fake signal
-       if sigpars:
-          print "add some fake signals for fun..."
-          for sigpar, signorm in zip(sigpars, signorms):
-              try:
-                  sig = self.signals[sigpar+str(ibin['year'])]
-                  print "sig: ", sig
-                  ofile = ROOT.TFile.Open( sig['file'] )
-              except:
-                  print self.signals.keys()
-                  print "can not open the signal workspace file: "\
-                        "%s Please x-check self.signals collection"\
-                            %self.signals[sigpar]['file']
-                  raise
-              print sigpar, sig['file'], sig['pdf']
-              ws = ofile.Get( sig['workspace'] )
-              pdfs.append( ws.pdf( sig['pdf'] ) )
-              #norms.append( ws.var( '%s_norm'%sig['pdf']).getVal() * signorm )
-              norms.append( sig['rate']*signorm)
-
-       print "Normalization:: ", norms
-
-       if len( pdfs ) == 1 :
-           ### there is only 1 pdf. save toy data
            if options.useHistTemp :
-               dataset = ROOT.RooDataHist( pdfs[0], 'toydata_%s' %suffix )
+               print hist_key
+               pdfs.append(ws.data( hist_key ))
+               norms.append(pdfs[-1].sumEntries())
            else :
-               if data_norm is None :
-                   norm = int(norms[0])
+               #norms.append( ws.var( '%s_norm'%bkg['pdf'] ).getVal() )
+               #pdfs.append(  ws.pdf( bkg['pdf'] ) )
+               #norms.append( ws.var('%s_norm'%bkg.GetPDFName(self.var, self.bins[0]['channel'])).getVal() )
+               norms.append( bkg.norm[binid(jbin)][0] )
+               pdfs.append( ws.pdf( bkg.GetPDFName(self.var, **jbin)) )
+
+           if xvar is None :
+               xvar = ws.var( self.xvarname )
+           print xvar
+
+           ofile.Close()
+
+           ## mix into some fake signal
+           if sigpars:
+              print "add some fake signals for fun..."
+              for sigpar, signorm in zip(sigpars, signorms):
+                  try:
+                      sig = self.signals[sigpar+str(ibin['year'])]
+                      print "sig: ", sig
+                      ofile = ROOT.TFile.Open( sig['file'] )
+                  except:
+                      print self.signals.keys()
+                      print "can not open the signal workspace file: "\
+                            "%s Please x-check self.signals collection"\
+                                %self.signals[sigpar]['file']
+                      raise
+                  print sigpar, sig['file'], sig['pdf']
+                  ws = ofile.Get( sig['workspace'] )
+                  pdfs.append( ws.pdf( sig['pdf'] ) )
+                  #norms.append( ws.var( '%s_norm'%sig['pdf']).getVal() * signorm )
+                  norms.append( sig['rate']*signorm)
+
+           print "Normalization:: ", norms
+
+           if len( pdfs ) == 1 :
+               ### there is only 1 pdf. save toy data
+               if options.useHistTemp :
+                   dataset = ROOT.RooDataHist( pdfs[0], 'toydata_%s' %suffix )
                else :
-                   norm = data_norm
-               dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
-                         ROOT.RooCmdArg( 'Name', 0, 0, 0, 0, 'toydata_%s' %suffix ) )
-       else :
-           if DEBUG: print "norms: ", norms
-           total = sum( [int(x) for x in norms ] )
-
-           fractions = [ float(x)/total for x in norms ]
-
-           print "total ", total, " fractions", fractions
-
-           if options.useHistTemp :
-
-               dataset = ROOT.RooDataHist( pdfs[0], 'toydata_%s' %suffix )
-
-               for pdf in pdfs[1:] :
-                   dataset.add( pdf )
-
+                   if data_norm is None :
+                       norm = int(norms[0])
+                   else :
+                       norm = data_norm
+                   dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
+                             ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
+                                             'toydata_%s' %suffix ) )
            else :
-               print "**** start generate toy data *****"
-               pdfList = ROOT.RooArgList()
-               print pdfs
-               for p in pdfs :
-                   p.Print()
-                   pdfList.add( p )
+               if DEBUG: print "norms: ", norms
+               total = sum( [int(x) for x in norms ] )
 
-               fracList = ROOT.RooArgList()
-               idx = 0
-               myvar = []
-               for f in fractions[:-1] :
-               #for f in fractions:
-                   #myvar = ROOT.RooRealVar( str(uuid.uuid4()), str(uuid.uuid4()), f, 0,  f )
-                   myvar.append( ROOT.RooRealVar("fraction_%d"%idx, "fraction_%d"%idx, f, 0, f) )
-                   fracList.add( myvar[idx] )
-                   idx += 1
+               fractions = [ float(x)/total for x in norms ]
 
-               pdfList.Print()
-               print fracList
-               summed = ROOT.RooAddPdf( 'summed' ,'summed', pdfList , fracList )
-               dataset = summed.generate( ROOT.RooArgSet(xvar), int(total),
-                            ROOT.RooCmdArg( 'Name', 0, 0, 0, 0, 'toydata_%s' %suffix ) )
+               print "total ", total, " fractions", fractions
 
-       # not clear why we have to rename here
-       #getattr( out_ws, 'import' ) ( dataset, ROOT.RooCmdArg('RenameAllNodes', 0, 0, 0, 0, 'toydata_%s' %suffix ) )
-       getattr( workspace, 'import' ) ( dataset )
+               if options.useHistTemp :
+
+                   dataset = ROOT.RooDataHist( pdfs[0], 'toydata_%s' %suffix )
+
+                   for pdf in pdfs[1:] :
+                       dataset.add( pdf )
+
+               else :
+                   print "**** start generate toy data *****"
+                   pdfList = ROOT.RooArgList()
+                   print pdfs
+                   for p in pdfs :
+                       p.Print()
+                       pdfList.add( p )
+
+                   fracList = ROOT.RooArgList()
+                   idx = 0
+                   myvar = []
+                   for f in fractions[:-1] :
+                   #for f in fractions:
+                       #myvar = ROOT.RooRealVar( str(uuid.uuid4()), str(uuid.uuid4()), f, 0,  f )
+                       myvar.append( ROOT.RooRealVar("fraction_%d"%idx, "fraction_%d"%idx, f, 0, f) )
+                       fracList.add( myvar[idx] )
+                       idx += 1
+
+                   pdfList.Print()
+                   print fracList
+                   summed = ROOT.RooAddPdf( 'summed' ,'summed', pdfList , fracList )
+                   print "xvar", xvar
+                   dataset = summed.generate( ROOT.RooArgSet(xvar), int(total),
+                                              ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
+                                                        'toydata_%s' %suffix ) )
+
+           import_workspace( workspace, dataset)
+           datasetname[cutset]=dataset.GetName()
 
        outputfile = '%s/%s/%s.root' %( self.outputDir, self.dataname, workspace.GetName() )
        print outputfile, "718"
@@ -874,7 +887,7 @@ class MakeLimits( ) :
        self.datas.update(
                           { self.dataname+binid(ibin): { 'channel':
                               binid(ibin), 'file': outputfile, 'workspace':
-                              workspace.GetName(), 'data': dataset.GetName() }
+                              workspace.GetName(), 'data': datasetname }
                               }
                         )
 
@@ -891,77 +904,85 @@ class MakeLimits( ) :
            for bkgn in self.bkgnames:
                self.prepare_background_functions_helper(bkgn, ibin)
 
+
     def prepare_background_functions_helper(self, bkgn, ibin):
         print " prepare background functions for ", bkgn
 
-        #ofile = ROOT.TFile.Open( '%s/MCBkgWS/workspace_%s.root' %( self.baseDir, bkgn.lower() ), 'READ' )
-        print  '%s/bkgfit/%i/%s' %( self.baseDir, ibin['year'],self.wskeys[bkgn].GetRootFileName() )
-        ofile = ROOT.TFile.Open( '%s/bkgfit/%i/%s' %( self.baseDir, ibin['year'], 
-                        self.wskeys[bkgn].GetRootFileName() ), 'READ' )
+        fname = '%s/bkgfit/%i/%s' %( self.baseDir, ibin['year'],
+                                     self.wskeys[bkgn].GetRootFileName() )
+        ofile = ROOT.TFile.Open( fname , 'READ' )
 
-        #ws_in = ofile.Get( "workspace_" + bkgn.lower() )
         ws_in = ofile.Get( self.wskeys[bkgn].GetWSName() )
 
         ws_out = ROOT.RooWorkspace( self.wskeys[bkgn].GetWSName() )
 
-        #suffix = "_".join([bkgn, self.bins[0]['channel'], self.var, self.wstag, self.bins[0]['eta']])
+        var = ws_in.var(self.var)
+        var.setBins(660)
+        import_workspace( ws_out, var)
 
-        #ws_entry = "_".join( [self.wskeys[bkgn].pdf_prefix, suffix])
+        for cutset in self.cutsetlist:
 
-        ws_entry = self.wskeys[bkgn].GetPDFName( self.var, **ibin)
+            #suffix = "_".join([bkgn, self.bins[0]['channel'], self.var, self.wstag, self.bins[0]['eta']])
 
-        if DEBUG:
-           print ws_entry
+            #ws_entry = "_".join( [self.wskeys[bkgn].pdf_prefix, suffix])
+            jbin = ibin.copy()
+            jbin['channel'] += cutset ## add cutset tag
 
-        if options.useHistTemp :
-            datahist = ws_in.data(ws_entry.replace('dijet', 'datahist') )
-            getattr( ws_out, 'import' ) ( datahist )
-        else :
-            pdf = ws_in.pdf( ws_entry )
-            #power_var = ws_in.var( 'power_%s' %ws_entry )
-            #logcoef_var = ws_in.var( 'logcoef_%s' %ws_entry )
+            ws_entry = self.wskeys[bkgn].GetPDFName( self.var, **jbin)
 
-            #power_var.setConstant()
-            #logcoef_var.setConstant()
-            # pars
+            if DEBUG:
+               print ws_entry
 
-            #for ipar in self.wskeys[bkgn].params_prefix:
-            for ipar in self.wskeys[bkgn].GetParNames( **ibin):
-                if DEBUG:
-                   print ipar
-                oldvar = ws_in.var( ipar )
-                if 'order1' in ipar:
-                    varrange = (-50.0, 0.0)
-                elif 'order2' in ipar:
-                    varrange = (-10.0, 0.0)
-                elif 'order3' in ipar:
-                    print "order 3............................"
-                    varrange = (-5.0, 0.0)
+            if options.useHistTemp :
+                datahist = ws_in.data(ws_entry.replace('dijet', 'datahist') )
+                import_workspace( ws_out, datahist)
+            else :
+                pdf = ws_in.pdf( ws_entry )
+                #power_var = ws_in.var( 'power_%s' %ws_entry )
+                #logcoef_var = ws_in.var( 'logcoef_%s' %ws_entry )
 
-                var =  ROOT.RooRealVar( ipar, ipar,  oldvar.getVal(), varrange[0], varrange[1] )
-                print var
-                # save the value and errors of the fit parameters, to be used for card generation
-                self.params.update( {ipar: (oldvar.getVal(), oldvar.getError())} )
-                #var.setError(0.0)
-                #var.setConstant()
-                #if 'order1' in ipar: var.setRange(-50.0, 0.0 )
-                #else: var.setRange(-10.0, 0.0 )
+                #power_var.setConstant()
+                #logcoef_var.setConstant()
+                # pars
 
-                getattr( ws_out, 'import' ) ( var )
+                #for ipar in self.wskeys[bkgn].params_prefix:
+                for ipar in self.wskeys[bkgn].GetParNames( **jbin):
+                    if DEBUG:
+                       print ipar
+                    oldvar = ws_in.var( ipar )
+                    if 'order1' in ipar:
+                        varrange = (-50.0, 0.0)
+                    elif 'order2' in ipar:
+                        varrange = (-10.0, 0.0)
+                    elif 'order3' in ipar:
+                        print "order 3............................"
+                        varrange = (-5.0, 0.0)
 
-            var = ws_in.var("mt_res") ##FIXME
-            var.setBins(660)
-            getattr( ws_out, 'import' ) ( var )
+                    var =  ROOT.RooRealVar( ipar, ipar, oldvar.getVal(),
+                                            varrange[0], varrange[1] )
+                    print var
+                    # save the value and errors of the fit parameters, to be used for card generation
+                    self.params.update( {ipar: (oldvar.getVal(), oldvar.getError())} )
+                    #var.setError(0.0)
+                    if not self.noShapeUnc: var.setError(oldvar.getError())
+                    #var.setConstant()
+                    #if 'order1' in ipar: var.setRange(-50.0, 0.0 )
+                    #else: var.setRange(-10.0, 0.0 )
 
-            print "%s_norm" %ws_entry
-            norm_var = ws_in.var( '%s_norm' %ws_entry )
-            self.wskeys[bkgn].SetNorm( norm_var.getVal(), norm_var.getError() )
-            #norm_var.setError( 0.3*norm_var.getValV() )
-            #norm_var.setVal( norm_var.getValV() )
-            #norm_var.setError( 0.0 )
-            #norm_var.setConstant()
-            #getattr( ws_out, 'import' ) ( norm_var )
-            getattr( ws_out, 'import' ) ( pdf )
+                    import_workspace( ws_out, var)
+
+
+                print "%s_norm" %ws_entry
+                norm_var = ws_in.var( '%s_norm' %ws_entry )
+                print "norm ", norm_var.getVal()
+                self.wskeys[bkgn].SetNorm( norm_var.getVal(), norm_var.getError() , cuttag = binid(jbin))
+                print "SampleInfo.norm: ", self.wskeys[bkgn].norm
+                #norm_var.setError( 0.3*norm_var.getValV() )
+                #norm_var.setVal( norm_var.getValV() )
+                #norm_var.setError( 0.0 )
+                #norm_var.setConstant()
+                #getattr( ws_out, 'import' ) ( norm_var )
+                import_workspace( ws_out, pdf)
 
         ofile.Close()
 
@@ -976,6 +997,7 @@ class MakeLimits( ) :
         #                       )
         self.backgrounds.update( { bkgn: self.wskeys[bkgn]} )
         print "BACKGROUND: ",self.backgrounds
+        #raw_input()
 
 
 
@@ -1002,7 +1024,7 @@ class MakeLimits( ) :
         inpar = "_".join(['M'+str(mass), 'W'+str(width), ibin['channel']])
 
         ## get the cross section and scale factor information
-        scale = self.weightMap['ResonanceMass%d'%mass]['scale']
+        scale = self.weightMap['ResonanceMass%d'%mass]['scale'] * lumi(ibin)
 
         fname= '%s/sigfit/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
         wsname = "ws" + self.signame + '_' + inpar
@@ -1035,11 +1057,11 @@ class MakeLimits( ) :
             sigfitparams.update( {ipar + '_' + suffix: (var.getVal(), var.getError())} )
             #var.setError(0.0)
             #var.setConstant()
-            getattr( ws_out, 'import' ) ( var )
+            import_workspace( ws_out, var)
 
         var = ws_in.var('mt_res')##FIXME
         var.setBins(660)
-        getattr( ws_out, 'import' ) ( var )
+        import_workspace( ws_out, var)
 
         norm_var = ws_in.var( '%s_norm' %ws_entry )
         rate = norm_var.getVal() * scale ## FIXME double counting?
@@ -1051,7 +1073,8 @@ class MakeLimits( ) :
         #norm_var.setConstant( False )
         norm_var.setConstant()
         #getattr( ws_out, 'import' ) ( norm_var )
-        getattr( ws_out, 'import' ) ( pdf )
+        #getattr( ws_out, 'import' ) ( pdf )
+        import_workspace( ws_out, pdf )
 
         ifile.Close()
 
@@ -1139,7 +1162,7 @@ class MakeLimits( ) :
 
 
     @f_Dumpfname
-    def make_gauss_signal(self,  normvalue) :
+    def make_gauss_signal(self,  normvalue, ibin) :
 
         for mass in self.masspoints:
             for width in self.widthpoints:
@@ -1176,8 +1199,7 @@ class MakeLimits( ) :
 
                 #getattr( workspace, 'import' ) ( dataset,
                 #ROOT.RooCmdArg('RenameAllNodes', 0, 0, 0, 0, 'gaussignal_%s' %suffix ) )
-                getattr( workspace, 'import' ) ( signal )
-                getattr( workspace, 'import' ) ( norm )
+                import_workspace( workspace, [signal, norm] )
 
                 outputfile = '%s/%s/%s.root' %( self.outputDir, self.signame,
                         workspace.GetName() )
@@ -1185,13 +1207,10 @@ class MakeLimits( ) :
                 workspace.writeToFile( outputfile )
 
                 self.signals.update(
-                                     {sigpar : {'channel':
-                                         "%s_%s"%(self.bins[0]['channel'],
-                                             self.bins[0]['eta']), 'file':
-                                         outputfile, 'workspace':
-                                         workspace.GetName(), 'pdf':
-                                         signal.GetName() } }
-                                   )
+                 {sigpar : {'channel':    binid(ibin), 
+                            'file':       outputfile,
+                            'workspace':  workspace.GetName(),
+                            'pdf':        signal.GetName() } } )
 
 
 
@@ -1227,8 +1246,7 @@ class MakeLimits( ) :
 
         #getattr( workspace, 'import' ) ( dataset,
         #ROOT.RooCmdArg('RenameAllNodes', 0, 0, 0, 0, 'gaussignal_%s' %suffix ))
-        getattr( workspace, 'import' ) ( background )
-        getattr( workspace, 'import' ) ( norm )
+        import_workspace( workspace, [background, norm] )
 
         outputfile = "%s/%s/%s.root"%( self.outputDir, self.bkgnames[0],
                 workspace.GetName() )
@@ -1237,12 +1255,10 @@ class MakeLimits( ) :
 
         ## infor for generating toy data and datacard
         self.backgrounds.update(
-                                   {self.bkgnames[0]: { 'channel':
-                                       "%s_%s"%(self.bins[0]['channel'],
-                                           self.bins[0]['eta']), 'file':
-                                       outputfile, 'workspace':
-                                       workspace.GetName(), 'pdf':
-                                       background.GetName() } }
+                                 {self.bkgnames[0]: { 'channel': binid(ibin),
+                                  'file':           outputfile,
+                                  'workspace':      workspace.GetName(), 
+                                  'pdf':            background.GetName() } }
                                )
 
 
@@ -1364,11 +1380,6 @@ class MakeLimits( ) :
 
                 ofile.write(command)
 
-        #        if self.method == 'AsymptoticLimits' :
-        #            ofile.write( 'combine -M AsymptoticLimits -m %d --rMin 0.01 --rMax 10 %s >& %s \n'  %( mass, card, log_file ))
-        #        if self.method == 'MaxLikelihoodFit' :
-        #            ofile.write( 'combine -M MaxLikelihoodFit -m %d --expectSignal=1 %s --plots -n %s >> %s \n' %( mass, card, var, log_file ) )
-
                 output_files[wid][mass] = log_file
 
                 ofile.write( ' cd - \n' )
@@ -1460,7 +1471,7 @@ class MakeLimits( ) :
 
         ofile = open( fname, 'r' )
 
-        xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section']
+        xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section'] 
 
         results = {}
 
