@@ -56,7 +56,7 @@ def f_Dumpfname(func):
 
 def latex_float(f, u=None):
 
-    if f!=0 and abs(f)<0.1: float_str = "{0:.3e}".format(f)
+    if f!=0 and abs(f)<0.1: float_str = "{0:.2e}".format(f)
     else:          float_str = "{0:.4g}".format(f)
 
     if "e" in float_str:
@@ -445,8 +445,8 @@ class Sample :
         if irange == None:
             minibin, maxibin = 1, self.hist.GetNbinsX()
         else:
-            minibin = self.hist.FindBin(r[0])
-            maxibin = self.hist.FindBin(r[1])
+            minibin = self.hist.FindBin(irange[0])
+            maxibin = self.hist.FindBin(irange[1])
 
         ## calculate integral and error
         intg = self.hist.IntegralAndError( minibin, maxibin, err, option )
@@ -3347,7 +3347,7 @@ class SampleManager(SampleFrame) :
                     sample.failed_draw=True
 
 
-            self.group_sample( sample, ismodel=ismodel )
+            self.group_sample( sample, isModel=ismodel )
 
             return True
 
@@ -4006,12 +4006,11 @@ class SampleManager(SampleFrame) :
                     prim.GetXaxis().SetLabelSize(0.06)
                     prim.GetXaxis().SetTitleSize(0.06)
                 else :
-                    prim.GetYaxis().SetTitleSize(0.05)
+                    prim.GetYaxis().SetTitleSize(0.04)
                     prim.GetYaxis().SetTitleOffset( offset )
-                    prim.GetYaxis().SetLabelSize(0.03)
-                    prim.GetXaxis().SetLabelSize(0.05)
-                    prim.GetXaxis().SetTitleSize(0.05)
-                    prim.GetXaxis().SetTitleSize(0.05)
+                    prim.GetYaxis().SetLabelSize(0.02)
+                    prim.GetXaxis().SetLabelSize(0.04)
+                    prim.GetXaxis().SetTitleSize(0.04)
 
 
     #--------------------------------
@@ -4189,7 +4188,7 @@ class SampleManager(SampleFrame) :
         xsize = 800
         #xsize = 650
         #ysize = 500
-        ysize = 500
+        ysize = 750
         self.curr_canvases[name] = ROOT.TCanvas(name, name, xsize, ysize)
 
         self.curr_canvases['top'] = self.curr_canvases[name]
@@ -4208,7 +4207,8 @@ class SampleManager(SampleFrame) :
 
     def create_standard_ratio_canvas(self) :
 
-        xsize = 800
+        #xsize = 800
+        xsize = 750
         ysize = 750
         self.curr_canvases['base'] = ROOT.TCanvas('basecan', 'basecan', xsize, ysize)
 
@@ -4339,8 +4339,8 @@ class SampleManager(SampleFrame) :
 
         ## get stack sample
         stotal = self.get_samples( name = _STACKNAME )
-        if len(stotal) > 1: 
-            print "WARNING dupilcate sample %s" %_STACKNAME 
+        if len(stotal) > 1:
+            print "WARNING dupilcate sample %s" %_STACKNAME
 
         if stotal and not doacceptance:
             result.append( ( "TOTAL", stotal[0].integral \
@@ -4352,13 +4352,19 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
+    def latex_replacement(self, text):
+        if "#" in text:
+            text = "$%s$" %text
+        return text.replace("#","\\")
+
     def print_stack_count(self, integralrange = None, dolatex=False, **kwargs):
         result = self.get_stack_count(integralrange, dolatex = dolatex,
                                                      **kwargs).items()
         if dolatex:
             #result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
             #result = [ (r1.replace("gamma","\\gamma ").replace("Gamma","\\gamma ").replace("\\gamma$$\\gamma","\\gamma\\gamma"),
-            result = [ (r1.replace("#","\\"),
+            #result = [ (r1.replace("#","\\"),
+            result = [ (self.latex_replacement(r1),
                         latex_float(*r2)) for r1, r2 in result]
             printline = ""
             for r in result[:-1]: printline+= "%20s & %s\\\\\n" %r
@@ -4449,7 +4455,9 @@ class SampleManager(SampleFrame) :
                 dsamp.hist.Scale(1./dsamp.hist.GetBinContent(1))
                 dsamp.hist.Draw('PE same')
             elif normalize == "Width":
-                dsamp.normalize_by_width()
+                ## should be the same as normal
+                # dsamp.normalize_by_width() # not necessary
+                dsamp.hist.Draw('PE same')
             elif normalize:
             #dsamp.hist.SetMarkerStyle(8)
                 dsamp.hist.DrawNormalized('PE same')
@@ -4499,7 +4507,7 @@ class SampleManager(SampleFrame) :
                 samp.graph.Draw('2same')
 
                 entry = self.curr_legend.AddEntry( samp.graph,
-                                                   'Total uncertainty', 'F')
+                                                   'Stat. unc.', 'F')
                 entry.SetTextSize(legendTextSize)
 
 
