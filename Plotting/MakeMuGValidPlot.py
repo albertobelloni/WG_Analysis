@@ -8,35 +8,40 @@ lgconf = {'legendLoc':"Double","legendTranslateX":0.35, "legendCompress":.9, "fi
 hlist = []
 
 
-sampManMuMu.ReadSamples( _SAMPCONF )
-samples = sampManMuMu
+sampManMuG.ReadSamples( _SAMPCONF )
+samples = sampManMuG
 
-selection = "mu_n==2"
+selection = "mu_n==1 && ph_n==1"
 sf = samples.SetFilter(selection)
 hlist=[]
 
-varlist = [ ("met_pt","MET","GeV",(100,0,250)),
-            ("m_ll","m(#mu, #mu)","GeV",(100,50,250)),
-            ("mt_res","reco mT","GeV",(100,0,200)),
-            ("ph_pt", "#gamma pT", "GeV", (100,0,200)),
+varlist = [ ("met_pt","MET","GeV",(100,0,400)),
+            ("m_lep_ph","m(#mu, #gamma)","GeV",(100,0,400)),
+            ("mt_res","reco mT","GeV",(100,0,1000)),
+            ("ph_pt[0]", "leading #gamma pT", "GeV", (100,0,200)),
             ("mu_pt[0]", "leading #mu pT", "GeV", (100,0,300)),
-            ("mu_pt[1]", "subleading #mu pT", "GeV", (100,0,300)),
+            #("mu_pt[1]", "subleading #mu pT", "GeV", (100,0,300)),
             ("mu_eta[0]", "leading #mu #eta",    "", (50,-3,3)),
-            ("mu_eta[1]", "subleading #mu #eta", "", (50,-3,3)),
+            #("mu_eta[1]", "subleading #mu #eta", "", (50,-3,3)),
             ]
 
 #no log
-var2list = [ ("met_pt","MET","GeV",(100,0,100)),
+var2list = [ ("met_pt","MET","GeV",(100,0,200)),
             ("met_phi", "MET #phi", "", (72,-pie,pie)),
             ("mu_phi[0]", "leading mu #phi", "", (72, -pie, pie)),
-            ("mu_phi[1]", "subleading mu #phi", "", (72, -pie, pie)),
+            #("mu_phi[1]", "subleading mu #phi", "", (72, -pie, pie)),
             ]
+
+
+sellist, weight =  defs.makeselstringlist( ch = "mu", phpt = 40, leppt = 35, met = 40 )
+selfull = " && ".join(sellist) ## full signal selection
 
 for var in varlist:
     varname = str.translate(var[0],None,"[]_")
-    save_as = ("%s_%imumu_ln.pdf" %(varname,year), options.outputDir, "base")
-    hconf = {"unblind":True, "doratio":True,"xlabel":var[1],"xunit":var[2],"drawsignal":False, "logy":True,"ymin":10}
-    hf = sf.SetHisto1DFast(var[0], "", var[3], weight, hconf, lgconf , lconf, save_as)
+    sel = " && ".join([s for s in sellist if var[0] not in s ])
+    save_as = ("%s_%imug_ln.pdf" %(varname,year), options.outputDir, "base")
+    hconf = { "xlabel":var[1],"xunit":var[2],"drawsignal":False, "logy":True,"ymin":10}
+    hf = sf.SetHisto1DFast(var[0], sel, var[3], weight, hconf, lgconf , lconf, save_as, data_exp = True)
     hlist.append(hf)
     #save_as = ("%s_%ielel_elselln.pdf" %(varname,year), options.outputDir, "base")
     #sel = (el_eb+elpt40).lstrip("& ")
@@ -45,9 +50,10 @@ for var in varlist:
 
 for var in var2list:
     varname = str.translate(var[0],None,"[]_")
-    save_as = ("%s_%imumu.pdf" %(varname,year), options.outputDir, "base")
-    hconf = {"unblind":True, "doratio":True,"xlabel":var[1],"xunit":var[2],"drawsignal":False}
-    hf = sf.SetHisto1DFast(var[0], "", var[3], weight, hconf, lgconf , lconf, save_as)
+    sel = " && ".join([s for s in sellist if var[0] not in s ])
+    save_as = ("%s_%imug.pdf" %(varname,year), options.outputDir, "base")
+    hconf = {"xlabel":var[1],"xunit":var[2],"drawsignal":False}
+    hf = sf.SetHisto1DFast(var[0], sel, var[3], weight, hconf, lgconf , lconf, save_as, data_exp = True)
     hlist.append(hf)
     #save_as = ("%s_%ielel_elsel.pdf" %(varname,year), options.outputDir, "base")
     #sel = (el_eb+elpt40).lstrip("& ")

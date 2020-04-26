@@ -25,6 +25,7 @@ import os
 import sys
 import selection_defs as defs
 from SampleManager import SampleManager, f_Obsolete
+from FitManager import FitManager
 #ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 
@@ -53,7 +54,8 @@ elif options.year == 2018:
     _LUMI     = 59740
     #etastr    = "&& !(ph_phi[0]<5*pi/18 && ph_phi[0]>3*pi/18)"
     #lumiratio = 1./(1-1./18)
-    datestr   = "2020_02_11"
+    #datestr   = "2020_02_11"
+    datestr   = "2020_04_25" # beta for mumu elel
 
 
 if options.batch:

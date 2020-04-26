@@ -103,3 +103,9 @@ samples.SaveStack("truephpt_%imug_mother24_nostatus23.pdf" %year, options.output
 samples.CompareSelections("Max$(trueph_pt*(trueph_status==23||(abs(trueph_motherPID)==24&&trueph_isPromptFS)))",
                             ["1"]*3,slist,(100,0,1000),hconf, lconf, lgconf)
 samples.SaveStack("truephpt_%imug_status23OR24ispromptfs.pdf" %year, options.outputDir, "base")
+
+
+## NOTE correct stitching
+samples.CompareSelections("Max$(trueph_pt*(trueph_status==23||(abs(trueph_motherPID)==24&&trueph_isPromptFS)))",
+                            ["1"]*3,slist1,(100,0,1000),hconf, lconf, lgconf)
+samples.SaveStack("truephpt_%imug_status23OR24ispromptfs_final.pdf" %year, options.outputDir, "base")
