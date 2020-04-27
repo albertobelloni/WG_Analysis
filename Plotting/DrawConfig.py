@@ -230,13 +230,13 @@ class DrawConfig :
                 text_y = 0.93
             cmslabel = ROOT.TLatex()
             cmslabel.SetNDC()
-            cmslabel.SetTextSize( 0.05 )
+            cmslabel.SetTextSize( 0.037 )
             cmslabel.SetText(text_x, text_y, 'CMS')
             wiplabel = ROOT.TLatex()
             wiplabel.SetNDC()
-            wiplabel.SetTextSize( 0.05 )
-            if datadrawn: wiplabel.SetText(text_x+0.065, text_y, ' Work in Progress')
-            else:         wiplabel.SetText(text_x+0.065, text_y, 'Simulation Work in Progress')
+            wiplabel.SetTextSize( 0.037 )
+            if datadrawn: wiplabel.SetText(text_x+0.07, text_y, ' Work in Progress')
+            else:         wiplabel.SetText(text_x+0.07, text_y, 'Simulation Work in Progress')
             wiplabel.SetTextFont(52)
             labeltext = '36 fb^{-1} (13 TeV)'
             if labelStyle:
@@ -247,10 +247,10 @@ class DrawConfig :
                 if labelStyle.count('2018') :
                     labeltext = '59.7 fb^{-1} (13 TeV)'
             rootslabel = ROOT.TLatex()
-            rootslabel.SetText(text_dx+0.75, text_dy+0.93, labeltext  )
+            rootslabel.SetText(text_dx+0.65, text_dy+0.93, labeltext  )
             rootslabel.SetTextFont(42)
             rootslabel .SetNDC()
-            rootslabel .SetTextSize(0.045)
+            rootslabel .SetTextSize(0.035)
 
             labels.append(rootslabel)
             labels.append(cmslabel)
@@ -314,7 +314,7 @@ class DrawConfig :
 
         label = ROOT.TLatex()
         label.SetNDC()
-        label.SetTextSize( 0.045 )
+        label.SetTextSize( 0.035 )
         xval = 0.6
         yval = 0.7
         if location is None :

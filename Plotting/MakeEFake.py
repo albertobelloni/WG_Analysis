@@ -24,7 +24,7 @@ ptbins = [80, 2000]
 ptvar = "ph_pt[0]"
 
 doControlRegion=False
-doControlRegion="Z"
+#doControlRegion="Z"
 #doControlRegion="TT"
 
 _SAMPCONF = 'Modules/Resonance%i_efake.py' %options.year

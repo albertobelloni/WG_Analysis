@@ -3,7 +3,7 @@ import sys, os
 import ROOT
 from CombineHarvester.CombineTools.plotting import *
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-#ROOT.gROOT.SetBatch(ROOT.kTRUE)
+ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 # Style and pads
 ModTDRStyle()
@@ -21,7 +21,7 @@ axis = CreateAxisHist(graphs.values()[0])
 axis.GetXaxis().SetTitle('m_{res} (GeV)')
 axis.GetYaxis().SetTitle('95% CL limit')
 pads[0].cd()
-#pads[0].SetLogy()
+pads[0].SetLogy()
 axis.Draw('axis')
 
 # Create a legend in the top left
@@ -40,8 +40,32 @@ pads[0].GetFrame().Draw()
 # the top of the frame. Fix the minimum to zero.
 FixBothRanges(pads[0], 0, 0, GetPadYMax(pads[0]), 0.25)
 
+if "0p01" in sys.argv[1]:
+    text = "width = 0.01%"
+if "5" in sys.argv[1]:
+    text = "width = 5%"
+l = ROOT.TLatex()
+l.SetNDC()
+l.SetTextSize(0.04)
+l.SetTextFont(72)
+l.DrawLatex(0.7,.65, "W#gamma#rightarrow l#gamma#nu")
+l.DrawLatex(0.7,.6, text)
+
+hmax = axis.GetMaximum()
+hmin = axis.GetMinimum()
+def oneline(xval):
+    ln = ROOT.TLine(xval,hmax,xval,hmin)
+    ln.SetLineStyle(3)
+    ln.SetLineWidth(2)
+    ln.Draw()
+    return ln
+ln = oneline(950)
+ln2 = oneline(425)
+
 # Standard CMS logo
-DrawCMSLogo(pads[0], 'CMS', 'Internal', 11, 0.045, 0.035, 1.2, '', 0.8)
+DrawCMSLogo(pads[0], 'CMS', 'Internal', 11, 0.145, 0.035, 1.2, '', 0.8)
+
+
 
 canv.Print('.pdf')
 canv.Print('.png')

@@ -5,14 +5,20 @@ def get_base_selection( channel ) :
 
     if channel == 'mu' :
         return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && mu_passTight[0] '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
+    if channel == 'mug' :
+        #return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && ph_n==1'
+        return 'mu_n==1 && el_n==0 && ph_n==1'
+    if channel == 'elg' :
+        #return 'el_pt30_n==1 && el_n==1 && mu_n==0 && ph_n==1'
+        return 'el_n==1 && mu_n==0 && ph_n==1'
     if channel == 'el' :
         return 'el_pt30_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && HLT_Ele27_WPTight_Gsf ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
     if channel == 'mumu' :
-        return 'mu_pt30_n>=1 && mu_n==2 && mu_passTight[0] && mu_passTight[1] '  # require 1 muon with pt > 30 and 2 muons with pt > 10 
+        return 'mu_pt30_n>=1 && mu_n==2 && mu_passTight[0] && mu_passTight[1] '  # require 1 muon with pt > 30 and 2 muons with pt > 10
     if channel == 'elel' :
         return 'el_pt30_n>=1 && el_n==2 && el_pt[0]>35 && el_passTight[0] && el_hasTrigMatch[0] ' # require 1 electron with pt > 30 and 2 electrons with pt > 10
     if channel == 'muel' :
-        return 'mu_pt30_n>=1 && el_n==1  '  # require 1 muon with pt > 30 and 2 muons with pt > 10 
+        return 'mu_pt30_n>=1 && el_n==1  '  # require 1 muon with pt > 30 and 2 muons with pt > 10
 
 def get_weight_str( ) :
 
@@ -25,9 +31,9 @@ def get_phid_selection( sel1, sel2='' ) :
     if sel1 == 'all' :
         return 'ph_n'
     if sel1 == 'loose' :
-        return 'ph_loose_n' 
+        return 'ph_loose_n'
     if sel1 == 'medium' :
-        return 'ph_medium_n' 
+        return 'ph_medium_n'
     if sel1 == 'chIso' :
         if sel2 == 'sigmaIEIE' :
             return 'ph_mediumNoSIEIENoChIso_n'
@@ -46,9 +52,9 @@ def get_phid_idx( sel1, sel2='' ) :
     if sel1 == 'all' :
         return '0'
     if sel1 == 'loose' :
-        return 'ptSorted_ph_loose_idx[0]' 
+        return 'ptSorted_ph_loose_idx[0]'
     if sel1 == 'medium' :
-        return 'ptSorted_ph_medium_idx[0]' 
+        return 'ptSorted_ph_medium_idx[0]'
     if sel1 == 'chIso' :
         if sel2 == 'sigmaIEIE' :
             return 'ptSorted_ph_mediumNoSIEIENoChIso_idx[0]'
@@ -186,3 +192,74 @@ def iphitophi(iphi):
 
 
 
+def makeselstring(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
+    """ assemble selection strings """
+    selstr, weight = makeselstringarray(ch,phpt,pt,met)
+    if addition:
+        selstr += " && " + addition
+    return weight+'* ( %s )'% selstr
+
+def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
+    """ assemble selection strings
+        return
+            array of selections
+    """
+    #weight_str_mu = weight_str #+ '*(mu_trigSF*mu_idSF*mu_isoSF*mu_rcSF*ph_idSF*ph_psvSF*ph_csevSF)' ## FIXME
+    #weight_str_el = weight_str #+ '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF*ph_csevSF)'
+    #weight_str = defs.get_weight_str()
+    weight =  'NLOWeight*PUWeight' ## FIXME PUWeight issue
+    sel_base_mu = get_base_selection( 'mug' )
+    sel_base_el = get_base_selection( 'elg' ) ## FIXME trigger doesn't work on 2017/HLT_Ele27_WPTight_Gsf?
+
+    el_tight = ' el_passTight[0] == 1'
+    #el_tight = ' el_passVIDTight[0] == 1'
+    el_eta   = ' fabs( el_eta[0] ) < 2.1 '
+    el_pt  = 'el_pt[0] > %i ' %leppt
+
+    mu_pt  = 'el_pt[0] > %i ' %leppt
+
+    ph_base = 'ph_n==1 && ph_IsEB[0] '
+    ph_pt  = 'ph_pt[0] > %i ' %phpt
+    ph_passpix = '!ph_hasPixSeed[0]'
+    ph_tight = 'ph_passTight[0]' # already in base selection
+    sel_ph =  [ph_base, ph_tight, ph_pt, ph_passpix]
+
+    met_str = 'met_pt > %i' %met
+
+    Zveto_str = 'fabs(m_lep_ph-91)>20.0'
+
+    sel_mu_nominal      = [sel_base_mu,  met_str] +  sel_ph
+    sel_el_nominal      = [sel_base_el, el_eta, el_pt, met_str,
+                                        Zveto_str] + sel_ph
+
+    if ch=="mu":
+        return sel_mu_nominal, weight
+    if ch=="el":
+        return sel_el_nominal, weight
+
+
+
+def selectcuttag( mass ):
+    return selectcutstring( mass, "mu" )[0]
+
+def selectcutdictgen( ch, addition = "" ):
+    """ define here cut-sets and tag as function of mass """
+    cutsetdict = {
+               "A": makeselstring(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
+               "B": makeselstring(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
+               "C": makeselstring(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
+#               "B": makeselstring(ch, phpt = 100, leppt = 35, met = 80, addition = addition),
+#               "C": makeselstring(ch, phpt = 210, leppt = 35, met = 160, addition = addition),
+            }
+    return cutsetdict
+
+def selectcutstring( mass, ch, addition = "" ):
+    """ define here cut-sets and tag as function of mass """
+    cutsetdict = selectcutdictgen( ch, addition )
+    returner = lambda d: (d, cutsetdict[d])
+    if mass < 325:
+        return returner("A")
+    elif mass < 475:
+        return returner("B")
+    else:
+        return returner("C")

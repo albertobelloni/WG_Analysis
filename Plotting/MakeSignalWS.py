@@ -5,7 +5,6 @@ import re
 import uuid
 import pickle
 from uncertainties import ufloat
-from FitManager import FitManager
 from collections import OrderedDict
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
@@ -179,42 +178,6 @@ def numtostr(num=0):
     strg = "%g" %num
     return strg.replace(".","p")
 
-def makeselstring(ch="el"):
-    """ assemble selection strings """
-    #weight_str = defs.get_weight_str()
-    weight =  'NLOWeight' ## FIXME PUWeight issue
-    sel_base_mu = defs.get_base_selection( 'mu' )
-    sel_base_el = defs.get_base_selection( 'el' )
-
-    el_tight = ' el_passVIDTight[0] == 1'
-    el_eta   = ' fabs( el_eta[0] ) < 2.1 '
-
-    ## FIXME: convert sel string to standard one
-    ph_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 50 && !ph_hasPixSeed[0]'
-    ph_tightpt_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && !ph_hasPixSeed[0]'
-
-    met_str = 'met_pt > 40'
-
-    Zveto_str = 'fabs(m_lep_ph-91)>15.0'
-
-    sel_mu_nominal      = " && ".join(( sel_base_mu, ph_str, met_str))
-    sel_el_nominal      = " && ".join([sel_base_el, el_tight, el_eta,
-                                        ph_str, met_str, Zveto_str])
-
-
-    sel_mu_phpt_nominal = " && ".join((sel_base_mu, ph_tightpt_str, met_str))
-    sel_el_phpt_nominal = " && ".join((sel_base_el, el_tight, el_eta, ph_tightpt_str,
-                                        met_str, Zveto_str, "ADDITION" ))
-
-    sel_mu_phpt_nominal      = weight+'* ( %s )'% sel_mu_phpt_nominal
-    sel_el_phpt_nominal      = weight+'* ( %s )'% sel_el_phpt_nominal
-
-    sel_base_mu = sel_mu_phpt_nominal
-    sel_base_el = sel_el_phpt_nominal
-    if ch=="mu":
-        return sel_base_mu
-    if ch=="el":
-        return sel_base_el
 
 
 def makevar(var, mass):
@@ -265,10 +228,9 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         full_suffix = "_".join(['MG', "M%d"%mass, 'W%s'%wid, suffix])
 
         ## make full selection string
-        sel_base = makeselstring(ch)
         binning = signal_binning[iwidth][mass]
-        full_sel_sr = sel_base.replace("ADDITION"," (%s > %d && %s < %d )"\
-                    %(var, binning[1], var ,binning[2]))
+        addition = " (%s > %d && %s < %d )" %(var, binning[1], var ,binning[2])
+        cuttag, full_sel_sr = defs.selectcutstring( mass , ch, addition )
         print full_sel_sr
 
         ## make RooRealVar for fit variable
@@ -316,7 +278,7 @@ def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config ):
     canv.Print("%s/%s.C"   %(options.outputDir, suffix) )
 
     print "************"
-    print " RooFitResult Status: %d"%fitManager.roofitresult.status()
+    print " RooFitResult Status: %d"%fitManager.fitresult.status()
     print "************"
 
     fitmlist.append(fitManager)

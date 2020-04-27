@@ -19,7 +19,7 @@ class SampleInfo() :
 
        self.outputfname = None
        # (val, err)
-       self.norm = ( 1.0, 0.0 )
+       self.norm = {"-1": ( 1.0, 0.0 )}
 
        # analysis channel: muon for default
        #self.channel = kwargs.get('channel', 'mu')
@@ -56,6 +56,13 @@ class SampleInfo() :
        else:
           return "workspace_%s_%s"%(self.name.lower(),self.pdf_prefix)
 
+   def GetPDFNamesList( self, var, cutsettag = "ABC" ,channel="mu", year = 2016 ):
+       ## FIXME may be deleted
+       namelist = []
+       for tag in cutsettag:
+            namelist.append(self.GetPDFName( var, channel+tag , year ))
+       return namelist
+
    def GetPDFName( self, var, channel="mu", year = 2016 ):
        if self.isSignal:
           tmp =  "_".join( [ self.pdf_prefix, self.sigpar, channel+str(year), var ] )
@@ -78,6 +85,6 @@ class SampleInfo() :
    def GetOutputName( self, outputDir , channel = "mu", year = 2016):
        return outputDir + '/' + self.name + '/' + channel+str(year)+self.GetRootFileName()
 
-   def SetNorm( self, norm, err):
-       self.norm = ( norm, err )
+   def SetNorm( self, norm, err, cuttag = "-1" ):
+       self.norm[cuttag] = ( norm, err )
 

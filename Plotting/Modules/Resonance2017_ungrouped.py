@@ -24,15 +24,16 @@ def config_samples(samples) :
 
     samples.AddSample('TTJets_DiLept',
                       path='TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, useXSFile=True )
+                      #path='TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8',
+                      isActive=True , useXSFile=True )
 
     samples.AddSample('TTJets_SingleLeptFromTbar',
                       path='TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, useXSFile=True )
+                      isActive=True , useXSFile=True )
 
     samples.AddSample('TTJets_SingleLeptFromT',
                       path='TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, useXSFile=True )
+                      isActive=True , useXSFile=True )
 
     samples.AddSample('TTGJets',
                       path='TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8',
@@ -40,7 +41,7 @@ def config_samples(samples) :
 
     samples.AddSample('WGToLNuG-amcatnloFXFX',
                       path='WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8',
-                      isActive=False, useXSFile=True, plotColor=ROOT.kOrange )
+                      isActive=True , useXSFile=True, plotColor=ROOT.kOrange )
 
     samples.AddSample('WGToLNuG-madgraphMLM',
                       path='WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8',
@@ -63,11 +64,13 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan   )
 
     samples.AddSample('WGToLNuG-amcatnloFXFXPhCut',
-                      path='WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax',
+                      path='WGToLNuG_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax',
+                      #path='WGToLNuG_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-amcatnloFXFX')
 
     samples.AddSample('WGToLNuG_PtG-130-amcatnloFXFXPhCut',
-                      path='WGToLNuG_PtG-130_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutRange',
+                      path='WGToLNuG_PtG-130_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin',
+                      #path='WGToLNuG_PtG-130_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-amcatnloFXFX' )
 
     samples.AddSample('WGToLNuG_PtG-500-amcatnloFXFXPhCut',
@@ -121,11 +124,11 @@ def config_samples(samples) :
 
     samples.AddSample('tW_top',
                       path='ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8',
-                      isActive=False, useXSFile=True )
+                      isActive=True , useXSFile=True )
 
     samples.AddSample('tW_antitop',
                       path='ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8',
-                      isActive=False, useXSFile=True )
+                      isActive=True , useXSFile=True )
 
     samples.AddSample('DiPhoton',
                       path='DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8',
@@ -133,35 +136,35 @@ def config_samples(samples) :
 
     samples.AddSample('WJetsToLNuTrueHTOlap',
                       path='WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8TrueHTOlapPhOlap',
-                      isActive=False, plotColor=ROOT.kGreen-5, useXSFile=True, XSName='WJetsToLNu-madgraphMLM')
+                      isActive=True , plotColor=ROOT.kGreen-5, useXSFile=True, XSName='WJetsToLNu-madgraphMLM')
 
     samples.AddSample('WJetsToLNu_HT-100To200',
                       path='WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, plotColor=ROOT.kGreen , useXSFile=True )
+                      isActive=True , plotColor=ROOT.kGreen , useXSFile=True )
 
     samples.AddSample('WJetsToLNu_HT-200To400',
                       path='WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, plotColor=ROOT.kCyan  , useXSFile=True )
+                      isActive=True , plotColor=ROOT.kCyan  , useXSFile=True )
 
     samples.AddSample('WJetsToLNu_HT-400To600',
                       path='WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, plotColor=ROOT.kViolet, useXSFile=True )
+                      isActive=True , plotColor=ROOT.kViolet, useXSFile=True )
 
     samples.AddSample('WJetsToLNu_HT-600To800',
                       path='WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, plotColor=ROOT.kOrange, useXSFile=True )
+                      isActive=True , plotColor=ROOT.kOrange, useXSFile=True )
 
     samples.AddSample('WJetsToLNu_HT-800To1200',
                       path='WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, plotColor=ROOT.kSpring, useXSFile=True )
+                      isActive=True , plotColor=ROOT.kSpring, useXSFile=True )
 
     samples.AddSample('WJetsToLNu_HT-1200To2500',
                       path='WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, plotColor=ROOT.kGray  , useXSFile=True )
+                      isActive=True , plotColor=ROOT.kGray  , useXSFile=True )
 
     samples.AddSample('WJetsToLNu_HT-2500ToInf',
                       path='WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, plotColor=ROOT.kRed+6  , useXSFile=True )
+                      isActive=True , plotColor=ROOT.kRed+6  , useXSFile=True )
 
     samples.AddSample('WJetsToLNu_Pt-0To50',
                       path='WJetsToLNu_Wpt-0To50_TuneCP5_13TeV-amcatnloFXFX-pythia8',
@@ -191,16 +194,16 @@ def config_samples(samples) :
                       path='WToLNu_2J_13TeV-amcatnloFXFX-pythia8',
                       isActive=False, plotColor=ROOT.kPink, useXSFile=True )
 
-    samples.AddSample('GJets_HT-40To100' , path='GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=False, useXSFile=True)
-    samples.AddSample('GJets_HT-100To200', path='GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=False, useXSFile=True)
-    samples.AddSample('GJets_HT-200To400', path='GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=False, useXSFile=True)
-    samples.AddSample('GJets_HT-400To600', path='GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=False, useXSFile=True)
-    samples.AddSample('GJets_HT-600ToInf', path='GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('GJets_HT-40To100' , path='GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=True , useXSFile=True)
+    samples.AddSample('GJets_HT-100To200', path='GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=True , useXSFile=True)
+    samples.AddSample('GJets_HT-200To400', path='GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=True , useXSFile=True)
+    samples.AddSample('GJets_HT-400To600', path='GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=True , useXSFile=True)
+    samples.AddSample('GJets_HT-600ToInf', path='GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8', isActive=True , useXSFile=True)
 
     samples.AddSample('MadGraphResonanceMass200_width0p01', path='MadGraphChargedResonance_WGToLNuG_M200_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kCyan, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 200 GeV', XSName='ResonanceMass200')
     samples.AddSample('MadGraphResonanceMass200_width5', path='MadGraphChargedResonance_WGToLNuG_M200_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 200 GeV', XSName='ResonanceMass200')
     samples.AddSample('MadGraphResonanceMass250_width0p01', path='MadGraphChargedResonance_WGToLNuG_M250_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 250 GeV', XSName='ResonanceMass250')
-    samples.AddSample('MadGraphResonanceMass250_width5', path='MadGraphChargedResonance_WGToLNuG_M250_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kPink-1, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 250 GeV', XSName='ResonanceMass250') #TODO: Active signal
+    samples.AddSample('MadGraphResonanceMass250_width5', path='MadGraphChargedResonance_WGToLNuG_M250_width5', isActive=True, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 250 GeV', XSName='ResonanceMass250')
     samples.AddSample('MadGraphResonanceMass300_width0p01', path='MadGraphChargedResonance_WGToLNuG_M300_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = 'M(#Phi^{#pm}) = 300 GeV', XSName='ResonanceMass300') #
     samples.AddSample('MadGraphResonanceMass300_width5', path='MadGraphChargedResonance_WGToLNuG_M300_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 300 GeV', XSName='ResonanceMass300')
     samples.AddSample('MadGraphResonanceMass350_width0p01', path='MadGraphChargedResonance_WGToLNuG_M350_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 350 GeV', XSName='ResonanceMass350')
@@ -219,7 +222,7 @@ def config_samples(samples) :
     samples.AddSample('MadGraphResonanceMass800_width5', path='MadGraphChargedResonance_WGToLNuG_M800_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 800 GeV', XSName='ResonanceMass800')
     samples.AddSample('MadGraphResonanceMass900_width0p01', path='MadGraphChargedResonance_WGToLNuG_M900_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 900 GeV', XSName='ResonanceMass900')
     samples.AddSample('MadGraphResonanceMass900_width5', path='MadGraphChargedResonance_WGToLNuG_M900_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 900 GeV', XSName='ResonanceMass900')
-    samples.AddSample('MadGraphResonanceMass1000_width0p01', path='MadGraphChargedResonance_WGToLNuG_M1000_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kPink+10, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 1000 GeV', XSName='ResonanceMass1000') #TODO: Active signal
+    samples.AddSample('MadGraphResonanceMass1000_width0p01', path='MadGraphChargedResonance_WGToLNuG_M1000_width0p01', isActive=True, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 1000 GeV', XSName='ResonanceMass1000')
     samples.AddSample('MadGraphResonanceMass1000_width5', path='MadGraphChargedResonance_WGToLNuG_M1000_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 1000 GeV', XSName='ResonanceMass1000')
     samples.AddSample('MadGraphResonanceMass1200_width0p01', path='MadGraphChargedResonance_WGToLNuG_M1200_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 1200 GeV', XSName='ResonanceMass1200')
     samples.AddSample('MadGraphResonanceMass1200_width5', path='MadGraphChargedResonance_WGToLNuG_M1200_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 1200 GeV', XSName='ResonanceMass1200')
@@ -231,7 +234,7 @@ def config_samples(samples) :
     samples.AddSample('MadGraphResonanceMass1800_width5', path='MadGraphChargedResonance_WGToLNuG_M1800_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 1800 GeV', XSName='ResonanceMass1800')
     samples.AddSample('MadGraphResonanceMass2000_width0p01', path='MadGraphChargedResonance_WGToLNuG_M2000_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kGreen, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2000 GeV', XSName='ResonanceMass2000')
     samples.AddSample('MadGraphResonanceMass2000_width5', path='MadGraphChargedResonance_WGToLNuG_M2000_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2000 GeV', XSName='ResonanceMass2000')
-    samples.AddSample('MadGraphResonanceMass2200_width0p01', path='MadGraphChargedResonance_WGToLNuG_M2200_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2200 GeV', XSName='ResonanceMass2200')#TODO: Active signal
+    samples.AddSample('MadGraphResonanceMass2200_width0p01', path='MadGraphChargedResonance_WGToLNuG_M2200_width0p01', isActive=True, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2200 GeV', XSName='ResonanceMass2200')
     samples.AddSample('MadGraphResonanceMass2200_width5', path='MadGraphChargedResonance_WGToLNuG_M2200_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2200 GeV', XSName='ResonanceMass2200')
     samples.AddSample('MadGraphResonanceMass2400_width0p01', path='MadGraphChargedResonance_WGToLNuG_M2400_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2400 GeV', XSName='ResonanceMass2400')
     samples.AddSample('MadGraphResonanceMass2400_width5', path='MadGraphChargedResonance_WGToLNuG_M2400_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 2400 GeV', XSName='ResonanceMass2400')
@@ -303,10 +306,12 @@ def config_samples(samples) :
 
 
     samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
-                           input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
-                           #input_samples = ['WGToLNuG-amcatnloFXFX'],
+                           #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
+                           input_samples = ['WGToLNuG-amcatnloFXFX'],
+                           #input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
+                           #input_samples = ['WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
                            plotColor = ROOT.kRed-2,
-                           isActive=False,
+                           isActive=True,
                           )
 
     samples.AddSampleGroup( 'GammaGamma', legend_name='#gamma#gamma',
@@ -314,12 +319,6 @@ def config_samples(samples) :
                                            'DiPhoton',
                            ],
                            plotColor = ROOT.kYellow,
-                           isActive=False,
-                          )
-
-    samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
-                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFXPhOlap'],
-                           plotColor = ROOT.kCyan-5,
                           )
 
     samples.AddSampleGroup(  'Zgamma', legend_name='Z#gamma',
@@ -332,6 +331,12 @@ def config_samples(samples) :
                            input_samples = ['DYJetsToLL_M-50'],
                            plotColor = ROOT.kCyan-2,
                            isActive=False,
+                          )
+
+    samples.AddSampleGroup(  'Z+jets', legend_name='Z+Jets',
+                           #input_samples = ['DYJetsToLL_M-50-amcatnloFXFXPhOlap'],
+                           input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
+                           plotColor = ROOT.kCyan-5,
                           )
 
 
@@ -364,7 +369,7 @@ def config_samples(samples) :
     samples.AddSampleGroup( 'TTG', legend_name='t#bar{t}#gamma',
                            input_samples = ['TTGJets'],
                            plotColor = ROOT.kAzure+1,
-                           isActive=False,
+                           #isActive=False,
                           )
 
 #    samples.AddSampleGroup( 'WjetsSMPIncl', legend_name='W+Jets',
@@ -453,21 +458,9 @@ def config_samples(samples) :
                            input_samples = ['Wjets', 'TTbar_SingleLep'],
                            isActive=False,
                           )
-
     samples.AddSampleGroup( 'EleFakeBackground',
-                           input_samples = ['Z+jets', 'TTbar_DiLep', 'TopW'],
+                           input_samples = ['Z+jets', 'Zgamma', 'TTbar_DiLep'],
                            isActive=False,
-                          )
-
-    samples.AddSampleGroup( 'OtherEleFakeBackground', legend_name='Other Electron Fakes',
-                           input_samples = [ 'TTbar_DiLep', 'TopW'],
-                           plotColor=ROOT.kRed-7,
-                           #isActive=False,
-                          )
-
-    samples.AddSampleGroup( 'NonEleFake', legend_name='Non-electron Fakes',
-                           input_samples = ['WGamma','Wjets', 'TTbar_SingleLep','TTG','DiPhoton','GJets',"Zgamma"],
-                           plotColor=ROOT.kOrange+1,
                           )
 
 def print_examples() :
