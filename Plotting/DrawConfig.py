@@ -167,6 +167,8 @@ class DrawConfig :
         return self.hist_config.get('logy', False )
     def get_normalize( self ) :
         return self.hist_config.get('normalize', False )
+    def get_bywidth( self ) :
+        return self.hist_config.get('bywidth', False )
     def get_overflow( self ) :
         return self.hist_config.get('overflow', True )
     def get_drawopt( self ) :
@@ -247,9 +249,9 @@ class DrawConfig :
                 if labelStyle.count('2018') :
                     labeltext = '59.7 fb^{-1} (13 TeV)'
             rootslabel = ROOT.TLatex()
-            rootslabel.SetText(text_dx+0.65, text_dy+0.93, labeltext  )
+            rootslabel.SetNDC()
+            rootslabel.SetText(text_dx+0.7, text_dy+0.93, labeltext  )
             rootslabel.SetTextFont(42)
-            rootslabel .SetNDC()
             rootslabel .SetTextSize(0.035)
 
             labels.append(rootslabel)
@@ -302,19 +304,22 @@ class DrawConfig :
             if not isinstance( extra_label, list) :
                 extra_label = [extra_label]
 
-            for lab in extra_label :
-                extra_label_str = '#font[132]{'+lab+'}'
+            for i, lab in enumerate(extra_label) :
+                extra_label_str = lab #'#font[132]{'+lab+'}' if i==0 else lab
                 extra_label_loc = self.label_config.get( 'extra_label_loc', None )
-                labels.append(self.place_extra_label( lab, extra_label_loc ))
+                extra_label_loc= (extra_label_loc[0], extra_label_loc[1]-0.05*i)
+                labels.append(self.place_extra_label( lab, extra_label_loc , 42 if i else 62))
 
+        #print "labels", labels
         return labels
 
     #--------------------------------
-    def place_extra_label(self, text, location=None) :
+    def place_extra_label(self, text, location=None, font = None) :
 
         label = ROOT.TLatex()
         label.SetNDC()
         label.SetTextSize( 0.035 )
+        if font: label.SetTextFont(font)
         xval = 0.6
         yval = 0.7
         if location is None :
