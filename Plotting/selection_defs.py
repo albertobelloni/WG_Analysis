@@ -194,12 +194,21 @@ def iphitophi(iphi):
 
 def makeselstring(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
     """ assemble selection strings """
-    selstr, weight = makeselstringarray(ch,phpt,pt,met)
+    selstrlist, weight = makeselstringlist(ch,phpt,leppt,met)
     if addition:
-        selstr += " && " + addition
+        selstrlist.append(addition)
+    selstr = " && ".join(selstrlist)
+    return selstr, weight
+
+def makeselstringwweight(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
+    """ assemble selection strings """
+    selstrlist, weight = makeselstringlist(ch,phpt,leppt,met)
+    if addition:
+        selstrlist.append(addition)
+    selstr = " && ".join(selstrlist)
     return weight+'* ( %s )'% selstr
 
-def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
+def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     """ assemble selection strings
         return
             array of selections
@@ -216,9 +225,9 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
     el_eta   = ' fabs( el_eta[0] ) < 2.1 '
     el_pt  = 'el_pt[0] > %i ' %leppt
 
-    mu_pt  = 'el_pt[0] > %i ' %leppt
+    mu_pt  = 'mu_pt[0] > %i ' %leppt
 
-    ph_base = 'ph_n==1 && ph_IsEB[0] '
+    ph_base = 'ph_IsEB[0]'
     ph_pt  = 'ph_pt[0] > %i ' %phpt
     ph_passpix = '!ph_hasPixSeed[0]'
     ph_tight = 'ph_passTight[0]' # already in base selection
@@ -228,7 +237,7 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
 
     Zveto_str = 'fabs(m_lep_ph-91)>20.0'
 
-    sel_mu_nominal      = [sel_base_mu,  met_str] +  sel_ph
+    sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt] +  sel_ph
     sel_el_nominal      = [sel_base_el, el_eta, el_pt, met_str,
                                         Zveto_str] + sel_ph
 
@@ -242,14 +251,23 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
 def selectcuttag( mass ):
     return selectcutstring( mass, "mu" )[0]
 
+def bkgfitlowbin( cuttag ):
+    """ low range of bin content (the upper range is set to 2000 by default) """
+    if cuttag == "A":
+        return 200
+    if cuttag == "B":
+        return 340
+    if cuttag == "C":
+        return 460
+
 def selectcutdictgen( ch, addition = "" ):
     """ define here cut-sets and tag as function of mass """
     cutsetdict = {
                "A": makeselstring(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
-               "B": makeselstring(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
-               "C": makeselstring(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
-#               "B": makeselstring(ch, phpt = 100, leppt = 35, met = 80, addition = addition),
-#               "C": makeselstring(ch, phpt = 210, leppt = 35, met = 160, addition = addition),
+#               "B": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 100, addition = addition),
+#               "C": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
+               "B": makeselstring(ch, phpt = 100, leppt = 35, met = 70, addition = addition),
+               "C": makeselstring(ch, phpt = 200, leppt = 35, met = 160, addition = addition),
             }
     return cutsetdict
 
@@ -257,9 +275,9 @@ def selectcutstring( mass, ch, addition = "" ):
     """ define here cut-sets and tag as function of mass """
     cutsetdict = selectcutdictgen( ch, addition )
     returner = lambda d: (d, cutsetdict[d])
-    if mass < 325:
+    if mass < 425:
         return returner("A")
-    elif mass < 475:
+    elif mass < 625:
         return returner("B")
     else:
         return returner("C")
