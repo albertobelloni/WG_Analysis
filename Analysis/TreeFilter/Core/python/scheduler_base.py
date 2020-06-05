@@ -27,7 +27,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     jobs_data = []
     jobs_mc   = []
 
-    for j in jobs : 
+    for j in jobs :
         if j.isData :
             jobs_data.append(j)
         else :
@@ -47,7 +47,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
     resubmit           = options.get('resubmit'           , False         )
     enableKeepFilter   = options.get('enableKeepFilter'   , False         )
     totalEvents        = options.get('totalEvents'        , False         )
-    enableRemoveFilter = options.get('enableRemoveFilter' , False         ) 
+    enableRemoveFilter = options.get('enableRemoveFilter' , False         )
     disableOutputTree  = options.get('disableOutputTree'  , False         )
     PUPath             = options.get('PUPath'             , None          )
     usexrd             = options.get('usexrd'             , False         )
@@ -60,7 +60,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
             select_dataset = config.get('dataset', [] )
             if not isinstance( select_dataset, list ) :
                 select_dataset = [select_dataset]
-    
+
             proc = subprocess.Popen(['make', 'clean'])
             proc.wait()
             for job in jobs_data :
@@ -71,7 +71,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                         continue
 
                 job_exename = '%s_Data_%s' %(exename, config['tag'] )
-    
+
                 module_arg = dict(config.get('args', {}))
                 for tag in getattr( job, 'tags', [] ) :
                     module_arg_tag = config.get('args_tag_%s' %tag )
@@ -92,7 +92,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 suffix = getattr(job, 'suffix', None )
                 if suffix is not None :
                     outsample = outsample+suffix
-    
+
                 command = command_base %{ 'base' : job.base, 'sample' : job.sample, 'outsample' : outsample, 'nFilesPerJob' : job.nfiles if hasattr(job,"nfiles") else nFilesPerJob, 'input' : config['input'], 'output' : config['output'], 'exename' : job_exename, 'treename' : treename, 'module' : config['module'], 'moduleArgs' : module_str, 'version' : job.version, 'filekey' : filekey ,'year':job.year, "nJobs": nJobs}
 
 
@@ -131,10 +131,10 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
 
                 if resubmit :
                     command += ' --resubmit '
-    
+
                 if not first_data :
                     command += ' --noCompileWithCheck '
-    
+
                 print tPurple %command
                 if not dry_run :
                     returncode = os.system(command)
@@ -143,18 +143,18 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                          raise KeyboardInterrupt
                 if first_data :
                     first_data = False
-    
+
             proc = subprocess.Popen(['make', 'clean'])
             proc.wait()
             for job in jobs_mc :
                 job_exename = '%s_MC_%s' %(exename, config['tag'] )
-    
+
                 module_arg = dict(config.get('args', {}) )
                 for tag in getattr( job, 'tags', [] ) :
                     module_arg_tag = config.get('args_tag_%s' %tag )
                     for conf, val in module_arg_tag.iteritems() :
                         module_arg[conf] = val
-    
+
                 module_str = '{ '
                 for key, val in module_arg.iteritems() :
                     if isinstance( val, basestring ) :
@@ -164,10 +164,10 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
 
                 if PUPath is not None :
 
-                    module_str += '\'sampleFile\' : \'%s/%s/hist.root\', ' %( PUPath, job.sample ) 
-    
+                    module_str += '\'sampleFile\' : \'%s/%s/hist.root\', ' %( PUPath, job.sample )
+
                 module_str += '}'
-    
+
                 outsample = job.sample
                 suffix = getattr(job, 'suffix', None )
                 if suffix is not None :
@@ -195,7 +195,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
 
                 if not first_mc :
                     command += ' --noCompileWithCheck '
-    
+
                 if batch :
                     if _AT_UMD :
                         command += ' --condor '
@@ -213,7 +213,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
 
                 if resubmit :
                     command += ' --resubmit '
-    
+
                 print tPurple %command
                 if not dry_run :
                      returncode=os.system(command)
@@ -223,7 +223,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
 
                 if first_mc :
                     first_mc = False
-    
+
     if check :
 
         check_results = {}
@@ -231,9 +231,9 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
             select_dataset = config.get('dataset', [] )
             if not isinstance( select_dataset, list ) :
                 select_dataset = [select_dataset]
-        
+
             for  job in (jobs_data + jobs_mc) :
-        
+
                 if job.isData and select_dataset :
                     if job.sample not in select_dataset :
                         print 'Skipping data sample %s that is not requested for this configuration' %job.sample
@@ -251,13 +251,13 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
                 originalDS = '%(base)s/%(input)s/%(sample)s/%(version)s'%job_info_dic
                 filteredDS = '%(output)s/%(outsample)s' %job_info_dic
                 treeNameOrig  = '%(treename)s' %job_info_dic
-                histNameFilt = 'filter' 
+                histNameFilt = 'filter'
                 if treename is not None :
                     split_name = treename.split('/')
-                    if len(split_name) > 1 : 
+                    if len(split_name) > 1 :
                         histNameFilt = split_name[0] + '/filter'
 
-                fileKeyOrig = '%(filekey)s' %job_info_dic 
+                fileKeyOrig = '%(filekey)s' %job_info_dic
                 fileKeyFilt  = 'tree.root'
 
                 this_result = check_dataset_completion( originalDS, filteredDS, treeNameOrig, None, None, histNameFilt, fileKeyOrig, fileKeyFilt, quiet=True )
@@ -309,6 +309,6 @@ class JobConf( ) :
 
         for key, val in input_args.iteritems() :
             setattr( self, key, val)
-        
+
 
 
