@@ -2101,7 +2101,7 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
                     pass_neuIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
                 } else {
-                    config.PassCounter("cut_newIsoCorr_medium");
+                    config.PassCounter("cut_neuIsoCorr_medium");
                 }
                 if( !config.PassFloat( "cut_phoIsoCorr_barrel_medium" , pfPhoIsoPtRhoCorr  ,false) ) {
                     pass_medium=false;
@@ -2206,7 +2206,7 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
                     pass_neuIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
                 } else {  
-                    config.PassCounter("cut_newIsoCorr_medium");
+                    config.PassCounter("cut_neuIsoCorr_medium");
                 }
                 if( !config.PassFloat( "cut_phoIsoCorr_endcap_medium" , pfPhoIsoPtRhoCorr  ,false) ) {
                     pass_medium=false;
