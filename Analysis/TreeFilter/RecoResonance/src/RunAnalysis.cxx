@@ -56,6 +56,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mu_pt30_n                              = 0;
     OUT::mu_pt_rc                               = 0;
     OUT::mu_e_rc                                = 0;
+    OUT::mu_pt_rc_up                            = 0;
+    OUT::mu_e_rc_up                             = 0;
+    OUT::mu_pt_rc_down                          = 0;
+    OUT::mu_e_rc_down                           = 0;
     OUT::mu_passTight                           = 0;
     OUT::mu_passMedium                          = 0;
     OUT::mu_passLoose                           = 0;
@@ -319,6 +323,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mu_pt30_n", &OUT::mu_pt30_n, "mu_pt30_n/I"  );
     outtree->Branch("mu_pt_rc", &OUT::mu_pt_rc            );
     outtree->Branch("mu_e_rc", &OUT::mu_e_rc            );
+    outtree->Branch("mu_pt_rc_up", &OUT::mu_pt_rc_up            );
+    outtree->Branch("mu_e_rc_up", &OUT::mu_e_rc_up            );
+    outtree->Branch("mu_pt_rc_down", &OUT::mu_pt_rc_down            );
+    outtree->Branch("mu_e_rc_down", &OUT::mu_e_rc_down            );
     outtree->Branch("mu_passTight", &OUT::mu_passTight            );
     outtree->Branch("mu_passMedium", &OUT::mu_passMedium           );
     outtree->Branch("mu_passLoose", &OUT::mu_passLoose            );
@@ -1147,8 +1155,8 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
             std::cout << "WARNING: rcsfs = " << rcsfs << std::endl;
         }
         
-	//float ptrc = pt*(rcsfs + rcsfserr); // vary RC up
-	//float ptrc = pt*(rcsfs - rcsfserr); // vary RC down
+	      float ptrc_up = pt*(rcsfs + rcsfserr); // vary RC up
+	      float ptrc_down = pt*(rcsfs - rcsfserr); // vary RC down
 
         if( !config.PassFloat( "cut_pt", ptrc   ) ) continue;
         if( !config.PassFloat( "cut_eta", fabs(eta) ) ) continue;
@@ -1250,6 +1258,20 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
                            0.1057
                            );
 
+        TLorentzVector mulv_up;
+        mulv_up.SetPtEtaPhiM( ptrc_up,
+                           IN::mu_eta->at(idx),
+                           IN::mu_phi->at(idx),
+                           0.1057
+                           );
+
+        TLorentzVector mulv_down;
+        mulv_down.SetPtEtaPhiM( ptrc_down,
+                           IN::mu_eta->at(idx),
+                           IN::mu_phi->at(idx),
+                           0.1057
+                           );
+
         float mindr = 101.0;
         for( int hltidx = 0 ; hltidx < IN::HLTObj_n; ++hltidx ) {
 
@@ -1307,6 +1329,10 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         // Write Rochester-corrected pt only after muon is accepted
         OUT::mu_pt_rc->push_back( ptrc );
         OUT::mu_e_rc->push_back( mulv.E() );
+        OUT::mu_pt_rc_up->push_back( ptrc_up );
+        OUT::mu_e_rc_up->push_back( mulv_up.E() );
+        OUT::mu_pt_rc_down->push_back( ptrc_down );
+        OUT::mu_e_rc_down->push_back( mulv_down.E() );
 
         if( ptrc > 20 ) {
             OUT::mu_pt20_n++;
@@ -2735,6 +2761,18 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::m_mt_lep_met_ph_forcewmass = 0;
     OUT::mt_w = 0;
     OUT::mt_res = 0;
+    OUT::mt_res_JetResUp =0;
+    OUT::mt_res_JetResDown =0;
+    OUT::mt_res_JetEnUp =0;
+    OUT::mt_res_JetEnDown =0;
+    OUT::mt_res_MuonEnUp =0;
+    OUT::mt_res_MuonEnDown =0;
+    OUT::mt_res_ElectronEnUp =0;
+    OUT::mt_res_ElectronEnDown =0;
+    OUT::mt_res_PhotonEnUp =0;
+    OUT::mt_res_PhotonEnDown =0;
+    OUT::mt_res_UnclusteredEnUp =0;
+    OUT::mt_res_UnclusteredEnDown =0;
     OUT::mt_lep_ph = 0;
     OUT::dphi_lep_ph = 0;
     OUT::dr_lep_ph = 0;
@@ -2762,16 +2800,35 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::massdijet_pt = 0;
 
     std::vector<TLorentzVector> leptons;
+    std::vector<TLorentzVector> leptons_MuEn_up;
+    std::vector<TLorentzVector> leptons_MuEn_down;
+    std::vector<TLorentzVector> leptons_ElEn_up;
+    std::vector<TLorentzVector> leptons_ElEn_down;
     std::vector<TLorentzVector> photons;
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         TLorentzVector tlv;
+        TLorentzVector tlv_up;
+        TLorentzVector tlv_down;
+
         tlv.SetPtEtaPhiE( OUT::mu_pt_rc->at(idx), 
                           OUT::mu_eta->at(idx), 
                           OUT::mu_phi->at(idx), 
                           OUT::mu_e_rc->at(idx) );
+        tlv_up.SetPtEtaPhiE( OUT::mu_pt_rc_up->at(idx), 
+                          OUT::mu_eta->at(idx), 
+                          OUT::mu_phi->at(idx), 
+                          OUT::mu_e_rc_up->at(idx) );
+        tlv_down.SetPtEtaPhiE( OUT::mu_pt_rc_down->at(idx), 
+                          OUT::mu_eta->at(idx), 
+                          OUT::mu_phi->at(idx), 
+                          OUT::mu_e_rc_down->at(idx) );
 
         leptons.push_back(tlv);
+        leptons_MuEn_up.push_back(tlv_up);
+        leptons_MuEn_down.push_back(tlv_down);
+        leptons_ElEn_up.push_back(tlv);
+        leptons_ElEn_down.push_back(tlv);
     }
 
     for( int idx = 0; idx < OUT::el_n; ++idx ) {
@@ -2782,6 +2839,11 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
                           OUT::el_e->at(idx) );
 
         leptons.push_back(tlv);
+        // no electron sysetmatics yet FIXME
+        leptons_MuEn_up.push_back(tlv);
+        leptons_MuEn_down.push_back(tlv);
+        leptons_ElEn_up.push_back(tlv);
+        leptons_ElEn_down.push_back(tlv);
     }
 
 
@@ -2798,6 +2860,43 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     TLorentzVector metlv;
     metlv.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     TLorentzVector metlvOrig( metlv );
+
+    TLorentzVector metlv_JetResUp;
+    TLorentzVector metlv_JetResDown;
+    TLorentzVector metlv_JetEnUp;
+    TLorentzVector metlv_JetEnDown;
+    TLorentzVector metlv_MuonEnUp;
+    TLorentzVector metlv_MuonEnDown;
+    TLorentzVector metlv_ElectronEnUp;
+    TLorentzVector metlv_ElectronEnDown;
+    TLorentzVector metlv_PhotonEnUp;
+    TLorentzVector metlv_PhotonEnDown;
+    TLorentzVector metlv_UnclusteredEnUp;
+    TLorentzVector metlv_UnclusteredEnDown;
+    metlv_JetResUp.SetPtEtaPhiM( OUT::met_JetResUp_pt,    0.0, 
+                                  OUT::met_JetResUp_phi,   0.0 );
+    metlv_JetResDown.SetPtEtaPhiM( OUT::met_JetResDown_pt,    0.0, 
+                                    OUT::met_JetResDown_phi,   0.0 );
+    metlv_PhotonEnUp.SetPtEtaPhiM( OUT::met_PhotonEnUp_pt,    0.0, 
+                                    OUT::met_PhotonEnUp_phi,   0.0 );
+    metlv_PhotonEnDown.SetPtEtaPhiM( OUT::met_PhotonEnDown_pt,    0.0, 
+                                      OUT::met_PhotonEnDown_phi,   0.0 );
+    metlv_JetEnUp.SetPtEtaPhiM( OUT::met_JetEnUp_pt,    0.0, 
+                                 OUT::met_JetEnUp_phi,   0.0 );
+    metlv_JetEnDown.SetPtEtaPhiM( OUT::met_JetEnDown_pt,    0.0, 
+                                   OUT::met_JetEnDown_phi,   0.0 );
+    metlv_MuonEnUp.SetPtEtaPhiM( OUT::met_MuonEnUp_pt,    0.0, 
+                                  OUT::met_MuonEnUp_phi,   0.0 );
+    metlv_MuonEnDown.SetPtEtaPhiM( OUT::met_MuonEnDown_pt,    0.0, 
+                                    OUT::met_MuonEnDown_phi,   0.0 );
+    metlv_ElectronEnUp.SetPtEtaPhiM( OUT::met_ElectronEnUp_pt,    0.0, 
+                                      OUT::met_ElectronEnUp_phi,   0.0 );
+    metlv_ElectronEnDown.SetPtEtaPhiM( OUT::met_ElectronEnDown_pt,    0.0, 
+                                        OUT::met_ElectronEnDown_phi,   0.0 );
+    metlv_UnclusteredEnUp.SetPtEtaPhiM( OUT::met_UnclusteredEnUp_pt,  0.0, 
+                                         OUT::met_UnclusteredEnUp_phi, 0.0 );
+    metlv_UnclusteredEnDown.SetPtEtaPhiM( OUT::met_UnclusteredEnDown_pt, 0.0, 
+                                    OUT::met_UnclusteredEnDown_phi,   0.0 );
 
     if( leptons.size() > 0 ) {
         OUT::mt_lep_met = Utils::calc_mt( leptons[0], metlvOrig );
@@ -2854,11 +2953,37 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
 
             
             TLorentzVector lep_trans; 
+            TLorentzVector lep_trans_MuEn_up; 
+            TLorentzVector lep_trans_MuEn_down; 
+            TLorentzVector lep_trans_ElEn_up; 
+            TLorentzVector lep_trans_ElEn_down; 
             TLorentzVector ph_trans; 
+
             lep_trans.SetPtEtaPhiM( leptons[0].Pt(), 0.0, leptons[0].Phi(), leptons[0].M() );
+            lep_trans_MuEn_up  .SetPtEtaPhiM( leptons_MuEn_up[0].Pt(),   0.0, leptons_MuEn_up[0].Phi(),   leptons_MuEn_up[0].M() );
+            lep_trans_MuEn_down.SetPtEtaPhiM( leptons_MuEn_down[0].Pt(), 0.0, leptons_MuEn_down[0].Phi(), leptons_MuEn_down[0].M() );
+            lep_trans_ElEn_up  .SetPtEtaPhiM( leptons_ElEn_up[0].Pt(),   0.0, leptons_ElEn_up[0].Phi(),   leptons_ElEn_up[0].M() );
+            lep_trans_ElEn_down.SetPtEtaPhiM( leptons_ElEn_down[0].Pt(), 0.0, leptons_ElEn_down[0].Phi(), leptons_ElEn_down[0].M() );
+
             ph_trans.SetPtEtaPhiM( photons[0].Pt(), 0.0, photons[0].Phi(), photons[0].M() );
 
+            // Transverse resonance mass
             OUT::mt_res = ( lep_trans + ph_trans + metlvOrig ).M();
+
+            // met systematics
+            OUT::mt_res_JetResUp   = ( lep_trans + ph_trans + metlv_JetResUp   ).M();
+            OUT::mt_res_JetResDown = ( lep_trans + ph_trans + metlv_JetResDown ).M();
+            OUT::mt_res_JetEnUp    = ( lep_trans + ph_trans + metlv_JetEnUp   ).M();
+            OUT::mt_res_JetEnDown  = ( lep_trans + ph_trans + metlv_JetEnDown ).M();
+            OUT::mt_res_ElectronEnUp   = ( lep_trans_ElEn_up   + ph_trans + metlv_ElectronEnUp   ).M();
+            OUT::mt_res_ElectronEnDown = ( lep_trans_ElEn_down + ph_trans + metlv_ElectronEnDown ).M();
+            OUT::mt_res_MuonEnUp     = ( lep_trans_MuEn_up + ph_trans + metlv_MuonEnUp   ).M();
+            OUT::mt_res_MuonEnDown   = ( lep_trans_MuEn_down + ph_trans + metlv_MuonEnDown ).M();
+            OUT::mt_res_PhotonEnUp   = ( lep_trans + ph_trans + metlv_PhotonEnUp   ).M();
+            OUT::mt_res_PhotonEnDown = ( lep_trans + ph_trans + metlv_PhotonEnDown ).M();
+            OUT::mt_res_UnclusteredEnUp   = ( lep_trans + ph_trans + metlv_UnclusteredEnUp   ).M();
+            OUT::mt_res_UnclusteredEnDown = ( lep_trans + ph_trans + metlv_UnclusteredEnDown ).M();
+
             OUT::mt_lep_ph = ( lep_trans + ph_trans ).M();
 
             for( std::vector<TLorentzVector>::const_iterator phitr = photons.begin();

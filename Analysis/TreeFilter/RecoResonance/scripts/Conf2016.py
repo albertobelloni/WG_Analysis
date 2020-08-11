@@ -73,11 +73,12 @@ def config_analysis( alg_list, args ) :
 def make_final_mumu( alg_list, args) :
 
     mu_pt = args.get( 'mu_pt', ' > 25 ' )
+    ph_id = args.get( 'ph_id', 'vid_medium' )
 
     # order should be muon, electron, photon, jet
     alg_list.append( filter_muon( mu_pt, do_cutflow=True, do_hists=True ) )
     alg_list.append( filter_electron(  do_cutflow=True, do_hists=True ) )
-    alg_list.append( filter_photon(  do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_photon(  do_cutflow=True, do_hists=True , id_cut = ph_id) )
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
@@ -705,7 +706,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
 
     return filt
 
-def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
+def filter_photon( ph_pt = ' > 10 ', id_cut='medium', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
 
     filt = Filter('FilterPhoton')
 
@@ -732,8 +733,10 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
 
     if( id_cut is not 'None' ) :
         setattr( filt, 'cut_%s' %id_cut, ' == True ' )
+    #else: 
+    #    filt.cut_medium     = ' == True '
 #    filt.cut_vid_medium     = ' == True '
-    filt.cut_medium     = ' == True '
+
 
 #    filt.cut_sigmaIEIE_barrel_loose  = ' < 0.01031 '
 #    filt.cut_chIsoCorr_barrel_loose  = ' < 1.295 '
@@ -808,9 +811,10 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
     filt.cut_phoIsoCorr_endcap_tight = ' < 3.032 '
     filt.cut_hovere_endcap_tight = ' < 0.0321 '
 
-    if do_cutflow :
+    if do_cutflow and id_cut and id_cut !="None" :
         filt.do_cutflow = True
-        filt.add_var( 'evalPID', evalPID )
+        #filt.add_var( 'evalPID', evalPID )
+        filt.add_var( 'evalPID', id_cut)
 
     if do_hists :
         filt.add_hist( 'cut_pt', 100, 0, 200 )
