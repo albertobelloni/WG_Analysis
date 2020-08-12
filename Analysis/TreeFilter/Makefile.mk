@@ -104,6 +104,7 @@ vvclean :
 	rm -f *.exe
 
 check :
+	cd ../Core ; make ; cd -
 	@if [ ! -f $(WORK_AREA)/TreeFilter/Core/obj/AnalysisBase.o ] ; \
 	    then \
 	    echo "**************************************" ; \

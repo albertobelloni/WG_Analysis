@@ -1631,7 +1631,7 @@ def write_linkdef_file( linkdefname, branches ) :
     else:
         ## if Linkdef.h does not exist, make a new one
         print "Linkdef.h does not exist"
-        print "link types to be included: ", " ".join(new_link_types)
+        print "link types to be included: ", " ".join(link_types)
 
         link_header = open(linkdefname, 'w')
         link_header.write('#ifdef __CINT__\n')
