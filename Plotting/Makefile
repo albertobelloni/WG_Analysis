@@ -51,10 +51,36 @@ matrix:
 fit:
 
 	python MakeFits.py --doVarOpt 
+	make limit
+
+limit:
 	python limitplot.py data/higgs/Results/result_5_mu.json 
 	python limitplot.py data/higgs/Results/result_0p01_mu.json 
 	cp result_*_mu.* ~/public_html/
 
+llvalid : 
+
+	python MakeMuValidPlot.py --batch --year 2016
+	python MakeMuValidPlot.py --batch --year 2017
+	python MakeMuValidPlot.py --batch --year 2018
+	python MakeEGValidPlot.py --batch --year 2016
+	python MakeEGValidPlot.py --batch --year 2017
+	python MakeEGValidPlot.py --batch --year 2018
+
+lgvalid : 
+
+	python MakeElGValidPlot.py --batch --year 2016
+	python MakeElGValidPlot.py --batch --year 2017
+	python MakeElGValidPlot.py --batch --year 2018
+	python MakeMuGValidPlot.py --batch --year 2016
+	python MakeMuGValidPlot.py --batch --year 2017
+	python MakeMuGValidPlot.py --batch --year 2018
+
+money : 
+
+	python MakeMoneyPlot.py --batch --year 2016
+	python MakeMoneyPlot.py --batch --year 2017
+	python MakeMoneyPlot.py --batch --year 2018
 
 signal : 
 
@@ -62,7 +88,7 @@ signal :
 	python MakeSignalWS.py --batch --year 2017
 	python MakeSignalWS.py --batch --year 2018
 
-mcbkg : 
+bkg : 
 
 	python MakeMCBkgWS.py --process All --batch --year 2016
 	python MakeMCBkgWS.py --process All --batch --year 2017

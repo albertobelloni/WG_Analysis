@@ -22,6 +22,7 @@ import pickle
 import core
 import subprocess
 import multiprocessing
+import fnmatch
 from collections import OrderedDict
 from DrawConfig import DrawConfig, LegendConfig, LabelConfig, HistConfig
 
@@ -33,6 +34,10 @@ tRed      ="\033[1;31m%s"+tColor_Off       # Red
 tPurple   ="\033[0;35m%s"+tColor_Off       # Purple
 
 _STACKNAME = '__AllStack__'
+_DEFAULTCOLORS = [
+    #ROOT.kGray,
+    ROOT.kRed+1, ROOT.kAzure+2, ROOT.kGreen+2, ROOT.kMagenta+2, ROOT.kOrange+1, ROOT.kOrange+3
+]
 
 def f_Obsolete(f):
 
@@ -416,7 +421,8 @@ class Sample :
             ## throw error the check bit is flipped already
             raise RuntimeError("histogram is already normalized by width")
         if self.IsGroupedSample():
-            raise RuntimeError("grouped samples inherit width-normalization")
+            print "warning: grouped samples inherit width-normalization"
+            #raise RuntimeError("grouped samples inherit width-normalization")
         normalize_hist_by_width( self.hist , norm )
         self.widthnormalize = True
 
@@ -704,7 +710,7 @@ class SampleManager(SampleFrame) :
         self.curr_legend           = None
         self.curr_sig_legend       = None
         self.curr_sampleframe      = None
-                  
+
         self.legendLimits          = None
 
         self.legendLoc             = 'Nominal'
@@ -712,7 +718,7 @@ class SampleManager(SampleFrame) :
         self.legendWiden           = 1.0
         self.legendTranslateX      = 0.0
         self.legendTranslateY      = 0.0
-        self.entryWidth            = 0.08
+        self.entryWidth            = 0.07
         # Save any plot decorations such as labels here
         # This guarantees that the objects stay in memory
         self.curr_decorations      = []
@@ -951,11 +957,12 @@ class SampleManager(SampleFrame) :
                 val_list = [val_list]
             if val_list is None or None in val_list:
                 #clone list if None is included
-                each_results.append(list(self.samples)) 
+                each_results.append(list(self.samples))
                 continue
             if hasattr( self.dummysample , arg ) :
                 each_results.append([ samp for samp in self.samples \
-                                      if getattr( samp, arg ) in val_list])
+                                      if getattr( samp, arg ) in val_list\
+                          or (isinstance(val, str) and fnmatch.fnmatch(getattr(samp, arg), val_list[0])) ])
 
         fx = lambda x,y : set(x) & set(y)
         common_results = list( reduce( fx , each_results ) )
@@ -1071,7 +1078,7 @@ class SampleManager(SampleFrame) :
         self.legendWiden=1.0
         self.legendTranslateX=0.0
         self.legendTranslateY=0.0
-        self.entryWidth = 0.052
+        self.entryWidth = 0.048
         self.siglegPos = 'bottom'
 
         self.transient_data= {}
@@ -2861,12 +2868,19 @@ class SampleManager(SampleFrame) :
         stack_samples = self.get_samples( name=self.get_stack_order() )
         doratio = draw_config.get_doratio()
         normalize = draw_config.get_normalize()
+        bywidth = draw_config.get_bywidth()
 
         if stack_samples :
             sum_hist = stack_samples[0].hist.Clone(_STACKNAME)
             for samp in stack_samples[1:] :
                 sum_hist.Add(samp.hist)
 
+            if bywidth:
+                stack_sum = sum_hist.Integral("width")
+            else:
+                stack_sum = sum_hist.Integral()
+            if normalize:
+                sum_hist.Scale(1./stack_sum)
             self.create_sample( _STACKNAME, isActive=False, hist=sum_hist,
                                 temporary=True )
 
@@ -2897,20 +2911,17 @@ class SampleManager(SampleFrame) :
 
         # reverse so that the stack is in the correct order
         orderd_samples = []
-        ## FIXME
+
         for sampname in self.get_stack_order():
             samplist = self.get_samples(name=sampname, isActive=True )
             if samplist :
                 orderd_samples.append(samplist[0])
-        ## FIXME
+
         for samp in reversed(orderd_samples) :
             samp.hist.SetFillColor( samp.color )
             samp.hist.SetLineColor( ROOT.kBlack )
             samp.hist.SetLineWidth( 1 )
-            if normalize == "Width":
-                pass
-            #    samp.normalize_by_width()
-            elif normalize:
+            if normalize:
                 samp.hist.Scale(1./stack_sum)
             self.curr_stack.Add(samp.hist, 'HIST')
 
@@ -3000,6 +3011,10 @@ class SampleManager(SampleFrame) :
     #----------------------------------------------------
 
     def MakeSameCanvas(self, draw_config, useStoredBinning=False, preserve_hists=False, useModel=False, treeHist=None, treeSelection=None, readhist = False) :
+        """
+            Called by CompareSelections
+            Clone sample and fill histograms
+        """
 
         if not preserve_hists :
             self.clear_all()
@@ -3441,7 +3456,7 @@ class SampleManager(SampleFrame) :
         sblind      = draw_config.get_unblind()
         sweight     = draw_config.get_weight()
         overflow    = draw_config.get_overflow()
-        bywidth     = draw_config.get_normalize() == "Width"
+        bywidth     = draw_config.get_bywidth()
         onthefly    = draw_config.get_onthefly()
         #sample.hist = draw_config.init_hist(sample.name)
 
@@ -3504,28 +3519,32 @@ class SampleManager(SampleFrame) :
                     print 'Make %s hist %s : ' %(sample.name, varexp) \
                             + tRed %selection
 
+                dataframefailed=False
                 # Speed up with RDataFrame
-                try:
+                if self.dataFrame:
+                    try:
 
-                    rdf_hist_resultptr = self. create_hist_rdfhelper( sample,
-                                    varexp, selection, draw_config.histpars)
-                    rdf_hist = rdf_hist_resultptr.DrawCopy()
+                        rdf_hist_resultptr = self. create_hist_rdfhelper( sample,
+                                        varexp, selection, draw_config.histpars)
+                        rdf_hist = rdf_hist_resultptr.DrawCopy()
 
-                    # save histogram to current sampleframe
-                    if self.curr_sampleframe and rdf_hist_resultptr:
-                        self.curr_sampleframe.sampleptr[sample] = \
-                                                    rdf_hist_resultptr
+                        # save histogram to current sampleframe
+                        if self.curr_sampleframe and rdf_hist_resultptr:
+                            self.curr_sampleframe.sampleptr[sample] = \
+                                                        rdf_hist_resultptr
 
-                    res = sample.hist.Add(rdf_hist)
+                        res = sample.hist.Add(rdf_hist)
 
-                ## you don't want to catch keyboard interrupt here
-                except KeyboardInterrupt as ex:
-                        raise ex
+                    ## you don't want to catch keyboard interrupt here
+                    except KeyboardInterrupt as ex:
+                            raise ex
 
-                except Exception as ex:
-                    print('Falling back to TChain. '\
-                 'Please consider switching to ROOT >= 6.18 to use RDataFrame')
+                    except Exception as ex:
+                        print('Falling back to TChain. '\
+                     'Please consider switching to ROOT >= 6.18 to use RDataFrame')
+                        dataframefailed=True
 
+                if not self.dataFrame or dataframefailed:
                     drawstr = varexp + ' >> ' + sample.hist.GetName()
                     res = sample.chain.Draw( drawstr, selection , 'goff' )
 
@@ -4006,9 +4025,9 @@ class SampleManager(SampleFrame) :
                     prim.GetXaxis().SetLabelSize(0.06)
                     prim.GetXaxis().SetTitleSize(0.06)
                 else :
-                    prim.GetYaxis().SetTitleSize(0.04)
-                    prim.GetYaxis().SetTitleOffset( offset )
-                    prim.GetYaxis().SetLabelSize(0.02)
+                    prim.GetYaxis().SetTitleSize(0.030)
+                    prim.GetYaxis().SetTitleOffset( offset + .5)
+                    prim.GetYaxis().SetLabelSize(0.015)
                     prim.GetXaxis().SetLabelSize(0.04)
                     prim.GetXaxis().SetTitleSize(0.04)
 
@@ -4058,11 +4077,11 @@ class SampleManager(SampleFrame) :
 
                 ratiosamp.hist.SetLineWidth(2)
                 if   doratio == True or doratio == 1 :
-                    ratiosamp.hist.GetYaxis().SetTitleSize(0.12)
+                    ratiosamp.hist.GetYaxis().SetTitleSize(0.1)
                     ratiosamp.hist.GetYaxis().SetTitleOffset(0.5)
-                    ratiosamp.hist.GetYaxis().SetLabelSize(0.11)
-                    ratiosamp.hist.GetXaxis().SetLabelSize(0.11)
-                    ratiosamp.hist.GetXaxis().SetTitleSize(0.12)
+                    ratiosamp.hist.GetYaxis().SetLabelSize(0.08)
+                    ratiosamp.hist.GetXaxis().SetLabelSize(0.08)
+                    ratiosamp.hist.GetXaxis().SetTitleSize(0.08)
                     ratiosamp.hist.GetXaxis().SetTitleOffset(1.1)
                 elif doratio: #doratio==2 :
                     ratiosamp.hist.GetYaxis().SetTitleSize(0.06)
@@ -4101,7 +4120,7 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     @f_Dumpfname
-    def calc_yaxis_limits(self, draw_config ) :
+    def calc_yaxis_limits(self, draw_config, samplist = None) :
 
         ymindef     = draw_config.get_ymin()
         ymaxdef     = draw_config.get_ymax()
@@ -4109,7 +4128,7 @@ class SampleManager(SampleFrame) :
         logy        = draw_config.get_logy()
         normalize = draw_config.get_normalize()
 
-        samplist = self.get_samples()
+        if not samplist: samplist = self.get_samples()
         #if not normalize: samplist+=self.get_samples( name='__AllStack__' )
 
         return self.calc_yranges(samplist, ymindef, ymaxdef,
@@ -4124,35 +4143,41 @@ class SampleManager(SampleFrame) :
 
         if ymaxdef is None :
 
-            if normalize == "Total":
-                maxarray =[samp.hist.GetMaximum()/samp.hist.GetBinContent(1) \
-                                for samp in samplist \
-                                if samp.hist and samp.hist.GetBinContent(1)>0]
+            #if normalize == "Total":
+            #    maxarray =[samp.hist.GetMaximum()/samp.hist.GetBinContent(1) \
+            #                    for samp in samplist \
+            #                    if samp.hist and samp.hist.GetBinContent(1)>0]
 
-            elif normalize and normalize != "Width":
-                maxarray =[samp.hist.GetMaximum()/samp.hist.Integral() \
-                                for samp in samplist \
-                                if samp.hist and samp.hist.Integral()>0]
-            else:
-                maxarray =[samp.hist.GetMaximum()
+            #elif normalize and not (isinstance(normalize,str) and "Width" in normalize):
+            #    ## FIXME separate width from normalize
+            #    maxarray =[samp.hist.GetMaximum()/samp.hist.Integral() \
+            #                    for samp in samplist \
+            #                    if samp.hist and samp.hist.Integral()>0]
+            #elif isinstance(normalize,str) and "Width" in normalize:
+            #    ## FIXME separate width from normalize
+            #    maxarray =[samp.hist.GetMaximum()/samp.hist.Integral() \
+            #                    for samp in samplist \
+            #                    if samp.hist and samp.hist.Integral()>0]
+            #else:
+            maxarray =[samp.hist.GetMaximum()
                         for samp in samplist if samp.hist]
 
             ymax = max(maxarray)
 
         if ymindef is None :
 
-            if normalize == "Total":
-                minarray =[samp.hist.GetMinimum()/samp.hist.GetBinContent(1) \
-                                for samp in samplist\
-                                if samp.hist and samp.hist.GetBinContent(1)>0]
+            #if normalize == "Total":
+            #    minarray =[samp.hist.GetMinimum(0)/samp.hist.GetBinContent(1) \
+            #                    for samp in samplist\
+            #                    if samp.hist and samp.hist.GetBinContent(1)>0]
 
-            elif normalize and normalize != "Width":
-                minarray =[samp.hist.GetMinimum()/samp.hist.Integral() \
-                                for samp in samplist \
-                                if samp.hist and samp.hist.Integral()>0]
+            #elif normalize and normalize != "Width":
+            #    minarray =[samp.hist.GetMinimum(0)/samp.hist.Integral() \
+            #                    for samp in samplist \
+            #                    if samp.hist and samp.hist.Integral()>0]
 
-            else:
-                minarray =[samp.hist.GetMinimum(0) \
+            #else:
+            minarray =[samp.hist.GetMinimum(0) \
                         for samp in samplist if samp.hist]
 
             ymin = min(minarray)
@@ -4170,12 +4195,13 @@ class SampleManager(SampleFrame) :
                 if ymin<=0:
                     ymin=None
 
-                if not ymaxdef: ymax *= pow(ymax/ymin,ymax_scale-1)
-                if not ymindef: ymin *= pow(ymax/ymin,0.9-1)
+                if not ymaxdef and ymax: ymax *= pow(ymax/ymin,ymax_scale-1)
+                if not ymindef and ymin: ymin *= pow(ymax/ymin,0.9-1)
 
             else :
 
                 if not ymaxdef: ymax += (ymax-ymin)*(ymax_scale-1)
+        print ymax_scale, ymax, ymin, maxarray, minarray
 
         return (ymin, ymax)
 
@@ -4207,9 +4233,9 @@ class SampleManager(SampleFrame) :
 
     def create_standard_ratio_canvas(self) :
 
-        #xsize = 800
-        xsize = 750
-        ysize = 750
+        xsize = 800
+        #xsize = 750
+        ysize = 1000
         self.curr_canvases['base'] = ROOT.TCanvas('basecan', 'basecan', xsize, ysize)
 
         self.curr_canvases['bottom'] = ROOT.TPad('bottompad', 'bottompad', 0.01, 0.01, 0.99, 0.34)
@@ -4416,9 +4442,23 @@ class SampleManager(SampleFrame) :
         ticksx = draw_config.get_tick_x_format()
         ticksy = draw_config.get_tick_y_format()
         normalize = draw_config.get_normalize()
+        bywidth = draw_config.get_bywidth()
+
+        ## normalize signal if necessary
+        if sighists and draw_config.get_drawsignal():
+            for samp in sighists :
+                if samp.isActive :
+                    ## normalize signal samples
+                    if normalize == "Total":
+                        samp.hist.Scale(1./samp.hist.GetBinContent(1))
+                    elif normalize :
+                        if bywidth:
+                            samp.hist.Scale(1./samp.hist.Integral("width"))
+                        else:
+                            samp.hist.Scale(1./samp.hist.Integral())
 
         # in what cases is topcan an already filled TCanvas?
-        if isinstance(topcan, ROOT.TCanvas ) :
+        if isinstance( topcan, ROOT.TCanvas ) :
             for prim in topcan.GetListOfPrimitives() :
                 if isinstance(prim, ROOT.TH1F) :
                     if ylabel is not None :
@@ -4429,8 +4469,11 @@ class SampleManager(SampleFrame) :
                         prim.GetYaxis().SetNdivisions( *ticksy )
             topcan.DrawClonePad()
 
-        elif isinstance(topcan, ROOT.THStack ) :
-            (ymin, ymax) = self.calc_yaxis_limits( draw_config )
+        if isinstance( topcan, ROOT.THStack ) :
+            samplist = self.get_samples(isSignal=True,isActive=True)+\
+                       self.get_samples(name="__AllStack__")+\
+                       self.get_samples(isData=True,isActive=True)
+            (ymin, ymax) = self.calc_yaxis_limits( draw_config, samplist)
             if topcan.GetHists() == None :
                 print 'Top stack has no hists! Exiting'
                 return
@@ -4479,19 +4522,8 @@ class SampleManager(SampleFrame) :
                     samp.hist.SetLineStyle(samp.getLineStyle())
                     samp.hist.SetStats(0)
 
-                    ## normalize signal samples
-                    if normalize == "Total":
-                        samp.hist.Scale(1./samp.hist.GetBinContent(1))
-                        samp.hist.Draw('HIST same')
-
-                    elif normalize == "Width":
-                        dsamp.normalize_by_width()
-
-                    elif normalize :
-                        samp.hist.DrawNormalized('HIST same')
-
-                    else :
-                        samp.hist.Draw('HIST same')
+                    ## draw signal
+                    samp.hist.Draw('HIST same')
 
                     entry = self.curr_sig_legend.AddEntry( samp.hist,
                                                            samp.legendName, 'L')
@@ -4517,10 +4549,13 @@ class SampleManager(SampleFrame) :
             self.set_ratio_default_formatting( self.curr_canvases['bottom'],
                                                ratiosamps, draw_config )
 
+            drawoptbase = draw_config.get_drawopt()
             for idx, samp in enumerate(ratiosamps) :
                 drawopt = 'same'
                 if idx == 0 :
                     drawopt = ''
+                if drawoptbase:
+                    drawopt+=drawoptbase
                 if samp.isSignal :
                     drawopt += 'HIST'
 
@@ -4605,7 +4640,9 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     def DrawSameCanvas(self, canvas, samples, draw_config, drawHist=False ) :
-        """  Called by CompareSelections, CompareHists """
+        """  
+            Called by CompareSelections, CompareHists
+        """
 
         canvas.cd()
 
@@ -4616,12 +4653,13 @@ class SampleManager(SampleFrame) :
         ymax = draw_config.get_ymax()
         ymax_scale = draw_config.get_ymax_scale()
         normalize = draw_config.get_normalize()
+        bywidth = draw_config.get_bywidth()
         drawopt = draw_config.get_drawopt()
         drawhist = draw_config.get_drawhist()
 
-        ymin, ymax = self.calc_yaxis_limits(draw_config )
 
         first = True
+        draw_samps_list = []
         for hist_name, hist_config in draw_config.hist_configs.iteritems() :
 
             draw_samp = self.get_samples( name=hist_config['sample']+"_"+hist_name  )
@@ -4631,50 +4669,62 @@ class SampleManager(SampleFrame) :
                 draw_samp = None
                 print 'WARNING Did not get a sample associated with the hist_config'
                 raise RuntimeError
+            draw_samps_list.append(draw_samp)
 
+            ## perform normalization
+            if bywidth:
+                draw_samp.normalize_by_width()
+                integral = draw_samp.hist.Integral("width")
+            else:
+                integral = draw_samp.hist.Integral()
+
+            if normalize == "Total" and draw_samp.hist.GetBinContent(1) :
+                draw_samp.hist.Scale(1.0/draw_samp.hist.GetBinContent(1))
+            elif normalize and integral!=0:
+                draw_samp.hist.Scale(1.0/integral)
+            draw_samp.hist.SetLineColor( hist_config['color'] )
+            if "e2" in drawopt: 
+                draw_samp.hist.SetFillColor(hist_config['color'])
+                draw_samp.hist.SetFillStyle(3018)
+            draw_samp.hist.SetMarkerColor(hist_config['color'])
+            draw_samp.hist.GetYaxis().SetTitleOffset(1.1)
+            draw_samp.hist.GetYaxis().SetTitleSize(0.045)
+            draw_samp.hist.GetYaxis().SetLabelSize(0.03)
+            draw_samp.hist.SetLineWidth( 2 )
+            draw_samp.hist.SetMarkerSize( 0 )
+            if "text" in drawopt: draw_samp.hist.SetMarkerSize( 1 ) ## font size for histogram text option
+            draw_samp.hist.SetMarkerStyle( 7 )
+            draw_samp.hist.SetStats(0)
+            if draw_samp.isSignal  :
+                draw_samp.hist.SetMarkerSize( 1 )
+                draw_samp.hist.SetMarkerStyle(20)
+
+        samplist = self.get_samples(temporary=True,isRatio=False)
+        assert set(samplist)==set(draw_samps_list)
+        ## calculate proper y axis limits after all normalization is done
+        ymin, ymax = self.calc_yaxis_limits( draw_config , samplist )
+
+        for draw_samp in draw_samps_list:
             drawcmd = drawopt+' same'
             if first :
                 drawcmd = drawopt
                 first = False
-            if draw_samp is not None and not draw_samp.isSignal and drawhist:
+            if not draw_samp.isSignal and drawhist:
                 drawcmd+='hist'
 
+            draw_samp.hist.GetYaxis().SetTitle( draw_config.get_ylabel() )
+            if not draw_config.get_doratio()  :
+                draw_samp.hist.GetXaxis().SetTitle( draw_config.get_xlabel() )
 
-            if draw_samp is not None :
 
-                draw_samp.hist.GetYaxis().SetTitle( draw_config.get_ylabel() )
-                if not draw_config.get_doratio()  :
-                    draw_samp.hist.GetXaxis().SetTitle( draw_config.get_xlabel() )
+            if ymin is not None and ymax is not None and ymin < ymax :
+                print "set %s histogram y range: %g, %g" %(draw_samp.name, ymin, ymax)
+                draw_samp.hist.GetYaxis().SetRangeUser(ymin, ymax)
+            else:
+                print "warning: %s histogram fail to set range "%draw_samp.name, ymin, ymax
 
-                draw_samp.hist.GetYaxis().SetTitleOffset(1.1)
-                draw_samp.hist.GetYaxis().SetTitleSize(0.045)
-                draw_samp.hist.GetYaxis().SetLabelSize(0.03)
-                draw_samp.hist.SetLineColor( hist_config['color'] )
-                draw_samp.hist.SetLineWidth( 2 )
-                draw_samp.hist.SetMarkerSize( 0 )
-                if "text" in drawopt: draw_samp.hist.SetMarkerSize( 1 ) ## font size for histogram text option
-                draw_samp.hist.SetMarkerStyle( 7 )
-                draw_samp.hist.SetMarkerColor(hist_config['color'])
-                draw_samp.hist.SetStats(0)
-                if draw_samp.isSignal  :
-                    draw_samp.hist.SetMarkerSize( 1 )
-                    draw_samp.hist.SetMarkerStyle(20)
-
-                if normalize == "Total" and draw_samp.hist.GetBinContent(1) :
-                    draw_samp.hist.Scale(1.0/draw_samp.hist.GetBinContent(1))
-                elif normalize and draw_samp.hist.Integral() != 0  :
-                    draw_samp.hist.Scale(1.0/draw_samp.hist.Integral())
-                elif normalize == "Width":
-                    draw_samp.normalize_by_width()
-
-                if ymin is not None and ymax is not None and ymin<ymax:
-                    print "set %s histogram y range: %g, %g" %(draw_samp.name, ymin, ymax)
-                    draw_samp.hist.GetYaxis().SetRangeUser(ymin, ymax)
-                else:
-                    print "warning: %s histogram fail to set range "%draw_samp.name, ymin, ymax
-
-                #draw_samp.hist.Draw(drawcmd+'goff')
-                draw_samp.hist.Draw(drawcmd)
+            #draw_samp.hist.Draw(drawcmd+'goff')
+            draw_samp.hist.Draw(drawcmd)
 
 
 
@@ -4685,12 +4735,13 @@ class SampleManager(SampleFrame) :
 
         self.curr_sig_legend = None
 
-        if 'colors' in hist_config :
-            if len(hist_config['colors']) < len( reqsamples ) :
-                print 'Size of colors input does not match size of vars input!'
-                reqnum = len(hist_config['colors']) - len( reqsamples )
-                hist_config['colors'].extend([ self.get_samples(name=s)[0].color
-                                                for s in reqsamples[reqnum:] ])
+        if 'colors' not in hist_config :
+            hist_config['colors'] = _DEFAULTCOLORS[:len(reqsamples)]
+        if len(hist_config['colors']) < len( reqsamples ) :
+            print 'Size of colors input does not match size of vars input!'
+            reqnum = len(hist_config['colors']) - len( reqsamples )
+            hist_config['colors'].extend([ self.get_samples(name=s)[0].color
+                                            for s in reqsamples[reqnum:] ])
 
         if not same :
             self.clear_all()
@@ -4729,12 +4780,14 @@ class SampleManager(SampleFrame) :
 
         self.curr_sig_legend = None
 
-        if 'colors' in hist_config :
-            if len(hist_config['colors']) < len( selections ) :
-                print 'Size of colors input does not match size of vars input!'
-                reqnum = len(hist_config['colors']) - len( selections )
-                hist_config['colors'].extend([ self.get_samples(name=s)[0].color
-                                                for s in reqsamples[reqnum:] ])
+        if 'colors' not in hist_config :
+            hist_config['colors'] = _DEFAULTCOLORS[:len(reqsamples)]
+
+        if len(hist_config['colors']) < len( reqsamples ) :
+            print 'Size of colors input does not match size of vars input!'
+            reqnum = len(hist_config['colors']) - len( reqsamples )
+            hist_config['colors'].extend([ self.get_samples(name=s)[0].color
+                                            for s in reqsamples[reqnum:] ])
 
         if self.collect_commands :
             self.add_compare_config( varexp, selections, reqsamples, histpars,
