@@ -1,84 +1,6 @@
 #!/usr/bin/env python
-import ROOT
-from itertools import product
-ROOT.PyConfig.IgnoreCommandLineOptions = True
-import numpy as np
-from math import pi
-import os
-import selection_defs as defs
-from SampleManager import SampleManager
 
-from argparse import ArgumentParser
-parser = ArgumentParser()
-parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to muon base directory')
-parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to electron base directory')
-parser.add_argument('--outputDir',       default=None,           dest='outputDir',          required=False, help='Output directory to write histograms')
-parser.add_argument('--data',            default=False,          dest='data',               required=False, help='Use data or MC')
-parser.add_argument('--batch',           default=False,          dest='batch',              required=False, help='Supress X11 output')
-parser.add_argument('--year',            default=2016,           dest='year',   type=int,   required=False, help='Set run year')
-
-options = parser.parse_args()
-
-_TREENAME = 'UMDNTuple/EventTree'
-_FILENAME = 'tree.root'
-datestr   = "2019_10_28"
-
-if options.year == 2016:
-    _XSFILE   = 'cross_sections/photon16.py'
-    _LUMI     = 36000
-    _SAMPCONF = 'Modules/Resonance2016.py'
-    etastr    = "&& !(ph_eta[0]<0 && ph_phi[0]<16*pi/18 && ph_phi[0]>13*pi/18)"
-    lumiratio = 1./(1-3./72)
-elif options.year == 2017:
-    #datestr   = "2019_09_15"
-    _SAMPCONF = 'Modules/Resonance2017.py'
-    _XSFILE   = 'cross_sections/photon17.py'
-    _LUMI     = 41000
-    etastr    = "&& !(ph_eta[0]>0 && ph_phi[0]>15*pi/18)"
-    lumiratio = 1./(1-3./72.)
-elif options.year == 2018:
-    _SAMPCONF = 'Modules/Resonance2018.py'
-    _XSFILE   = 'cross_sections/photon18.py'
-    _LUMI     = 59740
-    etastr    = "&& !(ph_phi[0]<5*pi/18 && ph_phi[0]>3*pi/18)" 
-    lumiratio = 1./(1-1./18)
-
-_LUMI     = 36000
-
-if options.batch:
-    ROOT.gROOT.SetBatch(True)
-if options.outputDir is None :
-    options.outputDir = "Plots/" + __file__.rstrip(".py")
-if options.outputDir is not None :
-    if not os.path.isdir( options.outputDir ) :
-        os.makedirs( options.outputDir )
-
-ROOT.gStyle.SetOptStat(0)
-ROOT.gStyle.SetOptFit(1)
-ROOT.gROOT.SetBatch(True)
-
-# if no option is given, here are the default directories to read
-if options.baseDirMuG is None: options.baseDirMuG = "/data2/users/kakw/Resonances%i/LepGamma_mug_%s/"%(options.year,datestr)
-if options.baseDirElG is None: options.baseDirElG = "/data2/users/kakw/Resonances%i/LepGamma_elg_%s/"%(options.year,datestr)
-#options.baseDirElG = "/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/"
-
-baseel = 'ph_n==1 && el_n==1 && el_pt30_n==1 && mu_n==0'
-basemu = 'ph_n==1 && mu_n==1 && mu_pt30_n==1 && el_n==0'
-ph_eb =  ' && ph_IsEB[0]'
-passpix = '&& ph_hasPixSeed[0]==0'  #Pixel seed
-failpix = '&& ph_hasPixSeed[0]==1'
-passcsev = '&& ph_passEleVeto[0]==1' #CSEV
-failcsev = '&& ph_passEleVeto[0]==0' 
-ltmet = '&&met_pt<25'
-gtmet = '&&met_pt>25'
-phpt50 = "&&ph_pt[0]>50"
-phpt80 = "&&ph_pt[0]>80"
-elpt40 = "&&el_pt[0]>40"
-eleta2p1 = "&&abs(el_eta[0])<2.1"
-invZ = '&& abs(m_lep_ph-91)>15'
-weight="PUWeight*NLOWeight"
-pi = 3.1416
-
+execfile("MakeBase.py")
 
 def main() :
     #if options.outputDir: f1 = ROOT.TFile("%s/output.root"%(options.outputDir),"RECREATE")
@@ -90,11 +12,11 @@ def main() :
     sampManElG.ReadSamples( _SAMPCONF )
     #samples = sampManMuG
     plotvarsbase = [# ("mt_lep_met_ph",(100,0,2000)),
-                # ("p_{T}(#gamma)","ph_pt[0]"     ,(100,50,550)),
-                 ("#eta(#gamma)","ph_eta[0]"    ,(100,-3,3)),
-                 ("#phi(#gamma)","ph_phi[0]"    ,(100,-pi,pi)),
-                # ("MET"         ,"met_pt"       ,(100,0,500)),
-                # ("MET #phi"    ,"met_phi"      ,(100,-pi,pi)),
+                 ("p_{T}(#gamma)","ph_pt[0]"     ,(100,50,550)),
+                 #("#eta(#gamma)","ph_eta[0]"    ,(100,-3,3)),
+                 #("#phi(#gamma)","ph_phi[0]"    ,(100,-pi,pi)),
+                 #("MET"         ,"met_pt"       ,(100,0,500)),
+                 #("MET #phi"    ,"met_phi"      ,(100,-pi,pi)),
                 ]
     plotvarsel=[ #("p_{T}(e)"    ,"el_pt[0]"     ,(100,0,500)),
                  #("#eta(e)"     ,"el_eta[0]"    ,(100,-3,3)),
@@ -110,24 +32,25 @@ def main() :
     #for ch, samples in [("mu",sampManMuG),]:
         labelname = "%i Muon Channel" %options.year if ch == "mu" else "%i Electron Channel" %options.year
         #labelname+=" scaled to 2016 luminosity"
-        if ch == "el": selection = baseel + ph_eb + gtmet + invZ + passcsev + phpt80 + "&&el_passTight[0] && ph_passMedium[0]" + elpt40 + eleta2p1 + etastr
-        if ch == "mu": selection = basemu + ph_eb + gtmet  + passpix + phpt80 + "&& mu_passTight[0] && ph_passVIDMedium[0]" +etastr
+        #if ch == "el": selection = baseel + ph_eb + metgt40 + invZ + passpix + phpt80 + "&&el_passTight[0] && ph_passTight[0]" + elpt40 + el_eb
+        ##if ch == "mu": selection = basemu + ph_eb + metgt40  + passpix + phpt80 + "&& mu_passTight[0] && ph_passTight[0]"
+        selection = defs.makeselstring(ch, 80, 35, 40)
 
 
         ## prepare config
         hist_config   = {"xlabel":"m_{T}(e,#gamma,p^{miss}_{T})","logy":1,"ymin":.1,"weight":weight, "ymax_scale":1.5} ## "unblind":False
-        label_config  = {"extra_label":labelname, "extra_label_loc":(.17,.82), "labelstyle":options.year}
+        label_config  = {"extra_label":labelname, "extra_label_loc":(.17,.82), "labelStyle":str(options.year)}
         legend_config = {'legendLoc':"Double","legendTranslateX":0.35, "legendCompress":.9, "fillalpha":.5}
 
         ### MT_LEP_MET_PH
-        samples.Draw("mt_lep_met_ph", selection, (50,0,2000), hist_config,legend_config,label_config)
+        samples.Draw("mt_res", selection, (50,0,2000), hist_config,legend_config,label_config)
 
         ## save histogram
-        samples.SaveStack("moneymtlepmetph%i%ssamelumieta.pdf" %(options.year, ch), options.outputDir, "base")
+        samples.SaveStack("moneymtres%i%s.pdf" %(options.year, ch), options.outputDir, "base")
         samples.print_stack_count()
-        samples.print_stack_count(acceptance=True)
+        samples.print_stack_count(doacceptance=True)
         samples.print_stack_count(dolatex=True)
-        samples.print_stack_count(dolatex=True,acceptance=True)
+        samples.print_stack_count(dolatex=True,doacceptance=True)
 
         if ch == "el":
             plotvars = plotvarsbase+plotvarsel
@@ -138,7 +61,7 @@ def main() :
             samples.Draw(var, selection,vrange , hist_config,legend_config,label_config)
             ## save histogram
             varname = var.replace("[","").replace("]","")
-            samples.SaveStack("%sSIGSEL%i%ssamelumi.pdf" %(varname,options.year, ch), options.outputDir, "base")
+            samples.SaveStack("%sSIGSEL%i%s.pdf" %(varname,options.year, ch), options.outputDir, "base")
     return sampManMuG, sampManElG
 
 

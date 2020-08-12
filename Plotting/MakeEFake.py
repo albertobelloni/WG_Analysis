@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 execfile("MakeBase.py")
-ROOT.PyConfig.IgnoreCommandLineOptions = True
 import re
-import numpy as np 
+import numpy as np
 import os
 import uuid
 import math
@@ -20,11 +19,13 @@ ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 weight = "NLOWeight"
 
 ptb=None
-ptbins = [0, 30, 40, 50, 60, 80, 2000]
-#ptbins = [80, 2000]
+#ptbins = [0, 30, 40, 50, 60, 80, 2000]
+ptbins = [80, 2000]
 ptvar = "ph_pt[0]"
 
-title = "Electron faking photon in Signal region"
+doControlRegion=False
+#doControlRegion="Z"
+#doControlRegion="TT"
 
 _SAMPCONF = 'Modules/Resonance%i_efake.py' %options.year
 
@@ -489,160 +490,342 @@ def get_subselection(i):
     else:               selstr = "&& _VAR_>=%g && _VAR_<%g" %tuple(ptbins[i:i+2])
     return selstr
 
-sampManElG.ReadSamples( _SAMPCONF )
-ch = "el"
+
+def getselstring(name):
+
+    ## get selection string
+    #selstr = get_subselection(i)
+    print "name", name
+
+    if "80" in name: selstr = "&& ph_pt[0]>80"
+    if "40" in name: selstr = "&& ph_pt[0]>40 && ph_pt[0]<80"
+    ## replace string by bin variabke
+    #selection = selbase+ selstr.replace("_VAR_", ptvar)
+    selection = selbase+ selstr
+
+    if "normal" in name:
+        badstring = defs.build_bad_efake_sector_string(options.year, "normal")
+    if "badonly" in name:
+        badstring = defs.build_bad_efake_sector_string(options.year, "badonly")
+    if "worstonly" in name:
+        badstring = defs.build_bad_efake_sector_string(options.year, "worstonly")
+    selection+="&&(%s)"%badstring
+
+    return selection
+
+
+
+##################################
+##           SETUP              ##
+##################################
+
+
+if doControlRegion=="TT":
+    sampManMuG.ReadSamples( _SAMPCONF )
+    samp = sampManMuG
+    ch = "mu"
+else:
+    sampManElG.ReadSamples( _SAMPCONF )
+    samp = sampManElG
+    ch = "el"
+
 ##FIXME encapsulate these functions
 ptname = tuple(map(lambda x: str("%g" %x).replace('.','p'), ptbins))
+
+ptname = ("normal80","badonly80","worstonly80","total80",
+          "normal40","badonly40","worstonly40","total40")
+if options.year==2016:
+    ptname = ("normal80","badonly80","total80","normal40","badonly40","total40")
+
 ptvarname = ptvar.translate(None,"[]_$")
-ptsize = len(ptname)-1
-mcexplist, mccountlist, dataexplist = [0]*ptsize,[0]*ptsize,[0]*ptsize
+ptsize = len(ptname)
+
+mcexplist, mccountlist   = [0]*ptsize,[0]*ptsize
+dataexplist, datacntlist = [0]*ptsize,[0]*ptsize
+
+metcorr=0
+#if options.year == 2016:
+#    metcorr=1.02
+#if options.year == 2017:
+    #metcorr=1.04
+#if options.year == 2018: #1.04
+ #   metcorr=1.04
 
 
-selbase= baseel + metgt40  + "&&el_passTight[0] && ph_passMedium[0]" + elpt40 + el_eb + invZ
+tag=""
+egqual   = " && el_passTight[0] && ph_passMedium[0]"
+mugqual  = " && mu_passTight[0] && ph_passMedium[0]"
+selbase = baseel + metgt40  + egqual + elpt40  + invZ + ph_eb
+selbasectrl1 = baseel + metgt40 + egqual + elpt40 + el_eb + massZ + ph_eb ## Z peak CR
+selbasectrl2 = basemu + mugqual + ph_eb + csvmed ### TTbar control reg
+
+title = "electron faking photon in signal region"
+if doControlRegion == "Z":
+    selbase = selbasectrl1
+    tag = "zpeakcr"
+    title = "electron faking photon in Z peak control region"
+if doControlRegion == "TT":
+    selbase = selbasectrl2
+    tag = "ttcr"
+    title = "electron faking photon in ttbar control region"
+
 
 
 hlist = [0]*ptsize
 
 if options.dataFrame:
-    for i in range(ptsize):
-        hlist[i] = {}
-        selstr = get_subselection(i)
-        selection = selbase+ selstr.replace("_VAR_", ptvar)
-        hconf = { "unblind":True, "doratio":True, "xlabel":"m(l,#gamma)"}
-        lconf = {"labelStyle":"%i" %options.year,"extra_label":"%i Electron Channel" %options.year, "extra_label_loc":(.17,.82)}
-        lgconf = {}
-        save_as = ("%s_%s_%ifailpix.pdf"            %(ptvarname,ptname[i],options.year), options.outputDir, "base")
-        save_as1 = ("%s_%s_%ifailpixphmatch.pdf"    %(ptvarname,ptname[i],options.year), options.outputDir, "base")
-        save_as2 = ("%s_%s_%ifailpixphnomatch.pdf"  %(ptvarname,ptname[i],options.year), options.outputDir, "base")
-        save_as3 = ("%s_%s_%ipasspixphnomatch.pdf"  %(ptvarname,ptname[i],options.year), options.outputDir, "base")
-        #hlist[i]["fail1"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+failpix          ,(50,0,500),weight, hconf , lgconf, lconf, save_as, data_exp=True)
-        hlist[i]["fail"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+failpix          ,(50,0,500),weight, hconf , lgconf, lconf, save_as)
-        hlist[i]["failmatch"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+failpix+phmatch  ,(50,0,500),weight,
-                    { "xlabel":"m(l,#gamma)"},lgconf, lconf, save_as1, data_exp = True)
-        hlist[i]["failnomatch"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+failpix+nophmatch,(50,0,500),weight,
-                    { "xlabel":"m(l,#gamma)"},lgconf, lconf, save_as2, data_exp = True)
-        hlist[i]["passnomatch"]=sampManElG.SetHisto1DFast("m_lep_ph",selection+passpix+nophmatch,(50,0,500),weight, 
-                    { "xlabel":"m(l,#gamma)"},lgconf, lconf, save_as3, data_exp = True)
+  for i in range(ptsize):
+    hlist[i] = {}
+    if "total" in ptname[i]: continue
+
+    selection = getselstring(ptname[i])
+    if metcorr:
+          selectionfail = selection.replace("met_pt","met_pt*%g" %metcorr)
+    else: selectionfail = selection
+
+    ## configuration dicts
+    hconf   = { "unblind":True, "doratio":True, "xlabel":"m(l,#gamma)"}
+    hconfmc = { "xlabel":"m(l,#gamma)" }
+    lconf = { "labelStyle" : "%i" %options.year,
+              "extra_label": "%i Electron Channel" %options.year,
+              "extra_label_loc": (.17,.82) }
+    lgconf = {}
+
+    ## output filename
+    save_as = ("%s_%s_%ifailpix.pdf"            %(ptvarname,ptname[i],options.year),
+                                                 options.outputDir, "base")
+    save_as1 = ("%s_%s_%ifailpixphmatch.pdf"    %(ptvarname,ptname[i],options.year),
+                                                 options.outputDir, "base")
+    save_as2 = ("%s_%s_%ifailpixphnomatch.pdf"  %(ptvarname,ptname[i],options.year),
+                                                 options.outputDir, "base")
+    save_as3 = ("%s_%s_%ipasspixphnomatch.pdf"  %(ptvarname,ptname[i],options.year),
+                                                 options.outputDir, "base")
+    save_as4 = ("%s_%s_%ipasspix.pdf"           %(ptvarname,ptname[i],options.year),
+                                                 options.outputDir, "base")
+    save_as5 = ("%s_%s_%ipasspixphmatch.pdf"    %(ptvarname,ptname[i],options.year),
+                                                 options.outputDir, "base")
+
+    ### book histograms
+
+    ## data failing pixel veto in reg D
+    hlist[i]["fail"]        = samp.SetHisto1DFast("m_lep_ph",selectionfail+failpix,
+                               (50,0,500), weight, hconf, lgconf, lconf, save_as)
+
+    if doControlRegion:
+
+      ## only relevant for data, looking at control region
+      hlist[i]["pass"]      = samp.SetHisto1DFast("m_lep_ph",selection+passpix,
+                               (50,0,500), weight, hconf, lgconf, lconf, save_as4)
+
+      ## real photon in fake photon region. We need to subtract this from data
+      hlist[i]["passmatch"] = samp.SetHisto1DFast("m_lep_ph",
+                                selection+passpix+phmatch,       (50,0,500), weight,
+                                hconfmc,lgconf, lconf, save_as5, data_exp = True)
+
+    ## real photon events in fail pix region D
+    hlist[i]["failmatch"]   = samp.SetHisto1DFast("m_lep_ph",
+                                selectionfail+failpix+phmatch,   (50,0,500), weight,
+                                hconfmc, lgconf, lconf, save_as1, data_exp = True)
+
+    ## fakes in fail pix region D
+    hlist[i]["failnomatch"] = samp.SetHisto1DFast("m_lep_ph",
+                                selectionfail+failpix+nophmatch, (50,0,500), weight,
+                                hconfmc, lgconf, lconf, save_as2, data_exp = True)
+
+    ## true fakes
+    hlist[i]["passnomatch"] = samp.SetHisto1DFast("m_lep_ph",
+                                selection+passpix+nophmatch,     (50,0,500), weight,
+                                hconfmc, lgconf, lconf, save_as3, data_exp = True)
+
 
 for i in range(ptsize):
-    Na = get_param('data/parms_regA%s.txt'%ptname[i])
-    Nb = get_param('data/parms_regB%s.txt'%ptname[i])
-    Nda = get_param('data/parms_regA_data%s.txt'%ptname[i])
-    Ndb = get_param('data/parms_regB_data%s.txt'%ptname[i])
+
+    if "total" in ptname[i]: continue
+
+    filenametuple = (options.year, options.year, ptname[i])
+    Na = get_param('data/efake/%i/parms_regA%i%s.txt'      %filenametuple)
+    Nb = get_param('data/efake/%i/parms_regB%i%s.txt'      %filenametuple)
+    Nda = get_param('data/efake/%i/parms_regA_data%i%s.txt'%filenametuple)
+    Ndb = get_param('data/efake/%i/parms_regB_data%i%s.txt'%filenametuple)
+
     # region D
-    selstr = get_subselection(i)
-    selection = selbase+ selstr.replace("_VAR_", ptvar)
+    #selstr = get_subselection(i)
+    #selection = selbase+ selstr.replace("_VAR_", ptvar)
 
     if not options.dataFrame:
-        sampManElG.Draw("m_lep_ph",selection+failpix,(50,0,500),{"weight":weight, "unblind":True, "doratio":True, "xlabel":"m(l,#gamma)"})
-        count = sampManElG.get_stack_count(includeData=True)
-        sampManElG.Draw("m_lep_ph",selection+failpix+phmatch,(50,0,500),{"weight":weight, "xlabel":"m(l,#gamma)"})
-        nonfakecount = sampManElG.get_stack_count()
-        sampManElG.Draw("m_lep_ph",selection+failpix+nophmatch,(50,0,500),{"weight":weight, "xlabel":"m(l,#gamma)"})
-        fakecount = sampManElG.get_stack_count()
+
+        selection = getselstring(ptname[i])
+        selectionfail = selection.replace("met_pt","met_pt*%g" %metcorr)
+        #selectionfail = selection
+
+        samp.Draw("m_lep_ph",selection+failpix,           (50,0,500),
+                {"weight":weight, "unblind":True, "doratio":True, "xlabel":"m(l,#gamma)"})
+        count = samp.get_stack_count(includeData=True)
+
+        samp.Draw("m_lep_ph",selection+failpix+phmatch,   (50,0,500),
+                {"weight":weight, "xlabel":"m(l,#gamma)"})
+        nonfakecount = samp.get_stack_count()
+
+        samp.Draw("m_lep_ph",selection+failpix+nophmatch, (50,0,500),
+                {"weight":weight, "xlabel":"m(l,#gamma)"})
+        fakecount = samp.get_stack_count()
+
+        samp.Draw("m_lep_ph",selection+passpix+nophmatch,(50,0,500),
+                                {"weight":weight,  "xlabel":"m(l,#gamma)"})
+        passnonfakecount = samp.get_stack_count()
+
     else:
         hlist[i]["fail"].DrawSave()
-        count = sampManElG.get_stack_count(includeData=True)
+        count = samp.get_stack_count(includeData=True)
+        samp.quiet=True
+
         hlist[i]["failmatch"].DrawSave()
-        nonfakecount = sampManElG.get_stack_count()
+        nonfakecount = samp.get_stack_count()
+
         hlist[i]["failnomatch"].DrawSave()
-        fakecount = sampManElG.get_stack_count()
-    print selstr
-    print "ALL COUNT"
-    sampManElG.print_stackresult(count)
-    print "NONFAKE COUNT"
-    sampManElG.print_stackresult(nonfakecount)
-    print "FAKE COUNT"
-    sampManElG.print_stackresult(fakecount)
+        fakecount = samp.get_stack_count()
 
-    datacount = ufloat(*count['Data'] ) -ufloat(*nonfakecount['NonEleFake'])-ufloat(*nonfakecount['OtherEleFakeBackground'])
-    #mcdcount   = ufloat(*count['TOTAL'])-ufloat(*nonfakecount['NonEleFake'])-ufloat(*nonfakecount['OtherEleFakeBackground'])
-    mcdcount   = ufloat(*fakecount['TOTAL'])
+        if doControlRegion:
+            hlist[i]["pass"].DrawSave()
+            passcount = samp.get_stack_count(includeData=True)
 
-    #sampManElG.Draw("m_lep_ph",selection+passpix,(50,0,500),{"weight":weight,  "xlabel":"m(l,#gamma)"})
-    #count = sampManElG.get_stack_count()
-    if not options.dataFrame:
-        sampManElG.Draw("m_lep_ph",selection+passpix+nophmatch,(50,0,500),{"weight":weight,  "xlabel":"m(l,#gamma)"})
-        nonfakecount = sampManElG.get_stack_count()
-    else:
+            hlist[i]["passmatch"].DrawSave()
+            passnonfakecount = samp.get_stack_count()
+
         hlist[i]["passnomatch"].DrawSave()
-        nonfakecount = sampManElG.get_stack_count()
-    #mcscount   = ufloat(*count['TOTAL'])-ufloat(*nonfakecount['NonEleFake'])-ufloat(*nonfakecount['OtherEleFakeBackground'])
-    mcscount   = ufloat(*nonfakecount['TOTAL'])
+        passfakecount = samp.get_stack_count()
 
+    print "ALL COUNT"
+    samp.print_stackresult(count)
+    print "NONFAKE COUNT"
+    samp.print_stackresult(nonfakecount)
+    print "FAKE COUNT"
+    samp.print_stackresult(fakecount)
+    print "FAKE COUNT IN SR"
+    samp.print_stackresult(passfakecount)
 
+    if doControlRegion:
+        print "NONFAKE COUNT in pass region"
+        samp.print_stackresult(passnonfakecount)
+        print "TOTAL COUNT in pass region"
+        samp.print_stackresult(passcount)
 
+    datadcount = ufloat(*count['Data'] ) -ufloat(*nonfakecount['NonEleFake'])\
+                                        -ufloat(*nonfakecount['OtherEleFakeBackground'])
 
+    datascount = 0
+    if doControlRegion:
+       datascount = ufloat(*passcount['Data'] ) -ufloat(*passnonfakecount['NonEleFake'])\
+                                    -ufloat(*passnonfakecount['OtherEleFakeBackground'])
+    mcdcount   = ufloat(*fakecount['TOTAL'])
+    mcscount   = ufloat(*passfakecount['TOTAL'])
+
+    ## calculate transfer factor and expectation value
     Na = ufloat(*Na)
     Nb = ufloat(*Nb)
     Nda = ufloat(*Nda)
     Ndb = ufloat(*Ndb)
 
     mcexp = mcdcount*Na/Nb
-    dtexp = datacount*Nda/Ndb
-    print mcscount, mcexp, dtexp
-    mcexplist[i] = mcexp
-    mccountlist[i] = mcscount
-    dataexplist[i] = dtexp
-    
+    dtexp = datadcount*Nda/Ndb
+    print "MC: A {:g} B {:g} Data A {:g} B {:g} "\
+                    .format(Na, Nb, Nda, Ndb)
+    print "MC SR: {:g} MC EXP: {:g} Data SR: {:g} Data EXP: {:g}" \
+                    .format(mcscount, mcexp, datascount, dtexp)
+
+    factor=1.
+    if "80" in ptname[i] and doControlRegion == "Z": factor=10. ## better visualization
+    mcexplist[i]   = mcexp      * factor
+    mccountlist[i] = mcscount   * factor
+    dataexplist[i] = dtexp      * factor
+    datacntlist[i] = datascount * factor
+
+for i in range(ptsize):
+    if "total" not in ptname[i]:
+        continue
+
+    radikal = ptname[i].replace("total","")
+    for j in range(ptsize):
+        if radikal in ptname[j] and i != j:
+            mcexplist[i]  +=mcexplist[j]
+            mccountlist[i]+=mccountlist[j]
+            dataexplist[i]+=dataexplist[j]
+            datacntlist[i]+=datacntlist[j]
+
+
+
 
 xlabel = ["%i-%i" %r for r in pair(ptbins)]
+xlabel = ptname
+print mccountlist
 if ptb:
     h1= ROOT.TH1F('h1',title,ptb[2]-1,ptb[0],ptb[1])
     h2= ROOT.TH1F('h2',title,ptb[2]-1,ptb[0],ptb[1])
     h3= ROOT.TH1F('h3',title,ptb[2]-1,ptb[0],ptb[1])
+    h4= ROOT.TH1F('h4',title,ptb[2]-1,ptb[0],ptb[1])
 else:
     h1= ROOT.TH1F('h1',title,ptsize,0,ptsize)
     h2= ROOT.TH1F('h2',title,ptsize,0,ptsize)
     h3= ROOT.TH1F('h3',title,ptsize,0,ptsize)
+    h4= ROOT.TH1F('h4',title,ptsize,0,ptsize)
+
 fillhist(h1, mccountlist, label=xlabel)
 fillhist(h2, dataexplist, label=xlabel)
 fillhist(h3, mcexplist, label=xlabel)
+if doControlRegion:
+    fillhist(h4, datacntlist, label=xlabel)
+
 c1 = ROOT.TCanvas('c1','c1')
 #h2.SetMarkerStyle(20)
 #h2.SetMarkerSize(1.1)
 #h2.SetMarkerColor(1)
 #h2.SetLineColor(1)
 #h2.SetLineWidth(2)
+
+##data exp
 h2.SetFillStyle(3005)
 h2.SetFillColor(1)
+##mc count
 h1.SetLineColor(2)
 h1.SetLineWidth(2)
+##mc exp
 h3.SetFillStyle(3004)
 h3.SetFillColor(2)
+##data count
+h4.SetMarkerSize(1.1)
+h4.SetMarkerStyle(22)
+h4.SetMarkerColor(1)
+h4.SetLineColor(1)
+
 h1.GetXaxis().SetLabelSize(0.07)
-h3.GetXaxis().SetTitle('Photon pT [GeV]')
-ymax = max([h.GetMaximum() for h in (h1,h2,h3)])*1.2
+h3.GetXaxis().SetTitle('photon pT and detector performance bins')
+
+ymax = max([h.GetMaximum() for h in (h1,h2,h3,h4)])*1.3
 h3.GetYaxis().SetRangeUser(0,ymax)
+
+## drawing
 h3.Draw('e2')
 h2.Draw('e2 same')
 h1.Draw("same")
+if doControlRegion:
+    h4.Draw("same")
+
 t1 = ROOT.TLegend(0.75,0.75,0.88,0.88)
 t1.AddEntry(h1,"MC Count","L")
 t1.AddEntry(h3,"MC Est","f")
+if doControlRegion:
+    t1.AddEntry(h4,"Data Count","L")
 t1.AddEntry(h2,"Data Est","f")
 t1.Draw()
-c1.SaveAs("~/public_html/fr%i.pdf" %options.year)
-c1.SaveAs("~/public_html/fr%i.png" %options.year)
-c1.SaveAs("~/public_html/fr%i.C" %options.year)
-#f1 = ROOT.TFile("%s/output.root"%(options.outputDir),"RECREATE")
+if doControlRegion=="Z":
+    l1 = ROOT.TLatex()
+    l1.SetNDC()
+    l1.SetTextSize(0.04)
+    l1.SetTextFont(52)
+    l1.SetText(.20,.20, "10x")
+    l1.Draw()
 
-#undo scaling by cross section
-#print "scale ", sampManElG.get_samples(name="DYJetsToLL_M-50")[0].scale
-#if not options.data: sampManElG.get_samples(name="DYJetsToLL_M-50")[0].scale=1.
-#closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var = "ph_eta",varbins=np.linspace(-1.4,1.4,15),xtitle="photon #eta",mode=2)
-#   closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var = "ph_phi",varbins=np.linspace(-3.1416,3.1416,21),xtitle="photon #phi",mode=2)
-#   closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[-2.4,-1.8,-1.4,-1,-0.6,-0.3,0,0.3,0.6,1,1.4,1.8,2.4], var="ph_eta")
-#closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=range(20,100,10)+[150,160], mode=1)
-#closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,30,40,70,100,110], mode=1)
-#sampManElG.closure( samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,30,40,50,70,90,110,150,160], mode=1)
-#   sampManElG.closure( samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[0,30,40,50,60,80], mode=1)
-#closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[40,1000])
-#    closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[20,1000])
-#    closure( sampManElG, samp, sel_base_el,'EB', plot_var = 'm_lep_ph',var="jet_n",varbins=range(0,10), mode=2)
-#   closure( sampManElG, 'Wgamma', sel_base_el,'EB', plot_var = 'm_lep_ph',varbins=[0,50,250])
+c1.SaveAs("~/public_html/fakeestimate%i%s.pdf" %(options.year, tag))
+c1.SaveAs("~/public_html/fakeestimate%i%s.png" %(options.year, tag))
+c1.SaveAs("~/public_html/fakeestimate%i%s.C"   %(options.year, tag))
 
-#elefake.writeToFile( '%s/%s.root' %( options.outputDir,elefake.GetName() ) )
-#for key, can in sampManElG.outputs.iteritems() :
-#f1.Write()
-#f1.Close()

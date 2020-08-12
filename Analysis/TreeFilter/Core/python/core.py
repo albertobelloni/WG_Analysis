@@ -1320,7 +1320,7 @@ def create_job_desc_file(command_info, kwargs) :
                     '# Copy the submittor environment variables.  Usually required.',
                     'getenv = True',
                     #'on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)',
-                    'next_job_start_delay=2',
+                    'next_job_start_delay=1',
                     #'notify_user = friccita@umd.edu',
                     'notification = Error',
                     'MINUTE      = 60',

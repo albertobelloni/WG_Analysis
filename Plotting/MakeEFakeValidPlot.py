@@ -97,7 +97,24 @@ for stag, samplename in [("zjet","Z+jets"), ("data","Data")]:
     hrate.Draw("SURF2")
     samples.SaveStack("trf2D_ptVSeta_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
 
+    ### photon eta vs pT (bad mask)
+    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", "%s && !(%s)" %(sel,badstr),
+                                    samplename, hbin, "ptVSeta_bad_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_ptVSeta_bad_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+
+    ### photon eta vs pT (bad mask)
+    hrate = transferrate2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", "%s && (%s)" %(sel,badstr),
+                                    samplename, hbin, "ptVSeta_badtag_%ielg_%s_colz.pdf"%(year,stag))
+    hrate.Draw("SURF2")
+    samples.SaveStack("trf2D_ptVSeta_badtag_%ielg_%s_surf2.pdf" %(year,stag), options.outputDir, "base0")
+
     # met bias (A*D/B/S = est/S)
     hrate = metbias2dplotmaker(samples, "ph_eta[0]:ph_pt[0]", sel1, samplename, hbin, plotopt = "CONT4")
     samples.SaveStack("metbias2D_ptVSeta_%ielg_%s_cont4.pdf" %(year,stag), options.outputDir, "base0")
 
+lconf = {"labelStyle":str(year),"extra_label":"%i Muon Channel" %year, "extra_label_loc":(.17,.82)}
+lgconf={#"legendWiden":1.5,
+        "fillapha":.5}
+sampManMuG.Draw("ph_phi[0]+(1+2*(ph_eta[0]>0)+4*ph_hasPixSeed[0])*3.1416", "mu_n==1 && el_n==0 && ph_n==1 && jet_CSVMedium_n>0 && ph_pt[0]>50 && ph_IsEB[0] && ph_passVIDMedium[0]", (144,0,3.1416*8), {"drawsignal":False, "unblind":True, "weight":"NLOWeight","xunit":"","xlabel":"flatten photon phi, pixVeto"},lgconf,lconf)
+sampManMuG.SaveStack("phphipixveto_csvmed_%imug.pdf" %year, options.outputDir, "base")

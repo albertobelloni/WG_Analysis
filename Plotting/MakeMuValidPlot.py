@@ -16,7 +16,7 @@ sf = samples.SetFilter(selection)
 hlist=[]
 
 varlist = [ ("met_pt","MET","GeV",(100,0,250)),
-            ("m_ll","m(e,e)","GeV",(100,0,200)),
+            ("m_ll","m(#mu, #mu)","GeV",(100,50,250)),
             ("mt_res","reco mT","GeV",(100,0,200)),
             ("ph_pt", "#gamma pT", "GeV", (100,0,200)),
             ("mu_pt[0]", "leading #mu pT", "GeV", (100,0,300)),
@@ -28,8 +28,8 @@ varlist = [ ("met_pt","MET","GeV",(100,0,250)),
 #no log
 var2list = [ ("met_pt","MET","GeV",(100,0,100)),
             ("met_phi", "MET #phi", "", (72,-pie,pie)),
-            ("mu_phi[0]", "leading e #phi", "", (72, -pie, pie)),
-            ("mu_phi[1]", "subleading e #phi", "", (72, -pie, pie)),
+            ("mu_phi[0]", "leading mu #phi", "", (72, -pie, pie)),
+            ("mu_phi[1]", "subleading mu #phi", "", (72, -pie, pie)),
             ]
 
 for var in varlist:

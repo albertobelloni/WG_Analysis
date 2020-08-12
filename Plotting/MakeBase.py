@@ -1,31 +1,36 @@
 #!/usr/bin/env python
-import ROOT
-from itertools import product
-ROOT.PyConfig.IgnoreCommandLineOptions = True
-import numpy as np
-from math import pi
-import os
-import selection_defs as defs
-from SampleManager import SampleManager
-
 from argparse import ArgumentParser
-parser = ArgumentParser()
-parser.add_argument('--baseDirMuG',      default=None,           dest='baseDirMuG',         required=False, help='Path to muon base directory')
-parser.add_argument('--baseDirElG',      default=None,           dest='baseDirElG',         required=False, help='Path to electron base directory')
-parser.add_argument('--baseDirMuMu',      default=None,          dest='baseDirMuMu',        required=False, help='Path to muon base directory')
-parser.add_argument('--baseDirElEl',      default=None,          dest='baseDirElEl',        required=False, help='Path to electron base directory')
-parser.add_argument('--outputDir',       default=None,           dest='outputDir',          required=False, help='Output directory to write histograms')
-parser.add_argument('--data',            default=False,          dest='data',   action="store_true",            required=False, help='Use data or MC')
-parser.add_argument('--batch',           default=False,          dest='batch',  action="store_true",            required=False, help='Supress X11 output')
-parser.add_argument('--year',            default=2016,           dest='year',   type=int,   required=False, help='Set run year')
-parser.add_argument('--nodataFrame', default=True,action='store_false',   dest='dataFrame',   help='backwards compatibility for pre-2019 releases of ROOT')
+if "parser" not in locals(): parser = ArgumentParser()
+parser.add_argument('--baseDirMuG',      default=None,          help='Path to muon base directory')
+parser.add_argument('--baseDirElG',      default=None,          help='Path to electron base directory')
+parser.add_argument('--baseDirMuMu',     default=None,          help='Path to muon base directory')
+parser.add_argument('--baseDirElEl',     default=None,          help='Path to electron base directory')
+parser.add_argument('--outputDir',       default=None,          help='Output directory to write histograms')
+parser.add_argument('--dataDir',         default=None,          help='IO directory to data')
+parser.add_argument('--data',            action="store_true",   help='Use data or MC')
+parser.add_argument('--batch',           action="store_true",   help='Supress X11 output')
+parser.add_argument('--year',            default=2016,          type=int,            help='Set run year')
+parser.add_argument('--nodataFrame',     dest='dataFrame',  action='store_false',    help='backwards compatibility for pre-2019 releases of ROOT')
+#parser.add_argument('--weightHistName',     default="weighthist",  type=str ,        dest='weightHistName',         help='name of weight histogram')
 
 ## add additional argument if addparser() is defined
 if "addparser" in locals(): addparser(parser)
 options = parser.parse_args()
 
-_TREENAME = 'UMDNTuple/EventTree'
+import ROOT
+from itertools import product
+import numpy as np
+from math import pi
+import os
+import sys
+import selection_defs as defs
+from SampleManager import SampleManager, f_Obsolete
+from FitManager import FitManager
+#ROOT.PyConfig.IgnoreCommandLineOptions = True
+
+
 _FILENAME = 'tree.root'
+_TREENAME = 'UMDNTuple/EventTree'
 datestr   = "2019_12_12"
 
 lumiratio = 1.
@@ -49,13 +54,14 @@ elif options.year == 2018:
     _LUMI     = 59740
     #etastr    = "&& !(ph_phi[0]<5*pi/18 && ph_phi[0]>3*pi/18)"
     #lumiratio = 1./(1-1./18)
-    datestr   = "2020_02_11"
+    #datestr   = "2020_02_11"
+    datestr   = "2020_04_25" # beta for mumu elel
 
 
 if options.batch:
     ROOT.gROOT.SetBatch(True)
 if options.outputDir is None :
-    options.outputDir = "Plots/" + __file__.rstrip(".py")
+    options.outputDir = "plots/" + __file__.rstrip(".py").lstrip("./")
 if options.outputDir is not None :
     if not os.path.isdir( options.outputDir ) :
         os.makedirs( options.outputDir )
@@ -64,6 +70,9 @@ if options.outputDir is not None :
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetPalette(ROOT.kBird)
 #ROOT.gStyle.SetOptFit(1)
+
+tColor_Off="\033[0m"                    # Text Reset
+tPurple="\033[0;35m%s"+tColor_Off       # Purple
 
 # if no option is given, here are the default directories to read
 if options.baseDirMuG is None: options.baseDirMuG = "/data2/users/kakw/Resonances%i/LepGamma_mug_%s/"%(options.year,datestr)
@@ -99,9 +108,13 @@ metgt40 = '&&met_pt>40'
 
 ph_eb =  ' && ph_IsEB[0]'
 el_eb =  ' &&abs(el_eta[0])<2.1'
+elaetalt =  ' &&abs(el_eta[0])<%.3g'
 
 invZ = '&& abs(m_lep_ph-91)>15'
 massZ = '&& abs(m_lep_ph-91)<15'
+invzlt = '&& abs(m_lep_ph-91)>%i'
+csvmed = " && jet_CSVMedium_n>1"
+
 nophmatch = "&& !(ph_truthMatchPh_dr[0]<ph_truthMatchEl_dr[0])"
 phmatch = "&& (ph_truthMatchPh_dr[0]<ph_truthMatchEl_dr[0])"
 flatphi = "ph_phi[0]+3.1416*(1+2*(ph_eta[0]>0))"
@@ -112,7 +125,7 @@ pie = 3.1416
 
 ## read MuG samples
 sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio,
-                            readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame, quiet =True)
+                            readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame)
 
 ## read ElG samples
 sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,

@@ -45,17 +45,54 @@ kfactor:
 	python KFactorWS.py --baseDirMuNoG ${DIR_MU} --baseDirElNoG ${DIR_EL} --outputDir ${OUTPUTMAIN}/WJetsWS
 
 matrix:
+
 	python MatrixWJetsWS.py --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --outputDir ${OUTPUTMAIN}/WJetsWS
+
+fit:
+
+	python MakeFits.py --doVarOpt 
+	make limit
+
+limit:
+	python limitplot.py data/higgs/Results/result_5_mu.json 
+	python limitplot.py data/higgs/Results/result_0p01_mu.json 
+	cp result_*_mu.* ~/public_html/
+
+llvalid : 
+
+	python MakeMuValidPlot.py --batch --year 2016
+	python MakeMuValidPlot.py --batch --year 2017
+	python MakeMuValidPlot.py --batch --year 2018
+	python MakeEGValidPlot.py --batch --year 2016
+	python MakeEGValidPlot.py --batch --year 2017
+	python MakeEGValidPlot.py --batch --year 2018
+
+lgvalid : 
+
+	python MakeElGValidPlot.py --batch --year 2016
+	python MakeElGValidPlot.py --batch --year 2017
+	python MakeElGValidPlot.py --batch --year 2018
+	python MakeMuGValidPlot.py --batch --year 2016
+	python MakeMuGValidPlot.py --batch --year 2017
+	python MakeMuGValidPlot.py --batch --year 2018
+
+money : 
+
+	python MakeMoneyPlot.py --batch --year 2016
+	python MakeMoneyPlot.py --batch --year 2017
+	python MakeMoneyPlot.py --batch --year 2018
 
 signal : 
 
-	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalWS
+	python MakeSignalWS.py --batch --year 2016
+	python MakeSignalWS.py --batch --year 2017
+	python MakeSignalWS.py --batch --year 2018
 
-mcbkg : 
+bkg : 
 
-	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS
-	python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS  --doAllTop --doZGamma --doWJets --doWGamma --doGammaGamma --doTopW --doAll --batch
-	#python MakeMCBkgWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --outputDir ${OUTPUTMAIN}/MCBkgWS --doWGamma
+	python MakeMCBkgWS.py --process All --batch --year 2016
+	python MakeMCBkgWS.py --process All --batch --year 2017
+	python MakeMCBkgWS.py --process All --batch --year 2018
 
 efake : 
 
@@ -71,7 +108,8 @@ workspaces :
 
 fits :
 	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
-	python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir ${DIR_Combine}/HiggsAnalysis/CombinedLimit --outputDir ${DIR_Combine}/TEST --doVarOptimization
+	python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir /home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/HiggsAnalysis/CombinedLimit/ --doVarOptimization
+	#--outputDir ${DIR_Combine}/TEST 
 	#python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir /home/kakw/efake/WG_Analysis_hcombinetest/CMSSW_8_1_0/src/HiggsAnalysis/CombinedLimit --outputDir /home/kakw/efake/WG_Analysis_hcombinetest/WG_Analysis/Plotting/HiggsAnalysis/output/	--doVarOptimization
 
 signalfits : 

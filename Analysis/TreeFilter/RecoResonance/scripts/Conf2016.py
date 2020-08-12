@@ -34,7 +34,7 @@ def get_keep_filter(tag=None) :
                 'ph_sigmaIEIEFull5x5', 'ph_r9', 'ph_etaWidth', 'ph_eOrig', 'ph_r9Full5x5', 'ph_sigmaIEIE',
                 'ph_chIsoCorr', 'ph_phoIso', 'ph_chIso', 'ph_neuIso', 'ph_hOverE',]
 
-    met_basic = ['met_pt', 'met_phi']
+    met_basic = ['met_pt', 'met_phi',"met_Type1.*","met_all_pt","met_all_phi"]
     met_addtl = ['met_UnclusteredEnUp_phi', 'met_UnclusteredEnDown_phi', 'met_UnclusteredEnDown_pt', 'met_UnclusteredEnUp_pt',
                  'met_PhotonEnUp_phi', 'met_PhotonEnDown_phi', 'met_PhotonEnDown_pt', 'met_PhotonEnUp_pt',
                  'met_JetEnUp_phi', 'met_JetEnDown_phi', 'met_JetEnUp_pt', 'met_JetEnDown_pt',
@@ -73,11 +73,12 @@ def config_analysis( alg_list, args ) :
 def make_final_mumu( alg_list, args) :
 
     mu_pt = args.get( 'mu_pt', ' > 25 ' )
+    ph_id = args.get( 'ph_id', 'vid_medium' )
 
     # order should be muon, electron, photon, jet
-    alg_list.append( filter_muon( mu_pt) )
-    alg_list.append( filter_electron( ) )
-    alg_list.append( filter_photon( ) )
+    alg_list.append( filter_muon( mu_pt, do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_electron(  do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_photon(  do_cutflow=True, do_hists=True , id_cut = ph_id) )
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
@@ -91,6 +92,8 @@ def make_final_mumu( alg_list, args) :
 
     filter_event = Filter('FilterEvent')
     filter_event.cut_mu_n = ' == 2 '
+    filter_event.do_cutflow = True
+    filter_event.add_var('evalCutflow', "true")
 
     alg_list.append( filter_event )
 
@@ -103,9 +106,9 @@ def make_final_elel( alg_list, args) :
     el_pt = args.get( 'el_pt', ' > 25 ' )
 
     # order should be muon, electron, photon, jet
-    alg_list.append( filter_muon( ) )
-    alg_list.append( filter_electron( el_pt ) )
-    alg_list.append( filter_photon( ) )
+    alg_list.append( filter_muon(  do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_electron( el_pt , do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_photon(  do_cutflow=True, do_hists=True ) )
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
@@ -119,6 +122,8 @@ def make_final_elel( alg_list, args) :
 
     filter_event = Filter('FilterEvent')
     filter_event.cut_el_n = ' == 2 '
+    filter_event.do_cutflow = True
+    filter_event.add_var('evalCutflow', "true")
 
     alg_list.append( filter_event )
 
@@ -319,7 +324,7 @@ def make_final_mug( alg_list, args) :
     if unblind is not 'True' :
         filter_blind = Filter( 'FilterBlind' )
         #filter_blind.cut_mt_lep_met_ph = ' < 100 '
-        filter_blind.cut_mt_res = ' < 100 '
+        #filter_blind.cut_mt_res = ' < 100 '
 
         filter_blind.add_var( 'isData', args.get('isData', ' == False' ) )
         alg_list.append( filter_blind )
@@ -701,7 +706,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
 
     return filt
 
-def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
+def filter_photon( ph_pt = ' > 10 ', id_cut='medium', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
 
     filt = Filter('FilterPhoton')
 
@@ -728,8 +733,10 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
 
     if( id_cut is not 'None' ) :
         setattr( filt, 'cut_%s' %id_cut, ' == True ' )
+    #else: 
+    #    filt.cut_medium     = ' == True '
 #    filt.cut_vid_medium     = ' == True '
-    filt.cut_medium     = ' == True '
+
 
 #    filt.cut_sigmaIEIE_barrel_loose  = ' < 0.01031 '
 #    filt.cut_chIsoCorr_barrel_loose  = ' < 1.295 '
@@ -804,9 +811,10 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
     filt.cut_phoIsoCorr_endcap_tight = ' < 3.032 '
     filt.cut_hovere_endcap_tight = ' < 0.0321 '
 
-    if do_cutflow :
+    if do_cutflow and id_cut and id_cut !="None" :
         filt.do_cutflow = True
-        filt.add_var( 'evalPID', evalPID )
+        #filt.add_var( 'evalPID', evalPID )
+        filt.add_var( 'evalPID', id_cut)
 
     if do_hists :
         filt.add_hist( 'cut_pt', 100, 0, 200 )

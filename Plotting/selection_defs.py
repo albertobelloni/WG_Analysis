@@ -4,30 +4,36 @@ from math import pi
 def get_base_selection( channel ) :
 
     if channel == 'mu' :
-        return 'mu_pt30_n==1 && mu_n==1 && el_n==0 '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
+        return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && mu_passTight[0] '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
+    if channel == 'mug' :
+        #return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && ph_n==1'
+        return 'mu_n==1 && el_n==0 && ph_n==1'
+    if channel == 'elg' :
+        #return 'el_pt30_n==1 && el_n==1 && mu_n==0 && ph_n==1'
+        return 'el_n==1 && mu_n==0 && ph_n==1'
     if channel == 'el' :
-        return 'el_pt30_n==1 && el_n==1 && mu_n==0 ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
+        return 'el_pt30_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && HLT_Ele27_WPTight_Gsf ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
     if channel == 'mumu' :
-        return 'mu_pt30_n>=1 && mu_n==2 && mu_passTight[0] && mu_passTight[1] '  # require 1 muon with pt > 30 and 2 muons with pt > 10 
+        return 'mu_pt30_n>=1 && mu_n==2 && mu_passTight[0] && mu_passTight[1] '  # require 1 muon with pt > 30 and 2 muons with pt > 10
     if channel == 'elel' :
-        return 'el_pt30_n>=1 && el_n==2 && el_passTight[0] && el_passTight[1] ' # require 1 electron with pt > 30 and 2 electrons with pt > 10
+        return 'el_pt30_n>=1 && el_n==2 && el_pt[0]>35 && el_passTight[0] && el_hasTrigMatch[0] ' # require 1 electron with pt > 30 and 2 electrons with pt > 10
     if channel == 'muel' :
-        return 'mu_pt30_n>=1 && el_n==1  '  # require 1 muon with pt > 30 and 2 muons with pt > 10 
+        return 'mu_pt30_n>=1 && el_n==1  '  # require 1 muon with pt > 30 and 2 muons with pt > 10
 
 def get_weight_str( ) :
 
     #return ' ( NLOWeight * PUWeight + isData ) '
     #return ' ( isData ? isData : PUWeight * NLOWeight )'
-    return ' ( isData ? isData : PUWeight * NLOWeight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * Alt$(prefweight,1) )'
+    return ' ( isData ? isData : PUWeight * NLOWeight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * prefweight )'
 
 def get_phid_selection( sel1, sel2='' ) :
 
     if sel1 == 'all' :
         return 'ph_n'
     if sel1 == 'loose' :
-        return 'ph_loose_n' 
+        return 'ph_loose_n'
     if sel1 == 'medium' :
-        return 'ph_medium_n' 
+        return 'ph_medium_n'
     if sel1 == 'chIso' :
         if sel2 == 'sigmaIEIE' :
             return 'ph_mediumNoSIEIENoChIso_n'
@@ -46,9 +52,9 @@ def get_phid_idx( sel1, sel2='' ) :
     if sel1 == 'all' :
         return '0'
     if sel1 == 'loose' :
-        return 'ptSorted_ph_loose_idx[0]' 
+        return 'ptSorted_ph_loose_idx[0]'
     if sel1 == 'medium' :
-        return 'ptSorted_ph_medium_idx[0]' 
+        return 'ptSorted_ph_medium_idx[0]'
     if sel1 == 'chIso' :
         if sel2 == 'sigmaIEIE' :
             return 'ptSorted_ph_mediumNoSIEIENoChIso_idx[0]'
@@ -89,18 +95,33 @@ badefakesectors = {
         2017:{
             "veto"  :[(( 31, 36),( 1.2,1.4))],
             "worst" :[(( 31, 36),(-0.4,1.6)),
-                      ((-36,-35),(-0.4,1.6))],
-            "bad"   :[(( 0, 3),(-1. ,0.3)),
-                      (( 5, 8),(-1.5,0. )),
-                      ((10,12),(-0.4,1. )),
-                      ((17,22),(-0.6,1.2)),
-                      ((20,26),(-1.2,0.3)),
+                      ((-36,-35),(-0.4,1.6)),
+                      (( 17, 22),(-0.6,1.2)),
+                      (( 20, 26),(-1.2,0.3)),
+                      (( 10, 12),(-0.6,1. )),
+                      (( 30, 31),(-1. ,0. )),
+                      ],
+            "bad"   :[((  0,  3),(-1. ,0.3)),
+                      ((  3,  5),( 0. ,1.2)),
+                      ((  5,  8),(-1.5,0. )),
+                      ((-28,-26),(-0.4,0.4)),
+                      ((-18,-16),(-1. ,0.4)),
+                      ((-25,-23),(-1.6,0.2)),
+                      ((-20,-18),(-1.6,-0.6)),
+                      ((-12,-10),(-1.2,0. )),
+                      ((-14,-13),(-1.,-0.4)),
+                      (( 22, 25),( 0.4,0.6)),
+                      (( 22, 23),( 0.2,0.4)),
+                      (( 28, 32),(-1.2,0.4)),
+                      (( 31, 36),(-0.8,-0.4)),
                       ],
             },
         2018:{
             "veto"  :[],
             "worst" :[((5,9),( 0.,  1.4)),
                       ((6,8),(-1.4,-0.5)),
+                      ((21,23),(-1.,0.)),
+                      ((6,8),(-0.2,0.)),
                       ],
             "bad"   :[((  4, 10),(-0.4,1.6)),
                       ((  5, 13),(-1.6,0.8)),
@@ -133,10 +154,11 @@ def build_bad_efake_sector_string(year, quality):
     if quality == "worstonly":
         if not combinedstring:
             return bstr["worst"]
-        return "%s && !(%s)" %(bstr["worst"],combinedstring)
+        return "(%s) && !(%s)" %(bstr["worst"],combinedstring)
 
     # worst quality
-    if combinedstring: combinedstring += "||"
+    #if combinedstring: combinedstring += "||"
+    if combinedstring: combinedstring =  "(%s)||" %combinedstring
     combinedstring += bstr["worst"]
     if quality == "worst":
         return combinedstring
@@ -145,13 +167,15 @@ def build_bad_efake_sector_string(year, quality):
     if quality == "badonly":
         if not combinedstring:
             return bstr["bad"]
-        return "%s && !(%s)" %(bstr["bad"],combinedstring)
+        return "(%s) && !(%s)" %(bstr["bad"],combinedstring)
 
     ## bad quality
-    if combinedstring: combinedstring += "||"
+    if combinedstring: combinedstring =  "(%s)||" %combinedstring
     combinedstring += bstr["bad"]
     if quality == "bad":
         return combinedstring
+    if quality == "normal":
+        return "!(%s)" %combinedstring
     print "ERROR do not recognise: ", quality
     raise RuntimeError
 
@@ -168,3 +192,92 @@ def iphitophi(iphi):
 
 
 
+def makeselstring(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
+    """ assemble selection strings """
+    selstrlist, weight = makeselstringlist(ch,phpt,leppt,met)
+    if addition:
+        selstrlist.append(addition)
+    selstr = " && ".join(selstrlist)
+    return selstr, weight
+
+def makeselstringwweight(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
+    """ assemble selection strings """
+    selstrlist, weight = makeselstringlist(ch,phpt,leppt,met)
+    if addition:
+        selstrlist.append(addition)
+    selstr = " && ".join(selstrlist)
+    return weight+'* ( %s )'% selstr
+
+def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
+    """ assemble selection strings
+        return
+            array of selections
+    """
+    #weight_str_mu = weight_str #+ '*(mu_trigSF*mu_idSF*mu_isoSF*mu_rcSF*ph_idSF*ph_psvSF*ph_csevSF)' ## FIXME
+    #weight_str_el = weight_str #+ '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF*ph_csevSF)'
+    #weight_str = defs.get_weight_str()
+    weight =  'NLOWeight*PUWeight' ## FIXME PUWeight issue
+    sel_base_mu = get_base_selection( 'mug' )
+    sel_base_el = get_base_selection( 'elg' ) ## FIXME trigger doesn't work on 2017/HLT_Ele27_WPTight_Gsf?
+
+    el_tight = ' el_passTight[0] == 1'
+    #el_tight = ' el_passVIDTight[0] == 1'
+    el_eta   = ' fabs( el_eta[0] ) < 2.1 '
+    el_pt  = 'el_pt[0] > %i ' %leppt
+
+    mu_pt  = 'mu_pt[0] > %i ' %leppt
+
+    ph_base = 'ph_IsEB[0]'
+    ph_pt  = 'ph_pt[0] > %i ' %phpt
+    ph_passpix = '!ph_hasPixSeed[0]'
+    ph_tight = 'ph_passTight[0]' # already in base selection
+    sel_ph =  [ph_base, ph_tight, ph_pt, ph_passpix]
+
+    met_str = 'met_pt > %i' %met
+
+    Zveto_str = 'fabs(m_lep_ph-91)>20.0'
+
+    sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt] +  sel_ph
+    sel_el_nominal      = [sel_base_el, el_eta, el_pt, met_str,
+                                        Zveto_str] + sel_ph
+
+    if ch=="mu":
+        return sel_mu_nominal, weight
+    if ch=="el":
+        return sel_el_nominal, weight
+
+
+
+def selectcuttag( mass ):
+    return selectcutstring( mass, "mu" )[0]
+
+def bkgfitlowbin( cuttag ):
+    """ low range of bin content (the upper range is set to 2000 by default) """
+    if cuttag == "A":
+        return 200
+    if cuttag == "B":
+        return 340
+    if cuttag == "C":
+        return 460
+
+def selectcutdictgen( ch, addition = "" ):
+    """ define here cut-sets and tag as function of mass """
+    cutsetdict = {
+               "A": makeselstring(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
+#               "B": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 100, addition = addition),
+#               "C": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
+               "B": makeselstring(ch, phpt = 100, leppt = 35, met = 70, addition = addition),
+               "C": makeselstring(ch, phpt = 200, leppt = 35, met = 160, addition = addition),
+            }
+    return cutsetdict
+
+def selectcutstring( mass, ch, addition = "" ):
+    """ define here cut-sets and tag as function of mass """
+    cutsetdict = selectcutdictgen( ch, addition )
+    returner = lambda d: (d, cutsetdict[d])
+    if mass < 425:
+        return returner("A")
+    elif mass < 625:
+        return returner("B")
+    else:
+        return returner("C")

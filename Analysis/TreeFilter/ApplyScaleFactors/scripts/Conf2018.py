@@ -15,6 +15,10 @@ int_lumi_d = 31747581871.050
 int_lumi_abcd = int_lumi_a +int_lumi_b + int_lumi_c + int_lumi_d
 int_lumi_bcd = int_lumi_b + int_lumi_c + int_lumi_d
 
+int_lumi_bcdef =  8.950818835 # run <  316361 (BeforeMuonHLTUpdate)
+int_lumi_gh    = 50.789746374 # run >= 316361 (AfterMuonHLTUpdate)
+
+
 def get_remove_filter() :
     """ Define list of regex strings to filter input branches to remove from the output.
         Defining a non-empty list does not apply the filter, 
@@ -72,9 +76,9 @@ def get_muon_sf(options) :
     muon_sf.add_var( 'FilePathIdGH', '%s/2018/RunABCD_mu_SF_ID.root' %base_path )
     muon_sf.add_var( 'HistIdGH', 'NUM_TightID_DEN_TrackerMuons_pt_abseta' )
 
-    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2018/RunBCDEF_mu_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2018/RunABCD_mu_SF_ISO.root' %base_path )
     muon_sf.add_var ('HistIsoBCDEF','NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta')
-    muon_sf.add_var( 'FilePathIsoGH', '%s/2018/RunBCDEF_mu_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoGH', '%s/2018/RunABCD_mu_SF_ISO.root' %base_path )
     muon_sf.add_var ('HistIsoGH','NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta')
 
     return muon_sf

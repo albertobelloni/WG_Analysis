@@ -23,18 +23,15 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTJets_DiLept',
-                      #path='TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      path='TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8',
+                      path='TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTJets_SingleLeptFromTbar',
-                      #path='TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      path='TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8',
+                      path='TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTJets_SingleLeptFromT',
-                      #path='TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      path='TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8',
+                      path='TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTGJets',
