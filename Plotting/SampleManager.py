@@ -486,7 +486,7 @@ class SampleFrame(object):
     #--------------------------------
 
     def SetHisto1DFast(self, var, selection, histpars, weight = None,
-                        hist_conf={}, legend_conf={}, label_conf={}, save_as = [], data_exp = False):
+                        hist_conf={}, legend_conf={}, label_conf={}, save_as = None, data_exp = False):
         """ data_exp: skip data when True
                       different var, selection with dict (not implemented yet)
                       defaults to false
@@ -591,7 +591,8 @@ class SampleFrame(object):
 
         if "histo" in self.state and "fast" in  self.state:
                 self.sm.Draw(self,"",self.histpars, self.hist_conf, self.legend_conf, self.label_conf)
-                self.sm.SaveStack(*self.save_as)
+                if self.save_as:
+                    self.sm.SaveStack(*self.save_as)
         else:
             print "Not a FastHisto"
     #--------------------------------
@@ -2607,23 +2608,30 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     def ShowCount(self, counter=None, dolatex=False, isActive=True, includeData=False, sort=True):
+        """ Show count result after SampleFrame.SetCounter(), triggers loop """
+
         if counter == None:
             print "no counter"
             return
+
         ## check that SampleFrame is passed
         if not isinstance(counter, SampleFrame) and counter.state == "count":
             return
+
         for sample in self.samples :
             if sample.isData and not includeData:
                 continue
             if sample.isActive:
                 self.create_count(sample, counter)
+
         result = [(s.legendName if dolatex else s.name,(s.count.n, s.count.s))\
                          for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.count]
+        total = sum([s.count for s in self.get_samples(isSignal=False,isActive=isActive,isData=False)\
+                if s.name != "ratio" and s.count])
         if sort: result.sort(key=lambda x: -x[1][0])
         resultdict = OrderedDict(result)
+        resultdict["TOTAL"] = (total.n, total.s)
         self.print_stackresult(resultdict)
-         ## FIXME add TOTAL
         return resultdict
 
     #--------------------------------
@@ -3561,7 +3569,7 @@ class SampleManager(SampleFrame) :
                 print('WARNING: failed_draw, '\
                         'TChain for sample %s is None' % sample.name)
 
-            print "time (s): ", time.time()-start
+            self.quietprint("time (s): %g " %(time.time()-start) )
 
             if sample.hist is not None :
                 if overflow:
@@ -3605,7 +3613,6 @@ class SampleManager(SampleFrame) :
 
     #--------------------------------
 
-    @f_Dumpfname
     def AddOverflow(self,  hist ) :
 
         # account for overflow and underflow
@@ -4186,7 +4193,7 @@ class SampleManager(SampleFrame) :
             ymax_scale = 1.2
 
         # scale ymax, only if default is not given
-        if ymin and ymax:
+        if ymin is not None and ymax is not None:
             if logy:
 
                 # log scale only makes sense with positive numbers
@@ -4458,6 +4465,8 @@ class SampleManager(SampleFrame) :
                             samp.hist.Scale(1./samp.hist.Integral())
 
         # in what cases is topcan an already filled TCanvas?
+        # ratio plot from compareselections()
+
         if isinstance( topcan, ROOT.TCanvas ) :
             for prim in topcan.GetListOfPrimitives() :
                 if isinstance(prim, ROOT.TH1F) :
@@ -4683,6 +4692,7 @@ class SampleManager(SampleFrame) :
             elif normalize and integral!=0:
                 draw_samp.hist.Scale(1.0/integral)
             draw_samp.hist.SetLineColor( hist_config['color'] )
+            draw_samp.color =  hist_config['color'] 
             if "e2" in drawopt: 
                 draw_samp.hist.SetFillColor(hist_config['color'])
                 draw_samp.hist.SetFillStyle(3018)
@@ -5151,7 +5161,6 @@ class SampleManager(SampleFrame) :
             elif siglegPos == 'bottom':
                 legend_sig_temp = {'x1': legend_limits['x1'], 'y1': legend_limits['y1']-legendCompress*entryWidth*nSigEntries, 'x2': legend_limits['x2'], 'y2': legend_limits['y1']}
             legend_limits = legend_sig_temp
-        print('legend_limits', legendLoc, siglegPos, isSignalLegend, legend_limits)
 
         leg = ROOT.TLegend(legend_limits['x1'], legend_limits['y1'],
                            legend_limits['x2'], legend_limits['y2'])
