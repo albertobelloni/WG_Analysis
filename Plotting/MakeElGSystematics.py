@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 def addparser(parser):
     parser.add_argument('--massplots',  action='store_true', help='Make nuisance parameters vs mass plots' )
+    parser.add_argument('--ch',         default="el",        help='Choose muon or electron channel [mu/el]' )
 
 execfile("MakeBase.py")
 from DrawConfig import DrawConfig
@@ -15,18 +16,18 @@ from DrawConfig import DrawConfig
 ###
 
 year = options.year
-_JSONNAME = 'data/elgsys%i.json' %options.year
+ch = options.ch
+chname = "Electron" if ch=="el" else "Muon"
+leplatex = "e" if ch=="el" else "#mu"
+_JSONNAME = 'data/%sgsys%i.json' %(ch,year)
 
-#lconf = {"labelStyle":str(year),"extra_label":"%i Electron Channel" %year, "extra_label_loc":(.17,.82)}
-lconf = {"labelStyle":str(year),"extra_label":["%i Electron Channel" %year,
-                                               "p_{T}^{e}>35GeV, MET>40GeV",
+lconf = {"labelStyle":str(year),"extra_label":["%i %s Channel" %(year,chname),
+                                               "p_{T}^{%s}>35GeV, MET>40GeV" %leplatex,
                                                "Tight barrel #gamma p_{T}^{#gamma}>80GeV"],
                                                "extra_label_loc":(.17,.82)}
-lgconf = {'legendLoc':"Double","legendTranslateX":0.33, "legendCompress":.8, "fillalpha":.5, "legendWiden":.95}
-#lgconf = {'legendLoc':"Double","legendCompress":.8, "fillalpha":.5, "legendWiden":.95}
+lgconf = { 'legendLoc':"Double","legendTranslateX":0.33, "legendCompress":.8,
+           "fillalpha":.5, "legendWiden":.95 }
 xpoints = [300,350,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000]
-#xpoints = [200,250,300,350,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2200,2400,2600,2800,3000,3500,4000]
-#xpoints = [200,250,300,350,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000]
 
 
 def formathist(h):
@@ -121,15 +122,9 @@ def makecomparisonplot( samplemanager, histograms, hist_config=None, label_confi
 def makeplots():
     #plt.style.use("seaborn-whitegrid")
     plt.style.use("fivethirtyeight")
+
+    ## opening json storing normalization information
     with open(_JSONNAME) as fo: systematic_dict = json.load(fo)
-    ### FIXME !! for missing sample
-    #if options.year ==2017:
-    #    for sys in systematic_dict.keys():
-    #        systematic_dict[sys]['MadGraphResonanceMass350_width0p01'] = systematic_dict[sys]['MadGraphResonanceMass350_width5']
-    #### FIXME !! for missing sample
-    #if options.year ==2018:
-    #    for sys in systematic_dict.keys():
-    #        systematic_dict[sys]['MadGraphResonanceMass450_width0p01'] = systematic_dict[sys]['MadGraphResonanceMass450_width5']
 
     ### plot 1: MET and energy scale
     syslists= [  ('JetResUp',        'JetResDown'),
@@ -139,7 +134,7 @@ def makeplots():
                  ('PhotonEnUp',      'PhotonEnDown'),
                  ('UnclusteredEnUp', 'UnclusteredEnDown'),]
 
-    scs = lambda m: defs.selectcutstring(m, "el")[0]
+    scs = lambda m: defs.selectcutstring(m, ch)[0]
     fig = plt.figure(figsize=(12,12))
     for i,syslist in enumerate(syslists):
         print syslist, [[systematic_dict[c][sys]['MadGraphResonanceMass%i_width%s' %(1000,w)] for c in "ABC"]  \
@@ -157,18 +152,27 @@ def makeplots():
         if i == 5:
             handles, labels = ax.get_legend_handles_labels()
             fig.legend(handles, labels, loc='upper right')
-    fig.text(0.1, 0.95, 'Electron Channel %i'%options.year, fontsize=20, fontweight='bold')
-    plt.savefig("%s/el%isys_enscale_bymass.png" %(options.outputDir,options.year))
-    plt.savefig("%s/el%isys_enscale_bymass.pdf" %(options.outputDir,options.year))
+    fig.text(0.1, 0.95, '%s Channel %i'%(chname,year), fontsize=20, fontweight='bold')
+    plt.savefig("%s/%s_%isys_enscale_bymass.png" %(options.outputDir,ch,options.year))
+    plt.savefig("%s/%s_%isys_enscale_bymass.pdf" %(options.outputDir,ch,options.year))
 
     ### plot 2: electron, photon scale factors and prefiring
     syslists = [
-     ('el_trigSFUP','el_trigSFDN'),
-     ('el_idSFUP','el_idSFDN'),
-     ('el_recoSFUP','el_recoSFDN'),
-     ('ph_idSFUP','ph_idSFDN'),
-     ('ph_psvSFUP','ph_psvSFDN'),
-     ('prefup','prefdown'),]
+             ('el_trigSFUP','el_trigSFDN'),
+             ('el_idSFUP','el_idSFDN'),
+             ('el_recoSFUP','el_recoSFDN'),
+             ('ph_idSFUP','ph_idSFDN'),
+             ('ph_psvSFUP','ph_psvSFDN'),
+             ('prefup','prefdown'),]
+    if ch =="mu":
+        syslists = [
+                 ("mu_trigSFUP", "mu_trigSFDN"),
+                 ("mu_idSFUP", "mu_idSFDN"),
+                 #("mu_trkSFUP", "mu_trkSFDN"), ## all zero FIXME?
+                 ("mu_isoSFUP", "mu_isoSFDN"),
+                 ('ph_idSFUP','ph_idSFDN'),
+                 ('ph_psvSFUP','ph_psvSFDN'),
+                 ('prefup','prefdown'),]
 
     fig = plt.figure(figsize=(12,12))
     for i,syslist in enumerate(syslists):
@@ -186,8 +190,8 @@ def makeplots():
             handles, labels = ax.get_legend_handles_labels()
             fig.legend(handles, labels, loc='upper right')
     fig.text(0.1, 0.95, 'Electron Channel %i'%options.year, fontsize=20, fontweight='bold')
-    plt.savefig("%s/el%isys_sf_bymass.png" %(options.outputDir,options.year))
-    plt.savefig("%s/el%isys_sf_bymass.pdf" %(options.outputDir,options.year))
+    plt.savefig("%s/%s_%isys_sf_bymass.png" %(options.outputDir,ch,options.year))
+    plt.savefig("%s/%s_%isys_sf_bymass.pdf" %(options.outputDir,ch,options.year))
 
     ### plot 3: pdf scale and pu weights
     pdflist = ['muR1muF2',
@@ -224,9 +228,9 @@ def makeplots():
     ax.set_ylabel('normalization shift %')
     ax.set_title( "PU weights", loc='left', color = 'orange')
     ax.legend(loc="best")
-    fig.text(0.1, 0.95, 'Electron Channel 2016', fontsize=16, fontweight='bold')
-    plt.savefig("%s/el%isys_pdfpu_bymass.png" %(options.outputDir,options.year))
-    plt.savefig("%s/el%isys_pdfpu_bymass.pdf" %(options.outputDir,options.year))
+    fig.text(0.1, 0.95, '%s Channel %i' %(chname,year), fontsize=16, fontweight='bold')
+    plt.savefig("%s/%s_%isys_pdfpu_bymass.png" %(options.outputDir,ch,options.year))
+    plt.savefig("%s/%s_%isys_pdfpu_bymass.pdf" %(options.outputDir,ch,options.year))
     return
 
 
@@ -235,23 +239,27 @@ if options.massplots:
     makeplots()
     sys.exit()
 
-sampManElG.ReadSamples( _SAMPCONF )
-samples = sampManElG
+if ch=="mu":
 
-selection = "el_n==1 && ph_n==1"
+    sampManMuG.ReadSamples( _SAMPCONF )
+    samples = sampManMuG
+    selection = "mu_n==1 && ph_n==1"
+
+if ch=="el":
+
+    sampManElG.ReadSamples( _SAMPCONF )
+    samples = sampManElG
+    selection = "el_n==1 && ph_n==1"
+
 sf = samples.SetFilter(selection)
 hlist=[]
 
 
-#PUWeightUP/DN5/10
-##PDFWeights[0-5]
-#prefweightup/down
-
-istest= True
+istest= False
 if istest:
     ## activate all signal
-    #signames = [ s.name for s in samples.get_samples(isSignal = True, isActive=True)] # only use a few activated signals
-    signames = [ s.name for s in samples.get_samples(isSignal = True)]
+    signames = [ s.name for s in samples.get_samples(isSignal = True, isActive=True)] # only use a few activated signals
+    #signames = [ s.name for s in samples.get_samples(isSignal = True)]
     ## (de-)activate datasets
     samples.deactivate_all_samples()
     samples.activate_sample("WGamma")
@@ -263,8 +271,10 @@ activesignames = [ s.name for s in samples.get_samples(isSignal = True, isActive
 
 ## FIXME bjet SF to be added
 SFlist = ["el_trig", "el_id", "el_reco",
-          #"mu_trig", "mu_id", "mu_trk", "mu_iso" # ignore for e channel
           "ph_id",   "ph_psv"] ## SF, SFUP, SFDOWN
+if ch=="mu":
+    SFlist = [ "mu_trig", "mu_id", "mu_trk", "mu_iso", 
+              "ph_id",   "ph_psv"] 
 
 metlist=[
             "JetRes",
@@ -283,43 +293,20 @@ eventweightlist = ["muR1muF2",
                    "muRp5muFp5"
                    ]
 
-### key reference ## replaced later
-#hkeys = ['norm',
-#         'JetResUp', 'JetResDown',
-#         'JetEnUp', 'JetEnDown',
-#         'MuonEnUp', 'MuonEnDown',
-#         'ElectronEnUp', 'ElectronEnDown',
-#         'PhotonEnUp', 'PhotonEnDown',
-#         'UnclusteredEnUp', 'UnclusteredEnDown',
-#         'el_trigUP', 'el_trigDN', #incorrect
-#         'el_idUP', 'el_idDN',
-#         'el_recoUP', 'el_recoDN',
-#         'ph_idUP', 'ph_idDN',
-#         'ph_psvUP', 'ph_psvDN',
-#         'prefup', 'prefdown',
-#         'PUUP5', 'PUUP10',
-#         'PUDN5', 'PUDN10',
-#         'muR1muF2', 'muR1muFp5',
-#         'muR2muF1', 'muR2muF2',
-#         'muRp5muF1', 'muRp5muFp5']
 
 summarylist = [("TOTAL","bkg"),
                ("MadGraphResonanceMass1000_width5", "M1000w5"),
                ("MadGraphResonanceMass450_width5", "M450w5")]
-sellist, weight =  defs.makeselstringlist( ch = "el", phpt = 40, leppt = 35, met = 40 )
-#sellist, weight =  defs.makeselstringlist( ch = "el", phpt = 0, leppt = 0, met = 0 ) no kinematic selection
-#sellist +=["mt_res>200"]
-#selfull = " && ".join(sellist) ## full signal selection
 
-kinedict = defs.kinedictgen(ch="el")
-cutsetdict = {k: defs.makeselstring(ch="el", **w ) for k,w in kinedict.iteritems()}
+kinedict = defs.kinedictgen(ch)
+cutsetdict = {k: defs.makeselstring(ch=ch, **w ) for k,w in kinedict.iteritems()}
 selection_list = OrderedDict()
 
 
-for key, sellist in cutsetdict.iteritems():
-    selfull = " && ".join(sellist) ## full signal selection
+for key, (selfull, weight) in cutsetdict.iteritems():
     selection_list[key] = OrderedDict()
-    if options.year == 2018: weight = weight.replace("*prefweight","") ## no prefiring weight in 2018
+    if options.year == 2018:
+        weight = weight.replace("*prefweight","") ## no prefiring weight in 2018
     print selfull
     print weight
 
@@ -332,6 +319,10 @@ for key, sellist in cutsetdict.iteritems():
                   .replace("met_pt", "met_%s_pt" %tag )
         sel = selfull.replace("mt_res", "mt_res_%s" % tag )\
                      .replace("met_pt", "met_%s_pt" % tag )
+        if tag == "MuonEnUp":
+            sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
+        if tag == "MuonEnDown":
+            sel = sel.replace("mu_pt_rc", "mu_pt_rc_down")
         var = "mt_res_%s" %tag
         selection_list[key][tag] = dict( w = w, sel = sel, var = var)
 
@@ -365,11 +356,13 @@ for key, sellist in cutsetdict.iteritems():
 hkeys = ["norm",]+mettaglist+sftaglist+pupreftaglist+eventweightlist
 ## systematics as function of mass
 ## systematic_dict[ cutsettag ][ systematic_name ][ sample_name ]
-systematic_dict = dict()
-for cs in kinedict.keys():
-    systematic_dict[cs] = dict()
-    for k in hkeys:
-        systematic_dict[cs][k] = dict()
+recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
+systematic_dict = recdd()#dict()
+
+#for cs in kinedict.keys():
+#    systematic_dict[cs] = dict()
+#    for k in hkeys:
+#        systematic_dict[cs][k] = dict()
 
 # muon/ electron energy scale
 
@@ -379,14 +372,15 @@ for cutsetkey, sellist in selection_list.iteritems():
     for sysname, seldict in sellist.iteritems():
         kine = kinedict[cutsetkey]
         lconf = {"labelStyle":str(year),
-                "extra_label":["%i Electron Channel" %year,
-                          "p_{{T}}^{{e}}>{kine[phpt]}GeV, MET>{kine[met]}GeV".format(kine=kine),
-                          "Tight barrel #gamma p_{{T}}^{{#gamma}}>{kine[met]}GeV".format(kine=kine)],
-                          "extra_label_loc":(.17,.82)}
+                "extra_label":["%i %s Channel" %(year,chname),
+                   "p_{{T}}^{{{lep}}}>{kine[phpt]}GeV, MET>{kine[met]}GeV".format(kine=kine,lep=leplatex),
+                   "Tight barrel #gamma p_{{T}}^{{#gamma}}>{kine[met]}GeV".format(kine=kine)],
+                   "extra_label_loc":(.17,.82)}
         var = seldict.get("var", "mt_res")
         weight = seldict["w"]
         sel = seldict["sel"]
-        save_as = ("%s_%ielg.pdf" %(sysname,year), options.outputDir, "base")
+        #save_as = ("%s_%sg%i.pdf" %(sysname,ch,year), options.outputDir, "base")
+        save_as = None
         hconf = { "xlabel": "Reco Mass","xunit": "GeV" ,"drawsignal":True, "logy":True}
         hf = sf.SetHisto1DFast(var, sel, (90,200,2000), weight, hconf, lgconf , lconf, save_as, data_exp = True)
         selection_list[cutsetkey][sysname]["hist"] = hf
@@ -394,7 +388,6 @@ for cutsetkey, sellist in selection_list.iteritems():
 #########  draw histograms  #########
 
 print selection_list.keys()
-#for sysname, seldict in selection_list.iteritems():
 for cutsetkey, sellist in selection_list.iteritems():
     for sysname, seldict in sellist.iteritems():
         hf = seldict["hist"]
@@ -408,84 +401,96 @@ for cutsetkey, sellist in selection_list.iteritems():
 for cutsetkey, sellist in selection_list.iteritems():
     kine = kinedict[cutsetkey]
     lconf = {"labelStyle":str(year),
-             "extra_label":["%i Electron Channel" %year,
-                            "p_{{T}}^{{e}}>{kine[phpt]}GeV, MET>{kine[met]}GeV".format(kine=kine),
-                            "Tight barrel #gamma p_{{T}}^{{#gamma}}>{kine[met]}GeV".format(kine=kine)],
-                            "extra_label_loc":(.17,.82)}
+             "extra_label":["%i %s Channel" %(year,chname),
+                 "p_{{T}}^{{{lep}}}>{kine[phpt]}GeV, MET>{kine[met]}GeV".format(kine=kine,lep=leplatex),
+                 "Tight barrel #gamma p_{{T}}^{{#gamma}}>{kine[met]}GeV".format(kine=kine)],
+                 "extra_label_loc":(.17,.82)}
+
     ## met uncertainty
-    yeartag = "%i%s" %(year,cutsetkey)
+    yeartag = "%s%i%s" %(ch,year,cutsetkey)
     taglist = ["norm",]+ mettaglist #[mname+shift for mname in metlist for shift in ["Up","Down"]]
     lgconf["legend_entries"] = taglist
     histlist = [ sellist[t]["hstack"] for t in taglist ]
-    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, "stackcomp_metsys%s.pdf" %yeartag )
+    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                  "stackcomp_metsys_%s.pdf" %yeartag )
     for mname in metlist:
         taglist = ["norm",]+[mname+shift for shift in ["Up","Down"]]
         lgconf["legend_entries"] = taglist
         histlist = [ sellist[t]["hstack"] for t in taglist ]
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, "stackcomp_%ssys%s.pdf" %(mname, yeartag) )
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                      "stackcomp_%ssys%s.pdf" %(mname, yeartag) )
 
     ## draw shape comparison plot for SF shifts
     taglist = ["norm",] +sftaglist
     lgconf["legend_entries"] = taglist
     histlist = [ sellist[t]["hstack"] for t in taglist ]
-    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, "stackcomp_sfsys%s.pdf" %yeartag )
+    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                  "stackcomp_sfsys%s.pdf" %yeartag )
 
     ## draw shape comparison plot for prefiring weights and PU shifts
     taglist = ["norm",] +pupreftaglist
     lgconf["legend_entries"] = taglist
     histlist = [ sellist[t]["hstack"] for t in taglist ]
-    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, "stackcomp_ppusys%s.pdf" %yeartag )
+    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                  "stackcomp_ppusys%s.pdf" %yeartag )
 
     ## draw shape comparison plot for PDF weight shifts
     taglist = ["norm",] + eventweightlist
     lgconf["legend_entries"] = taglist
     histlist = [ sellist[t]["hstack"] for t in taglist ]
-    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, "stackcomp_pdfsys%s.pdf" %yeartag )
+    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                  "stackcomp_pdfsys%s.pdf" %yeartag )
 
 
     ### plot for individual signals
     for sname in activesignames:
         snameshort = sname.replace("MadGraphResonanceMass", "M")
         lconf = {"labelStyle":str(year),
-                "extra_label":["%i Electron Channel" %year,
-                          "p_{{T}}^{{e}}>{kine[phpt]}GeV, MET>{kine[met]}GeV".format(kine=kine),
-                          "Tight barrel #gamma p_{{T}}^{{#gamma}}>{kine[met]}GeV".format(kine=kine),
-                          "signal sample: %s" %snameshort],
-                           "extra_label_loc":(.17,.82)}
+                 "extra_label":["%i %s Channel" %(year,chname),
+                    "p_{{T}}^{{{lep}}}>{kine[phpt]}GeV, MET>{kine[met]}GeV".format(kine=kine,lep=leplatex),
+                    "Tight barrel #gamma p_{{T}}^{{#gamma}}>{kine[met]}GeV".format(kine=kine),
+                    "signal sample: %s" %snameshort],
+                 "extra_label_loc":(.17,.82)}
+
         hconf["rrange"]=(0.85,1.15)
         ## met uncertainty
         taglist = ["norm",]+ mettaglist #[mname+shift for mname in metlist for shift in ["Up","Down"]]
         lgconf["legend_entries"] = taglist
         histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
         savename = "shapecomp%s_metsys%s.pdf" %(snameshort,yeartag)
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, savename, logy=False)
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                        lgconf, savename, logy=False)
         for mname in metlist:
             taglist = ["norm",]+[mname+shift for shift in ["Up","Down"]]
             lgconf["legend_entries"] = taglist
             savename = "shapecomp%s_%ssys%s.pdf" %(snameshort,mname,yeartag)
             histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
-            hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, savename, logy=False )
+            hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                        lgconf, savename, logy=False )
 
         ## draw shape comparison plot for SF shifts
         taglist = ["norm",] +sftaglist
         lgconf["legend_entries"] = taglist
         histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
         savename = "shapecomp%s_sfsys%s.pdf" %(snameshort,yeartag)
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, savename, logy=False)
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                        lgconf, savename, logy=False)
 
         ## draw shape comparison plot for prefiring weights and PU shifts
         taglist = ["norm",] +pupreftaglist
         lgconf["legend_entries"] = taglist
         histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
         savename = "shapecomp%s_ppusys%s.pdf" %(snameshort,yeartag)
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, savename, logy=False)
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                        lgconf, savename, logy=False)
 
         ## draw shape comparison plot for PDF weight shifts
         taglist = ["norm",] + eventweightlist
         lgconf["legend_entries"] = taglist
         histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
         savename = "shapecomp%s_pdfsys%s.pdf" %(snameshort,yeartag)
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf, savename, logy=False)
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                        lgconf, savename, logy=False)
 
     bkgcountnorm = sellist["norm"]["stackcount"]["TOTAL"][0]
     bkgcountnormerr = sellist["norm"]["stackcount"]["TOTAL"][0]
