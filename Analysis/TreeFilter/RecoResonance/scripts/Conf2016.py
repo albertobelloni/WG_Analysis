@@ -32,7 +32,7 @@ def get_keep_filter(tag=None) :
     ph_addtl = ['ph_passVIDLoose', 'ph_passVIDMedium', 'ph_passVIDTight',
                 'ph_sc_phi', 'ph_sc_eta', 'ph_neuIsoCorr', 'ph_phiOrig', 'ph_etaOrig', 'ph_phiWidth', 'ph_ptOrig',
                 'ph_sigmaIEIEFull5x5', 'ph_r9', 'ph_etaWidth', 'ph_eOrig', 'ph_r9Full5x5', 'ph_sigmaIEIE',
-                'ph_chIsoCorr', 'ph_phoIso', 'ph_chIso', 'ph_neuIso', 'ph_hOverE',]
+                'ph_chIsoCorr', 'ph_phoIso', 'ph_chIso', 'ph_neuIso', 'ph_hOverE', 'ph_phoIsoCorr']
 
     met_basic = ['met_pt', 'met_phi',"met_Type1.*","met_all_pt","met_all_phi"]
     met_addtl = ['met_UnclusteredEnUp_phi', 'met_UnclusteredEnDown_phi', 'met_UnclusteredEnDown_pt', 'met_UnclusteredEnUp_pt',
@@ -304,13 +304,13 @@ def make_final_mug( alg_list, args) :
     #alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
-    filter_event.cut_mu_pt30_n = ' == 1 ' 
+    filter_event.cut_mu_pt30_n = ' == 1 '
     filter_event.cut_ph_n = ' > 0 '
     filter_event.do_cutflow = True
     filter_event.add_var('evalCutflow', "true")
 
     if sec_lep_veto is not 'False' :
-        filter_event.cut_mu_n = ' == 1 ' 
+        filter_event.cut_mu_n = ' == 1 '
         filter_event.cut_el_n = ' == 0 '
 
     alg_list.append( filter_event)
@@ -433,7 +433,7 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
 
     if do_cutflow :
         filt.do_cutflow = True
-        filt.add_var('evalPID', evalPID )
+        #filt.add_var('evalPID', evalPID )
 
     filt.cut_pt           = mu_pt
     filt.cut_eta          = ' < 2.4'
@@ -496,9 +496,9 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_abssceta       = ' <2.5 '
 
     #filt.cut_tight     = ' == True '
-    filt.cut_medium     = ' == True '
-#    filt.cut_vid_tight     = ' == True '
-#    filt.cut_vid_medium     = ' == True '
+    #filt.cut_medium     = ' == True '
+    #filt.cut_vid_tight     = ' == True '
+    filt.cut_vid_medium     = ' == True '
     filt.cut_muon_dr    = ' > 0.4 '
     filt.add_var( 'triggerMatchBits', '58,109' )
     filt.cut_d0_barrel = ' < 0.05 '
@@ -580,7 +580,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_endcap_veryloose      = ' < 0.132 '
     filt.cut_misshits_endcap_veryloose     = ' < 4 '
     filt.cut_passConvVeto_endcap_veryloose = ' == 1 '
-    
+
     if invertIso:
         for key,var in vars(filt).items():
             if 'iso' in key:
@@ -731,9 +731,19 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='medium', ieta_cut=None, ele_veto='N
         elif ele_veto == 'False'  :
             filt.cut_CSEV = ' == False '
 
-    if( id_cut is not 'None' ) :
+    dosieiecut = True
+    if id_cut == "almosttight":
+        filt.cut_tight = " == True "
+        dosieiecut = False
+        id_cut = "tight"
+    elif id_cut == "almostmedium":
+        filt.cut_medium = " == True "
+        dosieiecut = False
+        id_cut = "medium"
+    elif( id_cut is not 'None' ) :
         setattr( filt, 'cut_%s' %id_cut, ' == True ' )
-    #else: 
+
+    #else:
     #    filt.cut_medium     = ' == True '
 #    filt.cut_vid_medium     = ' == True '
 
@@ -775,37 +785,37 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='medium', ieta_cut=None, ele_veto='N
 #    filt.cut_hovere_endcap_tight = ' < 0.0213 '
 
     ### 94X V2 PID ###
-    filt.cut_sigmaIEIE_barrel_loose  = ' < 0.0106'
+    if dosieiecut: filt.cut_sigmaIEIE_barrel_loose  = ' < 0.0106'
     filt.cut_chIsoCorr_barrel_loose  = ' < 1.694'
     filt.cut_neuIsoCorr_barrel_loose = ' < 24.032 '
     filt.cut_phoIsoCorr_barrel_loose = ' < 2.876'
     filt.cut_hovere_barrel_loose = ' < 0.04596 '
 
-    filt.cut_sigmaIEIE_endcap_loose  = ' < 0.0272 '
+    if dosieiecut: filt.cut_sigmaIEIE_endcap_loose  = ' < 0.0272 '
     filt.cut_chIsoCorr_endcap_loose  = ' < 2.089 '
     filt.cut_neuIsoCorr_endcap_loose = ' < 19.722 '
     filt.cut_phoIsoCorr_endcap_loose = ' < 4.162 '
     filt.cut_hovere_endcap_loose = ' < 0.0590 '
 
-    filt.cut_sigmaIEIE_barrel_medium  = ' < 0.01015 '
+    if dosieiecut: filt.cut_sigmaIEIE_barrel_medium  = ' < 0.01015 '
     filt.cut_chIsoCorr_barrel_medium  = ' < 1.141 '
     filt.cut_neuIsoCorr_barrel_medium = ' < 1.189 '
     filt.cut_phoIsoCorr_barrel_medium = ' < 2.08 '
     filt.cut_hovere_barrel_medium = ' < 0.02197 '
 
-    filt.cut_sigmaIEIE_endcap_medium  = ' < 0.0272 '
+    if dosieiecut: filt.cut_sigmaIEIE_endcap_medium  = ' < 0.0272 '
     filt.cut_chIsoCorr_endcap_medium  = ' < 1.051 '
     filt.cut_neuIsoCorr_endcap_medium = ' < 2.718 '
     filt.cut_phoIsoCorr_endcap_medium = ' < 3.867 '
     filt.cut_hovere_endcap_medium = ' < 0.0326 '
 
-    filt.cut_sigmaIEIE_barrel_tight  = ' < 0.00996 '
+    if dosieiecut: filt.cut_sigmaIEIE_barrel_tight  = ' < 0.00996 '
     filt.cut_chIsoCorr_barrel_tight  = ' < 0.65 '
     filt.cut_neuIsoCorr_barrel_tight = ' < 0.317 '
     filt.cut_phoIsoCorr_barrel_tight = ' < 2.044 '
     filt.cut_hovere_barrel_tight = ' < 0.02148 '
 
-    filt.cut_sigmaIEIE_endcap_tight  = ' < 0.0271 '
+    if dosieiecut: filt.cut_sigmaIEIE_endcap_tight  = ' < 0.0271 '
     filt.cut_chIsoCorr_endcap_tight  = ' < 0.517 '
     filt.cut_neuIsoCorr_endcap_tight = ' < 2.716 '
     filt.cut_phoIsoCorr_endcap_tight = ' < 3.032 '
@@ -814,7 +824,7 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='medium', ieta_cut=None, ele_veto='N
     if do_cutflow and id_cut and id_cut !="None" :
         filt.do_cutflow = True
         #filt.add_var( 'evalPID', evalPID )
-        filt.add_var( 'evalPID', id_cut)
+        #filt.add_var( 'evalPID', id_cut) ## this could mess with other non-VID working points
 
     if do_hists :
         filt.add_hist( 'cut_pt', 100, 0, 200 )

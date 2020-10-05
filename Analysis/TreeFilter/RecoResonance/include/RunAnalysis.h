@@ -383,6 +383,7 @@ namespace OUT {
     Bool_t PassQuality;
 
     float NLOWeight;
+    std::vector<float> *PDFWeights;
 
     float PUWeight;
     float PUWeightUP5;
