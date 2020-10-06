@@ -26,10 +26,18 @@ def get_keep_filter(tag=None) :
     #            'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose',
     #            'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
     el_addtl = ['el_phiOrig','el_sc_e', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
+                'el_e_ScaleUp','el_e_ScaleDown',
+                'el_e_SigmaUp','el_e_SigmaDown',
+                'el_pt_ScaleUp','el_pt_ScaleDown',
+                'el_pt_SigmaUp','el_pt_SigmaDown',
                 'el_passVIDHEEP', 'el_passVIDTight', 'el_passVIDVeryLoose',
                 'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium', 'el_pfIsoRho']
     ph_basic = ['ph_n', 'ph_phi', 'ph_eta', 'ph_pt','ph_e','ph_hasPixSeed', 'ph_passEleVeto.*', ]
     ph_addtl = ['ph_passVIDLoose', 'ph_passVIDMedium', 'ph_passVIDTight',
+                'ph_pt_ScaleUp','ph_pt_ScaleDown',
+                'ph_e_ScaleUp','ph_e_ScaleDown',
+                'ph_pt_SigmaUp','ph_pt_SigmaDown',
+                'ph_e_SigmaUp','ph_e_SigmaDown',
                 'ph_sc_phi', 'ph_sc_eta', 'ph_neuIsoCorr', 'ph_phiOrig', 'ph_etaOrig', 'ph_phiWidth', 'ph_ptOrig',
                 'ph_sigmaIEIEFull5x5', 'ph_r9', 'ph_etaWidth', 'ph_eOrig', 'ph_r9Full5x5', 'ph_sigmaIEIE',
                 'ph_chIsoCorr', 'ph_phoIso', 'ph_chIso', 'ph_neuIso', 'ph_hOverE', 'ph_phoIsoCorr']
