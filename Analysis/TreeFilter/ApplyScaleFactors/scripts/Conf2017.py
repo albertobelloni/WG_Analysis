@@ -109,6 +109,17 @@ def get_photon_sf(options) :
 
     photon_sf.add_var( 'FilePathId', '%s/2017/2017_cutbasedID_PhotonsMedium.root' %base_path )
     photon_sf.add_var( 'HistId', 'EGamma_SF2D' )
+    
+    # high-pt photon ID fit: https://indico.cern.ch/event/879936/#3-high-pt-photon-sfs-for-wgamm
+    photon_sf.add_var( 'HiPtId_inner_const', +1.016970e+00 )
+    photon_sf.add_var( 'HiPtId_inner_cov00', +3.774331e-05 )
+    photon_sf.add_var( 'HiPtId_inner_cov01', +2.458532e-07 )
+    photon_sf.add_var( 'HiPtId_inner_cov11', +5.452213e-09 )
+
+    photon_sf.add_var( 'HiPtId_outer_const', +1.018809e+00 )
+    photon_sf.add_var( 'HiPtId_outer_cov00', +2.617872e-05 )
+    photon_sf.add_var( 'HiPtId_outer_cov01', -9.312095e-08 )
+    photon_sf.add_var( 'HiPtId_outer_cov11', +7.181913e-09 )
 
     photon_sf.add_var( 'FilePathPSveto', '%s/2017/PixelSeed_ScaleFactors_2017.root' %base_path )
     photon_sf.add_var( 'HistPSveto', 'Medium_ID' )

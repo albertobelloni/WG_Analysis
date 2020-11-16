@@ -105,6 +105,15 @@ class RunModule : public virtual RunModuleBase {
         TFile *_sffile_ph_id;
         TFile *_sffile_ph_psv;
         TFile *_sffile_ph_ev;
+        
+        double _HiPtId_inner_const = 0.;
+        double _HiPtId_inner_cov00 = 0.;
+        double _HiPtId_inner_cov01 = 0.;
+        double _HiPtId_inner_cov11 = 0.;
+        double _HiPtId_outer_const = 0.;
+        double _HiPtId_outer_cov00 = 0.;
+        double _HiPtId_outer_cov01 = 0.;
+        double _HiPtId_outer_cov11 = 0.;
 
         TH2F *_sfhist_ph_id;
         TH2D *_sfhist_ph_csev;
