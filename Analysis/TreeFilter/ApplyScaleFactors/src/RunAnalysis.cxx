@@ -449,6 +449,12 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                         if (!_sfhist_ph_psv_2018)
                             std::cout << "Could not get PSV hist from file "
                                       << _sffile_ph_psv->GetName() << std::endl;
+                        hname = mod_conf.GetInitData().find("HistPSveto_err");
+                        _sfhist_ph_psv_2018_err = dynamic_cast<TH2F *>(
+                            _sffile_ph_psv->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_psv_2018_err)
+                            std::cout << "Could not get PSV err hist from file "
+                                      << _sffile_ph_psv->GetName() << std::endl;
                     }
                 } else {
                     std::cout << "Could not open file " << itr->second << std::endl;
@@ -478,6 +484,12 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                             dynamic_cast<TH2F *>(_sffile_ph_ev->Get((hname->second).c_str()));
                         if (!_sfhist_ph_csev_2018)
                             std::cout << "Could not get CSEV 2D hist from file "
+                                      << _sffile_ph_ev->GetName() << std::endl;
+                        hname = mod_conf.GetInitData().find("HistCSEveto_err");
+                        _sfhist_ph_csev_2018_err = dynamic_cast<TH2F *>(
+                            _sffile_ph_ev->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_csev_2018_err)
+                            std::cout << "Could not get CSEV err hist from file "
                                       << _sffile_ph_ev->GetName() << std::endl;
                     }
                 } else {
@@ -878,13 +890,15 @@ void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
             errs_psv.push_back(res_psv.err_up);
         } else if (_year_ph == 2018) {
             ValWithErr res_psv = GetVals2D(_sfhist_ph_psv_2018, pt, fabs(eta));
+            ValWithErr err_psv = GetVals2D(_sfhist_ph_psv_2018_err, pt, fabs(eta));
             ValWithErr res_csev = GetVals2D(_sfhist_ph_csev_2018, pt, fabs(eta));
+            ValWithErr err_csev = GetVals2D(_sfhist_ph_csev_2018_err, pt, fabs(eta));
 
             sfs_csev.push_back(res_csev.val);
-            errs_csev.push_back(res_csev.err_up);
+            errs_csev.push_back(err_csev.val);
 
             sfs_psv.push_back(res_psv.val);
-            errs_psv.push_back(res_psv.err_up);
+            errs_psv.push_back(err_psv.val);
         } else
             std::cout << "ERROR AddPhotonSF: year not recognized!" << std::endl;
     }

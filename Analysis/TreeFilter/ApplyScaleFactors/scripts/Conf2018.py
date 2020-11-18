@@ -126,10 +126,12 @@ def get_photon_sf(options) :
     photon_sf.add_var( 'HiPtId_outer_cov01', +4.213067e-08 )
     photon_sf.add_var( 'HiPtId_outer_cov11', +4.083047e-09 )
 
-    photon_sf.add_var( 'FilePathPSveto', '%s/2018/HasPix_2018_withErr.root' %base_path )
+    photon_sf.add_var( 'FilePathPSveto', '%s/2018/2018_HasPix_SF_DYJets_MCatNLO_asNominal.root' %base_path )
     photon_sf.add_var( 'HistPSveto', 'eleVeto_SF' )
-    photon_sf.add_var( 'FilePathEveto', '%s/2018/CSEV_2018_withErr.root' %base_path )
+    photon_sf.add_var( 'HistPSveto_err', 'eleVeto_StatUnc' )
+    photon_sf.add_var( 'FilePathEveto', '%s/2018/2018_CSEV_SF_DYJets_MCatNLO_asNominal.root' %base_path )
     photon_sf.add_var( 'HistCSEveto', 'eleVeto_SF' )
+    photon_sf.add_var( 'HistCSEveto_err', 'eleVeto_StatUnc' )
     
     return photon_sf
 

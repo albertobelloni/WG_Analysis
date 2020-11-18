@@ -122,6 +122,8 @@ class RunModule : public virtual RunModuleBase {
         TH1F *_sfhist_ph_psv_2017;
         TH2F *_sfhist_ph_csev_2018;
         TH2F *_sfhist_ph_psv_2018;
+        TH2F *_sfhist_ph_csev_2018_err;
+        TH2F *_sfhist_ph_psv_2018_err;
 
         TH1D *_sfhist_pileup_data;
         TH1F *_sfhist_pileup_mc;
