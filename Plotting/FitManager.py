@@ -390,7 +390,7 @@ class FitManager :
             order_entries = []
             function =  'TMath::Power( @0 / 13000., @1 ) * TMath::Exp(%s)'
             for i in range( 0, self.func_norders ) :
-                order_entries.append( ('@%d' %(i*2+2)) + "*@0/13000."*(i+1) )
+                order_entries.append( ('@%d' %(i+2)) + "*@0/13000."*(i+1) )
 
             function = function %("+".join(order_entries))
 
@@ -604,6 +604,31 @@ class FitManager :
                 plist[name] = ufloat(parm.getVal(),parm.getError()) if parm else None
         return plist
 
+    def get_parameter_vals(self):
+        ## used for signal fits when self.defs is not filled
+        plist = {}
+        for name, realvar in self.fit_params.iteritems():
+            if realvar.hasAsymError():
+                plist[name] = (realvar.getVal(), (realvar.getErrorLo(), realvar.getErrorHi()))
+            else:
+                plist[name] = (realvar.getVal(), realvar.getError())
+
+        return plist
+
+    def set_parameter_vals(self, plist):
+        ## used for signal fits when self.defs is not filled
+        ## import parameter values
+
+        for name, (val, err) in plist.iteritems():
+            realvar = self.fit_params[name]
+            realvar.setVal(val)
+            if isinstance(err, tuple):
+                realvar.setAsymError(*err)
+            else:
+                realvar.setError(err)
+        print self.fit_params
+
+
 
     @f_Dumpfname
     def calculate_func_pdf( self ) :
@@ -667,6 +692,12 @@ class FitManager :
                 can.SetLogx()
 
             sampMan.outputs[self.label] = can
+
+    def get_pdf_histogram( self , xbins = None ):
+        """ return TH1 histogram representing the pdf """
+        if xbins == None:
+            return self.func_pdf.createHistogram( "%s%s" %(self.label,self.func_name), self.xvardata)
+        return self.func_pdf.createHistogram( "%s%s" %(self.label,self.func_name), self.xvardata, rf.Binning(xbins) )
 
     def get_results( self, workspace = None) :
         print "get_results",workspace, self.datahist
@@ -958,7 +989,7 @@ class FitManager :
         cb_power.setError( 1. )
         cb_m0.setError( 1. )
 
-        cb = self.MakeROOTObj('RooCBShape','cb_%s' %self.label, 
+        cb = self.MakeROOTObj('RooCBShape','cb_%s' %self.label,
                 'A  Crystal Ball Lineshape', self.xvar, cb_m0, cb_sigma,cb_cut,cb_power)
 
         self.func_pdf = self.MakeROOTObj('RooFFTConvPdf','sig_model_%s' %self.label,
@@ -974,6 +1005,21 @@ class FitManager :
         self.fit_params['cb_mass'] = cb_m0
         #self.fit_params['cb'] = cb
 
+    def shifted_dscb(self, workspace):
+        ## FIXME makeshift test for shifting mean of crystal ball
+        self.wk = workspace
+        exprstr = "expr::cb_mass_{tag}_up('cb_mass_{tag}*cb_mass_{tag}_shift_up',"\
+                   "cb_mass_{tag},cb_mass_{tag}_shift_up[1.005])".format(tag=self.label) ##FIXME later
+        self.fact(exprstr)
+        self.fact("RooDoubleCB::cb_{tag}_up(mt_res,cb_mass_{tag}_up,cb_sigma_{tag},"
+              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=self.label))
+        exprstr = "expr::cb_mass_{tag}_down('cb_mass_{tag}*cb_mass_{tag}_shift_down',"\
+                   "cb_mass_{tag},cb_mass_{tag}_shift_down[0.995])".format(tag=self.label) ##FIXME later
+        self.fact(exprstr)
+        self.fact("RooDoubleCB::cb_{tag}_down(mt_res,cb_mass_{tag}_down,cb_sigma_{tag},"
+              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=self.label))
+        return
+
     def init_dscb(self):
         mass =  self.sample_params['mass']
         width = self.sample_params['width']
@@ -982,21 +1028,21 @@ class FitManager :
         cut1_vals   = (  0.3,       0.1,      0.6  )
         sigma_vals  = ( 28. ,       1. ,      200. )
         power1_vals = (  2.0,       1.4,      4.6  ) if width==1e-4 else ( 3.0,        2.4,       4.0 )
-        mass_vals   = ( mass,  0.5*mass,  1.1*mass)
+        mass_vals   = ( mass,  0.5*mass,  1.1*mass )
         cut2_vals   = (  1.5,       1.,       2.5  )
         power2_vals = (  4.0,       0.,       5.0  )
 
         cb_cut1   = ROOT.RooRealVar('cb_cut1_%s'   %self.label,   'Cut1'  ,
                                    cut1_vals[0],   cut1_vals[1],   cut1_vals[2],   '')
-        cb_sigma  = ROOT.RooRealVar('cb_sigma_%s'  %self.label,   'Width' , 
+        cb_sigma  = ROOT.RooRealVar('cb_sigma_%s'  %self.label,   'Width' ,
                                    sigma_vals[0],  sigma_vals[1],  sigma_vals[2],  'GeV')
-        cb_power1 = ROOT.RooRealVar('cb_power1_%s' %self.label,   'Power' ,  
+        cb_power1 = ROOT.RooRealVar('cb_power1_%s' %self.label,   'Power' ,
                                    power1_vals[0], power1_vals[1], power1_vals[2], '')
-        cb_m0     = ROOT.RooRealVar('cb_mass_%s'   %self.label,   'mass'  ,  
+        cb_m0     = ROOT.RooRealVar('cb_mass_%s'   %self.label,   'mass'  ,
                                    mass_vals[0],   mass_vals[1],   mass_vals[2],   'GeV')
-        cb_cut2   = ROOT.RooRealVar('cb_cut2_%s'   %self.label,   'Cut2'  ,  
+        cb_cut2   = ROOT.RooRealVar('cb_cut2_%s'   %self.label,   'Cut2'  ,
                                    cut2_vals[0],   cut2_vals[1],   cut2_vals[2],   '')
-        cb_power2 = ROOT.RooRealVar('cb_power2_%s' %self.label,   'Power' ,  
+        cb_power2 = ROOT.RooRealVar('cb_power2_%s' %self.label,   'Power' ,
                                    power2_vals[0], power2_vals[1], power2_vals[2], '')
 
         # fix a few params in the signal fit

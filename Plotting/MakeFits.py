@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from functools import wraps
 import sys
+import pdb
 import ROOT
 import uuid
 import os
@@ -8,7 +9,7 @@ import time
 import subprocess
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from argparse import ArgumentParser
-from collections import OrderedDict
+from collections import OrderedDict,defaultdict
 import selection_defs as defs
 import json
 
@@ -67,6 +68,8 @@ def f_Dumpfname(func):
         return func(*func_args, **func_kwargs)
     return echo_func
 
+recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
+
 def main() :
 
     ws_keys = {
@@ -92,9 +95,9 @@ def main() :
               'Zgamma'        : SampleInfo( name = 'Zgamma', useLumi = False,
                                              useMET = False, usePDF = False, ),
               'GammaGamma'    : SampleInfo( name = 'GammaGamma',
-                            useLumi = False, useMET = False, usePDF = False, ),
-              'Backgrounds' : SampleInfo( name = 'Backgrounds',
-                            useLumi = False, useMET = False, usePDF = False, ),
+                                useLumi = False, useMET = False, usePDF = False, ),
+              'Backgrounds'   : SampleInfo( name = 'Backgrounds',
+                                useLumi = False, useMET = False, usePDF = False, ),
               'toydata'       : {'pdf': 'toydata'},
               'toysignal'     : {'pdf': 'gauss'},
               'toybkg'        : {'pdf': 'exp'},
@@ -132,8 +135,9 @@ def main() :
         options.baseDir = "/home/kakw/efake/WG_Analysis/Plotting/data/"
 
     if options.combineDir == None:
-        #options.combineDir == "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/"
-        options.combineDir == "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_11_0_0/src/"
+        #options.combineDir = "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/"
+        options.combineDir = "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_11_0_0/src/"
+
 
     #signal_masses   = [900]
     #signal_masses   = [200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1200, 1400,
@@ -144,7 +148,8 @@ def main() :
     if options.doVarOpt:
 
 
-        ROOT.RooRandom.randomGenerator().SetSeed(int(time.time()))
+        #ROOT.RooRandom.randomGenerator().SetSeed(int(time.time()))
+        ROOT.RooRandom.randomGenerator().SetSeed(int(12348))
         var_opt = MakeLimits(  var=  "mt_res" ,
                                wskeys = ws_keys,
                                masspoints  = signal_masses,
@@ -184,7 +189,7 @@ def main() :
                 ### run local shell commands in parallel
                 var_opt.run_commands()
 
-        raw_input("continue")
+        #raw_input("continue")
 
         #results = {}
         #for key, opt in var_opt.iteritems() :
@@ -216,6 +221,7 @@ def make_jdl( exe_list, output_file ) :
     '# Require to run on SL/CentOS7',
     'Requirements = (TARGET.OpSysMajorVer == 7)',
     'when_to_transfer_output = ON_EXIT_OR_EVICT',
+    '+IsTestJob=True'
     ]
 
     for exe in exe_list :
@@ -461,6 +467,12 @@ class MakeLimits( ) :
         #                         signorms = [2.0], data_norm=20.0)
         self.generate_toy_data( )
 
+
+        #---------------------------------------
+        # Add systematics
+        #---------------------------------------
+        self.add_systematics()
+
         #---------------------------------------
         # Prepare the data cards for limits
         #---------------------------------------
@@ -471,6 +483,169 @@ class MakeLimits( ) :
 
 
 
+# ---------------------------------------------------
+
+    def add_systematics( self ):
+
+        for bn in self.bkgnames:
+            self.backgrounds[bn].sys = recdd()
+
+        for ibin in self.bins:
+            self.add_systematics_channel( ibin )
+
+    def add_systematics_channel( self, ibin ):
+        ch, year = ibin["channel"], ibin["year"]
+        binname = binid(ibin)
+
+        ## opening json storing normalization information
+        with open('data/%sgsys%i.json'%(ch,year)) as fo:
+            systematic_dict = json.load(fo)
+            ## systematic_dict[cutset A?B?C][systematicname][MadGraphResonanceMass1000_width5/background]
+            ## FIXME not distinguishing background names
+
+            ### process background systematics
+
+            sysdict = recdd()
+            for cuttag in self.cutsetlist:
+                for sys in  systematic_dict[cuttag].keys():
+                    sysdict[cuttag][sys] = systematic_dict[cuttag][sys]["background"]
+
+
+            sysdict = { k: self.process_systematics(sd, ch, year) for k, sd in sysdict.iteritems() }
+
+            for bn in self.bkgnames:
+                self.backgrounds[bn].sys[binname] = sysdict
+
+            ### process signal systematics
+
+            for width in self.widthpoints:
+                for mass in self.masspoints:
+
+                    cuttag = defs.selectcuttag(mass)
+                    sysdict = recdd()
+                    sampname = "MadGraphResonanceMass%i_width%s"%(mass,width)
+
+                    for sys in systematic_dict[cuttag].keys():
+                        sysdict[sys] = systematic_dict[cuttag][sys][sampname]
+
+                    sysdict = self.process_systematics( sysdict, ch, year )
+
+                    sigkey = "M%i_W%s_%s%i" %(mass,width,ch,year)
+                    if sigkey in self.signals:
+                        self.signals[sigkey]["sys"]= sysdict
+
+    def process_systematics(self, sysdict, ch, yr):
+
+        ##
+        ## manually distribute systematic values
+        ##
+        ## hard-coded
+        ## lumi, PU
+        ##
+        ## Take up/down values
+        ## trigger, JEC, gamma ID
+        ##
+        ## Take max/min
+        ## PDF scale
+        ##
+        ## screen for unreasonable values
+        ## PSV, prefiring weights
+
+
+        syslist = [
+             ('JetResUp', 'JetResDown'),
+             ('JetEnUp', 'JetEnDown'),
+             ('MuonEnUp', 'MuonEnDown'),
+             ('ElectronEnUp', 'ElectronEnDown'),
+             ('PhotonEnUp', 'PhotonEnDown'),
+             ('UnclusteredEnUp', 'UnclusteredEnDown'),
+             ('el_trigSFUP', 'el_trigSFDN'),
+             ('el_idSFUP', 'el_idSFDN'),
+             ('el_recoSFUP', 'el_recoSFDN'),
+             ('ph_idSFUP', 'ph_idSFDN'),
+             ('ph_psvSFUP', 'ph_psvSFDN'),
+             ("mu_trigSFUP", "mu_trigSFDN"),
+             ("mu_idSFUP", "mu_idSFDN"),
+             ("mu_trkSFUP", "mu_trkSFDN"), ## all zero FIXME?
+             ("mu_isoSFUP", "mu_isoSFDN"),]
+
+        prefnames  = ( 'prefup',         'prefdown'    )
+        punames    = ( 'PUUP5',          'PUDN5'       )
+        pdfnames   = ( 'muR1muF2',       'muR1muFp5',
+                       'muR2muF1',       'muR2muF2',
+                       'muRp5muF1',      'muRp5muFp5'  )
+        mutrnames  = ( 'mu_trigSFUP',    'mu_trigSFDN' )
+        eltrnames  = ( 'el_trigSFUP',    'el_trigSFDN' )
+        jecnames   = ( 'JetEnUp',        'JetEnDown'   )
+        jernames   = ( 'JetResUp',       'JetResDown'  )
+        phidnames  = ( 'ph_idSFUP',      'ph_idSFDN'   )
+        phpsnames  = ( 'ph_psvSFUP',     'ph_psvSFDN'  )
+        muidnames  = ( 'mu_idSFUP',      'mu_idSFDN'   )
+        elidnames  = ( 'el_idSFUP',      'el_idSFDN'   )
+        muennames  = ( 'MuonEnUp',       'MuonEnDown'  )
+        elennames  = ( 'ElectronEnUp',   'ElectronEnDown')
+        phennames  = ( 'PhotonEnUp',     'PhotonEnDown' )
+
+
+        newsysdict = recdd()
+
+        ## LUMI POG
+        ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
+        newsysdict["CMS_lumi"] = 1.023 if yr == 2017 else 1.025
+
+        ## trigger
+        if ch == "mu":
+            newsysdict["CMS_mu_trig"] = tuple(sysdict[s]/100.+1 for s in mutrnames)
+        if ch == "el":
+            newsysdict["CMS_el_trig"] = tuple(sysdict[s]/100.+1 for s in eltrnames)
+
+        ## PU
+        newsysdict["CMS_pile"] = tuple(sysdict[s]/100.+1 for s in punames)
+
+        ## JEC
+        newsysdict["CMS_jec"]  = tuple(sysdict[s]/100.+1 for s in jecnames)
+
+        ## JER
+        newsysdict["CMS_jer"]  = tuple(sysdict[s]/100.+1 for s in jernames)
+
+        ## ph ID
+        newsysdict["CMS_ph_eff"]  = tuple(sysdict[s]/100.+1 for s in phidnames)
+
+        ## ph PSV
+        newsysdict["CMS_psv"]  = tuple(sysdict[s]/100.+1 for s in phpsnames)
+
+        ## FIXME
+        if newsysdict["CMS_psv"][0]>1.5  or newsysdict["CMS_psv"][1]>1.5:
+            newsysdict["CMS_psv"]  = None
+
+
+        ## ph energy
+        newsysdict["CMS_ph_scale"]  = tuple(sysdict[s]/100.+1 for s in phennames)
+
+        ## mu ID
+        if ch == "mu":
+            newsysdict["CMS_mu_eff"]  = tuple(sysdict[s]/100.+1 for s in muidnames)
+
+        ## el ID
+        if ch == "el":
+            newsysdict["CMS_el_eff"]  = tuple(sysdict[s]/100.+1 for s in elidnames)
+
+        ## mu scale
+        if ch == "mu":
+            newsysdict["CMS_mu_scale"]  = tuple(sysdict[s]/100.+1 for s in muennames)
+
+        ## el scale
+        if ch == "el":
+            newsysdict["CMS_el_scale"]  = tuple(sysdict[s]/100.+1 for s in elennames)
+
+        ## prefiring
+        newsysdict["CMS_pref"]  = tuple(sysdict[s]/100.+1 for s in prefnames)
+
+        ## PDF
+        pdfscales = [sysdict[s]/100.+1 for s in pdfnames]
+        newsysdict["pdf_scale"]  = ( max(pdfscales), min(pdfscales) )
+
+        return newsysdict
 
 # ---------------------------------------------------
 
@@ -511,6 +686,16 @@ class MakeLimits( ) :
                os.makedirs( outputdir )
 
             for mass in self.masspoints:
+                for obin in self.bins:
+                    cuttag = defs.selectcuttag(mass) ## returns A, B, C
+
+                    sigpar = "_".join( ['M'+ str(mass), 'W'+width] )
+
+                    card_path = '%s/wgamma_test_%s_%s_%s.txt' %(outputdir, self.var, sigpar, binid(obin) )
+
+                    self.generate_card( card_path, sigpar, cuttag = cuttag , obin = obin)
+
+                    self.allcards[sigpar+"_"+binid(obin)] =  card_path
 
                 cuttag = defs.selectcuttag(mass) ## returns A, B, C
 
@@ -520,7 +705,7 @@ class MakeLimits( ) :
 
                 self.generate_card( card_path, sigpar, cuttag = cuttag )
 
-                self.allcards[sigpar] =  card_path
+                self.allcards[sigpar + '_all'] =  card_path
 
 
 
@@ -529,7 +714,7 @@ class MakeLimits( ) :
 
 
     @f_Dumpfname
-    def generate_card( self, outputCard, sigpar,  tag='base' , cuttag = "") :
+    def generate_card( self, outputCard, sigpar,  tag='base' , cuttag = "", obin = None) :
         """
 
             generates card
@@ -542,14 +727,27 @@ class MakeLimits( ) :
                 none
 
         """
+        def sysstr(svalues):
+            if svalues == None or isinstance(svalues, defaultdict):
+                return "-"
+            if isinstance(svalues,tuple):
+                return "%.3f/%.3f" %svalues
+            else:
+                return "%.3f" %svalues
 
         card_entries = []
         viablebins , viablesig= [], []
 
         section_divider = '-'*100
 
+        if obin == None:
+            binlist = self.bins
+        if isinstance( obin, dict):
+            binlist = [obin,]
+
         ## check if signal channel exists
-        for ibin in self.bins :
+        #for ibin in self.bins :
+        for ibin in binlist :
             sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
             if not sig: ## model not exist: exclude them for now
                 print "WARNING MODEL NOT EXIST: ", sigpar, ibin
@@ -572,7 +770,7 @@ class MakeLimits( ) :
         card_entries.append( section_divider )
 
         max_name_len = max( [len(x) for x in self.bkgnames ] )
-        max_path_len = max( [len(x.GetOutputName(self.outputDir, **ibin)) for x in self.backgrounds.values() for ibin in self.bins] )
+        max_path_len = max( [len(x.GetOutputName(self.outputDir, **ibin)) for x in self.backgrounds.values() for ibin in binlist] )
 
         all_binids = []
         #signal_norm = 1.0
@@ -591,9 +789,10 @@ class MakeLimits( ) :
 
 
         for ibin, sig in viablesig:
-            bin_id = binid(ibin) 
+            bin_id = binid(ibin)
             all_binids.append(bin_id)
-            card_entries.append( 'shapes Resonance %s %s %s:%s' %( bin_id, sig['file'], sig['workspace'], sig['pdf'] ) )
+            card_entries.append( 'shapes Resonance %s %s %s:%s %s:%s'\
+                  %( bin_id, sig['file'], sig['workspace'], sig['pdf'], sig['workspace'], sig['pdf_sys'] ) )
 
         for ibin in viablebins:
             bin_id = binid(ibin)
@@ -674,28 +873,64 @@ class MakeLimits( ) :
         ##  lumi       lnN    1.025    1.0250
         ##  met        lnN    1.03    -    1.03    -    1.03    -    1.03    -
         ##  pdf        lnN    1.05    -    1.05    -    1.05    -    1.05    -
+        ##  cms_e      shape  1.00    -    1.00    -    1.00    -    1.00    -
         ##  dijet_order1_el2018_wgamma flatParam
         ##  dijet_order2_el2018_wgamma flatParam
         ##  cb_cut1_MG_M350_W5_mu2016 param 0.60000 0.00005
         ##  cb_mass_MG_M350_W5_mu2016 param 329.58155 0.06551
         ############################################
 
-        lumi_vals = ["%-13g "%1.025] * (len(all_binids)*( len(self.backgrounds) + 1 ))
-        #lumi_vals = ['1.025'] + [ '1.025' if bkg.useLumi else '-' for bkg in self.backgrounds.values() ]
-        bkg_vals = (['-'+' '*13] + ["%-13g " %1.20]*len(self.backgrounds) )*len(all_binids)
-        signal_met = ( ["%-13g " %1.03] + ['-'+' '*13]*len(self.backgrounds) )*len( all_binids)
-        signal_pdf = ( ["%-13g " %1.05] + ['-'+' '*13]*len(self.backgrounds) )*len( all_binids)
+        syslist = set()
+        for ibin, sig in viablesig:
+            syslist.update(sig["sys"].keys())
 
-        card_entries.append( 'lumi  lnN   ' + ''.join(lumi_vals) )
-        #card_entries.append( 'bkgelse   lnN    ' + '    '.join(bkg_vals    ) )
-        card_entries.append( 'met   lnN   ' + ''.join(signal_met) )
-        card_entries.append( 'pdf   lnN   ' + ''.join(signal_pdf) )
+        syslist = list(syslist)
+        for sn in syslist:
+            sys_line = [sn, "lnN"]
 
-        # assign 30% normalization uncertainty in all backgrounds from data-driven
-        for bkgname in self.backgrounds:
-            if not self.backgrounds[bkgname].useLumi:
-               bkg_norms = ['-'] + ['1.30' if namebkg == bkgname else '-' for namebkg in self.backgrounds]
-               card_entries.append('%s_norm lnN    '%bkgname + '    '.join( bkg_norms ))
+            for ibin, sig in viablesig:
+                bin_id = binid(ibin)
+
+                sigsysstr = sysstr(sig["sys"][sn])
+
+                sys_line.append(sigsysstr)
+
+                for bkgname, bkg in self.backgrounds.iteritems():
+                    bkgsysstr = sysstr(bkg.sys[bin_id][cuttag].get(sn))
+                    sys_line.append(bkgsysstr)
+            card_entries.append( listformat(sys_line, "%-15s"))
+        #raise Exception()
+        #pdb.set_trace()
+
+
+        ##FIXME hard coded shape uncertainty
+        sys_line = ["cms_e", "shape"]
+        for ibin, sig in viablesig:
+            bin_id = binid(ibin)
+            sys_line.append("1.00")
+
+            for bkgname, bkg in self.backgrounds.iteritems():
+                sys_line.append('-')
+        card_entries.append( listformat(sys_line, "%-15s"))
+
+
+
+        #lumi_vals = ["%-13g "%1.025] * (len(all_binids)*( len(self.backgrounds) + 1 ))
+        ##lumi_vals = ['1.025'] + [ '1.025' if bkg.useLumi else '-' for bkg in self.backgrounds.values() ]
+        #bkg_vals = (['-'+' '*13] + ["%-13g " %1.20]*len(self.backgrounds) )*len(all_binids)
+        #signal_met = ( ["%-13g " %1.03] + ['-'+' '*13]*len(self.backgrounds) )*len( all_binids)
+        #signal_pdf = ( ["%-13g " %1.05] + ['-'+' '*13]*len(self.backgrounds) )*len( all_binids)
+
+        #card_entries.append( 'lumi  lnN   ' + ''.join(lumi_vals) )
+        ##card_entries.append( 'bkgelse   lnN    ' + '    '.join(bkg_vals    ) )
+        #card_entries.append( 'met   lnN   ' + ''.join(signal_met) )
+        #card_entries.append( 'pdf   lnN   ' + ''.join(signal_pdf) )
+
+        ## assign 30% normalization uncertainty in all backgrounds from data-driven
+        #for bkgname in self.backgrounds:
+        #    if not self.backgrounds[bkgname].useLumi:
+        #       bkg_norms = ['-'] + ['1.30' if namebkg == bkgname else '-' for namebkg in self.backgrounds]
+        #       card_entries.append('%s_norm lnN    '%bkgname + '    '.join( bkg_norms ))
 
         #parameter errors
         for iparname, iparval in self.params.iteritems():
@@ -793,11 +1028,15 @@ class MakeLimits( ) :
                #pdfs.append(  ws.pdf( bkg['pdf'] ) )
                #norms.append( ws.var('%s_norm'%bkg.GetPDFName(self.var, self.bins[0]['channel'])).getVal() )
                norms.append( bkg.norm[binid(jbin)][0] )
+               print  bkg.GetPDFName(self.var, **jbin)
+               ws.Print()
                pdfs.append( ws.pdf( bkg.GetPDFName(self.var, **jbin)) )
 
            if xvar is None :
                xvar = ws.var( self.xvarname )
+           xvar.setRange( defs.bkgfitlowbin(cutset) ,2000)
            print xvar
+           #raw_input()
 
            ofile.Close()
 
@@ -816,9 +1055,13 @@ class MakeLimits( ) :
                                 %self.signals[sigpar]['file']
                       raise
                   print sigpar, sig['file'], sig['pdf']
-                  ws = ofile.Get( sig['workspace'] )
-                  pdfs.append( ws.pdf( sig['pdf'] ) )
-                  #norms.append( ws.var( '%s_norm'%sig['pdf']).getVal() * signorm )
+
+                  ## escape if pdf name is set to $PROCESS or other higgscombine shorthand
+                  pdfname = "Resonance" if "$" in sig['pdf'] else sig['pdf']
+
+                  wssig = ofile.Get( sig['workspace'] )
+                  pdfs.append( wssig.pdf( pdfname ) )
+                  #norms.append( wssig.var( '%s_norm'%sig['pdf']).getVal() * signorm )
                   norms.append( sig['rate']*signorm)
 
            print "Normalization:: ", norms
@@ -917,7 +1160,7 @@ class MakeLimits( ) :
         ws_out = ROOT.RooWorkspace( self.wskeys[bkgn].GetWSName() )
 
         var = ws_in.var(self.var)
-        var.setBins(660)
+        var.setBins(50)
         import_workspace( ws_out, var)
 
         for cutset in self.cutsetlist:
@@ -1044,11 +1287,26 @@ class MakeLimits( ) :
 
         suffix = sigpar#+str(ibin["year"] )#"_".join([sigpar, "2016"]) ##FIXME
         ws_entry = "_".join([self.wskeys[self.signame].pdf_prefix, suffix])
+        ws_entry_sysdown = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "down"])
+        ws_entry_sysup   = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "up"])
+
+#        if ibin['channel']=="mu":
+#            ws_entry_sysup = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "mean_MuonEnUp"])
+#            ws_entry_sysdown = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "mean_MuonEnDown"])
+#        elif ibin['channel']=="el":
+#            ws_entry_sysup = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "mean_PhotonEnUp"])
+#            ws_entry_sysdown = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "mean_PhotonEnDown"])
 
         if DEBUG:
            print ws_entry
 
+        ## FIXME hardcoded energy shifts
         pdf = ws_in.pdf( ws_entry )
+        pdf.SetName("Resonance")
+        pdfup = ws_in.pdf( ws_entry_sysup )
+        pdfup.SetName("Resonance_cms_eUp")
+        pdfdn = ws_in.pdf( ws_entry_sysdown )
+        pdfdn.SetName("Resonance_cms_eDown")
 
         for ipar in self.wskeys[self.signame].params_prefix:
             if DEBUG:
@@ -1059,12 +1317,12 @@ class MakeLimits( ) :
             #var.setConstant()
             import_workspace( ws_out, var)
 
-        var = ws_in.var('mt_res')##FIXME
-        var.setBins(660)
+        var = ws_in.var(self.var)
+        var.setBins(50)
         import_workspace( ws_out, var)
 
         norm_var = ws_in.var( '%s_norm' %ws_entry )
-        rate = norm_var.getVal() * scale ## FIXME double counting?
+        rate = norm_var.getVal() * scale
         print tPurple%("norm %g scale %g rate %g" \
                                    %(norm_var.getVal(),scale,rate))
         norm_var.setVal( norm_var.getValV() * scale )
@@ -1075,6 +1333,8 @@ class MakeLimits( ) :
         #getattr( ws_out, 'import' ) ( norm_var )
         #getattr( ws_out, 'import' ) ( pdf )
         import_workspace( ws_out, pdf )
+        import_workspace( ws_out, pdfup )
+        import_workspace( ws_out, pdfdn )
 
         ifile.Close()
 
@@ -1096,7 +1356,9 @@ class MakeLimits( ) :
         self.signals.update( {sigpar : {'channel': binid(ibin),
                                 'file': outputfile,
                                 'workspace': ws_out.GetName(),
-                                'pdf': pdf.GetName(),
+                                #'pdf': pdf.GetName(),
+                                'pdf': "$PROCESS",
+                                'pdf_sys': "$PROCESS_$SYSTEMATIC",
                                 'rate': rate,
                                 'params': sigfitparams} }
                             )
@@ -1273,7 +1535,7 @@ class MakeLimits( ) :
 
         ## generate commands
         if self.method == 'AsymptoticLimits' :
-            command = 'combine -M AsymptoticLimits -m %d --rMin 0.01'\
+            command = 'combine -M AsymptoticLimits -m %d --rMin 0.00001'\
                     ' --rMax 10 %s >& %s'  %( mass, card, log_file )
         if self.method == 'MaxLikelihoodFit' :
             command = 'combine -M MaxLikelihoodFit -m %d --expectSignal=1'\
@@ -1354,18 +1616,24 @@ class MakeLimits( ) :
     def write_combine_files( self ) :
 
         jobs = []
-        output_files = {}
-        for width in self.widthpoints:
-            output_files.setdefault( width, {} )
+        output_files = recdd()
+        ###
+        ### output_file [ width/s ][ mass/i ][ ch/s ]
+        ### content: printout destination of higgscombine
+        ###
+
+        #for width in self.widthpoints:
+        #    output_files.setdefault( width, {} )
 
         # FIXME this should be improved
         if self.method == 'AsymptoticLimits' or self.method == 'MaxLikelihoodFit' :
 
             for sigpar, card in self.allcards.iteritems() :
 
-                print sigpar
                 wid = sigpar.split('_W')[1].split('_')[0]
                 mass = int(sigpar.split('_')[0].lstrip("M"))
+                ch = sigpar.split('_')[2]
+                print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 
                 fname = '%s/Width%s/run_combine_%s.sh' %( self.outputDir, wid, sigpar )
                 log_file = '%s/Width%s/results_%s_%s.txt' \
@@ -1380,7 +1648,7 @@ class MakeLimits( ) :
 
                 ofile.write(command)
 
-                output_files[wid][mass] = log_file
+                output_files[wid][ch][mass] = log_file
 
                 ofile.write( ' cd - \n' )
                 ofile.write( 'echo "^.^ FINISHED ^.^" \n' )
@@ -1430,34 +1698,47 @@ class MakeLimits( ) :
     @f_Dumpfname
     def get_combine_results( self ) :
 
-        combine_results = {}
+        combine_results = recdd()
 
         for width in self.widthpoints:
-            combine_results.setdefault( width, {})
 
-            for mass, f in self.output_files[width].iteritems() :
-                result = self.process_combine_file( f, mass )
-                if self.method == 'AsymptoticLimits' :
-                    #combine_results[var][mass] = float( result[key].split('<')[1] )
-                    if len(result)!=6:
-                       print "missing some limits. Skip this point Mass %d Width %s"%(mass, width)
-                    else:
-                       combine_results[width][mass] = result
+            for ch, massdict in self.output_files[width].iteritems() :
+                for mass, f in massdict.iteritems() :
 
-                if self.method == 'HybridNew' :
-                    if result :
-                        combine_results[var][pt] = float( result['Limit'].split('<')[1].split('+')[0] )
-                    else :
-                        combine_results[var][pt] = 0
+                    result = self.process_combine_file( f, mass )
+
+                    if self.method == 'AsymptoticLimits' :
+
+                        #combine_results[var][mass] = float( result[key].split('<')[1] )
+                        if len(result)!=6:
+                           print "missing some limits. Skip this point Mass %d Width %s"%(mass, width)
+
+                        else:
+                           combine_results[width][ch][mass] = result
+
+                    if self.method == 'HybridNew' :
+
+                        if result :
+                            combine_results[var][pt] = float( result['Limit'].split('<')[1].split('+')[0] )
+                        else :
+                            combine_results[var][pt] = 0
 
         if not os.path.isdir( self.outputDir+'/Results' ) :
+
                print "creating directory %s/Results"%self.outputDir
+
                os.makedirs( self.outputDir+'/Results' )
 
         for width in self.widthpoints:
-            print "\033[1;31m limits on the cross section for signals with %s width saved to %s/Results \033[0m"%( width, self.outputDir )
-            with open('%s/Results/result_%s_%s.json'%(self.outputDir, width, self.bins[0]['channel']), 'w') as fp:
-                 json.dump(combine_results[width], fp)
+            for ch in self.output_files[width].keys() :
+
+                print "\033[1;31m limits on the cross section for signals with %s width ",\
+                      "for channel %s saved to %s/Results \033[0m"%( width, self.outputDir )
+
+                with open('%s/Results/result_%s_%s.json'\
+                            %(self.outputDir, width, ch), 'w') as fp:
+
+                     json.dump(combine_results[width][ch], fp)
 
         return combine_results
 
