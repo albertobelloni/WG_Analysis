@@ -10,7 +10,7 @@ from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
 from pprint import pprint
-gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
+#gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
 from ROOT import RooDoubleCB
 
 
@@ -351,7 +351,7 @@ class FitManager :
             function = function % (' + '.join( order_entries ))
 
             self.defs['atlas'] = {}
-            self.defs['atlas'][0] = (   1 ,      0, 100000) #norm
+            self.defs['atlas'][0] = (   1e-10 ,      0, 100000) #norm
             self.defs['atlas'][1] = (   0 ,      0,  1000)  #power numerator
             self.defs['atlas'][2] = (   2 ,     -10,   100) #power denominator
             self.defs['atlas'][3] = (  -1 ,     -10,    10) # log coeff
@@ -584,7 +584,7 @@ class FitManager :
         fitrange = self.fitrangehelper(fitrange)
         func_str = self.get_fit_function()
 
-        self.func = self.MakeROOTObj( 'TF1', 'tf1_%s' %self.label, func_str, fitrange[0], fitrange[1] )
+        self.func = ROOT.TF1('tf1_%s' %self.label, func_str, fitrange[0], fitrange[1] )
 
         for i in range( 0, self.dof ) :
             this_def = self.get_vals( self.func_name, i )
@@ -699,7 +699,7 @@ class FitManager :
             return self.func_pdf.createHistogram( "%s%s" %(self.label,self.func_name), self.xvardata)
         return self.func_pdf.createHistogram( "%s%s" %(self.label,self.func_name), self.xvardata, rf.Binning(xbins) )
 
-    def get_results( self, workspace = None) :
+    def get_results( self, workspace = None, savedatahist=True) :
         print "get_results",workspace, self.datahist
 
 
@@ -721,8 +721,12 @@ class FitManager :
 
         print "importing"
         if workspace is not None :
-            import_workspace( workspace,
-                    [self.datahist, self.func_pdf, integral_var])
+            if savedatahist:
+                import_workspace( workspace,
+                        [self.datahist, self.func_pdf, integral_var])
+            else:
+                import_workspace( workspace,
+                        [self.func_pdf, integral_var])
 
         return results
 

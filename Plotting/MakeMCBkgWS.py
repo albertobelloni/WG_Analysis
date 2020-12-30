@@ -74,6 +74,7 @@ def main() :
                 #histarray[ch+seltag+var]= makehistall_rdf(var, binning[seltag],  sampMan, sel, weight)
 
                 #hist = makehist(var, binning[seltag], sampnames, sampMan, sel, weight = "NLOWeight")
+                if options.year ==2018: weight = weight.replace("prefweight","1")
                 hist = makehistall(var, binning[seltag],  sampMan, sel, weight)
                 #histarray[ch+seltag+var].DrawSave()
                 #hist = sampMan['__AllStack__'].hist.Clone()
@@ -90,10 +91,12 @@ def main() :
 
                 for ff in fitfunc:
                     suffix = "%s%s%i_%s_%s"%(ch,seltag,options.year,protag, ff)
+                    #suffix = "%s%s%i_%s"%(ch,seltag,options.year,protag)
                     print """
                     *********************
                     calling get_mc_fit for %s
-                    *********************\n """ %tPurple %(sampnames)
+                    *********************\n """ %tPurple %(ff)
+                    #raw_input("cont...")
                     hist1 = get_mc_fit( hist, var , ff, workspace, suffix)
 
                     histarray.append(hist1)
@@ -159,7 +162,8 @@ def get_mc_fit( hist ,var, fitfunc, workspace, suffix='') :
     norders=2
     if fitfunc == "expow" or fitfunc == "atlas":
         norders=1
-    fitManager = FitManager( fitfunc , hist, xvar, suffix, norders =norders)
+    fitManager = FitManager( fitfunc , hist , xvar, suffix, norders =norders)
+    #fitManager.addhist(hist, "datahist"+fitfunc)
     canv = fitManager.draw( paramlayout = (0.7,0.5,0.82),
                             useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
 
@@ -175,7 +179,7 @@ def get_mc_fit( hist ,var, fitfunc, workspace, suffix='') :
 
     print """ cast it from TF1 to RooGenericPdf """
     fitManager.calculate_func_pdf()
-    fitManager.get_results( workspace )
+    fitManager.get_results( workspace, False )
     outhist = fitManager.get_pdf_histogram( xbins = hist.GetNbinsX() )
 
     #results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )

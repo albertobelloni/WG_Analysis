@@ -72,6 +72,9 @@ recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
 
 def main() :
 
+    #bkgparams = ["dijet_order1", "dijet_order2"]
+    pdf_prefix, bkgparams ="expow", ["expow_order1", "expow_order2"]
+    #pdf_prefix, bkgparams ="atlas", ["atlas_order1", "atlas_order2", "atlas_order3"]
     ws_keys = {
               # this can be made to a class
               'signal'   : SampleInfo ( pdf_prefix = 'cb_MG',
@@ -83,6 +86,7 @@ def main() :
                                                'cb_power2_MG' ],
                            useLumi = True, useMET = True, usePDF = True,),
               'All'        : SampleInfo( name = 'All', useLumi = True,
+                                            pdf_prefix=pdf_prefix, params_prefix=bkgparams,
                                             useMET = False, usePDF = False, ),
               'WGamma'        : SampleInfo( name = 'WGamma', useLumi = True,
                                             useMET = False, usePDF = False, ),
@@ -118,7 +122,7 @@ def main() :
     def binid(ibin): return "".join(map(str,ibin.values()))
 
     global lumi
-    def lumi(ibin): 
+    def lumi(ibin):
         year = ibin['year']
         if year == 2016: return _LUMI16
         if year == 2017: return _LUMI17
@@ -680,18 +684,24 @@ class MakeLimits( ) :
     def generate_all_cards( self ):
 
         for width in self.widthpoints:
-            outputdir = self.outputDir + '/' + 'Width' + width
-            if not os.path.isdir( outputdir ) :
-               print " creating directory", outputdir
-               os.makedirs( outputdir )
 
             for mass in self.masspoints:
+
+                outputdir = self.outputDir + '/' + 'Width' + width + '/' + 'all' + '/' + 'Mass%i' %mass
+                if not os.path.isdir( outputdir ) :
+                   print " creating directory", outputdir
+                   os.makedirs( outputdir )
+
                 for obin in self.bins:
+                    suboutputdir = self.outputDir + '/' + 'Width' + width + '/' + binid(obin) + '/' + 'Mass%i' %mass
+                    if not os.path.isdir( suboutputdir ) :
+                       print " creating directory", suboutputdir
+                       os.makedirs( suboutputdir )
                     cuttag = defs.selectcuttag(mass) ## returns A, B, C
 
                     sigpar = "_".join( ['M'+ str(mass), 'W'+width] )
 
-                    card_path = '%s/wgamma_test_%s_%s_%s.txt' %(outputdir, self.var, sigpar, binid(obin) )
+                    card_path = '%s/wgamma_test_%s_%s_%s.txt' %(suboutputdir, self.var, sigpar, binid(obin) )
 
                     self.generate_card( card_path, sigpar, cuttag = cuttag , obin = obin)
 
@@ -1123,7 +1133,6 @@ class MakeLimits( ) :
            datasetname[cutset]=dataset.GetName()
 
        outputfile = '%s/%s/%s.root' %( self.outputDir, self.dataname, workspace.GetName() )
-       print outputfile, "718"
 
        workspace.writeToFile( outputfile )
 
@@ -1193,13 +1202,16 @@ class MakeLimits( ) :
                     if DEBUG:
                        print ipar
                     oldvar = ws_in.var( ipar )
-                    if 'order1' in ipar:
-                        varrange = (-50.0, 0.0)
-                    elif 'order2' in ipar:
-                        varrange = (-10.0, 0.0)
-                    elif 'order3' in ipar:
-                        print "order 3............................"
-                        varrange = (-5.0, 0.0)
+                    if 'dijet' in ipar:
+                        if 'order1' in ipar:
+                            varrange = (-50.0, 0.0)
+                        elif 'order2' in ipar:
+                            varrange = (-10.0, 0.0)
+                        elif 'order3' in ipar:
+                            print "order 3............................"
+                            varrange = (-5.0, 0.0)
+                    else:
+                        varrange = (-100,100)
 
                     var =  ROOT.RooRealVar( ipar, ipar, oldvar.getVal(),
                                             varrange[0], varrange[1] )
@@ -1552,8 +1564,9 @@ class MakeLimits( ) :
 
         commands = []
         self.output_files = {}
-        for width in self.widthpoints:
-            self.output_files.setdefault( width, {} )
+        self.output_files = recdd()
+        #for width in self.widthpoints:
+        #    self.output_files.setdefault( width, {} )
 
         assert self.method == 'AsymptoticLimits' or self.method == 'MaxLikelihoodFit'
 
@@ -1562,6 +1575,8 @@ class MakeLimits( ) :
             print sigpar
             wid = sigpar.split('_W')[1].split('_')[0]
             mass = int(sigpar.split('_')[0].lstrip("M"))
+            ch = sigpar.split('_')[2]
+            print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 
             log_file = '%s/Width%s/results_%s_%s.txt' \
                                  %( self.outputDir, wid, self.var, sigpar )
@@ -1569,8 +1584,8 @@ class MakeLimits( ) :
             print tPurple%command
             commands.append(command)
 
-            self.output_files[wid].setdefault( mass, {} )
-            self.output_files[wid][mass] = log_file
+            #self.output_files[wid].setdefault( mass, {} )
+            self.output_files[wid][ch][mass] = log_file
         return commands
 
 
@@ -1635,9 +1650,9 @@ class MakeLimits( ) :
                 ch = sigpar.split('_')[2]
                 print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 
-                fname = '%s/Width%s/run_combine_%s.sh' %( self.outputDir, wid, sigpar )
-                log_file = '%s/Width%s/results_%s_%s.txt' \
-                                             %( self.outputDir, wid, self.var, sigpar )
+                fname = '%s/Width%s/%s/Mass%i/run_combine_%s.sh' %( self.outputDir, wid, ch, mass, sigpar )
+                log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
+                                             %( self.outputDir, wid, ch, mass, self.var, sigpar )
                 command= self.get_combine_command(sigpar, card, log_file) + "\n"
 
                 ## write shell script (for condor jobs)

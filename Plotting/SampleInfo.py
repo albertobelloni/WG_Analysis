@@ -54,7 +54,8 @@ class SampleInfo() :
        if self.isSignal:
           return "workspace_%s_%s"%(self.name, self.sigpar)
        else:
-          return "workspace_%s_%s"%(self.name.lower(),self.pdf_prefix)
+          #return "workspace_%s_%s"%(self.name.lower(),self.pdf_prefix)
+          return "workspace_%s"%(self.name.lower())
 
    def GetPDFNamesList( self, var, cutsettag = "ABC" ,channel="mu", year = 2016 ):
        ## FIXME may be deleted
@@ -69,7 +70,7 @@ class SampleInfo() :
           print "pdfname:",tmp
           return tmp
        else:
-          return "_".join( [ self.pdf_prefix, channel+str(year), self.name.lower()] )
+          return "_".join( [ self.pdf_prefix, channel+str(year), self.name.lower(), self.pdf_prefix] )
 
    def GetParNames( self, channel ="mu", year = 2016):
        parlist = []
@@ -78,7 +79,7 @@ class SampleInfo() :
               parlist.append( "_".join( [ ipar_prefix, self.sigpar, channel+str(year), var ] ) )
            else:
               parlist.append( "_".join( [ ipar_prefix,
-                  channel+str(year), self.name.lower() ] ) )
+                  channel+str(year), self.name.lower(), self.pdf_prefix] ) )
        return parlist
 
 
