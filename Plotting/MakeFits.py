@@ -72,8 +72,8 @@ recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
 
 def main() :
 
-    #bkgparams = ["dijet_order1", "dijet_order2"]
-    pdf_prefix, bkgparams ="expow", ["expow_order1", "expow_order2"]
+    pdf_prefix, bkgparams ="dijet", ["dijet_order1", "dijet_order2"]
+    #pdf_prefix, bkgparams ="expow", ["expow_order1", "expow_order2"]
     #pdf_prefix, bkgparams ="atlas", ["atlas_order1", "atlas_order2", "atlas_order3"]
     ws_keys = {
               # this can be made to a class
@@ -171,6 +171,9 @@ def main() :
                                # don't put norms in new file
                                keeplNorms = False,
                                noShapeUnc = True,
+                               #method = 'AsymptoticLimitsManual', ## only use --condor with manual
+                               #manualpoints = [ 0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
+                               #                 3.5,4.,5.,8.,10.,15.,20.,30.,100.]
                              )
 
         var_opt.setup()
@@ -225,7 +228,7 @@ def make_jdl( exe_list, output_file ) :
     '# Require to run on SL/CentOS7',
     'Requirements = (TARGET.OpSysMajorVer == 7)',
     'when_to_transfer_output = ON_EXIT_OR_EVICT',
-    '+IsTestJob=True'
+    #'+IsTestJob=True'
     ]
 
     for exe in exe_list :
@@ -332,6 +335,7 @@ class MakeLimits( ) :
 
         self.wstag = kwargs.get('wsTag', 'base' )
         self.method = kwargs.get('method', 'AsymptoticLimits' )
+        self.manualpoints = kwargs.get('manualpoints', [] )
 
         self.xvarname = kwargs.get('xvarname', 'mt_res')
 
@@ -1085,6 +1089,9 @@ class MakeLimits( ) :
                        norm = int(norms[0])
                    else :
                        norm = data_norm
+                   #norm=norm*2
+                   print "toy data #: ",norm
+                   #raw_input("generating")
                    dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
                              ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
                                              'toydata_%s' %suffix ) )
@@ -1542,13 +1549,25 @@ class MakeLimits( ) :
     def get_combine_command( self, sigpar, card, log_file):
 
         ### essential info
-        wid = sigpar.split('_W')[1].split('_')[0] ## FIXME repeated
+        wid = sigpar.split('_W')[1].split('_')[0] ## FIXME should split a new class
         mass = int(sigpar.split('_')[0].lstrip("M"))
 
         ## generate commands
         if self.method == 'AsymptoticLimits' :
             command = 'combine -M AsymptoticLimits -m %d --rMin 0.00001'\
                     ' --rMax 10 %s >& %s'  %( mass, card, log_file )
+
+        if self.method == 'AsymptoticLimitsManual' :
+            command = ''
+            command+='rm higgsCombine*.AsymptoticLimits.*.root\n'
+            for ip in self.manualpoints:
+                command += 'combine -M AsymptoticLimits -m %d --singlePoint %g -n %g'\
+                        ' %s  \n'  %( mass, ip, ip, card )
+            command+='rm limits.root\n'
+            command+='hadd limits.root higgsCombine*.AsymptoticLimits.*\n'
+            command+= 'combine -M AsymptoticLimits -m %d --getLimitFromGrid limits.root'\
+                    ' %s > %s'  %( mass, card, log_file )
+
         if self.method == 'MaxLikelihoodFit' :
             command = 'combine -M MaxLikelihoodFit -m %d --expectSignal=1'\
                     ' %s --plots -n %s >> %s \n' %( mass, card, self.var, log_file )
@@ -1568,7 +1587,7 @@ class MakeLimits( ) :
         #for width in self.widthpoints:
         #    self.output_files.setdefault( width, {} )
 
-        assert self.method == 'AsymptoticLimits' or self.method == 'MaxLikelihoodFit'
+        assert  'AsymptoticLimits' in self.method or self.method == 'MaxLikelihoodFit'
 
         for sigpar, card in self.allcards.iteritems() :
 
@@ -1578,8 +1597,8 @@ class MakeLimits( ) :
             ch = sigpar.split('_')[2]
             print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 
-            log_file = '%s/Width%s/results_%s_%s.txt' \
-                                 %( self.outputDir, wid, self.var, sigpar )
+            log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
+                                 %( self.outputDir, wid, ch, mass, self.var, sigpar )
             command= self.get_combine_command(sigpar, card, log_file)
             print tPurple%command
             commands.append(command)
@@ -1641,7 +1660,9 @@ class MakeLimits( ) :
         #    output_files.setdefault( width, {} )
 
         # FIXME this should be improved
-        if self.method == 'AsymptoticLimits' or self.method == 'MaxLikelihoodFit' :
+        if self.method == 'AsymptoticLimits' \
+          or self.method == 'AsymptoticLimitsManual' \
+          or self.method == 'MaxLikelihoodFit' :
 
             for sigpar, card in self.allcards.iteritems() :
 
@@ -1651,6 +1672,7 @@ class MakeLimits( ) :
                 print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 
                 fname = '%s/Width%s/%s/Mass%i/run_combine_%s.sh' %( self.outputDir, wid, ch, mass, sigpar )
+                rundir = '%s/Width%s/%s/Mass%i/' %( self.outputDir, wid, ch, mass )
                 log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
                                              %( self.outputDir, wid, ch, mass, self.var, sigpar )
                 command= self.get_combine_command(sigpar, card, log_file) + "\n"
@@ -1660,12 +1682,13 @@ class MakeLimits( ) :
                 ofile.write( '#!/bin/bash\n' )
                 ofile.write( 'cd %s \n' %options.combineDir )
                 ofile.write( 'eval `scramv1 runtime -sh` \n' )
+                ofile.write( 'cd %s \n' %rundir )
 
                 ofile.write(command)
 
                 output_files[wid][ch][mass] = log_file
 
-                ofile.write( ' cd - \n' )
+                ofile.write( 'cd - \n' )
                 ofile.write( 'echo "^.^ FINISHED ^.^" \n' )
 
                 ofile.close()
@@ -1722,7 +1745,7 @@ class MakeLimits( ) :
 
                     result = self.process_combine_file( f, mass )
 
-                    if self.method == 'AsymptoticLimits' :
+                    if self.method == 'AsymptoticLimits' or self.method == 'AsymptoticLimitsManual':
 
                         #combine_results[var][mass] = float( result[key].split('<')[1] )
                         if len(result)!=6:
@@ -1775,7 +1798,7 @@ class MakeLimits( ) :
 
         Wlepbr = 10.71 + 10.63 + 11.38
 
-        if self.method == 'AsymptoticLimits' :
+        if self.method == 'AsymptoticLimits' or self.method == 'AsymptoticLimitsManual':
             for line in ofile :
                 if line.count(':') > 0 :
                     spline = line.split(':')
