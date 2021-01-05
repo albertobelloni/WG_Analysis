@@ -19,7 +19,7 @@ INC_DIR = include
 ROOTCINT     = rootcling
 ROOTCONFIG   = root-config
 
-BOOST_VER    = 1.57.0-ikhhed
+BOOST_VER    = 1.67.0
 
 ROOTCXXFLAGS = $(shell $(ROOTCONFIG) --cflags)
 BOOSTFLAGS   = \
@@ -54,3 +54,4 @@ $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cxx
 clean:
 	@echo -e "\n===> cleaning directories"
 	rm -f $(OBJ_DIR)/*.o 
+	rm *.exe

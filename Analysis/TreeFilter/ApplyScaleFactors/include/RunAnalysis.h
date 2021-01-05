@@ -3,6 +3,7 @@
 
 #include "AnalysisBase.h"
 #include "include/BranchDefs.h"
+#include "include/BTagCalibrationStandalone.h"
 
 #include <string>
 #include <vector>
@@ -57,6 +58,7 @@ class RunModule : public virtual RunModuleBase {
         // Examples :
         void AddElectronSF   ( ModuleConfig & config ) const;
         void AddMuonSF       ( ModuleConfig & config ) const;
+        void AddBJetSF     ( ModuleConfig & config ) const;
         void AddPhotonSF     ( ModuleConfig & config ) const;
         void AddPileupSF     ( ModuleConfig & config ) const;
         void AddMETUncert    ( ModuleConfig & config ) const;
@@ -70,7 +72,7 @@ class RunModule : public virtual RunModuleBase {
         float calc_pu_weight( float puval, float mod=1.0 ) const;
         float get_ele_cutid_syst( float pt, float eta) const;
 
-        
+
 
     private :
 
@@ -117,13 +119,20 @@ class RunModule : public virtual RunModuleBase {
         TH1D *_sfhist_pileup_data;
         TH1F *_sfhist_pileup_mc;
 
-	int _year_mu;
-	int _year_el;
-	int _year_ph;
+	      int _year_mu;
+	      int _year_el;
+	      int _year_ph;
+
+        BTagCalibrationReader *reader;
+        BTagCalibration *calib;
+        TFile *_efffile_jet;
+        TH2F *_effhist_jet_c;
+        TH2F *_effhist_jet_b;
+        TH2F *_effhist_jet_l;
 
 };
 
-// Ouput namespace 
+// Ouput namespace
 // Declare any output variables that you'll fill here
 namespace OUT {
 
@@ -169,7 +178,12 @@ namespace OUT {
     float mu_idSF;
     float mu_idSFUP;
     float mu_idSFDN;
+#endif
 
+#ifdef MODULE_AddBJetSF
+    float jet_btagSF;
+    float jet_btagSFUP;
+    float jet_btagSFDN;
 #endif
 
 
