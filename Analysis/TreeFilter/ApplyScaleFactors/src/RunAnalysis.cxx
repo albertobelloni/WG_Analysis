@@ -448,6 +448,32 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
             }
 
             std::map<std::string, std::string>::const_iterator itr;
+
+            itr = mod_conf.GetInitData().find("HiPtId_inner_const");
+            if (itr != mod_conf.GetInitData().end())
+                _HiPtId_inner_const = std::stod(itr->second);
+            itr = mod_conf.GetInitData().find("HiPtId_inner_cov00");
+            if (itr != mod_conf.GetInitData().end())
+                _HiPtId_inner_cov00 = std::stod(itr->second);
+            itr = mod_conf.GetInitData().find("HiPtId_inner_cov01");
+            if (itr != mod_conf.GetInitData().end())
+                _HiPtId_inner_cov01 = std::stod(itr->second);
+            itr = mod_conf.GetInitData().find("HiPtId_inner_cov11");
+            if (itr != mod_conf.GetInitData().end())
+                _HiPtId_inner_cov11 = std::stod(itr->second);
+            itr = mod_conf.GetInitData().find("HiPtId_outer_const");
+            if (itr != mod_conf.GetInitData().end())
+                _HiPtId_outer_const = std::stod(itr->second);
+            itr = mod_conf.GetInitData().find("HiPtId_outer_cov00");
+            if (itr != mod_conf.GetInitData().end())
+                _HiPtId_outer_cov00 = std::stod(itr->second);
+            itr = mod_conf.GetInitData().find("HiPtId_outer_cov01");
+            if (itr != mod_conf.GetInitData().end())
+                _HiPtId_outer_cov01 = std::stod(itr->second);
+            itr = mod_conf.GetInitData().find("HiPtId_outer_cov11");
+            if (itr != mod_conf.GetInitData().end())
+                _HiPtId_outer_cov11 = std::stod(itr->second);
+
             std::map<std::string, std::string>::const_iterator hname;
 
             itr = mod_conf.GetInitData().find("FilePathId");
@@ -490,6 +516,12 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                         if (!_sfhist_ph_psv_2018)
                             std::cout << "Could not get PSV hist from file "
                                       << _sffile_ph_psv->GetName() << std::endl;
+                        hname = mod_conf.GetInitData().find("HistPSveto_err");
+                        _sfhist_ph_psv_2018_err = dynamic_cast<TH2F *>(
+                            _sffile_ph_psv->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_psv_2018_err)
+                            std::cout << "Could not get PSV err hist from file "
+                                      << _sffile_ph_psv->GetName() << std::endl;
                     }
                 } else {
                     std::cout << "Could not open file " << itr->second << std::endl;
@@ -519,6 +551,12 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                             dynamic_cast<TH2F *>(_sffile_ph_ev->Get((hname->second).c_str()));
                         if (!_sfhist_ph_csev_2018)
                             std::cout << "Could not get CSEV 2D hist from file "
+                                      << _sffile_ph_ev->GetName() << std::endl;
+                        hname = mod_conf.GetInitData().find("HistCSEveto_err");
+                        _sfhist_ph_csev_2018_err = dynamic_cast<TH2F *>(
+                            _sffile_ph_ev->Get((hname->second).c_str()));
+                        if (!_sfhist_ph_csev_2018_err)
+                            std::cout << "Could not get CSEV err hist from file "
                                       << _sffile_ph_ev->GetName() << std::endl;
                     }
                 } else {
@@ -972,9 +1010,37 @@ void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
         float pt = OUT::ph_pt->at(idx);
         float eta = OUT::ph_eta->at(idx);
 
-        ValWithErr res_id = GetVals2D(_sfhist_ph_id, eta, pt);
-        sfs_id.push_back(res_id.val);
-        errs_id.push_back(res_id.err_up);
+        if (pt < 100 || fabs(eta) > 1.44) {
+            ValWithErr res_id = GetVals2D(_sfhist_ph_id, eta, pt);
+            sfs_id.push_back(res_id.val);
+            errs_id.push_back(res_id.err_up);
+        }
+        else {
+            // high-pt photon ID fit: https://indico.cern.ch/event/879936/#3-high-pt-photon-sfs-for-wgamm
+            double const_fit, cov00, cov01, cov11;
+            
+            if (fabs(eta) < 0.8) {
+                const_fit = _HiPtId_inner_const;
+                cov00     = _HiPtId_inner_cov00;
+                cov01     = _HiPtId_inner_cov01;
+                cov11     = _HiPtId_inner_cov11;
+            }
+            else {
+                const_fit = _HiPtId_outer_const;
+                cov00     = _HiPtId_outer_cov00;
+                cov01     = _HiPtId_outer_cov01;
+                cov11     = _HiPtId_outer_cov11;
+            }
+            
+            // central value from constant fit
+            sfs_id.push_back(const_fit);
+            
+            // uncertainty from linear fit
+            double dp0 = 1.;
+            double dp1 = pt - 150.;
+            double err2 = dp0*cov00*dp0 + 2*dp0*cov01*dp1 + dp1*cov11*dp1;
+            errs_id.push_back(sqrt(err2));
+        }
 
         if (_year_ph == 2016) {
 
@@ -1001,14 +1067,15 @@ void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
         } else if (_year_ph == 2018) {
 
             ValWithErr res_psv = GetVals2D(_sfhist_ph_psv_2018, pt, fabs(eta));
+            ValWithErr err_psv = GetVals2D(_sfhist_ph_psv_2018_err, pt, fabs(eta));
             ValWithErr res_csev = GetVals2D(_sfhist_ph_csev_2018, pt, fabs(eta));
+            ValWithErr err_csev = GetVals2D(_sfhist_ph_csev_2018_err, pt, fabs(eta));
 
             sfs_csev.push_back(res_csev.val);
-            errs_csev.push_back(res_csev.err_up);
+            errs_csev.push_back(err_csev.val);
 
             sfs_psv.push_back(res_psv.val);
-            errs_psv.push_back(res_psv.err_up);
-
+            errs_psv.push_back(err_psv.val);
         } else
             std::cout << "ERROR AddPhotonSF: year not recognized!" << std::endl;
     }
