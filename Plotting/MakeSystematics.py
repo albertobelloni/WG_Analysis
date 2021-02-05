@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import matplotlib.pyplot as plt
 import sys, json
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 def addparser(parser):
     parser.add_argument('--massplots',  action='store_true', help='Make nuisance parameters vs mass plots' )
@@ -14,6 +14,7 @@ from DrawConfig import DrawConfig
 ###
 ### This script makes systematic shape comparison plots and normlization estimates
 ###
+print os.getcwd()
 
 year = options.year
 ch = options.ch

@@ -116,7 +116,9 @@ class DrawConfig :
             if not set, returns Events/ x GeV with bin width calculated from histpars"""
         ylabel = self.hist_config.get('ylabel', None)
         if ylabel is None :
-            if isinstance( self.histpars, tuple ) :
+            if isinstance( self.histpars, tuple ) and isinstance( self.histpars[0], tuple ):
+                bin_width = float( self.histpars[0][2] - self.histpars[0][1] )/self.histpars[0][0]
+            elif isinstance( self.histpars, tuple ) and len(self.histpars)==3:
                 bin_width = float( self.histpars[2] - self.histpars[1] )/self.histpars[0]
             else :
                 bin_width = 1

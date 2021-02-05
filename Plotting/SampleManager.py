@@ -4044,6 +4044,8 @@ class SampleManager(SampleFrame) :
     def set_stack_default_formatting(self, topcan, doratio, logy=False ) :
         if topcan.GetHists() != None :
             if topcan.GetHists().GetSize() > 0 :
+                if isinstance(topcan.GetHists()[0],ROOT.TH2):
+                    return
                 offset = 1.15
                 if logy :
                     offset = 1.1
@@ -4203,7 +4205,7 @@ class SampleManager(SampleFrame) :
                     ymin=None
 
                 if not ymaxdef and ymax: ymax *= pow(ymax/ymin,ymax_scale-1)
-                if not ymindef and ymin: ymin *= pow(ymax/ymin,0.9-1)
+                if not ymindef and ymin and ymax: ymin *= pow(ymax/ymin,0.9-1)
 
             else :
 
@@ -4479,6 +4481,7 @@ class SampleManager(SampleFrame) :
             topcan.DrawClonePad()
 
         if isinstance( topcan, ROOT.THStack ) :
+            drawopt = draw_config.get_drawopt()
             samplist = self.get_samples(isSignal=True,isActive=True)+\
                        self.get_samples(name="__AllStack__")+\
                        self.get_samples(isData=True,isActive=True)
@@ -4486,7 +4489,7 @@ class SampleManager(SampleFrame) :
             if topcan.GetHists() == None :
                 print 'Top stack has no hists! Exiting'
                 return
-            topcan.Draw()
+            topcan.Draw(drawopt)
             logy = draw_config.get_logy()
             if ymin and not (logy and ymin<=0):
                 topcan.SetMinimum(ymin)

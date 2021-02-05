@@ -304,6 +304,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::WIDStep                                = 0;
 
     OUT::NLOWeight                              = 1;
+    OUT::PDFWeights                             = 0;
 
     OUT::PUWeight                               = 1;
     OUT::PUWeightUP5                            = 1;
@@ -403,6 +404,18 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("m_mt_lep_met_ph_forcewmass"        , &OUT::m_mt_lep_met_ph_forcewmass        , "m_mt_lep_met_ph_forcewmass/F"  );
     outtree->Branch("mt_w"        , &OUT::mt_w        , "mt_w/F"  );
     outtree->Branch("mt_res"        , &OUT::mt_res        , "mt_res/F"  );
+    outtree->Branch("mt_res_JetResUp",          &OUT::mt_res_JetResUp             ,"mt_res_JetResUp/F" );
+    outtree->Branch("mt_res_JetResDown",        &OUT::mt_res_JetResDown           ,"mt_res_JetResDown/F" );
+    outtree->Branch("mt_res_JetEnUp",           &OUT::mt_res_JetEnUp              ,"mt_res_JetEnUp/F" );
+    outtree->Branch("mt_res_JetEnDown",         &OUT::mt_res_JetEnDown            ,"mt_res_JetEnDown/F" );
+    outtree->Branch("mt_res_MuonEnUp",          &OUT::mt_res_MuonEnUp             ,"mt_res_MuonEnUp/F" );
+    outtree->Branch("mt_res_MuonEnDown",        &OUT::mt_res_MuonEnDown           ,"mt_res_MuonEnDown/F" );
+    outtree->Branch("mt_res_ElectronEnUp",      &OUT::mt_res_ElectronEnUp         ,"mt_res_ElectronEnUp/F" );
+    outtree->Branch("mt_res_ElectronEnDown",    &OUT::mt_res_ElectronEnDown       ,"mt_res_ElectronEnDown/F" );
+    outtree->Branch("mt_res_PhotonEnUp",        &OUT::mt_res_PhotonEnUp           ,"mt_res_PhotonEnUp/F" );
+    outtree->Branch("mt_res_PhotonEnDown",      &OUT::mt_res_PhotonEnDown         ,"mt_res_PhotonEnDown/F" );
+    outtree->Branch("mt_res_UnclusteredEnUp",   &OUT::mt_res_UnclusteredEnUp      ,"mt_res_UnclusteredEnUp/F" );
+    outtree->Branch("mt_res_UnclusteredEnDown", &OUT::mt_res_UnclusteredEnDown    ,"mt_res_UnclusteredEnDown/F" );
     outtree->Branch("mt_lep_ph"        , &OUT::mt_lep_ph        , "mt_lep_ph/F"  );
     outtree->Branch("dphi_lep_ph"        , &OUT::dphi_lep_ph        , "dphi_lep_ph/F"  );
     outtree->Branch("dr_lep_ph"        , &OUT::dr_lep_ph        , "dr_lep_ph/F"  );
@@ -580,6 +593,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     }
 
     outtree->Branch("NLOWeight", &OUT::NLOWeight, "NLOWeight/F" );
+    outtree->Branch("PDFWeights", &OUT::PDFWeights );
     outtree->Branch("PUWeight", &OUT::PUWeight, "PUWeight/F" );
     outtree->Branch("PUWeightUP5", &OUT::PUWeightUP5, "PUWeightUP5/F" );
     outtree->Branch("PUWeightUP10", &OUT::PUWeightUP10, "PUWeightUP10/F" );
@@ -602,6 +616,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
 
         }
         if( mod_conf.GetName() == "FilterEvent" ) { 
+
+            for ( int i = 0 ; i < 6 ; i++ ) OUT::PDFWeights->push_back(1.);
 
             eitr = mod_conf.GetInitData().find( "evalCutflow" );
             if( eitr != mod_conf.GetInitData().end() ) {
@@ -986,6 +1002,10 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
     OUT::mu_pt30_n             = 0;
     OUT::mu_pt_rc              -> clear();
     OUT::mu_e_rc              -> clear();
+    OUT::mu_pt_rc_up              -> clear();
+    OUT::mu_e_rc_up              -> clear();
+    OUT::mu_pt_rc_down              -> clear();
+    OUT::mu_e_rc_down              -> clear();
     OUT::mu_passTight          -> clear();
     OUT::mu_passMedium         -> clear();
     OUT::mu_passLoose          -> clear();
@@ -2013,14 +2033,21 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         float pfNeuIso = IN::ph_neuIso->at(idx);
         float pfPhoIso = IN::ph_phoIso->at(idx);
 
-        float pfChIsoRhoCorr = 0.0;
-        float pfNeuIsoRhoCorr = 0.0;
-        float pfPhoIsoRhoCorr = 0.0;
-        calc_corr_iso( pfChIso, pfPhoIso, pfNeuIso, IN::rho, sceta, pfChIsoRhoCorr, pfPhoIsoRhoCorr, pfNeuIsoRhoCorr);
+        //float pfChIsoRhoCorr = 0.0;
+        //float pfNeuIsoRhoCorr = 0.0;
+        //float pfPhoIsoRhoCorr = 0.0;
+        //calc_corr_iso( pfChIso, pfPhoIso, pfNeuIso, IN::rho, sceta, pfChIsoRhoCorr, pfPhoIsoRhoCorr, pfNeuIsoRhoCorr);
 
-        //float pfChIsoRhoCorr  = IN::ph_chIsoCorr->at(idx);
-        //float pfNeuIsoRhoCorr = IN::ph_neuIsoCorr->at(idx);
-        //float pfPhoIsoRhoCorr = IN::ph_phoIsoCorr->at(idx);
+        //float pfChIsoRhoCorr2  = IN::ph_chIsoCorr->at(idx);
+        //float pfNeuIsoRhoCorr2 = IN::ph_neuIsoCorr->at(idx);
+        //float pfPhoIsoRhoCorr2 = IN::ph_phoIsoCorr->at(idx);
+        float pfChIsoRhoCorr  = IN::ph_chIsoCorr->at(idx);
+        float pfNeuIsoRhoCorr = IN::ph_neuIsoCorr->at(idx);
+        float pfPhoIsoRhoCorr = IN::ph_phoIsoCorr->at(idx);
+        
+       // std::cout<<"ch  "<< pfChIso  <<" "<< pfChIsoRhoCorr <<" " << pfChIsoRhoCorr2 <<" " 
+       //          <<"neu "<< pfNeuIso <<" "<< pfNeuIsoRhoCorr<<" " << pfNeuIsoRhoCorr2<<" " 
+       //          <<"pho "<< pfPhoIso <<" "<< pfPhoIsoRhoCorr<<" " << pfPhoIsoRhoCorr2<<" " << std::endl; 
         float p1_neu = 0;
         float p2_neu = 0;
         float p1_pho = 0;
@@ -2106,37 +2133,35 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
 
             // medium
             if( !use_eval || _eval_ph_medium ) {
-                config.PassCounter("electron_barrel");
-                config.PassCounter("electron_endcap",true,0.0);
-                if( !config.PassFloat( "cut_sigmaIEIE_barrel_medium"  , sigmaIEIE          ,false) ) {
+                if( !config.PassFloat( "cut_sigmaIEIE_barrel_medium"  , sigmaIEIE         ) ) {
                     pass_medium=false;
                     pass_sieie_medium=false;
                     if( _eval_ph_medium ) continue;
                 } else {
                     config.PassCounter("cut_sigmaIEIE_medium");
                 }
-                if( !config.PassFloat( "cut_chIsoCorr_barrel_medium"  , pfChIsoPtRhoCorr   ,false) ) {
+                if( !config.PassFloat( "cut_chIsoCorr_barrel_medium"  , pfChIsoPtRhoCorr   ) ) {
                     pass_medium=false;
                     pass_chIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
                 } else {
                     config.PassCounter("cut_chIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_neuIsoCorr_barrel_medium" , pfNeuIsoPtRhoCorr  ,false) ) {
+                if( !config.PassFloat( "cut_neuIsoCorr_barrel_medium" , pfNeuIsoPtRhoCorr  ) ) {
                     pass_medium=false;
                     pass_neuIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
                 } else {
                     config.PassCounter("cut_neuIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_phoIsoCorr_barrel_medium" , pfPhoIsoPtRhoCorr  ,false) ) {
+                if( !config.PassFloat( "cut_phoIsoCorr_barrel_medium" , pfPhoIsoPtRhoCorr ) ) {
                     pass_medium=false;
                     pass_phoIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
                 } else {
                     config.PassCounter("cut_phoIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_hovere_barrel_medium" , hovere ,false) ) {
+                if( !config.PassFloat( "cut_hovere_barrel_medium" , hovere ) ) {
                     pass_medium=false;
                     pass_hovere_medium = false;
                     if( _eval_ph_medium ) continue;
@@ -2167,7 +2192,7 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
                     pass_phoIsoCorr_tight = false;
                     if( _eval_ph_tight ) continue;
                 }
-                if( !config.PassFloat( "cut_hovere_barrel_tight"  , hovere) ) {
+                if( !config.PassFloat( "cut_hovere_barrel_tight"  , hovere ) ) {
                     pass_tight=false;
                     pass_hovere_tight = false;
                     if( _eval_ph_tight ) continue;
@@ -2211,37 +2236,35 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
 
             // medium
             if( !use_eval || _eval_ph_medium ) {
-                config.PassCounter("electron_barrel",true,0.0);
-                config.PassCounter("electron_endcap");
-                if( !config.PassFloat( "cut_sigmaIEIE_endcap_medium"  , sigmaIEIE          ,false) ) {
+                if( !config.PassFloat( "cut_sigmaIEIE_endcap_medium"  , sigmaIEIE          ) ) {
                     pass_medium=false;
                     pass_sieie_medium=false;
                     if( _eval_ph_medium ) continue;
                 } else {  
                     config.PassCounter("cut_sigmaIEIE_medium");
                 }
-                if( !config.PassFloat( "cut_chIsoCorr_endcap_medium"  , pfChIsoPtRhoCorr   ,false) ) {
+                if( !config.PassFloat( "cut_chIsoCorr_endcap_medium"  , pfChIsoPtRhoCorr   ) ) {
                     pass_medium=false;
                     pass_chIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
                 } else {  
                     config.PassCounter("cut_chIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_neuIsoCorr_endcap_medium" , pfNeuIsoPtRhoCorr  ,false) ) {
+                if( !config.PassFloat( "cut_neuIsoCorr_endcap_medium" , pfNeuIsoPtRhoCorr  ) ) {
                     pass_medium=false;
                     pass_neuIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
                 } else {  
                     config.PassCounter("cut_neuIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_phoIsoCorr_endcap_medium" , pfPhoIsoPtRhoCorr  ,false) ) {
+                if( !config.PassFloat( "cut_phoIsoCorr_endcap_medium" , pfPhoIsoPtRhoCorr  ) ) {
                     pass_medium=false;
                     pass_phoIsoCorr_medium = false;
                     if( _eval_ph_medium ) continue;
                 } else {  
                     config.PassCounter("cut_phoIsoCorr_medium");
                 }
-                if( !config.PassFloat( "cut_hovere_endcap_medium" , hovere ,false) )  {
+                if( !config.PassFloat( "cut_hovere_endcap_medium" , hovere ) )  {
                     pass_medium=false;
                     pass_hovere_medium = false;
                     if( _eval_ph_medium ) continue;
@@ -2338,6 +2361,15 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
 
         OUT::ph_min_el_dr            -> push_back( min_el_dr );
 
+/*          if (pass_tight != IN::ph_passVIDTight->at(idx) && iseb) {
+          std::cout<< "sigmaIEIE "<< sigmaIEIE
+                    << " chIsoCorr "  << pfChIsoPtRhoCorr
+                    << " neuIsoCorr " << pfNeuIsoPtRhoCorr
+                    << " phoIsoCorr " << pfPhoIsoPtRhoCorr
+                    << " hovere " << hovere<<std::endl; 
+
+        }
+  */
         OUT::ph_passTight            -> push_back(pass_tight);
         OUT::ph_passMedium           -> push_back(pass_medium);
         OUT::ph_passLoose            -> push_back(pass_loose);
@@ -2805,6 +2837,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     std::vector<TLorentzVector> leptons_ElEn_up;
     std::vector<TLorentzVector> leptons_ElEn_down;
     std::vector<TLorentzVector> photons;
+    std::vector<TLorentzVector> photons_PhEn_up;
+    std::vector<TLorentzVector> photons_PhEn_down;
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         TLorentzVector tlv;
@@ -2833,28 +2867,49 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
 
     for( int idx = 0; idx < OUT::el_n; ++idx ) {
         TLorentzVector tlv;
+        TLorentzVector tlv_up;
+        TLorentzVector tlv_down;
         tlv.SetPtEtaPhiE( OUT::el_pt->at(idx), 
                           OUT::el_eta->at(idx), 
                           OUT::el_phi->at(idx), 
                           OUT::el_e->at(idx) );
+        tlv_up.SetPtEtaPhiE( OUT::el_pt_ScaleUp->at(idx), 
+                          OUT::el_eta->at(idx), 
+                          OUT::el_phi->at(idx), 
+                          OUT::el_e_ScaleUp->at(idx) );
+        tlv_down.SetPtEtaPhiE( OUT::el_pt_ScaleDown->at(idx), 
+                          OUT::el_eta->at(idx), 
+                          OUT::el_phi->at(idx), 
+                          OUT::el_e_ScaleDown->at(idx) );
 
         leptons.push_back(tlv);
-        // no electron sysetmatics yet FIXME
         leptons_MuEn_up.push_back(tlv);
         leptons_MuEn_down.push_back(tlv);
-        leptons_ElEn_up.push_back(tlv);
-        leptons_ElEn_down.push_back(tlv);
+        leptons_ElEn_up.push_back(tlv_up);
+        leptons_ElEn_down.push_back(tlv_down);
     }
 
 
     for( int idx = 0; idx < OUT::ph_n; ++idx ) {
         TLorentzVector tlv;
+        TLorentzVector tlv_up;
+        TLorentzVector tlv_down;
         tlv.SetPtEtaPhiE( OUT::ph_pt->at(idx), 
                           OUT::ph_eta->at(idx), 
                           OUT::ph_phi->at(idx), 
                           OUT::ph_e->at(idx) );
+        tlv_up.SetPtEtaPhiE( OUT::ph_pt_ScaleUp->at(idx), 
+                          OUT::ph_eta->at(idx), 
+                          OUT::ph_phi->at(idx), 
+                          OUT::ph_e_ScaleUp->at(idx) );
+        tlv_down.SetPtEtaPhiE( OUT::ph_pt_ScaleDown->at(idx), 
+                          OUT::ph_eta->at(idx), 
+                          OUT::ph_phi->at(idx), 
+                          OUT::ph_e_ScaleDown->at(idx) );
 
         photons.push_back(tlv);
+        photons_PhEn_up.push_back(tlv_up);
+        photons_PhEn_down.push_back(tlv_down);
     }
 
     TLorentzVector metlv;
@@ -2958,6 +3013,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             TLorentzVector lep_trans_ElEn_up; 
             TLorentzVector lep_trans_ElEn_down; 
             TLorentzVector ph_trans; 
+            TLorentzVector ph_trans_PhEn_up; 
+            TLorentzVector ph_trans_PhEn_down; 
 
             lep_trans.SetPtEtaPhiM( leptons[0].Pt(), 0.0, leptons[0].Phi(), leptons[0].M() );
             lep_trans_MuEn_up  .SetPtEtaPhiM( leptons_MuEn_up[0].Pt(),   0.0, leptons_MuEn_up[0].Phi(),   leptons_MuEn_up[0].M() );
@@ -2966,6 +3023,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             lep_trans_ElEn_down.SetPtEtaPhiM( leptons_ElEn_down[0].Pt(), 0.0, leptons_ElEn_down[0].Phi(), leptons_ElEn_down[0].M() );
 
             ph_trans.SetPtEtaPhiM( photons[0].Pt(), 0.0, photons[0].Phi(), photons[0].M() );
+            ph_trans_PhEn_up.SetPtEtaPhiM( photons_PhEn_up[0].Pt(), 0.0, photons_PhEn_up[0].Phi(), photons_PhEn_up[0].M() );
+            ph_trans_PhEn_down.SetPtEtaPhiM( photons_PhEn_down[0].Pt(), 0.0, photons_PhEn_down[0].Phi(), photons_PhEn_down[0].M() );
 
             // Transverse resonance mass
             OUT::mt_res = ( lep_trans + ph_trans + metlvOrig ).M();
@@ -2979,8 +3038,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             OUT::mt_res_ElectronEnDown = ( lep_trans_ElEn_down + ph_trans + metlv_ElectronEnDown ).M();
             OUT::mt_res_MuonEnUp     = ( lep_trans_MuEn_up + ph_trans + metlv_MuonEnUp   ).M();
             OUT::mt_res_MuonEnDown   = ( lep_trans_MuEn_down + ph_trans + metlv_MuonEnDown ).M();
-            OUT::mt_res_PhotonEnUp   = ( lep_trans + ph_trans + metlv_PhotonEnUp   ).M();
-            OUT::mt_res_PhotonEnDown = ( lep_trans + ph_trans + metlv_PhotonEnDown ).M();
+            OUT::mt_res_PhotonEnUp   = ( lep_trans + ph_trans_PhEn_up + metlv_PhotonEnUp   ).M();
+            OUT::mt_res_PhotonEnDown = ( lep_trans + ph_trans_PhEn_down + metlv_PhotonEnDown ).M();
             OUT::mt_res_UnclusteredEnUp   = ( lep_trans + ph_trans + metlv_UnclusteredEnUp   ).M();
             OUT::mt_res_UnclusteredEnDown = ( lep_trans + ph_trans + metlv_UnclusteredEnDown ).M();
 
@@ -3771,7 +3830,7 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
             int wcharge =  0;
             for( int gidx = 0; gidx < IN::gen_n; ++gidx ) {
                 int id = IN::gen_PID->at(gidx);
-                int absid = abs(id);
+                //int absid = abs(id);
                 int st = IN::gen_status->at(gidx);
                 
                 // daughters of status-62 W are stable (1) or decayed taus (2)
@@ -4523,6 +4582,13 @@ void RunModule::WeightEvent( ModuleConfig & config ) const {
         if( IN::EventWeights->at(0) < 0 ) {
             OUT::NLOWeight = -1.0;
         }
+    }
+    if (IN::EventWeights->size()>=10){
+      OUT::PDFWeights->clear();
+      //for (int i = 1; i<10; i++){
+      for ( int i : { 1, 2, 3, 4, 6, 8 } ){
+        OUT::PDFWeights->push_back(IN::EventWeights->at(i)/IN::EventWeights->at(0));
+      }
     }
 
 #endif 

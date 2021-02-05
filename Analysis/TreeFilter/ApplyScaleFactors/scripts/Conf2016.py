@@ -103,6 +103,19 @@ def get_electron_sf(options) :
 
     return electron_sf
 
+def get_bjet_sf(options) :
+
+    base_path = '%s/TreeFilter/ApplyScaleFactors/data' %_workarea
+
+    bjet_sf = Filter( 'AddBJetSF' )
+    bjet_sf.add_var( 'FilePath', '%s/DeepJet_2016LegacySF_WP_V1.csv' %base_path )
+    bjet_sf.add_var( 'HistPath', '%s/btageff2016mu.root' %base_path )
+    bjet_sf.add_var( 'HistLJetEff', "heffl" )
+    bjet_sf.add_var( 'HistBJetEff', "heffb" )
+    bjet_sf.add_var( 'HistCJetEff', "heffc" )
+
+    return bjet_sf
+
 def get_photon_sf(options) :
 
     base_path = '%s/TreeFilter/ApplyScaleFactors/data' %_workarea
@@ -129,7 +142,7 @@ def get_photon_sf(options) :
     photon_sf.add_var( 'HistPSveto', 'Scaling_Factors_HasPix_R9 Inclusive' )
     photon_sf.add_var( 'FilePathEveto', '%s/2016/PhotonEVeto_ScalingFactors_80X_Summer16.root' %base_path )
     photon_sf.add_var( 'HistCSEveto', 'Scaling_Factors_CSEV_R9 Inclusive' )
-    
+
     return photon_sf
 
 def get_pileup_sf(options) :

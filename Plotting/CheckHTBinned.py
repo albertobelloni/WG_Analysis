@@ -42,6 +42,7 @@ def getHist(samplename, color):
     
     for file in glob('/store/user/mseidel/WGamma/%s/UMDNTuple_1129_2016/*/*/*.root' % paths[samplename]): #[:1]:
         chain.Add(file)
+    print chain.GetEntries()
 
     rdf = ROOT.RDataFrame(chain)
     rdf = rdf.Define('ht',

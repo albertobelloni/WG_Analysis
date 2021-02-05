@@ -11,6 +11,7 @@ print sys.version
 def addparser(parser):
     parser.add_argument('--useRooFit',       default=False,     action='store_true',      dest='useRooFit',    required=False, help='Make fits using roostats' )
     parser.add_argument('--process',         default="WGamma"   , help="set which process to be fitted, default is WGamma only")
+    parser.add_argument('--channel',         default=""         , help="set channel to use")
 
 execfile("MakeBase.py")
 
@@ -34,57 +35,53 @@ if options.dataDir is not None :
 
 def main() :
 
-    sampManMuG.ReadSamples( _SAMPCONF )
-    sampManElG.ReadSamples( _SAMPCONF )
+    if options.channel != "el": sampManMuG.ReadSamples( _SAMPCONF )
+    if options.channel != "mu": sampManElG.ReadSamples( _SAMPCONF )
 
-    #sampManMuG.outputs = OrderedDict()
-    #sampManElG.outputs = {}
-    #sampManMuG.fitresults = OrderedDict()
-    #sampManMuG.chi2= OrderedDict()
-    #sampManMuG.chi2prob = OrderedDict()
-    #sampManElG.fitresults = OrderedDict()
-    #sampManElG.chi2= OrderedDict()
-    #sampManElG.chi2prob = OrderedDict()
+    #binning_m  = ((_XMAX_M-200)/_BIN_WIDTH_M, 200, _XMAX_M)
+    #binning_m1 = ((_XMAX_M-300)/_BIN_WIDTH_M, 300, _XMAX_M)
+    #binning_m2 = ((_XMAX_M-600)/_BIN_WIDTH_M, 600, _XMAX_M)
 
-
-    eta_cuts = ['EB']
-
-    #workspaces_to_save = {}
-
-
-    binning_m  = ((_XMAX_M-200)/_BIN_WIDTH_M, 200, _XMAX_M)
-    binning_m1 = ((_XMAX_M-300)/_BIN_WIDTH_M, 300, _XMAX_M)
-    binning_m2 = ((_XMAX_M-600)/_BIN_WIDTH_M, 600, _XMAX_M)
+    binner = lambda xmin: ((_XMAX_M-xmin)/_BIN_WIDTH_M, xmin, _XMAX_M)
 
 
     kine_vars = {
-                  'mt_res'    : { 'A': binning_m ,
-                                  'B': binning_m1,
-                                  'C': binning_m2,
-                                 },
+                    'mt_res'    : { tag: binner(defs.bkgfitlowbin(tag)) for tag in "ABC"}
                 }
 
-    cutsetdict = {"mu": (sampManMuG, defs.selectcutdictgen( "mu" )),
-                  "el": (sampManElG, defs.selectcutdictgen( "el" ))}
+    cutsetdict = {}
+    if options.channel!="el": cutsetdict["mu"] =  (sampManMuG, defs.selectcutdictgen( "mu" ))
+    if options.channel!="mu": cutsetdict["el"] =  (sampManElG, defs.selectcutdictgen( "el" ))
 
-    sampnames, protag = checkprocname()
+    #sampnames, protag = checkprocname()
+    sampnames=[""]
+    protag = "all"
 
 
-    #fitfunc = "expow"
-    fitfunc = "dijet"
+    fitfunc = ["dijet","expow","atlas"] 
+    #fitfunc = ["atlas"] 
+    #fitfunc = "dijet"
 
     ## instantiate workspace
-    workspace            = ROOT.RooWorkspace( "workspace_%s_%s" %(protag,fitfunc) )
+    workspace            = ROOT.RooWorkspace( "workspace_%s" %(protag) )
 
+    rootfilename = '%s/%i/%s_hist.root' %( options.dataDir,options.year,workspace.GetName() )
+
+    histarray = []
     for ch, (sampMan, selections) in cutsetdict.iteritems() :
-        for seltag, sel in selections.iteritems():
-
+        for seltag, (sel, weight) in selections.iteritems():
             for var, binning in kine_vars.iteritems() :
-                hist = makehist(var, binning[seltag], sampnames, sampMan, sel)
-                c1 = ROOT.TCanvas()
-                c1.SetLogy()
-                hist.Draw()
-                savecanv(c1,"test")
+                #histarray[ch+seltag+var]= makehistall_rdf(var, binning[seltag],  sampMan, sel, weight)
+
+                #hist = makehist(var, binning[seltag], sampnames, sampMan, sel, weight = "NLOWeight")
+                if options.year ==2018: weight = weight.replace("prefweight","1")
+                hist = makehistall(var, binning[seltag],  sampMan, sel, weight)
+                #histarray[ch+seltag+var].DrawSave()
+                #hist = sampMan['__AllStack__'].hist.Clone()
+                #c1 = ROOT.TCanvas()
+                #c1.SetLogy()
+                #hist.Draw()
+                #savecanv(c1,"test")
 
                 ## FIXME
                 print " **** sampname %s number of total events %f ****"\
@@ -92,32 +89,43 @@ def main() :
                 print " **** sampname %s number of events %f **********"\
                                     %(protag, hist.Integral())
 
-                suffix = "%s%s%i_%s"%(ch,seltag,options.year,protag)
-                print """
-                *********************
-                calling get_mc_fit for %s
-                *********************\n """ %tPurple %(sampnames)
-                get_mc_fit( hist, var , fitfunc, workspace, suffix)
+                for ff in fitfunc:
+                    suffix = "%s%s%i_%s_%s"%(ch,seltag,options.year,protag, ff)
+                    #suffix = "%s%s%i_%s"%(ch,seltag,options.year,protag)
+                    print """
+                    *********************
+                    calling get_mc_fit for %s
+                    *********************\n """ %tPurple %(ff)
+                    #raw_input("cont...")
+                    hist1 = get_mc_fit( hist, var , ff, workspace, suffix)
 
+                    histarray.append(hist1)
+                    #histarray.append(canv)
 
+    rootfile = ROOT.TFile(rootfilename, "RECREATE")
+    for h in histarray:
+        h.Write()
+    rootfile.Write()
     ## write workspace file
     if options.outputDir is not None :
         workspace.writeToFile( '%s/%i/%s.root' \
                     %( options.dataDir,options.year,workspace.GetName() ) )
 
 
-    #for key, canv in sampManMuG.outputs.iteritems() :
-    #    savecanv(canv, key)
-    #else:
-    #    print "Nothing to save"
-    #for key, canv in sampManElG.outputs.iteritems() :
-    #    savecanv(canv, key)
-    #else:
-    #    print "Nothing to save"
 
-        #for key, result in sampManMuG.fitresults.iteritems():
-        #    print "sample: %50s result %d chi2 %.2f"%(key, result.status(), sampManMuG.chi2[key])
-        #    result.Print()
+
+def makehistall(var, binning, sampman, selection, weight = "NLOWeight"):
+    """ use Draw method instead of create_hist """
+    sampman.Draw( var, selection, binning,
+            { "weight": weight, "overflow":False ,"drawsignal":False} )
+    h1 = sampman['__AllStack__'].hist.Clone()
+    return h1
+
+def makehistall_rdf(var, binning, sampman, selection, weight = "NLOWeight", skipdata=True):
+    hf = sampman.SetHisto1DFast( var, selection, binning, weight,
+            {"overflow":False ,"drawsignal":False})
+            #, data_exp=skipdata,)
+    return hf
 
 
 def makehist(var, binning, sampnames, sampman, selection):
@@ -151,7 +159,11 @@ def get_mc_fit( hist ,var, fitfunc, workspace, suffix='') :
 
 
     ## power, expow, vvdijet, atlas, dijet
-    fitManager = FitManager( fitfunc , hist, xvar, suffix, norders =2)
+    norders=2
+    if fitfunc == "expow" or fitfunc == "atlas":
+        norders=1
+    fitManager = FitManager( fitfunc , hist , xvar, suffix, norders =norders)
+    #fitManager.addhist(hist, "datahist"+fitfunc)
     canv = fitManager.draw( paramlayout = (0.7,0.5,0.82),
                             useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
 
@@ -167,7 +179,8 @@ def get_mc_fit( hist ,var, fitfunc, workspace, suffix='') :
 
     print """ cast it from TF1 to RooGenericPdf """
     fitManager.calculate_func_pdf()
-    fitManager.get_results( workspace )
+    fitManager.get_results( workspace, False )
+    outhist = fitManager.get_pdf_histogram( xbins = hist.GetNbinsX() )
 
     #results[ieta] = save_distribution( fitManager, sampMan, workspace, logy=True )
     #fitManager.save_fit( sampMan, workspace, logy = True, stats_pos='right', extra_label = extra_label)
@@ -175,10 +188,11 @@ def get_mc_fit( hist ,var, fitfunc, workspace, suffix='') :
     canv = fitManager.draw( subplot = "pull", paramlayout = (0.7,0.5,0.82), useOldsetup = True, logy=1, yrange=(5e-3, 2e4) )
     savecanv(canv,"%s_%s"%(suffix,fitfunc))
 
-    return
+    return outhist
 
 
 def savecanv(canv, name):
+    canv.Print("%s/%s.root" %(options.outputDir, name) )
     canv.Print("%s/%s.pdf" %(options.outputDir, name) )
     canv.Print("%s/%s.png" %(options.outputDir, name) )
     canv.Print("%s/%s.C"   %(options.outputDir, name) )
@@ -192,52 +206,6 @@ def clone_sample_and_draw( sampMan, samp, var, sel, binning ) :
     sampMan.create_hist( newSamp, var, sel, binning, overflow=False)
     return newSamp.hist.Clone()
 
-
-#@f_Obsolete
-#def buildselectionstr(ch=""):
-#    ## FIXME combine with SigFit
-#    sel_base_mu = defs.get_base_selection( 'mu' )
-#    sel_base_el = defs.get_base_selection( 'el' )
-#
-#
-#    #el_ip_str = '( fabs( el_d0[0] ) < 0.05 && fabs( el_dz[0] ) < 0.10 && fabs( el_sc_eta[0] )<= 1.479 ) || ( fabs( el_d0[0] ) < 0.10 && fabs( el_dz[0] ) < 0.20 && fabs( el_sc_eta[0] )> 1.479 )'
-#
-#    el_tight = ' el_passVIDTight[0] == 1'
-#    el_eta   = ' fabs( el_eta[0] ) < 2.1 '
-#
-#    ph_str         = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
-#    ph_tightpt_str = 'ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0]'
-#
-#    met_str = 'met_pt > 40'
-#
-#    Zveto_str = 'fabs(m_lep_ph-91)>20.0'
-#
-#    musellist = [sel_base_mu, ph_tightpt_str, met_str]
-#    sel_mu_phpt_nominal = " && ".join( musellist )
-#    elsellist = [sel_base_el, el_tight, el_eta, ph_tightpt_str, met_str, Zveto_str ]
-#    sel_el_phpt_nominal = " && ".join( elsellist )
-#
-#    sel_base_mu = "NLOWeight*(%s)" %sel_mu_phpt_nominal
-#    sel_base_el = "NLOWeight*(%s)" %sel_el_phpt_nominal
-#
-#    #sel_jetveto_mu = sel_base_mu + ' && jet_n == 0 '
-#    #sel_jetveto_el = sel_base_el + ' && jet_n == 0 '
-#    if ch=="mu": return sel_base_mu
-#    if ch=="el": return sel_base_el
-#    return sel_base_mu, sel_base_el
-
-
-@f_Obsolete
-def makebinpt():
-    xmin_pt = _XMIN_M/2
-    if xmin_pt < 50 :
-        xmin_pt = 50
-    xmax_pt = _XMAX_M/2
-    bin_width_pt = _BIN_WIDTH_M/2.
-
-    binning_pt = ( (xmax_pt - xmin_pt )/bin_width_pt, xmin_pt, xmax_pt )
-    return binning_pt
-
 @f_Obsolete
 def checkprocname():
     ## FIXME: use sample manager function to search for named samples instead
@@ -250,7 +218,7 @@ def checkprocname():
     ## make compound lists (FIXME This is non standard: better use Module)
     process_list = [ p for p in proclist if p.lower() == protag ][0]
     if process_list == "All":
-        process_list = ["WGamma", "AllTop", "Zgamma","GammaGamma", "TopW", "Z+jets", 'Wjets']
+        process_list = ["WGamma", "AllTop", "Zgamma","GammaGamma", "TopW", "ZJets", 'WJets']
                 #[ 'WGamma', 'TTG', 'TTbar', 'Zgamma', 'Wjets', 'GammaGamma']
     elif process_list == "NonMajor": pass ## FIXME
     elif isinstance(process_list, str):

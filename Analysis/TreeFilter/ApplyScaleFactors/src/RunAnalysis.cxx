@@ -13,6 +13,7 @@
 
 #include "include/BranchDefs.h"
 #include "include/BranchInit.h"
+#include "BTagCalibrationStandalone.cxx"
 
 #include "Util.h"
 
@@ -92,6 +93,12 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
 
 #endif
 
+#ifdef MODULE_AddBJetSF
+    OUT::jet_btagSF = -1;
+    OUT::jet_btagSFUP = -1;
+    OUT::jet_btagSFDN = -1;
+#endif
+
     // *************************
     // Declare Branches
     // *************************
@@ -136,6 +143,11 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
     outtree->Branch("mu_idSFDN", &OUT::mu_idSFDN, "mu_idSFDN/F");
 #endif
 
+#ifdef MODULE_AddBJetSF
+    outtree->Branch("jet_btagSF",   &OUT::jet_btagSF,   "jet_btagSF/F");
+    outtree->Branch("jet_btagSFUP", &OUT::jet_btagSFUP, "jet_btagSFUP/F");
+    outtree->Branch("jet_btagSFDN", &OUT::jet_btagSFDN, "jet_btagSFDN/F");
+#endif
     // store the lumis for averaging
     /*float int_lumi_b = 5933692351.209;
   float int_lumi_c = 2761135761.229;
@@ -373,6 +385,61 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                 }
             }
         }
+        if (mod_conf.GetName() == "AddBJetSF") {
+
+            std::map<std::string, std::string>::const_iterator itr;
+            std::map<std::string, std::string>::const_iterator hname;
+
+            itr = mod_conf.GetInitData().find("FilePath");
+            if (itr != mod_conf.GetInitData().end()) {
+              calib =  new BTagCalibration("csvv1", (itr->second).c_str());
+
+              BTagEntry::OperatingPoint cutpoint = BTagEntry::OP_LOOSE;
+              itr = mod_conf.GetInitData().find("CutPoint");
+              if (itr != mod_conf.GetInitData().end()) {
+                if (itr->second == "tight")  cutpoint = BTagEntry::OP_TIGHT;
+                if (itr->second == "medium") cutpoint = BTagEntry::OP_MEDIUM;
+                if (itr->second == "loose")  cutpoint = BTagEntry::OP_LOOSE;
+              }
+              reader = new BTagCalibrationReader(cutpoint,  // operating poin
+                                           "central",             // central sys type
+                                           {"up", "down"});      // other sys types
+
+              reader->load(*calib,                // calibration instance
+                          BTagEntry::FLAV_B,    // btag flavour
+                          "comb");               // measurement type
+
+              reader->load(*calib,                // calibration instance
+                          BTagEntry::FLAV_C,    // btag flavour
+                          "comb");               // measurement type
+
+              reader->load(*calib,                // calibration instance
+                          BTagEntry::FLAV_UDSG,    // btag flavour
+                          "incl");               // measurement type 
+            }
+
+            itr = mod_conf.GetInitData().find("HistPath");
+            if (itr != mod_conf.GetInitData().end()) {
+              _efffile_jet = TFile::Open((itr->second).c_str(),"READ");
+              if (_efffile_jet->IsOpen()) {
+
+                hname = mod_conf.GetInitData().find("HistBJetEff");
+                if (hname != mod_conf.GetInitData().end()) {
+                    _effhist_jet_b = dynamic_cast<TH2F*>(_efffile_jet->Get((hname->second).c_str()));
+                }
+                hname = mod_conf.GetInitData().find("HistCJetEff");
+                if (hname != mod_conf.GetInitData().end()) {
+                    _effhist_jet_c = dynamic_cast<TH2F*>(_efffile_jet->Get((hname->second).c_str()));
+                }
+                hname = mod_conf.GetInitData().find("HistLJetEff");
+                if (hname != mod_conf.GetInitData().end()) {
+                    _effhist_jet_l = dynamic_cast<TH2F*>(_efffile_jet->Get((hname->second).c_str()));
+                }
+              }
+            
+            }
+
+        }
         if (mod_conf.GetName() == "AddPhotonSF") {
             std::map<std::string, std::string>::const_iterator phyear =
                 mod_conf.GetInitData().find("year");
@@ -524,6 +591,9 @@ bool RunModule::ApplyModule(ModuleConfig &config) const {
     }
     if (config.GetName() == "AddPhotonSF") {
         AddPhotonSF(config);
+    }
+    if (config.GetName() == "AddBJetSF") {
+        AddBJetSF(config);
     }
 
     return keep_evt;
@@ -807,6 +877,108 @@ float RunModule::get_ele_cutid_syst(float pt, float eta) const {
     return -1;
 }
 
+
+void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
+#ifdef MODULE_AddBJetSF
+    OUT::jet_btagSF = 1.0;
+    OUT::jet_btagSFUP = 1.0;
+    OUT::jet_btagSFDN = 1.0;
+    
+    ValWithErr effval;
+    double jet_scalefactor;
+    double jet_scalefactor_up;
+    double jet_scalefactor_do;
+
+
+  for (int idx; idx<OUT::jet_n; idx++) {
+      std::cout<< "pt  "<< OUT::jet_pt->at(idx)
+               << "eta "<< OUT::jet_eta->at(idx)
+               << "flav"<< OUT::jet_flav->at(idx)
+               << "tag "<< OUT::jet_btagged->at(idx)
+               <<std::endl; 
+
+      if (abs(OUT::jet_flav->at(idx))==5) {
+          jet_scalefactor    = reader->eval_auto_bounds(
+              "central", BTagEntry::FLAV_B, 
+              fabs(OUT::jet_eta->at(idx)), // absolute value of eta
+              OUT::jet_pt->at(idx)
+          ); 
+          jet_scalefactor_up = reader->eval_auto_bounds(
+              "up", BTagEntry::FLAV_B, 
+              fabs(OUT::jet_eta->at(idx)), // absolute value of eta
+              OUT::jet_pt->at(idx)
+          );
+          jet_scalefactor_do = reader->eval_auto_bounds(
+              "down", BTagEntry::FLAV_B,
+              fabs(OUT::jet_eta->at(idx)), 
+              OUT::jet_pt->at(idx)
+          );
+
+          // get efficiency from histogram
+          effval = GetVals2D( _effhist_jet_b, OUT::jet_pt->at(idx), fabs(OUT::jet_eta->at(idx)));
+      }
+      else if (abs(OUT::jet_flav->at(idx))==4) {
+          jet_scalefactor    = reader->eval_auto_bounds(
+              "central", BTagEntry::FLAV_C, 
+              fabs(OUT::jet_eta->at(idx)), // absolute value of eta
+              OUT::jet_pt->at(idx)
+          ); 
+          jet_scalefactor_up = reader->eval_auto_bounds(
+              "up", BTagEntry::FLAV_C, 
+              fabs(OUT::jet_eta->at(idx)), // absolute value of eta
+              OUT::jet_pt->at(idx)
+          );
+          jet_scalefactor_do = reader->eval_auto_bounds(
+              "down", BTagEntry::FLAV_C,
+              fabs(OUT::jet_eta->at(idx)), 
+              OUT::jet_pt->at(idx)
+          );
+
+          // get efficiency from histogram
+          effval = GetVals2D( _effhist_jet_c, OUT::jet_pt->at(idx), fabs(OUT::jet_eta->at(idx)));
+      }
+      else if (abs(OUT::jet_flav->at(idx))==0) {
+          jet_scalefactor    = reader->eval_auto_bounds(
+              "central", BTagEntry::FLAV_UDSG, 
+              fabs(OUT::jet_eta->at(idx)), // absolute value of eta
+              OUT::jet_pt->at(idx)
+          ); 
+          jet_scalefactor_up = reader->eval_auto_bounds(
+              "up", BTagEntry::FLAV_UDSG, 
+              fabs(OUT::jet_eta->at(idx)), // absolute value of eta
+              OUT::jet_pt->at(idx)
+          );
+          jet_scalefactor_do = reader->eval_auto_bounds(
+              "down", BTagEntry::FLAV_UDSG,
+              fabs(OUT::jet_eta->at(idx)), 
+              OUT::jet_pt->at(idx)
+          );
+
+          // get efficiency from histogram
+          effval = GetVals2D( _effhist_jet_l, OUT::jet_pt->at(idx), fabs(OUT::jet_eta->at(idx)));
+      }
+
+      // calculate event scale factor
+      if (OUT::jet_btagged->at(idx)) {
+          OUT::jet_btagSF   = OUT::jet_btagSF*jet_scalefactor;
+          OUT::jet_btagSFUP = OUT::jet_btagSFDN*jet_scalefactor_up;
+          OUT::jet_btagSFDN = OUT::jet_btagSFDN*jet_scalefactor_do;
+          std::cout<< "accepted: "<< jet_scalefactor << " " <<OUT::jet_btagSF <<std::endl; 
+      } else {
+          // FIXME: uncertainty from SF and eff are independent
+          OUT::jet_btagSF   = OUT::jet_btagSF*(1-effval.val * jet_scalefactor) / (1-effval.val);
+          OUT::jet_btagSFUP = OUT::jet_btagSFUP*(1-(effval.val+effval.err_up) * jet_scalefactor_up) / (1- (effval.val+effval.err_up));
+          OUT::jet_btagSFDN = OUT::jet_btagSFDN*(1-(effval.val-effval.err_dn) * jet_scalefactor_do) / (1- (effval.val-effval.err_dn));
+          std::cout<< "rejected: "<< effval.val<< " "<<jet_scalefactor << " "<< (1-effval.val * jet_scalefactor) / (1-effval.val) <<" "<<OUT::jet_btagSF<<std::endl; 
+      }
+
+
+  }
+
+#endif
+}
+
+
 void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
 #ifdef MODULE_AddPhotonSF
 
@@ -871,6 +1043,7 @@ void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
         }
 
         if (_year_ph == 2016) {
+
             ValWithErr res_psv = GetVals2D(_sfhist_ph_psv, fabs(eta), pt);
             ValWithErr res_csev = GetVals2D(_sfhist_ph_csev, fabs(eta), pt);
 
@@ -879,7 +1052,9 @@ void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
 
             sfs_psv.push_back(res_psv.val);
             errs_psv.push_back(res_psv.err_up);
+
         } else if (_year_ph == 2017) {
+
             ValWithErr res_psv = PhGetVals1D(_sfhist_ph_psv_2017);
             ValWithErr res_csev = PhGetVals1D(_sfhist_ph_csev_2017);
 
@@ -888,7 +1063,9 @@ void RunModule::AddPhotonSF(ModuleConfig & /*config*/) const {
 
             sfs_psv.push_back(res_psv.val);
             errs_psv.push_back(res_psv.err_up);
+
         } else if (_year_ph == 2018) {
+
             ValWithErr res_psv = GetVals2D(_sfhist_ph_psv_2018, pt, fabs(eta));
             ValWithErr err_psv = GetVals2D(_sfhist_ph_psv_2018_err, pt, fabs(eta));
             ValWithErr res_csev = GetVals2D(_sfhist_ph_csev_2018, pt, fabs(eta));

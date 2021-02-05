@@ -20,19 +20,27 @@ def get_keep_filter(tag=None) :
         except for those in remove_filter """
 
     mu_basic = ['mu_n','mu_pt', 'mu_eta', 'mu_phi', 'mu_e', 'mu_charge']
-    mu_addtl = ['mu_isLoose', 'mu_isMedium', 'mu_isTight', 'mu_isSoft', 'mu_isHighPt']
+    mu_addtl = ['mu_isLoose', 'mu_isMedium', 'mu_isTight', 'mu_isSoft', 'mu_isHighPt', 'mu_pfIso']
     el_basic = ['el_n', 'el_phi', 'el_eta', 'el_e', 'el_pt', 'el_charge', 'el_d0', 'el_dz']
     #el_addtl = ['el_phiOrig', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
     #            'el_passVIDHEEP', 'el_passVIDHLT', 'el_passVIDTight', 'el_passVIDVeryLoose',
     #            'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
     el_addtl = ['el_phiOrig','el_sc_e', 'el_sc_eta', 'el_etaOrig', 'el_eOrig', 'el_ptOrig',
+                'el_e_ScaleUp','el_e_ScaleDown',
+                'el_e_SigmaUp','el_e_SigmaDown',
+                'el_pt_ScaleUp','el_pt_ScaleDown',
+                'el_pt_SigmaUp','el_pt_SigmaDown',
                 'el_passVIDHEEP', 'el_passVIDTight', 'el_passVIDVeryLoose',
-                'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium']
+                'el_passVIDLoose', 'el_passConvVeto', 'el_passVIDMedium', 'el_pfIsoRho']
     ph_basic = ['ph_n', 'ph_phi', 'ph_eta', 'ph_pt','ph_e','ph_hasPixSeed', 'ph_passEleVeto.*', ]
     ph_addtl = ['ph_passVIDLoose', 'ph_passVIDMedium', 'ph_passVIDTight',
+                'ph_pt_ScaleUp','ph_pt_ScaleDown',
+                'ph_e_ScaleUp','ph_e_ScaleDown',
+                'ph_pt_SigmaUp','ph_pt_SigmaDown',
+                'ph_e_SigmaUp','ph_e_SigmaDown',
                 'ph_sc_phi', 'ph_sc_eta', 'ph_neuIsoCorr', 'ph_phiOrig', 'ph_etaOrig', 'ph_phiWidth', 'ph_ptOrig',
                 'ph_sigmaIEIEFull5x5', 'ph_r9', 'ph_etaWidth', 'ph_eOrig', 'ph_r9Full5x5', 'ph_sigmaIEIE',
-                'ph_chIsoCorr', 'ph_phoIso', 'ph_chIso', 'ph_neuIso', 'ph_hOverE',]
+                'ph_chIsoCorr', 'ph_phoIso', 'ph_chIso', 'ph_neuIso', 'ph_hOverE', 'ph_phoIsoCorr']
 
     met_basic = ['met_pt', 'met_phi',"met_Type1.*","met_all_pt","met_all_phi"]
     met_addtl = ['met_UnclusteredEnUp_phi', 'met_UnclusteredEnDown_phi', 'met_UnclusteredEnDown_pt', 'met_UnclusteredEnUp_pt',
@@ -43,7 +51,7 @@ def get_keep_filter(tag=None) :
                  'met_MuonEnDown_phi', 'met_MuonEnUp_phi', 'met_MuonEnUp_pt', 'met_MuonEnDown_pt', ]
 
     jet_basic = ['jet_n', 'jet_pt', 'jet_eta', 'jet_phi', 'jet_e',]
-    jet_addtl = ['jet_CSVLoose_n', 'jet_CSVMedium_n', 'jet_CSVTight_n',"jet_bTagCisvV2" ,"jet_.*"]
+    jet_addtl = ['jet_CSVLoose_n', 'jet_CSVMedium_n', 'jet_CSVTight_n',"jet_bTagCisvV2", "jet.*"]
 
     event_basic = ['rho', 'pu_n', 'truepu_n', 'vtx_n', 'pdf_id1', 'pdf_id2', 'pdf_scale', 'pdf_x2', 'pdf_x1',
                    'lumiSection', 'eventNumber', 'runNumber', 'bxNumber', 'isData', 'EventWeights','prefweight.*']
@@ -73,11 +81,12 @@ def config_analysis( alg_list, args ) :
 def make_final_mumu( alg_list, args) :
 
     mu_pt = args.get( 'mu_pt', ' > 25 ' )
+    ph_id = args.get( 'ph_id', 'vid_medium' )
 
     # order should be muon, electron, photon, jet
-    alg_list.append( filter_muon( mu_pt, do_cutflow = True, do_hists = True ) )
-    alg_list.append( filter_electron( do_cutflow = True, do_hists = True ) )
-    alg_list.append( filter_photon( do_cutflow = True, do_hists = True) )
+    alg_list.append( filter_muon( mu_pt, do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_electron(  do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_photon(  do_cutflow=True, do_hists=True , id_cut = ph_id) )
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
@@ -106,9 +115,9 @@ def make_final_elel( alg_list, args) :
     el_pt = args.get( 'el_pt', ' > 25 ' )
 
     # order should be muon, electron, photon, jet
-    alg_list.append( filter_muon( do_cutflow = True, do_hists = True ) )
-    alg_list.append( filter_electron( el_pt, do_cutflow = True, do_hists = True ) )
-    alg_list.append( filter_photon( do_cutflow = True, do_hists = True ) )
+    alg_list.append( filter_muon(  do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_electron( el_pt , do_cutflow=True, do_hists=True ) )
+    alg_list.append( filter_photon(  do_cutflow=True, do_hists=True ) )
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
@@ -167,7 +176,7 @@ def make_final_mu( alg_list, args) :
     unblind = args.get( 'unblind', 'False' )
 
     # order should be muon, electron, photon, jet
-    alg_list.append( filter_muon( mu_pt ) )
+    alg_list.append( filter_muon( mu_pt, invertIso=invertIso ) )
     alg_list.append( filter_electron( el_pt ) )
     alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta ) )
     alg_list.append( filter_jet( ) )
@@ -198,11 +207,11 @@ def make_final_el( alg_list, args) :
     unblind = args.get( 'unblind', 'False' )
     eleVeto = args.get('eleVeto', 'None' )
     eleOlap = args.get('eleOlap', 'True' )
-
+    invertIso = args.get( 'invertIso', False )
 
     # order should be muon, electron, photon, jet
     alg_list.append( filter_muon(mu_pt ) )
-    alg_list.append( filter_electron(el_pt ) )
+    alg_list.append( filter_electron(el_pt, invertIso=invertIso ) )
     alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta,ele_veto=eleVeto, ele_olap=eleOlap  ) )
     alg_list.append( filter_jet( ) )
 
@@ -296,7 +305,7 @@ def make_final_mug( alg_list, args) :
     alg_list.append( filter_photon( ph_pt, id_cut=phot_id, ieta_cut=ph_eta , do_cutflow=True, do_hists=True ) )
     alg_list.append( filter_jet( ) )
 
-    filter_trig = filter_trigger(do_cutflow=True)
+    filter_trig = filter_trigger(do_cutflow = True)
     filter_trig.cut_bits = ' == 9 | == 10 '
     alg_list.append( filter_trig )
 
@@ -421,7 +430,7 @@ def filter_met() :
     return filter_met
 
 
-def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do_hists=False, evalPID='tight' ) :
+def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do_hists=False, evalPID='tight', invertIso=False ) :
     """
        Muon ID cuts
        https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2
@@ -434,7 +443,7 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
 
     if do_cutflow :
         filt.do_cutflow = True
-        filt.add_var('evalPID', evalPID )
+        #filt.add_var('evalPID', evalPID )
 
     filt.cut_pt           = mu_pt
     filt.cut_eta          = ' < 2.4'
@@ -462,6 +471,12 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
     filt.cut_corriso_tight    = ' < 0.25'
     filt.cut_trkiso_tight     = ' < 0.05 '
 
+    if invertIso:
+        for key,var in vars(filt).items():
+            if 'iso' in key:
+                print('Inverting iso', key, var)
+                filt.invert(key)
+
     if apply_corrections :
         filt.add_var( 'apply_corrections', 'true' )
 
@@ -482,7 +497,7 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
 
     return filt
 
-def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_corrections=False, evalPID='medium' ) :
+def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_corrections=False, evalPID='medium', invertIso=False ) :
 
     filt = Filter('FilterElectron')
 
@@ -493,9 +508,9 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_abssceta       = ' <2.5 '
 
     #filt.cut_tight     = ' == True '
-    filt.cut_medium     = ' == True '
-#    filt.cut_vid_tight     = ' == True '
-#    filt.cut_vid_medium     = ' == True '
+    #filt.cut_medium     = ' == True '
+    #filt.cut_vid_tight     = ' == True '
+    filt.cut_vid_medium     = ' == True '
     filt.cut_muon_dr    = ' > 0.4 '
     filt.add_var( 'triggerMatchBits', '26,48' )
     filt.cut_d0_barrel = ' < 0.05 '
@@ -577,6 +592,12 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
     filt.cut_ooEmooP_endcap_veryloose      = ' < 0.132 '
     filt.cut_misshits_endcap_veryloose     = ' < 4 '
     filt.cut_passConvVeto_endcap_veryloose = ' == 1 '
+
+    if invertIso:
+        for key,var in vars(filt).items():
+            if 'iso' in key:
+                print('Inverting iso', key, var)
+                filt.invert(key)
 
 #    ### 80X VID cuts ###
 #    filt.cut_sigmaIEIE_barrel_tight        = ' < 0.00998 '
@@ -697,7 +718,7 @@ def filter_electron( el_pt = ' > 25 ', do_cutflow=False, do_hists=False, apply_c
 
     return filt
 
-def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
+def filter_photon( ph_pt = ' > 10 ', id_cut='medium', ieta_cut=None, ele_veto='None', ele_olap='True', do_cutflow=False, do_hists=False, evalPID='medium' ) :
 
     filt = Filter('FilterPhoton')
 
@@ -722,10 +743,22 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
         elif ele_veto == 'False'  :
             filt.cut_CSEV = ' == False '
 
-    if( id_cut is not 'None' ) :
+    dosieiecut = True
+    if id_cut == "almosttight":
+        filt.cut_tight = " == True "
+        dosieiecut = False
+        id_cut = "tight"
+    elif id_cut == "almostmedium":
+        filt.cut_medium = " == True "
+        dosieiecut = False
+        id_cut = "medium"
+    elif( id_cut is not 'None' ) :
         setattr( filt, 'cut_%s' %id_cut, ' == True ' )
+
+    #else:
+    #    filt.cut_medium     = ' == True '
 #    filt.cut_vid_medium     = ' == True '
-    filt.cut_medium     = ' == True '
+
 
 #    filt.cut_sigmaIEIE_barrel_loose  = ' < 0.01031 '
 #    filt.cut_chIsoCorr_barrel_loose  = ' < 1.295 '
@@ -764,45 +797,46 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='None', ieta_cut=None, ele_veto='Non
 #    filt.cut_hovere_endcap_tight = ' < 0.0213 '
 
     ### 94X V2 PID ###
-    filt.cut_sigmaIEIE_barrel_loose  = ' < 0.0106'
+    if dosieiecut: filt.cut_sigmaIEIE_barrel_loose  = ' < 0.0106'
     filt.cut_chIsoCorr_barrel_loose  = ' < 1.694'
     filt.cut_neuIsoCorr_barrel_loose = ' < 24.032 '
     filt.cut_phoIsoCorr_barrel_loose = ' < 2.876'
     filt.cut_hovere_barrel_loose = ' < 0.04596 '
 
-    filt.cut_sigmaIEIE_endcap_loose  = ' < 0.0272 '
+    if dosieiecut: filt.cut_sigmaIEIE_endcap_loose  = ' < 0.0272 '
     filt.cut_chIsoCorr_endcap_loose  = ' < 2.089 '
     filt.cut_neuIsoCorr_endcap_loose = ' < 19.722 '
     filt.cut_phoIsoCorr_endcap_loose = ' < 4.162 '
     filt.cut_hovere_endcap_loose = ' < 0.0590 '
 
-    filt.cut_sigmaIEIE_barrel_medium  = ' < 0.01015 '
+    if dosieiecut: filt.cut_sigmaIEIE_barrel_medium  = ' < 0.01015 '
     filt.cut_chIsoCorr_barrel_medium  = ' < 1.141 '
     filt.cut_neuIsoCorr_barrel_medium = ' < 1.189 '
     filt.cut_phoIsoCorr_barrel_medium = ' < 2.08 '
     filt.cut_hovere_barrel_medium = ' < 0.02197 '
 
-    filt.cut_sigmaIEIE_endcap_medium  = ' < 0.0272 '
+    if dosieiecut: filt.cut_sigmaIEIE_endcap_medium  = ' < 0.0272 '
     filt.cut_chIsoCorr_endcap_medium  = ' < 1.051 '
     filt.cut_neuIsoCorr_endcap_medium = ' < 2.718 '
     filt.cut_phoIsoCorr_endcap_medium = ' < 3.867 '
     filt.cut_hovere_endcap_medium = ' < 0.0326 '
 
-    filt.cut_sigmaIEIE_barrel_tight  = ' < 0.00996 '
+    if dosieiecut: filt.cut_sigmaIEIE_barrel_tight  = ' < 0.00996 '
     filt.cut_chIsoCorr_barrel_tight  = ' < 0.65 '
     filt.cut_neuIsoCorr_barrel_tight = ' < 0.317 '
     filt.cut_phoIsoCorr_barrel_tight = ' < 2.044 '
     filt.cut_hovere_barrel_tight = ' < 0.02148 '
 
-    filt.cut_sigmaIEIE_endcap_tight  = ' < 0.0271 '
+    if dosieiecut: filt.cut_sigmaIEIE_endcap_tight  = ' < 0.0271 '
     filt.cut_chIsoCorr_endcap_tight  = ' < 0.517 '
     filt.cut_neuIsoCorr_endcap_tight = ' < 2.716 '
     filt.cut_phoIsoCorr_endcap_tight = ' < 3.032 '
     filt.cut_hovere_endcap_tight = ' < 0.0321 '
 
-    if do_cutflow :
+    if do_cutflow and id_cut and id_cut !="None" :
         filt.do_cutflow = True
-        filt.add_var( 'evalPID', evalPID )
+        #filt.add_var( 'evalPID', evalPID )
+        #filt.add_var( 'evalPID', id_cut) ## this could mess with other non-VID working points
 
     if do_hists :
         filt.add_hist( 'cut_pt', 100, 0, 200 )

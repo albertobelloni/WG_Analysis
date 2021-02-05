@@ -21,6 +21,7 @@ options = parser.parse_args()
 
 import ROOT
 from itertools import product
+from collections import OrderedDict,defaultdict
 import numpy as np
 from math import pi, sqrt
 import os, sys
@@ -29,6 +30,8 @@ import selection_defs as defs
 from SampleManager import SampleManager, f_Obsolete
 from FitManager import FitManager
 #ROOT.PyConfig.IgnoreCommandLineOptions = True
+
+recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
 
 
 _FILENAME = 'tree.root'
@@ -77,8 +80,7 @@ if options.condor and not ('alt_condor' in locals() and alt_condor):
                      'universe = vanilla',
                      'Executable = {workd}/{thisfile}.py',
                      'should_transfer_files = NO',
-                     #'Requirements = TARGET.FileSystemDomain == "privnet" && (TARGET.OpSysMajorVer == 7)',
-                     'Requirements = TARGET.FileSystemDomain == "privnet" && (TARGET.Machine == "siab-1.umd.edu")',
+                     'Requirements = TARGET.FileSystemDomain == "privnet" && (TARGET.OpSysMajorVer == 7)',
                      'Output = {workd}/log/{thisfile}_$(cluster)_$(process).stdout',
                      'Error =  {workd}/log/{thisfile}_$(cluster)_$(process).stderr',
                      'Log =    {workd}/log/{thisfile}_$(cluster)_$(process).condor',
