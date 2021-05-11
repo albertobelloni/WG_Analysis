@@ -911,6 +911,10 @@ def filter_jet( jet_pt = ' > 30 ', jet_eta = '< 2.4', do_hists=False ) :
     filt.cut_jet_CSV_Loose = ' > 0.5426 '
     filt.cut_jet_CSV_Medium = ' > 0.8484 '
     filt.cut_jet_CSV_Tight = ' > 0.9535 '
+    filt.cut_jet_DeepJet_Loose = ' > 0.0614 '
+    filt.cut_jet_DeepJet_Medium = ' > 0.3093 '
+    filt.cut_jet_DeepJet_Tight = ' > 0.7221 '
+    filt.add_var('evalBTagID', "medium" )
 
     if do_hists :
         filt.add_hist( 'cut_pt', 100, 0, 500 )
