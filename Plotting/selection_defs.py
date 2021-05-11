@@ -20,11 +20,21 @@ def get_base_selection( channel ) :
     if channel == 'muel' :
         return 'mu_pt30_n>=1 && el_n==1  '  # require 1 muon with pt > 30 and 2 muons with pt > 10
 
-def get_weight_str( ) :
+def get_weight_str( ch = None ) :
 
-    #return ' ( NLOWeight * PUWeight + isData ) '
-    #return ' ( isData ? isData : PUWeight * NLOWeight )'
-    return ' ( isData ? isData : PUWeight * NLOWeight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * prefweight )'
+    weight_str = 'PUWeight*NLOWeight*prefweight'
+    weight_str_mu = weight_str + '*(mu_trigSF*mu_idSF*mu_isoSF*mu_trkSF*ph_idSF*ph_psvSF)'
+    weight_str_el = weight_str + '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF)'
+    if ch == "el":
+        weight = weight_str_el
+    elif ch == "mu":
+        weight = weight_str_mu
+    elif ch == "nosf":
+        weight = weight_str
+    else:
+        weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF )'
+    return weight
+
 
 def get_phid_selection( sel1, sel2='' ) :
 
@@ -93,7 +103,7 @@ badefakesectors = {
                     ],
             },
         2017:{
-            "veto"  :[(( 31, 36),( 1.2,1.4))],
+            "veto"  : [],#[(( 31, 36),( 1.2,1.4))],
             "worst" :[(( 31, 36),(-0.4,1.6)),
                       ((-36,-35),(-0.4,1.6)),
                       (( 17, 22),(-0.6,1.2)),
@@ -213,10 +223,11 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
         return
             array of selections
     """
-    #weight_str_mu = weight_str #+ '*(mu_trigSF*mu_idSF*mu_isoSF*mu_rcSF*ph_idSF*ph_psvSF*ph_csevSF)' ## FIXME
-    #weight_str_el = weight_str #+ '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF*ph_csevSF)'
-    #weight_str = defs.get_weight_str()
-    weight =  'NLOWeight*PUWeight' ## FIXME PUWeight issue
+    ## NOTE met filter, prefweight, Zvtx weight
+
+    weight = get_weight_str(ch)
+    #weight =  'NLOWeight*PUWeight' ## FIXME PUWeight issue
+
     sel_base_mu = get_base_selection( 'mug' )
     sel_base_el = get_base_selection( 'elg' ) ## FIXME trigger doesn't work on 2017/HLT_Ele27_WPTight_Gsf?
 
@@ -225,7 +236,7 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     el_eta   = ' fabs( el_eta[0] ) < 2.1 '
     el_pt  = 'el_pt[0] > %i ' %leppt
 
-    mu_pt  = 'mu_pt[0] > %i ' %leppt
+    mu_pt  = 'mu_pt_rc[0] > %i ' %leppt
 
     ph_base = 'ph_IsEB[0]'
     ph_pt  = 'ph_pt[0] > %i ' %phpt
@@ -236,10 +247,11 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     met_str = 'met_pt > %i' %met
 
     Zveto_str = 'fabs(m_lep_ph-91)>20.0'
+    csvmedveto = "jet_CSVMedium_n==0"
 
-    sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt] +  sel_ph
-    sel_el_nominal      = [sel_base_el, el_eta, el_pt, met_str,
-                                        Zveto_str] + sel_ph
+    sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, csvmedveto ] +  sel_ph
+    sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str,
+                                        Zveto_str, csvmedveto] + sel_ph
 
     if ch=="mu":
         return sel_mu_nominal, weight
@@ -260,24 +272,47 @@ def bkgfitlowbin( cuttag ):
     if cuttag == "C":
         return 460
 
+def kinedictgen( ch, addition = "" ):
+    """ define here cut-sets and tag as function of mass """
+    leppt = 35 #if ch=="el" else 30
+    cutsetdict = {
+               #"A": dict( phpt = 100, leppt = leppt, met = 20, addition = addition),
+               "A": dict(phpt = 100, leppt = leppt, met = 40, addition = addition),
+               #"A": dict( phpt = 60, leppt = 35 , met = 40, addition = addition),
+#               "B": dict( phpt = 60, leppt = 35, met = 100, addition = addition),
+#               "C": dict( phpt = 60, leppt = 35, met = 40, addition = addition),
+#               "B": dict(phpt = 130, leppt = leppt, met = 40, addition = addition),
+               "B": dict( phpt = 200, leppt = leppt, met = 40, addition = addition),
+            }
+    return cutsetdict
+
 def selectcutdictgen( ch, addition = "" ):
     """ define here cut-sets and tag as function of mass """
-    cutsetdict = {
-               "A": makeselstring(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
-#               "B": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 100, addition = addition),
-#               "C": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
-               "B": makeselstring(ch, phpt = 100, leppt = 35, met = 70, addition = addition),
-               "C": makeselstring(ch, phpt = 200, leppt = 35, met = 160, addition = addition),
-            }
+    kinedict = kinedictgen( ch , addition )
+    cutsetdict = { k: makeselstring(ch, **w) for k,w in kinedict.iteritems()}
+#    leppt = 35 #if ch=="el" else 30
+#    cutsetdict = {
+#               #"A": makeselstring(ch, phpt = 100, leppt = leppt, met = 20, addition = addition),
+#               "A": makeselstring(ch, phpt = 80, leppt = leppt, met = 40, addition = addition),
+#               #"A": makeselstring(ch, phpt = 60, leppt = 35 , met = 40, addition = addition),
+##               "B": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 100, addition = addition),
+##               "C": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
+#               "B": makeselstring(ch, phpt = 130, leppt = leppt, met = 40, addition = addition),
+#               "C": makeselstring(ch, phpt = 200, leppt = leppt, met = 40, addition = addition),
+#            }
     return cutsetdict
 
 def selectcutstring( mass, ch, addition = "" ):
     """ define here cut-sets and tag as function of mass """
     cutsetdict = selectcutdictgen( ch, addition )
     returner = lambda d: (d, cutsetdict[d])
-    if mass < 425:
+    #if mass < 425:
+    #    return returner("A")
+    #elif mass < 625:
+    #    return returner("B")
+    #else:
+    #    return returner("C")
+    if mass < 625:
         return returner("A")
-    elif mass < 625:
-        return returner("B")
     else:
-        return returner("C")
+        return returner("B")

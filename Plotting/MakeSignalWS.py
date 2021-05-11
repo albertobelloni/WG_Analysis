@@ -1,11 +1,13 @@
 #!/usr/bin/env python
+import matplotlib.pyplot as plt
+import re
+import json
+import uuid
+from uncertainties import ufloat
+def addparser(parser):
+    parser.add_argument('--plots',  action='store_true', help='Plot fit parameter shifts' )
 execfile("MakeBase.py")
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-import re
-import uuid
-import pickle
-from uncertainties import ufloat
-from collections import OrderedDict
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
 _XMIN_M = 60
@@ -21,19 +23,14 @@ if options.dataDir is not None :
         os.makedirs( options.dataDir+ "/2017" )
         os.makedirs( options.dataDir+ "/2018" )
 fitmlist = []
+fitted_masses = OrderedDict()
+_JSONLOC = "%s/fitted_mass%i.txt"%(options.dataDir,options.year)
 
 def main() :
     sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, lumi=-1)
     sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, lumi=-1)
     sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG.ReadSamples( _SAMPCONF )
-
-#    sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
-#    sel_base_el = 'el_pt30_n==1 && el_n==1'
-#
-#    sel_jetveto_mu = sel_base_mu + ' && jet_n == 0 '
-#    sel_jetveto_el = sel_base_el + ' && jet_n == 0 '
-
 
     workspaces_to_save = {}
 
@@ -45,13 +42,6 @@ def main() :
     xmax_pt = _XMAX_M/2
     bin_width_pt = bin_width_m/2.
 
-    #binning_m = ((_XMAX_M-_XMIN_M)/bin_width_m, _XMIN_M, _XMAX_M)
-
-    #binning_pt = ( (xmax_pt - xmin_pt )/bin_width_pt, xmin_pt, xmax_pt )
-
-    #xvar_m = ROOT.RooRealVar( 'x_m', 'x_m',_XMIN_M , _XMAX_M)
-
-    #xvar_pt = ROOT.RooRealVar( 'x_pt', 'x_pt', xmin_pt, xmax_pt )
 
     signal_binning_m_width1 = {
                          200 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
@@ -119,24 +109,7 @@ def main() :
 
 
 
-    kine_vars = { #'mt_incl_lepph_z' : { 'var' : 'mt_lep_met_ph'   , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
-                  #'m_incl_lepph_z'  : { 'var' : 'm_lep_met_ph'    , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
-                  ##'mt_rotated'      : { 'var' : 'mt_rotated'      , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
-               'mt_res' : { 'var' : 'mt_res' , 'signal_binning' : signal_binning_m },
-                  #'mt_constrwmass'  : { 'var' : 'recoM_lep_nu_ph' , 'xvar' : xvar_m  , 'binning' : binning_m, 'signal_binning' : signal_binning_m },
-                  #'ph_pt'           : { 'var' : 'ph_pt[0]'        , 'xvar' : xvar_pt , 'binning' : binning_pt, 'signal_binning' : signal_binning_pt },
-                }
-
-#    selections = { 'base'    : {
-#                                 'mu' : {'selection' : sel_base_mu },
-#                                 'el' : { 'selection' : sel_base_el },
-#                               },
-#                 }
-
-
-    #for seltag, chdic in selections.iteritems() :
-    #    # groups of selection containing dict of channels
-    #    print "seltag: ",seltag ,"chdic: ", chdic
+    kine_vars = { 'mt_res' : { 'var' : 'mt_res' , 'signal_binning' : signal_binning_m }, }
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
 
@@ -150,8 +123,12 @@ def main() :
             make_signal_fits( man, workspaces_to_save=workspaces_to_save,
                                suffix='%s%i'%(ch,options.year), **vardata)
 
+    #multidict_tojson2(_JSONLOC, fitted_masses )
+
     for fileid, ws in workspaces_to_save.iteritems() :
             ws.writeToFile( '%s/%s/%s.root' %( options.dataDir, options.year, fileid ) )
+
+    sys.exit()
 
 
 
@@ -165,11 +142,11 @@ def parsesampname(name):
         mass = float(res.group(2))
         iwidth = 0
         if name.count( 'width0p01' ) :
-            width = 0.0001
+            width = 0.01
             wid = "0p01"
         else :
             res2 = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_width(\d)', name )
-            width = float(res2.group(3))/100.
+            width = float(res2.group(3))
             wid = res2.group(3)
             iwidth = 1
     return mass, width, wid, iwidth
@@ -204,6 +181,7 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
     else:
        extra_label = "Electron channel"
        ch="el"
+    #raw_input(ch+" cont")
 
 
     ### now loop over all samples to fit each of them
@@ -212,6 +190,7 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         print 'Sample = ', samp.name
         mass, width, wid, iwidth = parsesampname(samp.name)
 
+        #if mass!=400: continue #FIXME test
         ### exclude certain samples
         if samp.name.count( 'MadGraph' ) == 0:
            continue
@@ -230,8 +209,11 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         ## make full selection string
         binning = signal_binning[iwidth][mass]
         addition = " (%s > %d && %s < %d )" %(var, binning[1], var ,binning[2])
-        cuttag, full_sel_sr = defs.selectcutstring( mass , ch, addition )
+        cuttag, (full_sel_sr, weight) = defs.selectcutstring( mass , ch, addition )
         print full_sel_sr
+        #weight = "NLOWeight"
+        if options.year == 2018:
+            weight = weight.replace("*prefweight","") ## no prefiring weight in 2018
 
         ## make RooRealVar for fit variable
 
@@ -246,28 +228,98 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
                  "extra_label_loc":(.12,.82)}
 
         ## make histogram
-        sampMan.create_hist( samp, var, full_sel_sr, signal_binning[iwidth][mass] )
+        sampMan.create_hist( samp, var, "(%s)*%s" %(full_sel_sr,weight), signal_binning[iwidth][mass] )
         print "Integral: ", samp.hist.Integral()
 
         ## fit histogram
-        fit_sample( samp.hist, xvar, workspace, full_suffix, sample_params, lconf)
+        fitman = fit_sample( samp.hist, xvar, workspace, full_suffix, sample_params, lconf)
+
+        fitvals = fitman.get_parameter_vals()
+
+        normval = (fitvals["cb_mass"], fitvals["cb_sigma"])
+        fitted_masses[(ch,mass,width,"norm")] = normval
+
+        sel_odict = make_syssellist(var, full_sel_sr, weight, ch= ch)
+
+        for tag, (v, s, w) in sel_odict.iteritems():
+
+            sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning[iwidth][mass] )
+
+            ### fit with only mean floating
+
+            fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_mean_"+tag,
+                                 sample_params, lconf, fitvals, "mean")
+            fitvalsnew = fitman.get_parameter_vals()
+
+            fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
+
+            ### fit with mean and sigma floating
+
+            fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_sigma_"+tag,
+                                 sample_params, lconf, fitvals, "meansigma")
+            fitvalsnew = fitman.get_parameter_vals()
+
+            fitted_masses[(ch, mass, width, "sigma_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
+
 
         ## save result
         #workspaces_to_save.update( { workspace.GetName() : workspace} )
         assert workspaces_to_save.get(workspace.GetName())==None, workspace.GetName()
         workspaces_to_save[ workspace.GetName() ] = workspace
 
+        fitted_mass =  search_multidict(fitted_masses, (mass,width,None))
+        for k,v in fitted_mass.iteritems():
+            print "%-30s %10.1f %6.1f%% %10.1f %6.0f%%" %(k, (v[0][0]-normval[0][0]), v[0][0]/normval[0][0]*100-100, v[1][0]-normval[1][0], v[1][0]/normval[1][0]*100-100,)
+        #if "q" in raw_input("cont"):
+        #   sys.exit()
 
-def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config ):
+    #fitted_masses_json = {"%i_%g_%s" %k: v for k,v in fitted_masses.iteritems()}
+    #with open(_JSONLOC, "w") as fo:
+    #    json.dump( fitted_masses_json, fo)
+    print fitted_masses.keys()
+
+
+
+def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, usevals=None, fittype=None):
 
     fitManager = FitManager( 'dscb',  hist=hist,  xvardata = xvar,
                             sample_params=sample_params, label = suffix)
 
     fitManager.setup_fit()
-    #fitManager.fit_histogram(workspace )
-    #fitManager.run_fit_minuit( fitrange = (fit_min, fit_max) ,debug = True)
-    fitManager.run_fit_minuit( fitrange = xvar, debug = True)
+
+    if usevals:
+        fitManager.set_parameter_vals( usevals )
+
+    if fittype=="mean":
+        for k, val in fitManager.fit_params.iteritems():
+            if k == "cb_mass":
+                val.setConstant(False)
+            else:
+                val.setConstant(True)
+
+    if fittype=="sigma":
+        for k, val in fitManager.fit_params.iteritems():
+            if k == "cb_sigma":
+                val.setConstant(False)
+            else:
+                val.setConstant(True)
+
+    if fittype=="meansigma":
+        for k, val in fitManager.fit_params.iteritems():
+            if k == "cb_sigma" or k == "cb_mass":
+                val.setConstant(False)
+            else:
+                val.setConstant(True)
+
+    for k, val in fitManager.fit_params.iteritems():
+        print k
+        val.Print()
+    #if "q" in raw_input("cont"):
+    #    sys.exit()
+
+    fitManager.run_fit_minuit( fitrange = xvar ) #, debug = True)
     fitManager.get_results( workspace )
+    if not fittype: fitManager.shifted_dscb( workspace )
     #fitManager.save_fit( sampMan, workspace, stats_pos='left',
     #                     extra_label = extra_label , plotParam =True)
     canv = fitManager.draw( subplot = "pull", paramlayout = (0.12,0.5,0.78),
@@ -281,7 +333,9 @@ def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config ):
     print " RooFitResult Status: %d"%fitManager.fitresult.status()
     print "************"
 
+
     fitmlist.append(fitManager)
+    return fitManager
 
 
 def fit_pol1( hist, xmin, xmax ) :
@@ -303,10 +357,166 @@ def clone_sample_and_draw( sampMan, samp, var, sel, binning ) :
     sampMan.create_hist( newSamp, var, sel, binning )
     return newSamp.hist
 
+## FIXME bjet SF to be added
+SFlistel = ["el_trig", "el_id", "el_reco",
+          "ph_id",   "ph_psv"] ## SF, SFUP, SFDOWN
+SFlistmu = [ "mu_trig", "mu_id", "mu_trk", "mu_iso",
+              "ph_id",   "ph_psv"]
+
+metlist=[
+            "JetRes",
+            "JetEn",
+            "MuonEn",
+            "ElectronEn",
+            "PhotonEn",
+            "UnclusteredEn", #--/Up/Down
+        ]
+
+eventweightlist = ["muR1muF2",
+                   "muR1muFp5",
+                   "muR2muF1",
+                   "muR2muF2",
+                   "muRp5muF1",
+                   "muRp5muFp5"
+                   ]
+
+def make_syssellist( varnorm, selnorm, weightnorm, ch = "el"):
+
+    selection_list = OrderedDict()
+
+    ## met uncertainty
+#    mettaglist = [mname+shift for mname in metlist for shift in ["Up","Down"]]
+#
+#    for tag in mettaglist:
+#
+#        w = weightnorm.replace("mt_res", "mt_res_%s" %tag )\
+#                  .replace("met_pt", "met_%s_pt" %tag )
+#        sel = selnorm.replace("mt_res", "mt_res_%s" % tag )\
+#                     .replace("met_pt", "met_%s_pt" % tag )
+#
+#        if tag == "MuonEnUp":
+#            sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
+#        if tag == "MuonEnDown":
+#            sel = sel.replace("mu_pt_rc", "mu_pt_rc_down")
+#
+#        var = "mt_res_%s" %tag
+#        selection_list[tag] = (var, sel, w)
+
+    ### muon and electron scale factors
+    var = "mt_res"
+#    SFlist = SFlistel if ch=="el" else SFlistmu
+#    sftaglist = [sfname+"SF"+shift for sfname in SFlist for shift in ["UP","DN"]]
+#    for tag in sftaglist:
+#        sel = selnorm
+#        w = weightnorm.replace(tag[:-2], tag)
+#        selection_list[tag] = (var, sel, w)
+#
+#    for shift in ["up","down"]:
+#        sel=selnorm
+#        w = weightnorm.replace("prefweight" , "prefweight%s" % shift )
+#        selection_list["pref"+shift] = (var, sel, w)
+#        pupreftaglist.append("pref%s"%shift)
+#
+#    #for shift in ["UP5", "UP10", "DN5", "DN10"]:
+#    for shift in ["UP5", "UP10",]:
+#        sel=selnorm
+#        w = weightnorm.replace("PUWeight" , "PUWeight%s" % shift )
+#        selection_list["PU"+shift] = (var, sel, w)
+#
+#    # event weights (pdf)
+#    for i, shift in enumerate(eventweightlist):
+#        sel=selnorm
+#        w = weightnorm.replace("NLOWeight" , "NLOWeight*PDFWeights[%i]" % i )
+#        selection_list[shift] = (var, sel, w)
+
+    return selection_list
+
+def comp_tuples(keytuple, seltuple):
+
+    if not (isinstance(keytuple,tuple) and isinstance(seltuple, tuple)):
+        return False
+
+    if len(keytuple)<len(seltuple):
+        return False
+
+    for i in range(len(seltuple)):
+
+        if seltuple[i]==None:
+            continue
+
+        if keytuple[i]!=seltuple[i]:
+            return False
+
+    return True
+
+def mask(a,b):
+    c = tuple(a[i] for i , ib in enumerate(b) if ib == None)
+    return c[0] if len(c) == 1 else c
+
+def search_multidict(in_dict,selkey):
+    ### search dictionary with ntuple keys
+    ### (None,"hello") selects all entries where the second column is Hello
+    ### roughly equivalent to ~~ dict[:,"hello"]
+    return OrderedDict((mask(k,selkey), w) for k,w in in_dict.iteritems() if comp_tuples(k, selkey))
+
+def multidict_tojson(filepath, indict, keymould = "%i_%g_%s"):
+    transformed_dict = {keymould %k: v for k,v in indict.iteritems()}
+    with open(filepath, "w") as fo:
+        json.dump( transformed_dict, fo)
+
+def multidict_tojson2(filepath, indict):
+    ## expand into multidimensional dictionary
+    transformed_dict = recdd()
+    for (a,b,c,d), v in indict.viewitems():
+        transformed_dict[a][b][c][d] = v
+    with open(filepath, "w") as fo:
+        json.dump( transformed_dict, fo)
+
+
+def makeplots():
+    with open(_JSONLOC) as fo:
+        fm = json.load(fo)
+    #ph_en_el = [fm["el"][m]["5.0"]["mean_PhotonEnDown"][0][0]/fm["el"][m]["5.0"]["norm"][0][0]*100-100 for m in masses]
+    # NOTE fitted_masses[ch][mass][width][sys_type]:[0:mean,1:sigma][0:value, 1:sigma]
+    plt.style.use("fivethirtyeight")
+
+    syslist = [ "PhotonEn",
+                "ElectronEn",
+                "MuonEn",
+                "UnclusteredEn",
+                ]
+
+    masses = fm["el"].keys()
+    masses.sort(lambda x,y:int(float(x)-float(y)))
+
+    mass = [float(m) for m in masses]
+    for ch in ["el","mu"]:
+        for w,width in [("w5","5.0"),("w0p01","0.01")]:
+            fig=plt.figure()
+            for sys in syslist:
+                yup = [fm[ch][m][width]["mean_%sUp"%sys][0][0]/fm[ch][m][width]["norm"][0][0]*100-100 for m in masses]
+                ydn = [fm[ch][m][width]["mean_%sDown"%sys][0][0]/fm[ch][m][width]["norm"][0][0]*100-100 for m in masses]
+                plt.fill_between(mass,yup,ydn,alpha=0.2,label = sys)
+            plt.legend()
+            plt.savefig("%s/shifts_%s%i_%s_mean.png"%(options.outputDir,ch,options.year,w))
+            plt.savefig("%s/shifts_%s%i_%s_mean.pdf"%(options.outputDir,ch,options.year,w))
+
+            ## sigma shifts
+            fig=plt.figure()
+            for sys in syslist:
+                yup = [fm[ch][m][width]["sigma_%sUp"%sys][1][0]/fm[ch][m][width]["norm"][1][0]*100-100 for m in masses]
+                ydn = [fm[ch][m][width]["sigma_%sDown"%sys][1][0]/fm[ch][m][width]["norm"][1][0]*100-100 for m in masses]
+                plt.fill_between(mass,yup,ydn,alpha=0.2,label = sys)
+            plt.legend()
+            plt.savefig("%s/shifts_%s%i_%s_sigma.png"%(options.outputDir,ch,options.year,w))
+            plt.savefig("%s/shifts_%s%i_%s_sigma.pdf"%(options.outputDir,ch,options.year,w))
+
+
+if options.plots:
+    makeplots()
+    sys.exit()
+
 main()
-
-
-
 
 
 

@@ -35,7 +35,7 @@ var2list = [ ("met_pt","MET","GeV",(100,0,100)),
 for var in varlist:
     varname = str.translate(var[0],None,"[]_")
     save_as = ("%s_%imumu_ln.pdf" %(varname,year), options.outputDir, "base")
-    hconf = {"unblind":True, "doratio":True,"xlabel":var[1],"xunit":var[2],"drawsignal":False, "logy":True,"ymin":10}
+    hconf = {"unblind":True, "doratio":True,"xlabel":var[1],"xunit":var[2],"drawsignal":False, "logy":True,"ymin":10, "overflow":False}
     hf = sf.SetHisto1DFast(var[0], "", var[3], weight, hconf, lgconf , lconf, save_as)
     hlist.append(hf)
     #save_as = ("%s_%ielel_elselln.pdf" %(varname,year), options.outputDir, "base")
@@ -46,7 +46,7 @@ for var in varlist:
 for var in var2list:
     varname = str.translate(var[0],None,"[]_")
     save_as = ("%s_%imumu.pdf" %(varname,year), options.outputDir, "base")
-    hconf = {"unblind":True, "doratio":True,"xlabel":var[1],"xunit":var[2],"drawsignal":False}
+    hconf = {"unblind":True, "doratio":True,"xlabel":var[1],"xunit":var[2],"drawsignal":False, "overflow":False}
     hf = sf.SetHisto1DFast(var[0], "", var[3], weight, hconf, lgconf , lconf, save_as)
     hlist.append(hf)
     #save_as = ("%s_%ielel_elsel.pdf" %(varname,year), options.outputDir, "base")

@@ -7,10 +7,10 @@ from math import sqrt
 ### eff2 = \epsilon^J_T
 ### Na = N_T: total counts under tight/pass selection
 ### Nb = N_L: total counts under loose/fail selection
-eff1 = ufloat(1.,.01)
-eff2 = ufloat(.40,.05)
-Na=ufloat(1600,40)
-Nb=ufloat(150, 10)
+eff1 = ufloat(.95,.02)
+eff2 = ufloat(.4,.02)
+Na=ufloat(1600, 2)
+Nb=ufloat(150, 2)
 
 def jet_fake_estimate_uncertainty_by_hand( eff1, eff2, Na, Nb, sigeff1, sigeff2, sigNa, sigNb):
     """

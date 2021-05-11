@@ -277,7 +277,7 @@ def config_and_run( options, package_name ) :
 
 
         #-------------------------------------------
-        # use nCompileWithCheck when you want to 
+        # use noCompileWithCheck when you want to
         # use the existing executable (as if using --noCompile)
         # except when the tree content has changed
         # The check is done by building new compilation files and
@@ -323,7 +323,6 @@ def config_and_run( options, package_name ) :
             # If we need to recompile then a different executable should
             # be made so as to not overwrite an existing one
             # to be safe, use a random string
-            options.exeName = '.'.join(options.exeName.split('.')[0:-1]) + str( uuid.uuid4() ) + '.exe'
 
             comp_success = compile_code( alg_list, branches, out_branches, branches_to_keep, workarea, package_name, options.exeName, options.writeExpertCode)
 
@@ -337,6 +336,12 @@ def config_and_run( options, package_name ) :
         if not comp_success :
             return
 
+    ## always compile if the exe does not exist yet
+    if not os.path.isfile(options.exeName):
+        comp_success = compile_code( alg_list, branches, out_branches, branches_to_keep, workarea, package_name, options.exeName, options.writeExpertCode)
+        if not comp_success :
+            return
+
 
     # Get the path of the executable.  First try the
     # WorkArea environment variable which will give
@@ -344,11 +349,15 @@ def config_and_run( options, package_name ) :
     # Using the path of this script to get an
     # absolute path
     exe_path = '%s/TreeFilter/%s/%s' %(workarea, package_name, options.exeName)
+    if not os.path.isdir( options.outputDir ) :
+        os.makedirs( options.outputDir )
+    os.system('cp %s %s' %(exe_path, options.outputDir))
+    exe_path = "%s/%s" %(options.outputDir, options.exeName)
 
 
     # --------------------------
     # Handle file splitting.
-    # Be default nsplit = 1.  In this case the default 
+    # Be default nsplit = 1.  In this case the default
     # behavior is only one job running over all
     # events
     # --------------------------
@@ -1329,9 +1338,10 @@ def create_job_desc_file(command_info, kwargs) :
                     'periodic_release = NumJobStarts<5 && ((CurrentTime - EnteredCurrentStatus) >= 2 * $(MINUTE))',
                     'job_machine_attrs = Machine',
                     'job_machine_attrs_history_length = 5',
-                    'requirements = target.machine =!= MachineAttrMachine1 && target.machine =!= MachineAttrMachine2',
+                    'Requirements = TARGET.machine =!= MachineAttrMachine1 && TARGET.machine =!= MachineAttrMachine2 && TARGET.machine =!= MachineAttrMachine3 && TARGET.machine =!= MachineAttrMachine4 && (TARGET.OpSysMajorVer == 7)' ,
                     #'Requirements = TARGET.Machine =!= "compute-0-5.privnet"',
                     #'Requirements = TARGET.Machine == "r540-0-21.privnet"',
+                    #'Requirements = TARGET.Machine == "siab-1.umd.edu" && (TARGET.SlotID==1)',
                     #'+JobFlavour = longlunch', #for running on lxplus
                     #'+IsTestJob = True',
                     #'# Copy output files when done.  REQUIRED to run in a protected directory',
