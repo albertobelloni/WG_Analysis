@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+
+def addparser(parser):
+    parser.add_argument('--TT',            action="store_true",   help='Do TT bar control region')
+    parser.add_argument('--ZP',            action="store_true",   help='Do Z peak control region')
+
 execfile("MakeBase.py")
 import re
 import numpy as np
@@ -26,6 +31,11 @@ ptvar = "ph_pt[0]"
 doControlRegion=False
 #doControlRegion="Z"
 #doControlRegion="TT"
+if options.ZP == True:
+    doControlRegion="Z"
+if options.TT == True:
+    doControlRegion="TT"
+
 
 _SAMPCONF = 'Modules/Resonance%i_efake.py' %options.year
 
@@ -497,6 +507,7 @@ def getselstring(name):
     #selstr = get_subselection(i)
     print "name", name
 
+    if "200" in name: selstr = "&& ph_pt[0]>200"
     if "80" in name: selstr = "&& ph_pt[0]>80"
     if "40" in name: selstr = "&& ph_pt[0]>40 && ph_pt[0]<80"
     ## replace string by bin variabke
@@ -509,6 +520,8 @@ def getselstring(name):
         badstring = defs.build_bad_efake_sector_string(options.year, "badonly")
     if "worstonly" in name:
         badstring = defs.build_bad_efake_sector_string(options.year, "worstonly")
+    if "whole" in name:
+        badstring = "1"
     selection+="&&(%s)"%badstring
 
     return selection
@@ -534,8 +547,14 @@ ptname = tuple(map(lambda x: str("%g" %x).replace('.','p'), ptbins))
 
 ptname = ("normal80","badonly80","worstonly80","total80",
           "normal40","badonly40","worstonly40","total40")
+ptname = ("normal200","badonly200","worstonly200","total200",
+          "normal80","badonly80","worstonly80","total80",
+          "normal40","badonly40","worstonly40","total40")
 if options.year==2016:
-    ptname = ("normal80","badonly80","total80","normal40","badonly40","total40")
+    ptname = ("normal80","badonly80","whole80","total80","normal40","badonly40","whole40","total40")
+    ptname = (  "normal200","badonly200","total200",
+                "normal80","badonly80","total80",
+                "normal40","badonly40","total40")
 
 ptvarname = ptvar.translate(None,"[]_$")
 ptsize = len(ptname)
@@ -553,10 +572,10 @@ metcorr=0
 
 
 tag=""
-egqual   = " && el_passTight[0] && ph_passMedium[0]"
-mugqual  = " && mu_passTight[0] && ph_passMedium[0]"
-selbase = baseel + metgt40  + egqual + elpt40  + invZ + ph_eb
-selbasectrl1 = baseel + metgt40 + egqual + elpt40 + el_eb + massZ + ph_eb ## Z peak CR
+egqual   = " && el_passTight[0] && ph_passTight[0]"
+mugqual  = " && mu_passTight[0] && ph_passTight[0]"
+selbase = baseel + metgt40  + egqual + elptgt%35  + invZ + ph_eb + el_eb + csvveto
+selbasectrl1 = baseel + metgt40 + egqual + elptgt%35 + el_eb + massZ + ph_eb + csvveto ## Z peak CR
 selbasectrl2 = basemu + mugqual + ph_eb + csvmed ### TTbar control reg
 
 title = "electron faking photon in signal region"
@@ -642,7 +661,12 @@ for i in range(ptsize):
 
     if "total" in ptname[i]: continue
 
-    filenametuple = (options.year, options.year, ptname[i])
+    ptnametag = ptname[i]
+    ptnum = filter(str.isdigit, ptname[i])
+    if int(ptnum)>80:
+        ptnametag = ptnametag.replace(ptnum, "80" )
+    if "whole" in ptname[i]: ptnametag = ptnametag.lstrip("whole") ## FIXME
+    filenametuple = (options.year, options.year, ptnametag)
     Na = get_param('data/efake/%i/parms_regA%i%s.txt'      %filenametuple)
     Nb = get_param('data/efake/%i/parms_regB%i%s.txt'      %filenametuple)
     Nda = get_param('data/efake/%i/parms_regA_data%i%s.txt'%filenametuple)
@@ -735,18 +759,21 @@ for i in range(ptsize):
 
     factor=1.
     if "80" in ptname[i] and doControlRegion == "Z": factor=10. ## better visualization
+    if "200" in ptname[i]: factor=10. ## better visualization
     mcexplist[i]   = mcexp      * factor
     mccountlist[i] = mcscount   * factor
     dataexplist[i] = dtexp      * factor
     datacntlist[i] = datascount * factor
 
+
+### manually calculate total
 for i in range(ptsize):
     if "total" not in ptname[i]:
         continue
 
     radikal = ptname[i].replace("total","")
     for j in range(ptsize):
-        if radikal in ptname[j] and i != j:
+        if radikal in ptname[j] and i != j and "whole" not in ptname[j]:
             mcexplist[i]  +=mcexplist[j]
             mccountlist[i]+=mccountlist[j]
             dataexplist[i]+=dataexplist[j]
@@ -817,12 +844,12 @@ if doControlRegion:
     t1.AddEntry(h4,"Data Count","L")
 t1.AddEntry(h2,"Data Est","f")
 t1.Draw()
-if doControlRegion=="Z":
+if doControlRegion=="Z" or options.year==2016:
     l1 = ROOT.TLatex()
     l1.SetNDC()
     l1.SetTextSize(0.04)
     l1.SetTextFont(52)
-    l1.SetText(.20,.20, "10x")
+    l1.SetText(.20,.60, "10x")
     l1.Draw()
 
 c1.SaveAs("~/public_html/fakeestimate%i%s.pdf" %(options.year, tag))

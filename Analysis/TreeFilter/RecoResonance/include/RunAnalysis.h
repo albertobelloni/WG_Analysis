@@ -81,6 +81,9 @@ class RunModule : public virtual RunModuleBase {
         bool _eval_ph_tight    ;
         bool _eval_ph_medium   ;
         bool _eval_ph_loose    ;
+        bool _eval_btag_tight    ;
+        bool _eval_btag_medium   ;
+        bool _eval_btag_loose    ;
         bool _eval_el_tight    ;
         bool _eval_el_medium   ;
         bool _eval_el_loose    ;
@@ -185,10 +188,14 @@ namespace OUT {
     Int_t jet_CSVLoose_n;
     Int_t jet_CSVMedium_n;
     Int_t jet_CSVTight_n;
+    Int_t jet_DeepJetLoose_n;
+    Int_t jet_DeepJetMedium_n;
+    Int_t jet_DeepJetTight_n;
     std::vector<Bool_t>  *jet_IdLoose;
     std::vector<Bool_t>  *jet_IdTight;
     std::vector<Bool_t>  *jet_IdTightLep;
-    
+    std::vector<Bool_t>  *jet_btagged;
+
     float m_lep_ph;
     std::vector<float> *m_lep_ph_comb_leadLep;
     std::vector<float> *m_lep_ph_comb_sublLep;
@@ -353,6 +360,7 @@ namespace OUT {
     std::vector<Int_t> *truelep_PID;
 
     Int_t truenu_n;
+    float truemed_mass;
 
     Int_t trueW_n;
     std::vector<float> *trueW_pt;

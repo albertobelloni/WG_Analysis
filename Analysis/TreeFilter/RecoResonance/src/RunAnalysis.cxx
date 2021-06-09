@@ -123,9 +123,13 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::jet_CSVLoose_n                         = 0;
     OUT::jet_CSVMedium_n                        = 0;
     OUT::jet_CSVTight_n                         = 0;
+    OUT::jet_DeepJetLoose_n                         = 0;
+    OUT::jet_DeepJetMedium_n                        = 0;
+    OUT::jet_DeepJetTight_n                         = 0;
     OUT::jet_IdLoose                            = 0;
     OUT::jet_IdTight                            = 0;
     OUT::jet_IdTightLep                         = 0;
+    OUT::jet_btagged                         = 0;
     
     OUT::m_lep_ph                               = 0;
     OUT::m_lep_ph_comb_leadLep                  = 0;
@@ -274,9 +278,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::truelep_e                              = 0;
     OUT::truelep_motherPID                      = 0;
     OUT::truelep_status                         = 0;
-    OUT::truelep_PID                             = 0;
+    OUT::truelep_PID                            = 0;
 
     OUT::truenu_n                               = 0;
+    OUT::truemed_mass                           = 0;
 
     OUT::trueW_n                               = 0;
     OUT::trueW_pt                              = 0;
@@ -392,9 +397,13 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("jet_CSVLoose_n", &OUT::jet_CSVLoose_n, "jet_CSVLoose_n/I"  );
     outtree->Branch("jet_CSVMedium_n", &OUT::jet_CSVMedium_n, "jet_CSVMedium_n/I"  );
     outtree->Branch("jet_CSVTight_n", &OUT::jet_CSVTight_n, "jet_CSVTight_n/I"  );
+    outtree->Branch("jet_DeepJetLoose_n", &OUT::jet_DeepJetLoose_n, "jet_DeepJetLoose_n/I"  );
+    outtree->Branch("jet_DeepJetMedium_n", &OUT::jet_DeepJetMedium_n, "jet_DeepJetMedium_n/I"  );
+    outtree->Branch("jet_DeepJetTight_n", &OUT::jet_DeepJetTight_n, "jet_DeepJetTight_n/I"  );
     outtree->Branch("jet_IdLoose", &OUT::jet_IdLoose );
     outtree->Branch("jet_IdTight", &OUT::jet_IdTight );
     outtree->Branch("jet_IdTightLep", &OUT::jet_IdTightLep );
+    outtree->Branch("jet_btagged", &OUT::jet_btagged );
 
     outtree->Branch("m_lep_ph"        , &OUT::m_lep_ph        , "m_lep_ph/F"  );
     outtree->Branch("m_lep_ph_comb_sublLep"        , &OUT::m_lep_ph_comb_sublLep);
@@ -565,6 +574,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         outtree->Branch("truelep_PID"         , &OUT::truelep_PID                      );
 
         outtree->Branch("truenu_n"            , &OUT::truenu_n, "truenu_n/I"           );
+        outtree->Branch("truemed_mass"        , &OUT::truemed_mass, "truemed_mass/F"   );
 
         outtree->Branch("trueW_n"           , &OUT::trueW_n, "trueW_n/I" );
         outtree->Branch("trueW_pt"           , &OUT::trueW_pt                        );
@@ -686,6 +696,17 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                 if( pid == "tight"     ) _eval_ph_tight       = true;
                 if( pid == "medium"    ) _eval_ph_medium      = true;
                 if( pid == "loose"     ) _eval_ph_loose       = true;
+            }
+
+        }
+        if( mod_conf.GetName() == "FilterJet" ) { 
+
+             eitr = mod_conf.GetInitData().find( "evalBTagID" );
+            if( eitr != mod_conf.GetInitData().end() ) {
+                std::string pid = eitr->second;
+                if( pid == "tight"     ) _eval_btag_tight       = true;
+                if( pid == "medium"    ) _eval_btag_medium      = true;
+                if( pid == "loose"     ) _eval_btag_loose       = true;
             }
 
         }
@@ -2470,9 +2491,13 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
     OUT::jet_CSVLoose_n          = 0;
     OUT::jet_CSVMedium_n          = 0;
     OUT::jet_CSVTight_n          = 0;
+    OUT::jet_DeepJetLoose_n          = 0;
+    OUT::jet_DeepJetMedium_n          = 0;
+    OUT::jet_DeepJetTight_n          = 0;
     OUT::jet_IdLoose        -> clear();
     OUT::jet_IdTight        -> clear();
     OUT::jet_IdTightLep     -> clear();
+    OUT::jet_btagged        -> clear();
     ClearOutputPrefix("jet_");
 
     for( int idx = 0; idx < IN::jet_n; ++idx ) {
@@ -2495,6 +2520,7 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
         bool pass_loose    = true;
         bool pass_tight    = true;
         bool pass_tightlep = true;
+        bool btagged = false;
 
         if( fabs( eta ) < 2.7 ) {
             if( !config.PassFloat( "cut_jet_nhf_central_loose" , nhf  ) ) pass_loose = false;
@@ -2627,6 +2653,25 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
         if( config.PassFloat( "cut_jet_CSV_Tight",  jet_csv ) ) {
             OUT::jet_CSVTight_n++;
         }
+
+        float jet_deepb = IN::jet_bTagDeepb->at(idx);
+
+        btagged = false;
+
+        if( config.PassFloat( "cut_jet_DeepJet_Loose",  jet_deepb ) ) {
+            OUT::jet_DeepJetLoose_n++;
+            if (_eval_btag_loose) btagged=true;
+        }
+        if( config.PassFloat( "cut_jet_DeepJet_Medium",  jet_deepb ) ) {
+            OUT::jet_DeepJetMedium_n++;
+            if (_eval_btag_medium) btagged=true;
+        }
+        if( config.PassFloat( "cut_jet_DeepJet_Tight",  jet_deepb ) ) {
+            OUT::jet_DeepJetTight_n++;
+            if (_eval_btag_tight) btagged=true;
+        }
+        
+        OUT::jet_btagged      -> push_back( btagged );
 
     }
 }
@@ -3634,6 +3679,7 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
     OUT::truelep_PID->clear();
 
     OUT::truenu_n = 0;
+    OUT::truemed_mass = 0.0;
 
     OUT::trueW_n = 0;
     OUT::trueW_pt->clear();
@@ -3723,6 +3769,20 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
 
             OUT::truenu_n++;
         }
+
+
+        if ( absid == 9000007 ) {
+          // mediators
+          TLorentzVector xlv;
+          xlv.SetPtEtaPhiE( IN::gen_pt->at(gidx),
+                            IN::gen_eta->at(gidx),
+                            IN::gen_phi->at(gidx),
+                            IN::gen_e->at(gidx)
+                            );
+          if ( OUT::truemed_mass<1. && abs(IN::gen_eta->at(gidx))<100) OUT::truemed_mass = xlv.M();
+        
+        }
+
         // photons
         if( absid == 22 ) {
 
@@ -4187,7 +4247,7 @@ void RunModule::BuildTruth( ModuleConfig & config ) const {
     OUT::truelepnuph_m = 0.0;
     OUT::truelepph_dr = 0.0;
 
-    if( OUT::truelep_n == 1 ) {
+    if( OUT::truelep_n >= 1 ) {
         TLorentzVector wlv( trueleps[0] );
 
         for( unsigned i = 0 ; i < nulvs.size(); ++i) {
@@ -4777,6 +4837,9 @@ RunModule::RunModule() {
     _eval_ph_tight    =false;
     _eval_ph_medium   =false;
     _eval_ph_loose    =false;
+    _eval_btag_tight  =false;
+    _eval_btag_medium =false;
+    _eval_btag_loose  =false;
     _eval_el_tight    =false;
     _eval_el_medium   =false;
     _eval_el_loose    =false;
