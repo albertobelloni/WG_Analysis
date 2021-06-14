@@ -54,9 +54,34 @@ fit:
 	make limit
 
 limit:
-	python limitplot.py data/higgs/Results/result_5_mu.json 
-	python limitplot.py data/higgs/Results/result_0p01_mu.json 
-	cp result_*_mu.* ~/public_html/
+
+	#python limitplot.py data/higgs/Results/result_5_mu.json 
+	#python limitplot.py data/higgs/Results/result_0p01_mu.json 
+	./limitplot.py data/higgs/Results/result_0p01_all.json
+	./limitplot.py data/higgs/Results/result_0p01_el2016.json
+	./limitplot.py data/higgs/Results/result_0p01_el2017.json
+	./limitplot.py data/higgs/Results/result_0p01_el2018.json
+	./limitplot.py data/higgs/Results/result_0p01_mu2016.json
+	./limitplot.py data/higgs/Results/result_0p01_mu2017.json
+	./limitplot.py data/higgs/Results/result_0p01_mu2018.json
+	./limitplot.py data/higgs/Results/result_5_all.json
+	./limitplot.py data/higgs/Results/result_5_el2016.json
+	./limitplot.py data/higgs/Results/result_5_el2017.json
+	./limitplot.py data/higgs/Results/result_5_el2018.json
+	./limitplot.py data/higgs/Results/result_5_mu2016.json
+	./limitplot.py data/higgs/Results/result_5_mu2017.json
+	./limitplot.py data/higgs/Results/result_5_mu2018.json
+	mv result_*.pdf ~/public_html/
+	mv result_*.png ~/public_html/
+
+sys:
+
+	python MakeSystematics.py --batch --year 2016 --ch mu --condor
+	python MakeSystematics.py --batch --year 2017 --ch mu --condor
+	python MakeSystematics.py --batch --year 2018 --ch mu --condor
+	python MakeSystematics.py --batch --year 2016 --ch el --condor
+	python MakeSystematics.py --batch --year 2017 --ch el --condor
+	python MakeSystematics.py --batch --year 2018 --ch el --condor
 
 llvalid : 
 
@@ -106,11 +131,11 @@ workspaces :
 	#python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doWGamma --outputDir ${OUTPUTMAIN}/Workspaces
 	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
-fits :
-	#python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
-	python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir /home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/HiggsAnalysis/CombinedLimit/ --doVarOptimization
-	#--outputDir ${DIR_Combine}/TEST 
-	#python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir /home/kakw/efake/WG_Analysis_hcombinetest/CMSSW_8_1_0/src/HiggsAnalysis/CombinedLimit --outputDir /home/kakw/efake/WG_Analysis_hcombinetest/WG_Analysis/Plotting/HiggsAnalysis/output/	--doVarOptimization
+#fits :
+#	##python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
+	python MakeFits.py --baseDir ${OUTPUTMAIN} --combineDir /home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/HiggsAnalysis/CombinedLimit/ --doVarOptimization
+#	#--outputDir ${DIR_Combine}/TEST 
+#	#python MakeFitsTest.py --baseDir ${OUTPUTMAIN} --combineDir /home/kakw/efake/WG_Analysis_hcombinetest/CMSSW_8_1_0/src/HiggsAnalysis/CombinedLimit --outputDir /home/kakw/efake/WG_Analysis_hcombinetest/WG_Analysis/Plotting/HiggsAnalysis/output/	--doVarOptimization
 
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits
