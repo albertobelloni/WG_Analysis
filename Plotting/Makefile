@@ -131,7 +131,7 @@ workspaces :
 	#python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doWGamma --outputDir ${OUTPUTMAIN}/Workspaces
 	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
-#fits :
+fits :
 #	##python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
 	python MakeFits.py --baseDir ${OUTPUTMAIN} --combineDir /home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/HiggsAnalysis/CombinedLimit/ --doVarOptimization
 #	#--outputDir ${DIR_Combine}/TEST 
