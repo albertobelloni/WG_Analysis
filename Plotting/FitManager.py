@@ -10,8 +10,7 @@ from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
 from pprint import pprint
-#gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
-from ROOT import RooDoubleCB
+ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
 
 
 ROOT.gStyle.SetPalette(ROOT.kBird)

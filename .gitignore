@@ -31,3 +31,5 @@ roofit_iterators*
 *.pcm
 Plotting/Plots
 .vscode
+Plotting/data
+Plotting/plots

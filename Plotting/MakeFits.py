@@ -36,7 +36,7 @@ parser.add_argument( '--condor',        action='store_true', help='run condor jo
 options = parser.parse_args()
 
 _WLEPBR = (1.-0.6741)
-_XSFILE   = 'cross_sections/photon16_smallsig2.py'
+_XSFILE   = 'cross_sections/photon16.py' # TODO: use file with signal xs = 1 pb or 1 fb
 _LUMI16   = 36000
 _LUMI17   = 41000
 _LUMI18   = 59740
@@ -164,7 +164,7 @@ def main() :
                                #backgrounds=['Backgrounds'],
                                baseDir = options.baseDir,
                                bins = bins,
-                               cutsetlist = "ABC",
+                               cutsetlist = "AB",
                                outputDir = options.outputDir,
                                useToySignal = options.useToySignal,
                                useToyBackground = options.useToyBkgd,
@@ -1092,9 +1092,12 @@ class MakeLimits( ) :
                    #norm=norm*2
                    print "toy data #: ",norm
                    #raw_input("generating")
-                   dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
-                             ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
-                                             'toydata_%s' %suffix ) )
+                   # FIXME: crashes, maybe something wrong with the environment?
+                   print(ROOT.__file__)
+                   cmd_arg = ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
+                                             'toydata_%s' %suffix )
+                   dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , float(norm), cmd_arg)
+
            else :
                if DEBUG: print "norms: ", norms
                total = sum( [int(x) for x in norms ] )
@@ -1167,7 +1170,7 @@ class MakeLimits( ) :
     def prepare_background_functions_helper(self, bkgn, ibin):
         print " prepare background functions for ", bkgn
 
-        fname = '%s/bkgfit/%i/%s' %( self.baseDir, ibin['year'],
+        fname = '%s/data/bkgfit/%i/%s' %( self.baseDir, ibin['year'],
                                      self.wskeys[bkgn].GetRootFileName() )
         ofile = ROOT.TFile.Open( fname , 'READ' )
 
@@ -1288,7 +1291,7 @@ class MakeLimits( ) :
         ## get the cross section and scale factor information
         scale = self.weightMap['ResonanceMass%d'%mass]['scale'] * lumi(ibin)
 
-        fname= '%s/sigfit/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
+        fname= '%s/data/sigfit/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
         wsname = "ws" + self.signame + '_' + inpar
         if DEBUG:
             print fname, " : ", wsname
