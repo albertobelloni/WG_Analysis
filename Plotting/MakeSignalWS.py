@@ -334,7 +334,7 @@ def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, us
     print "************"
 
 
-    fitmlist.append(fitManager)
+    #fitmlist.append(fitManager)
     return fitManager
 
 
