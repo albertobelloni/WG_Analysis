@@ -130,17 +130,17 @@ def main() :
         raise RuntimeError
 
     if options.outputDir is None :
-        options.outputDir = "/home/kakw/efake/WG_Analysis/Plotting/data/higgs/"
+        options.outputDir = "/data/users/yihuilai/WG_Analysis/Plotting/data/higgs"
     if options.outputDir is not None :
         if not os.path.isdir( options.outputDir ) :
             os.makedirs( options.outputDir )
 
     if options.baseDir is None :
-        options.baseDir = "/home/kakw/efake/WG_Analysis/Plotting/data/"
+        options.baseDir = "/data/users/yihuilai/WG_Analysis/Plotting/data"
 
     if options.combineDir == None:
         #options.combineDir = "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/"
-        options.combineDir = "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_11_0_0/src/"
+        options.combineDir = "/data/users/yihuilai/combine/CMSSW_11_0_0/src/"
 
 
     #signal_masses   = [900]
@@ -1096,7 +1096,7 @@ class MakeLimits( ) :
                    print(ROOT.__file__)
                    cmd_arg = ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
                                              'toydata_%s' %suffix )
-                   dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , float(norm), cmd_arg)
+                   dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm), cmd_arg)
 
            else :
                if DEBUG: print "norms: ", norms
