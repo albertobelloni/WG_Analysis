@@ -59,7 +59,7 @@ def read_xsfile( xsfile, lumi, print_values=False ) :
         scale = scale_calc(**values)
         xs_printer.AddLine( ['Sample %s ' %name, 'cross section : %.4g' %values['cross_section'], 'pb  N Events : %d' %(values['n_evt']), 'Scale : %.4g' %scale ] )
 
-        weightMap[name] = {}  
+        weightMap[name] = {}
         weightMap[name]['scale'] = scale
         weightMap[name]['cross_section'] = values['cross_section']
         weightMap[name]['n_evt'] = values['n_evt']

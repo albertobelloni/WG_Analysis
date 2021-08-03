@@ -25,7 +25,6 @@ parser.add_argument( '--outputDir',     default=None,        help='name of outpu
 #parser.add_argument( '--doStatTests',  action='store_true', help='run statistical tests of WGamma background')
 #parser.add_argument( '--doWJetsTests', action='store_true', help='run tests of Wjets background' )
 #parser.add_argument( '--doFinalFit',   action='store_true', help='run fit to data and background' )
-parser.add_argument( '--doVarOpt',      action='store_true', help='run variable optimization' )
 parser.add_argument( '--useHistTemp',   action='store_true', help='use histogram templates' )
 parser.add_argument( '--useToySignal',  action='store_true', help='use gaussian as signal' )
 parser.add_argument( '--useToyBkgd',    action='store_true', help='use exponential as background ' )
@@ -139,7 +138,6 @@ def main() :
         options.baseDir = "/home/kakw/efake/WG_Analysis/Plotting/data/"
 
     if options.combineDir == None:
-        #options.combineDir = "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_10_2_13/src/"
         options.combineDir = "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_11_0_0/src/"
 
 
@@ -149,11 +147,11 @@ def main() :
     signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
     signal_widths    = ['5', '0p01']
 
-    if options.doVarOpt:
+    if True:
 
 
         #ROOT.RooRandom.randomGenerator().SetSeed(int(time.time()))
-        ROOT.RooRandom.randomGenerator().SetSeed(int(12348))
+        ROOT.RooRandom.randomGenerator().SetSeed(int(12345))
         var_opt = MakeLimits(  var=  "mt_res" ,
                                wskeys = ws_keys,
                                masspoints  = signal_masses,
@@ -164,16 +162,16 @@ def main() :
                                #backgrounds=['Backgrounds'],
                                baseDir = options.baseDir,
                                bins = bins,
-                               cutsetlist = "ABC",
+                               cutsetlist = "AB",
                                outputDir = options.outputDir,
                                useToySignal = options.useToySignal,
                                useToyBackground = options.useToyBkgd,
                                # don't put norms in new file
-                               keeplNorms = False,
+                               #keepNorms = False, FIXME
                                noShapeUnc = True,
                                #method = 'AsymptoticLimitsManual', ## only use --condor with manual
-                               #manualpoints = [ 0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
-                               #                 3.5,4.,5.,8.,10.,15.,20.,30.,100.]
+                               #manualpoints = [ -1., -0.1,0,0.001,0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
+                               #                 3.5,4.,5.,8.,10.]
                              )
 
         var_opt.setup()
@@ -329,7 +327,7 @@ class MakeLimits( ) :
         self.useToySignal     = kwargs.get('useToySignal',     False )
         self.useToyBackground = kwargs.get('useToyBackground', False )
 
-        self.keepNorms        = kwargs.get('keepNorms', False )
+        #self.keepNorms        = kwargs.get('keepNorms', False )
         self.noShapeUnc       = kwargs.get('noShapeUnc', False)
 
 
@@ -574,7 +572,7 @@ class MakeLimits( ) :
              ('ph_psvSFUP', 'ph_psvSFDN'),
              ("mu_trigSFUP", "mu_trigSFDN"),
              ("mu_idSFUP", "mu_idSFDN"),
-             ("mu_trkSFUP", "mu_trkSFDN"), ## all zero FIXME?
+             ("mu_trkSFUP", "mu_trkSFDN"),
              ("mu_isoSFUP", "mu_isoSFDN"),]
 
         prefnames  = ( 'prefup',         'prefdown'    )
@@ -950,8 +948,8 @@ class MakeLimits( ) :
         for iparname, iparval in self.params.iteritems():
             ## FIXME stopgap measure 
             if any([ ibin['channel']+cuttag+str(ibin["year"]) in iparname for ibin in viablebins]):
-                #card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
-                card_entries.append('%s flatParam'%iparname)
+                card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
+                #card_entries.append('%s flatParam'%iparname)
 
         for ibin, sig in viablesig:
             #sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
@@ -1747,7 +1745,6 @@ class MakeLimits( ) :
 
                     if self.method == 'AsymptoticLimits' or self.method == 'AsymptoticLimitsManual':
 
-                        #combine_results[var][mass] = float( result[key].split('<')[1] )
                         if len(result)!=6:
                            print "missing some limits. Skip this point Mass %d Width %s"%(mass, width)
 
@@ -1770,8 +1767,8 @@ class MakeLimits( ) :
         for width in self.widthpoints:
             for ch in self.output_files[width].keys() :
 
-                print "\033[1;31m limits on the cross section for signals with %s width ",\
-                      "for channel %s saved to %s/Results \033[0m"%( width, self.outputDir )
+                print "\033[1;31m limits on the cross section for signals with %s width "\
+                      "for channel %s saved to %s/Results \033[0m"%( width, ch, self.outputDir )
 
                 with open('%s/Results/result_%s_%s.json'\
                             %(self.outputDir, width, ch), 'w') as fp:
@@ -1790,7 +1787,9 @@ class MakeLimits( ) :
 
         ofile = open( fname, 'r' )
 
-        xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section'] 
+        xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section']\
+              *self.weightMap['ResonanceMass%d'%mass]['gen_eff']\
+              *self.weightMap['ResonanceMass%d'%mass]['k_factor']
 
         results = {}
 
@@ -1804,7 +1803,7 @@ class MakeLimits( ) :
                     spline = line.split(':')
                     #results[spline[0]] = spline[1].rstrip('\n')
                     if "Expected 50.0%" in spline[0]:
-                       results["exp0"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0  * 100.0/Wlepbr
+                       results["exp0"]  = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
                     elif "Expected  2.5%" in spline[0]:
                        results["exp-2"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
                     elif "Expected 16.0%" in spline[0]:
@@ -1814,7 +1813,7 @@ class MakeLimits( ) :
                     elif "Expected 97.5%" in spline[0]:
                        results["exp+2"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
                     elif "Observed" in spline[0]:
-                       results["obs"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0   * 100.0/Wlepbr
+                       results["obs"]   = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
 
 
         if self.method == 'HybridNew' :
