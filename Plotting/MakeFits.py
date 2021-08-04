@@ -233,6 +233,7 @@ def make_jdl( exe_list, output_file ) :
 
         file_entries.append('output = %s'%exe.replace('.sh', '_out.txt'))
         file_entries.append('error = %s'%exe.replace('.sh', '_err.txt'))
+        file_entries.append('log = %s'%exe.replace('.sh', '_log.txt'))
 
         file_entries.append('Executable = %s' %exe)
         file_entries.append('Initialdir = %s' %base_dir)
@@ -1302,7 +1303,7 @@ class MakeLimits( ) :
 
         sigfitparams = OrderedDict()
 
-        suffix = sigpar#+str(ibin["year"] )#"_".join([sigpar, "2016"]) ##FIXME
+        suffix = sigpar
         ws_entry = "_".join([self.wskeys[self.signame].pdf_prefix, suffix])
         ws_entry_sysdown = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "down"])
         ws_entry_sysup   = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "up"])
@@ -1317,7 +1318,7 @@ class MakeLimits( ) :
         if DEBUG:
            print ws_entry
 
-        ## FIXME hardcoded energy shifts
+        ## Resonance mass shift
         pdf = ws_in.pdf( ws_entry )
         pdf.SetName("Resonance")
         pdfup = ws_in.pdf( ws_entry_sysup )

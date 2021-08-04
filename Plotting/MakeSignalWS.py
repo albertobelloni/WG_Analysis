@@ -6,6 +6,7 @@ import uuid
 from uncertainties import ufloat
 def addparser(parser):
     parser.add_argument('--plots',  action='store_true', help='Plot fit parameter shifts' )
+    parser.add_argument('--doAllFits',  action='store_true', help='Fit all possible systematics (do not flag for combine)' )
 execfile("MakeBase.py")
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
@@ -239,27 +240,44 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         normval = (fitvals["cb_mass"], fitvals["cb_sigma"])
         fitted_masses[(ch,mass,width,"norm")] = normval
 
-        sel_odict = make_syssellist(var, full_sel_sr, weight, ch= ch)
 
-        for tag, (v, s, w) in sel_odict.iteritems():
+        if options.doAllFits:
+            sel_odict = make_syssellist(var, full_sel_sr, weight, ch= ch)
 
-            sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning[iwidth][mass] )
+            for tag, (v, s, w) in sel_odict.iteritems():
 
-            ### fit with only mean floating
+                sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning[iwidth][mass] )
 
-            fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_mean_"+tag,
-                                 sample_params, lconf, fitvals, "mean")
-            fitvalsnew = fitman.get_parameter_vals()
+                ### fit with only mean floating
 
-            fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
+                fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_mean_"+tag,
+                                     sample_params, lconf, fitvals, "mean")
+                fitvalsnew = fitman.get_parameter_vals()
 
-            ### fit with mean and sigma floating
+                fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
 
-            fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_sigma_"+tag,
-                                 sample_params, lconf, fitvals, "meansigma")
-            fitvalsnew = fitman.get_parameter_vals()
+                #### fit with mean and sigma floating
 
-            fitted_masses[(ch, mass, width, "sigma_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
+                #fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_sigma_"+tag,
+                #                     sample_params, lconf, fitvals, "meansigma")
+                #fitvalsnew = fitman.get_parameter_vals()
+
+                #fitted_masses[(ch, mass, width, "sigma_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
+        else:
+
+            sel_odict = make_syssel(var, full_sel_sr, weight, ch= ch)
+
+            for tag, (v, s, w) in sel_odict.iteritems():
+
+                sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning[iwidth][mass] )
+
+                ### fit with only mean floating
+
+                fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_"+tag,
+                                     sample_params, lconf, fitvals, "mean")
+                fitvalsnew = fitman.get_parameter_vals()
+
+                fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
 
 
         ## save result
@@ -314,14 +332,15 @@ def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, us
     for k, val in fitManager.fit_params.iteritems():
         print k
         val.Print()
-    #if "q" in raw_input("cont"):
-    #    sys.exit()
 
     fitManager.run_fit_minuit( fitrange = xvar ) #, debug = True)
     fitManager.get_results( workspace )
-    if not fittype: fitManager.shifted_dscb( workspace )
+
+    ## NOTE uncomment this to make a flat mass shift (default 0.5%) for all samples
+    #if not fittype: fitManager.shifted_dscb( workspace )
     #fitManager.save_fit( sampMan, workspace, stats_pos='left',
     #                     extra_label = extra_label , plotParam =True)
+
     canv = fitManager.draw( subplot = "pull", paramlayout = (0.12,0.5,0.78),
                             useOldsetup = True, label_config = label_config)
 
@@ -357,7 +376,6 @@ def clone_sample_and_draw( sampMan, samp, var, sel, binning ) :
     sampMan.create_hist( newSamp, var, sel, binning )
     return newSamp.hist
 
-## FIXME bjet SF to be added
 SFlistel = ["el_trig", "el_id", "el_reco",
           "ph_id",   "ph_psv"] ## SF, SFUP, SFDOWN
 SFlistmu = [ "mu_trig", "mu_id", "mu_trk", "mu_iso",
@@ -380,54 +398,98 @@ eventweightlist = ["muR1muF2",
                    "muRp5muFp5"
                    ]
 
+def make_syssel( varnorm, selnorm, weightnorm, ch = "el"):
+
+    """ This function hard-codes the up/down shape variation
+       the limit-setter takes
+    """
+    selection_list = OrderedDict()
+
+    if ch == "mu":
+
+        #up variation
+        w = weightnorm.replace("mt_res", "mt_res_MuonEnUp" )\
+                  .replace("met_pt", "met_MuonEnUp_pt" )
+        sel = selnorm.replace("mt_res", "mt_res_MuonEnUp"  )\
+                  .replace("met_pt", "met_MuonEnUp_pt"  )
+        sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
+        var = "mt_res_MuonEnUp"
+        selection_list["up"] = (var, sel, w)
+
+        #down variation
+        w = weightnorm.replace("mt_res", "mt_res_MuonEnDown" )\
+                  .replace("met_pt", "met_MuonEnDown_pt" )
+        sel = selnorm.replace("mt_res", "mt_res_MuonEnDown"  )\
+                  .replace("met_pt", "met_MuonEnDown_pt"  )
+        sel = sel.replace("mu_pt_rc", "mu_pt_rc_down")
+        var = "mt_res_MuonEnDown"
+        selection_list["down"] = (var, sel, w)
+
+    if ch == "el":
+        # up variation
+        w = weightnorm.replace("mt_res", "mt_res_PhotonEnUp" )\
+                  .replace("met_pt", "met_PhotonEnUp_pt" )
+        sel = selnorm.replace("mt_res", "mt_res_PhotonEnUp"  )\
+                  .replace("met_pt", "met_PhotonEnUp_pt"  )
+        var = "mt_res_PhotonEnUp"
+        selection_list["up"] = (var, sel, w)
+
+        # down variation
+        w = weightnorm.replace("mt_res", "mt_res_PhotonEnDown" )\
+                  .replace("met_pt", "met_PhotonEnDown_pt" )
+        sel = selnorm.replace("mt_res", "mt_res_PhotonEnDown"  )\
+                  .replace("met_pt", "met_PhotonEnDown_pt"  )
+        var = "mt_res_PhotonEnDown"
+        selection_list["down"] = (var, sel, w)
+    return selection_list
+
 def make_syssellist( varnorm, selnorm, weightnorm, ch = "el"):
 
     selection_list = OrderedDict()
 
     ## met uncertainty
-#    mettaglist = [mname+shift for mname in metlist for shift in ["Up","Down"]]
-#
-#    for tag in mettaglist:
-#
-#        w = weightnorm.replace("mt_res", "mt_res_%s" %tag )\
-#                  .replace("met_pt", "met_%s_pt" %tag )
-#        sel = selnorm.replace("mt_res", "mt_res_%s" % tag )\
-#                     .replace("met_pt", "met_%s_pt" % tag )
-#
-#        if tag == "MuonEnUp":
-#            sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
-#        if tag == "MuonEnDown":
-#            sel = sel.replace("mu_pt_rc", "mu_pt_rc_down")
-#
-#        var = "mt_res_%s" %tag
-#        selection_list[tag] = (var, sel, w)
+    mettaglist = [mname+shift for mname in metlist for shift in ["Up","Down"]]
+
+    for tag in mettaglist:
+
+        w = weightnorm.replace("mt_res", "mt_res_%s" %tag )\
+                  .replace("met_pt", "met_%s_pt" %tag )
+        sel = selnorm.replace("mt_res", "mt_res_%s" % tag )\
+                     .replace("met_pt", "met_%s_pt" % tag )
+
+        if tag == "MuonEnUp":
+            sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
+        if tag == "MuonEnDown":
+            sel = sel.replace("mu_pt_rc", "mu_pt_rc_down")
+
+        var = "mt_res_%s" %tag
+        selection_list[tag] = (var, sel, w)
 
     ### muon and electron scale factors
     var = "mt_res"
-#    SFlist = SFlistel if ch=="el" else SFlistmu
-#    sftaglist = [sfname+"SF"+shift for sfname in SFlist for shift in ["UP","DN"]]
-#    for tag in sftaglist:
-#        sel = selnorm
-#        w = weightnorm.replace(tag[:-2], tag)
-#        selection_list[tag] = (var, sel, w)
-#
-#    for shift in ["up","down"]:
-#        sel=selnorm
-#        w = weightnorm.replace("prefweight" , "prefweight%s" % shift )
-#        selection_list["pref"+shift] = (var, sel, w)
-#        pupreftaglist.append("pref%s"%shift)
-#
-#    #for shift in ["UP5", "UP10", "DN5", "DN10"]:
-#    for shift in ["UP5", "UP10",]:
-#        sel=selnorm
-#        w = weightnorm.replace("PUWeight" , "PUWeight%s" % shift )
-#        selection_list["PU"+shift] = (var, sel, w)
-#
-#    # event weights (pdf)
-#    for i, shift in enumerate(eventweightlist):
-#        sel=selnorm
-#        w = weightnorm.replace("NLOWeight" , "NLOWeight*PDFWeights[%i]" % i )
-#        selection_list[shift] = (var, sel, w)
+    SFlist = SFlistel if ch=="el" else SFlistmu
+    sftaglist = [sfname+"SF"+shift for sfname in SFlist for shift in ["UP","DN"]]
+    for tag in sftaglist:
+        sel = selnorm
+        w = weightnorm.replace(tag[:-2], tag)
+        selection_list[tag] = (var, sel, w)
+
+    for shift in ["up","down"]:
+        sel=selnorm
+        w = weightnorm.replace("prefweight" , "prefweight%s" % shift )
+        selection_list["pref"+shift] = (var, sel, w)
+
+    #for shift in ["UP5", "UP10", "DN5", "DN10"]:
+    for shift in ["UP5", "UP10",]:
+        sel=selnorm
+        w = weightnorm.replace("PUWeight" , "PUWeight%s" % shift )
+        selection_list["PU"+shift] = (var, sel, w)
+
+    # event weights (pdf)
+    for i, shift in enumerate(eventweightlist):
+        sel=selnorm
+        w = weightnorm.replace("NLOWeight" , "NLOWeight*PDFWeights[%i]" % i )
+        selection_list[shift] = (var, sel, w)
 
     return selection_list
 
