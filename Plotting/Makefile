@@ -26,7 +26,7 @@ DIR_ELG=/data2/users/kakw/Resonances2016/LepGamma_elg_2019_10_04
 DIR_SIGTruth=/data/users/friccita/WGammaNtuple/SigNoFilt_2019_04_15/WithSF
 
 #DIR_Combine=/data/users/fengyb/CMSSW_8_1_0/src
-DIR_Combine=/data/users/yihuilai/combine/CMSSW_8_1_0/src
+DIR_Combine=/data/users/yihuilai/combine/CMSSW_11_0_0/src/
 
 
 all : plots workspaces limits
@@ -50,7 +50,7 @@ matrix:
 
 fit:
 
-	python MakeFits.py --doVarOpt 
+	python MakeFits.py --condor
 	make limit
 
 limit:
@@ -132,8 +132,7 @@ workspaces :
 	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
 fits :
-#	##python MakeFits.py --baseDir ${OUTPUTMAIN}/Workspaces/ --combineDir /home/friccita/WGamma/WG_Analysis/CMSSW_8_1_0 --outputDir ${OUTPUTMAIN} --doVarOptimization   --useHistTemplate  --noRunCombine
-	python MakeFits.py --baseDir ${OUTPUTMAIN}/ --combineDir /data/users/yihuilai/combine/CMSSW_11_0_0/src/HiggsAnalysis/CombinedLimit --doVarOpt --outputDir ${OUTPUTMAIN}/data/higgs 
+	python MakeFits.py --baseDir ${OUTPUTMAIN}/ --combineDir /data/users/yihuilai/combine/CMSSW_11_0_0/src/HiggsAnalysis/CombinedLimit --doVarOpt --outputDir ${OUTPUTMAIN}/data/higgs  --condor
 
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits
