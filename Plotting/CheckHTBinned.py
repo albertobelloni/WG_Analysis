@@ -27,7 +27,7 @@ paths = {
 }
 sampledetails = {
     'WJetsToLNu-madgraphMLM'   : { 'n_evt' : 29514020, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },# NNLO cross section # 61526.7 in SummaryTable1G25ns
-    'WJetsToLNu-amcatnloFXFX'  : { 'n_evt' : 16410910, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }, 
+    'WJetsToLNu-amcatnloFXFX'  : { 'n_evt' : 16410910, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 },
     'WJetsToLNu_HT-100To200'   : { 'n_evt' : 9945478, 'cross_section' :  1345,   'gen_eff' : 1.0 , 'k_factor' : 1.21 }, ## 1346 in XSDB #from SummaryTable1G25ns twiki
     'WJetsToLNu_HT-200To400'   : { 'n_evt' : 4963240, 'cross_section' :  359.7, 'gen_eff' : 1.0 , 'k_factor' : 1.21 },
     'WJetsToLNu_HT-400To600'   : { 'n_evt' : 1963464, 'cross_section' :  48.91, 'gen_eff' : 1.0 , 'k_factor' : 1.21 },
@@ -39,7 +39,7 @@ sampledetails = {
 
 def getHist(samplename, color):
     chain = ROOT.TChain('UMDNTuple/EventTree')
-    
+
     for file in glob('/store/user/mseidel/WGamma/%s/UMDNTuple_1129_2016/*/*/*.root' % paths[samplename]): #[:1]:
         chain.Add(file)
     print chain.GetEntries()
