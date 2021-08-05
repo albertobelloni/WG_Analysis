@@ -53,7 +53,7 @@ def main() :
             if obj.IsA().GetName() == 'TTree' :
                 proc_trees.append(obj.GetName())
         testfile.Close()
-    
+
     # unique the list
     proc_trees = set(proc_trees)
 
@@ -101,7 +101,7 @@ def main() :
         nEntries          = len(randent)
         nEntriesPerOutput = int(math.ceil(float(nEntries)/options.nout))
         split_entries = [randent[i:i+nEntriesPerOutput] for i in range(0, nEntries, nEntriesPerOutput)]
-        
+
         if len(split_entries) != options.nout :
             #hack this to work
             print 'before'
@@ -148,7 +148,7 @@ def process(chain, entry_list, output_files, root_output_dir, job_dirs, out_tree
         else :
             chain_tree_map[dir].SetDirectory(output_files[dir].Get(root_output_dir))
         chain_tree_map[dir].SetAutoSave(3000000)
-        
+
 
     print chain_tree_map
     event_to_tree_map = {}
@@ -176,13 +176,13 @@ def process(chain, entry_list, output_files, root_output_dir, job_dirs, out_tree
         else :
             output_files[dir].cd(root_output_dir)
         tree.Write()
-            
+
 
 #--------------------------------------------------------------
 def collect_input_files(input_dir, filekey) :
     """ collect all input files
 
-    Walk through input directory and find all files 
+    Walk through input directory and find all files
     that match the key.  Walk through soft links too.
 
     """
@@ -221,7 +221,7 @@ def make_output(out_dir, nout, overwrite=False) :
 
 
 
-    
+
 
 if __name__ == '__main__' :
     main()

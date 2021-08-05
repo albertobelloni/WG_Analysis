@@ -16,7 +16,7 @@ options = parser.parse_args()
 
 def main() :
 
-    chain = ROOT.TChain( options.treeName ) 
+    chain = ROOT.TChain( options.treeName )
 
     for top, dirs, files in os.walk( options.path ) :
 

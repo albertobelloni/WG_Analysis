@@ -38,7 +38,7 @@ def get_eos_tot_size( top_dir ) :
             for stop, sdirs, sfiles, ssizes in eosutil.walk_eos( top_dir+'/'+sdir) :
                 for size in ssizes :
                     subdir_sizes[sdir] = subdir_sizes[sdir] + size
-    
+
         top_size = reduce(lambda x, y : x+y , subdir_sizes.values() )
 
     for size in sizes :
@@ -48,7 +48,7 @@ def get_eos_tot_size( top_dir ) :
 
 
     return top_size, subdir_sizes
-    
+
 
 if __name__ == '__main__' :
     main()
