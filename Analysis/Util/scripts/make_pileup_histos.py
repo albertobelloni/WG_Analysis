@@ -16,24 +16,19 @@ parser.add_argument('--skipDone', dest='skipDone', default=False, action = "stor
 
 options = parser.parse_args()
 
-#_NTUPLE_DIR = '/eos/cms/store/group/phys_exotica/Wgamma'
-#options.outputDir = '/afs/cern.ch/work/k/kawong/Resonances2018/pileup'
-_NTUPLE_DIR = '/store/user/kawong/WGamma2/'
-options.version = 'UMDNTuple_0812_2016/'
-options.outputDir = '/data/users/kakw/Resonances2016/pileup/'
+_NTUPLE_DIR = '/store/group/WGAMMA/'
+options.version = 'UMDNTuple_0902'
+options.outputDir = '/data2/users/kakw/Resonances2016/pileup/'
 
 def main() :
 
-    data_samples = ['SingleElectron', 'SingleMuon', 'SinglePhoton', 'DoubleMuon', 'DoubleElectron', 'EGamma']
-    #data_samples = ['SingleMuon','SingleElectron']
-    #mc_samples = ['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8','DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8',]
-    #mc_samples = ['GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
-    #mc_samples = ['TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8','TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
-    #mc_samples = ['WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8','WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
-    #mc_samples = ['WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8','WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',]
-    #mc_samples = ['WWG_TuneCUETP8M1_13TeV-amcatnlo-pythia8','WWTo2L2Nu_13TeV-powheg','WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8','ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8']
-    mc_samples = ['WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8']
     #mc_samples = [] # empty list means run over all found subdirectories
+    mc_samples = [#'MadGraphChargedResonance_WGToLNuG_M1000_width0p01',
+                  #'MadGraphChargedResonance_WGToLNuG_M350_width0p01',
+                  #'MadGraphChargedResonance_WGToLNuG_M500_width5',
+                  'MadGraphChargedResonance_WGToLNu_M2800_width5'
+                  ] # empty list means run over all found subdirectories
+    data_samples = ['SingleElectron', 'SingleMuon', 'SinglePhoton', 'DoubleMuon', 'DoubleElectron', 'EGamma']
 
     if not mc_samples:
         for samp in os.listdir( _NTUPLE_DIR ) :
@@ -54,7 +49,7 @@ def main() :
         for top, dirs, files in os.walk( _NTUPLE_DIR + '/' + samp + '/' + options.version ,followlinks=True) :
             for f in files :
                 if options.fileKey is None or f.count( options.fileKey ) > 0 :
-                    samp_files.append('%s/%s' %(top, f ) ) 
+                    samp_files.append('%s/%s' %(top, f ) )
 
         samp_dir = '%s/%s' %( options.outputDir, samp )
 
@@ -87,8 +82,8 @@ def get_histograms(files, outfile) :
     chain.SetBranchStatus('EventWeights', 1)
 
     outfile.cd()
-    #chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '1 * ( EventWeights[0] > 0 ) - 1* ( EventWeights[0] < 0 ) ' )
-    chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '' )
+    chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '1 * ( EventWeights[0] > 0 ) - 1* ( EventWeights[0] < 0 ) ' )
+    #chain.Draw( '%s >> pileup_true(100,0,100)' %branch_name, '' )
 
     hist = outfile.Get('pileup_true')
 

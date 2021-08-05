@@ -20,8 +20,7 @@ parser.add_argument( '--vetofail', dest='vetofail',default =False, action='store
 
 options = parser.parse_args()
 
-BASE_DIR   = '/store/user/kawong/WGamma2'
-#BASE_DIR   = '/store/user/friccita/'
+BASE_DIR   = '/store/group/WGAMMA'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_SAMPLES = ['SingleElectron', 'SingleMuon', 'HLT']
 
@@ -31,9 +30,9 @@ RECO_TYPE_DATA = ['07Aug17']
 RECO_TYPE_MC   = ['12Apr2018']
 FILE_KEY = 'ntuple'
 TREE_NAME = 'UMDNTuple/EventTree'
-MC_CAMPAIGN_STR = 'RunIIFall17'
-DATA_VERSION = 'UMDNTuple_0506_2016'
-MC_VERSION = 'UMDNTuple_0506_2016'
+MC_CAMPAIGN_STR = 'RunIIAutumn18'
+DATA_VERSION = 'UMDNTuple_0902_2016'
+MC_VERSION = 'UMDNTuple_0902_2016'
 
 
 def main() :
@@ -89,10 +88,9 @@ def main() :
             json_name = '%s_step1.json' %( samp )
 
             print 'dasgoclient --query=%s --format=json --limit=0 ' %(  query )
-            if not options.nodas: os.system('cd /cvmfs/cms.cern.ch/slc6_amd64_gcc530/cms/cmssw/CMSSW_8_0_25/src/;eval `scramv1 runtime -sh`;cd -')
+            if not options.nodas: os.system('cd /cvmfs/cms.cern.ch/slc7_amd64_gcc630/cms/cmssw/CMSSW_9_4_14_UL/src/;eval `scramv1 runtime -sh`;cd -')
             if not options.nodas: os.system( 'dasgoclient --query=%s --format=json --limit=0 >& %s' %(query, json_name ) )
 
-            
 
             ofile = open(  json_name )
 
