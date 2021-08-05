@@ -18,6 +18,80 @@ selection = "mu_n==1 && ph_n==1"
 sf = samples.SetFilter(selection)
 hlist=[]
 
+varlistsys=[
+    ("prefweight",None,"",(40,0.8,1.2)),
+    ("prefweightup/prefweight",None,"",(40,0.8,1.2)),
+    ("prefweightdown/prefweight",None,"",(40,0.8,1.2)),
+    ("PUWeight",None,"",             (40,0.9,1.2)),
+    ("PUWeightUP5/PUWeight",None,"", (40,0.8,1.2)),
+    ("PUWeightDN5/PUWeight",None,"", (40,0.8,1.2)),
+    ("PUWeightUP5",None,"",          (40,0.8,1.2)),
+    ("PUWeightDN5",None,"",          (40,0.8,1.2)),
+    ("PUWeightUP10",None,"",         (40,0.8,1.2)),
+    ("PUWeightDN10",None,"",         (40,0.8,1.2)),
+    ("PDFWeights",    None, "", (50,0.8,1.2)),
+    ("PDFWeights[0]", None, "", (50,0.8,1.2)),
+    ("PDFWeights[1]", None, "", (50,0.8,1.2)),
+    ("PDFWeights[2]", None, "", (50,0.8,1.2)),
+    ("PDFWeights[3]", None, "", (50,0.8,1.2)),
+    ("PDFWeights[4]", None, "", (50,0.8,1.2)),
+    ("PDFWeights[5]", None, "", (50,0.8,1.2)),
+#    ("EventWeights[1]/EventWeights[0]",None,"",(40,0.8,1.2)),
+#    ("EventWeights[2]/EventWeights[0]",None,"",(40,0.8,1.2)),
+#    ("EventWeights[3]/EventWeights[0]",None,"",(40,0.8,1.2)),
+#    ("EventWeights[4]/EventWeights[0]",None,"",(40,0.8,1.2)),
+#    ("EventWeights[6]/EventWeights[0]",None,"",(40,0.8,1.2)),
+#    ("EventWeights[8]/EventWeights[0]",None,"",(40,0.8,1.2)),
+    ("met_JetResUp_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_JetEnUp_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_MuonEnUp_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_ElectronEnUp_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_PhotonEnUp_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_UnclusteredEnUp_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_JetResDown_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_JetEnDown_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_MuonEnDown_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_ElectronEnDown_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_PhotonEnDown_pt/met_pt",None,"",(100,0.8,1.2)),
+    ("met_UnclusteredEnDown_pt/met_pt",None,"",(100,0.8,1.2)),
+    #("el_trigSF",None,"",(40,0.8,1.2)),
+    #("el_trigSFUP",None,"",(40,0.8,1.2)),
+    #("el_trigSFDN",None,"",(40,0.8,1.2)),
+    #("el_idSF",None,"",(40,0.8,1.2)),
+    #("el_idSFUP",None,"",(40,0.8,1.2)),
+    #("el_idSFDN",None,"",(40,0.8,1.2)),
+    #("el_recoSF",None,"",(40,0.8,1.2)),
+    #("el_recoSFUP",None,"",(40,0.8,1.2)),
+    #("el_recoSFDN",None,"",(40,0.8,1.2)),
+    ("ph_idSF",None,"",(40,0.8,1.2)),
+    ("ph_idSFUP",None,"",(40,0.8,1.2)),
+    ("ph_idSFDN",None,"",(40,0.8,1.2)),
+    ("ph_psvSF",None,"",(40,0.8,1.2)),
+    ("ph_psvSFUP",None,"",(40,0.8,1.2)),
+    ("ph_psvSFDN",None,"",(40,0.8,1.2)),
+    ("ph_csevSF",None,"",(40,0.8,1.2)),
+    ("ph_csevSFUP",None,"",(40,0.8,1.2)),
+    ("ph_csevSFDN",None,"",(40,0.8,1.2)),
+    ("mu_pt_rc","","GeV",(100,0,500)),
+    ("mu_pt_rc_up/mu_pt_rc",None,"",(40,0.8,1.2)),
+    ("mu_pt_rc_down/mu_pt_rc",None,"",(40,0.8,1.2)),
+    ("mu_trigSF",None,"",(40,0.8,1.2)),
+    ("mu_trigSFUP",None,"",(40,0.8,1.2)),
+    ("mu_trigSFDN",None,"",(40,0.8,1.2)),
+    ("mu_isoSF",None,"",(40,0.8,1.2)),
+    ("mu_isoSFUP",None,"",(40,0.8,1.2)),
+    ("mu_isoSFDN",None,"",(40,0.8,1.2)),
+    ("mu_trkSF",None,"",(40,0.8,1.2)),
+    ("mu_trkSFUP",None,"",(40,0.8,1.2)),
+    ("mu_trkSFDN",None,"",(40,0.8,1.2)),
+    ("mu_idSF",None,"",(40,0.8,1.2)),
+    ("mu_idSFUP",None,"",(40,0.8,1.2)),
+    ("mu_idSFDN",None,"",(40,0.8,1.2)),
+
+    ("met_Type1SmearXY_pt/met_pt",None,"",(100,0,3)),
+    ]
+
+
 varlistadditional=[
     #("el_dz[0]","el_dz","",(50,-0.02,0.02)),
     #("el_d0[0]","el_d0","",(50,-0.001,0.001)),
@@ -52,8 +126,8 @@ varlistadditional=[
     #("dr_lep2_ph","dr_lep2_ph","",(120,0,6)),
     #("ph_min_el_dr[0]","ph_min_el_dr","",(100,-5,5)),
     ("truelepph_dr","truelepph_dr","",(120,0,6)),
-    ("jet_CSVMedium_n","jet_CSVMedium_n",(5,0,5)),
-    ("jet_CSVLoose_n","jet_CSVLoose_n",(5,0,5))
+    ("jet_CSVMedium_n","jet_CSVMedium_n","",(5,0,5)),
+    ("jet_CSVLoose_n","jet_CSVLoose_n","",(5,0,5))
     ]
 
 varlist = [ ("met_pt","MET","GeV",(80,0,400)),
@@ -81,6 +155,16 @@ var2list = [ ("met_pt","MET","GeV",(100,0,200)),
 #sellist, weight =  defs.makeselstringlist( ch = "mu", phpt = 40, leppt = 35, met = 40 )
 sellist, weight =  defs.makeselstringlist( ch = "mu", phpt = 100, leppt = 35, met = 80 )
 selfull = " && ".join(sellist) ## full signal selection
+
+for var in varlistsys:
+    varname = str.translate(var[0],None,"[]_/")
+    sel = " && ".join([s for s in sellist if var[0] not in s ])
+    save_as = ("%s_%ielg_sys.pdf" %(varname,year), options.outputDir, "base")
+    hconf = { "xlabel": var[0] if var[1] == None else var[1],"xunit":var[2],"drawsignal":True, "logy":True, "normalize":1}
+    #if "phi" in var[0] or "eta" in var[0] or "dr" in var[0]:
+    #    hconf["ymax_scale"]=2.
+    hf = sf.SetHisto1DFast(var[0], sel, var[3], weight, hconf, lgconf , lconf, save_as, data_exp = True)
+    hlist.append(hf)
 
 for var in varlistadditional:
     ## for additional plots. always draw signal distributions
@@ -130,9 +214,3 @@ for hf in hlist:
     #ndt = sc["Data"][0]
     #print "mccount, datacount, mc/dt: ", nmc, ndt, nmc/ ndt
 
-sel,w = defs.makeselstring("mu")
-samplelist =  ["WGamma", "AllTop","TopW"]
-hconf = {"weight":w,"doratio":1,"logy":1,"normalize":True,"bywidth":True,"rlabel":"ratio to W#gamma","xlabel":"m_{T}^{res}(#mu, #gamma, #slash{E}_{T})","ymin":1e-6,"reverseratio":1}
-lconf = {"labelStyle":str(year),"extra_label":["%i Muon Channel" %year,"p_{T}^{#mu}>35GeV, MET>40GeV","Tight barrel #gamma p_{T}^{#gamma}>80GeV"], "extra_label_loc":(.27,.82)}
-samples.CompareSelections("mt_res",[sel+"&&mt_res>200"]*len(samplelist),samplelist,mlist, hconf, lconf)
-samples.SaveStack("mtres_elg%i_sigsel_bkgdcomp.pdf" %year,options.outputDir,"base")
