@@ -195,12 +195,12 @@ def makeplots():
     plt.savefig("%s/%s_%isys_sf_bymass.pdf" %(options.outputDir,ch,options.year))
 
     ### plot 3: pdf scale and pu weights
-    pdflist = ['muR1muF2',
-     'muR1muFp5',
-     'muR2muF1',
-     'muR2muF2',
-     'muRp5muF1',
-     'muRp5muFp5',]
+    pdflist = ['muF1muR2',
+     'muF1muRp5',
+     'muF2muR1',
+     'muF2muR2',
+     'muFp5muR1',
+     'muFp5muRp5',]
     pileup = ['PUUP5','PUDN5','PUUP10','PUDN10']
 
     sysvalues = [[systematic_dict[scs(m)][sys]['MadGraphResonanceMass%i_width%s' %(m,w)] for m in xpoints] \

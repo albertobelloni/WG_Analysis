@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 p = ArgumentParser()
 
-p.add_argument( '--path', dest='path', default=None, 
+p.add_argument( '--path', dest='path', default=None,
                  help='Path to directory containing analysis configuration files' )
 
 options = p.parse_args()
@@ -25,14 +25,14 @@ def main() :
     # gahter a list of files
     ana_files = []
     if options.path.count( '/eos' ) :
-        dirs, files, sizes = eosutil.parse_eos_dir( options.path ) 
+        dirs, files, sizes = eosutil.parse_eos_dir( options.path )
         for file in files :
             if file.count('.txt') :
                 ana_files.append( options.path + '/' + file )
 
-        # if the output file is in the 
+        # if the output file is in the
         # list of input files, remove it
-        # so it is not removed from 
+        # so it is not removed from
         # disk
         if len(ana_files) < 2 :
             print 'It looks like files have already been combined.  Will abort.'
@@ -66,7 +66,7 @@ def main() :
         print 'catted files'
 
         eosutil.copy_eos_to_local( output_path, options.path +'/' + output_file )
-        
+
         print 'copied output file to eos'
 
         # delete original file
@@ -86,9 +86,9 @@ def main() :
                 elif file.count('wrapper') :
                     wrapper_files.append( top + '/' + file )
 
-        # if the output file is in the 
+        # if the output file is in the
         # list of input files, remove it
-        # so it is not removed from 
+        # so it is not removed from
         # disk
         if len(ana_files) < 2 :
             print 'It looks like files have already been combined.  Will abort.'
@@ -107,7 +107,7 @@ def main() :
         for filepath in ana_files :
             filename = filepath.split('/')[-1]
             os.system( 'echo  "%s" >> %s/%s ' %( filename, options.path, output_file ) )
-            os.system( 'cat %s >> %s/%s' %(filepath, options.path, output_file) ) 
+            os.system( 'cat %s >> %s/%s' %(filepath, options.path, output_file) )
             os.system( 'echo "" >> %s/%s' %(options.path, output_file) )
             os.system( 'echo "" >> %s/%s' %(options.path, output_file) )
 
@@ -125,5 +125,5 @@ def main() :
 
 
 
-    
+
 main()

@@ -11,7 +11,7 @@ p.add_argument( '--treeName', dest = 'treeName', default = None, help    = 'name
 
 p.add_argument( '--nPrint', dest = 'nPrint', type=int,  default=30, help = 'Print N largest branches' )
 
-options = p.parse_args() 
+options = p.parse_args()
 
 #-------------------------------------------------------------------------
 class Branch:
@@ -50,7 +50,7 @@ def get_branch(rtree, parent=None, option = 'top'):
         b = Branch()
         b.name      = br.GetName()
         b.bytes_zip = br.GetZipBytes()
-        b.bytes_tot = br.GetTotBytes()        
+        b.bytes_tot = br.GetTotBytes()
 
         dlist = b.name.split('.')
 
@@ -66,7 +66,7 @@ def get_branch(rtree, parent=None, option = 'top'):
                     blist[j].names.append(b.name)
                     append = False
             if append:
-                blist.append(b)    
+                blist.append(b)
         else:
             blist.append(b)
 
@@ -81,7 +81,7 @@ def compare_branch(x, y):
 def get_status(file, treeName, nPrint):
 
     import ROOT
-    
+
     rfile = ROOT.TFile.Open(file)
 
     tree = rfile.Get(treeName)
@@ -100,7 +100,7 @@ def get_status(file, treeName, nPrint):
     sum_zip_size = 0.0
     sum_tot_size = 0.0
     entries      = float(tree.GetEntries())
-    
+
     for i in range(0, len(branches)):
         sum_zip_size += branches[i].bytes_zip
         sum_tot_size += branches[i].bytes_tot
@@ -109,12 +109,12 @@ def get_status(file, treeName, nPrint):
     print 'Average zip size per branch:'
 
     sum_size = 0.0
-    
+
     for i in range(0, min(len(branches), nPrint)):
         b = branches[i]
-        s = b.bytes_zip/entries        
+        s = b.bytes_zip/entries
         sum_size += b.bytes_zip
-        
+
         print '  %.1f %s' %(s, b.key)
 
     print 'Average zip size per event for top %d branches: %.1f' %(nPrint, sum_size/entries)
@@ -123,9 +123,9 @@ def get_status(file, treeName, nPrint):
 ###########################################################################
 # Main function for command line execuation
 #
-if __name__ == '__main__': 
+if __name__ == '__main__':
 
     if options.file != None :
         get_status(**vars(options))
-    else:        
+    else:
         p.error('Missing input ROOT file')

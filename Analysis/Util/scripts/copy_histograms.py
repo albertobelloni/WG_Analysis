@@ -5,7 +5,7 @@ import ROOT
 from argparse import ArgumentParser
 
 parser = ArgumentParser(description='')
-    
+
 parser.add_argument('--file', dest='file', default=None, help='list of input files (comma separated).')
 
 parser.add_argument('--output', dest='output', default=None, help='output file')
@@ -21,7 +21,7 @@ def main() :
 
     hists = []
     for top, dirs, objs in walk_root( file ) :
-        print 'TOP = ', top 
+        print 'TOP = ', top
         print 'dirs'
         print dirs
         print 'Objs'
@@ -48,7 +48,7 @@ def main() :
         for dir in histdirs[0:-1] :
             dir_path += dir +'/'
             outfile.mkdir(dir_path)
-            
+
         outfile.cd(dir_path)
         outhist = file.Get(hist)
         outhist.Write()
@@ -58,8 +58,8 @@ def main() :
     outfile.Close()
 
     if copy_to_eos :
-        os.system('/afs/cern.ch/project/eos/installation/0.3.4/bin/eos.select cp /tmp/histograms.root %s/histograms.root' %options.output ) 
-        
+        os.system('/afs/cern.ch/project/eos/installation/0.3.4/bin/eos.select cp /tmp/histograms.root %s/histograms.root' %options.output )
+
 
 
 
@@ -84,7 +84,7 @@ def parse_root_dir( path ) :
         top = ''
     elif isinstance(path, ROOT.TDirectory ) :
         top = path.GetName()
-    
+
     for objkey in path.GetListOfKeys() :
         obj = objkey.ReadObj()
         if isinstance(obj, ROOT.TDirectoryFile ) :
@@ -94,7 +94,7 @@ def parse_root_dir( path ) :
 
     return top, dirs, objs
 
-        
+
 
 main()
-    
+

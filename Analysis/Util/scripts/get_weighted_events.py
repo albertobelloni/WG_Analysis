@@ -70,7 +70,7 @@ def main () :
         pos_events  = weighthist.GetBinContent(2) + weighthist.GetBinContent(3)
 
         total_events = neg_events + pos_events
-        weighted_events = pos_events - neg_events 
+        weighted_events = pos_events - neg_events
 
         n_total .append( total_events )
         n_weighted.append( weighted_events)
@@ -78,7 +78,7 @@ def main () :
         print 'Total Events = %d, Weighted events = %d' %( total_events, weighted_events)
 
 
-    print 'Raw Events = %d, Total Events = %d, Weighted events = %d' %(sum(n_raw), sum(n_total), sum(n_weighted) ) 
+    print 'Raw Events = %d, Total Events = %d, Weighted events = %d' %(sum(n_raw), sum(n_total), sum(n_weighted) )
 
     #for event in mychain :
 
@@ -131,14 +131,14 @@ def makecondorjob(basedir,tag,desc_entries):
     if not os.path.exists(tmpdir):
         if not os.path.isdir(tmpdir):
             os.makedirs(tmpdir)
-        else: 
+        else:
             print tag[0], " already exists and is not directory. skipping"
             return
     desc_entries+=["",
         "output = weighted/%s/stdout$(cluster)_$(process)_%s%s.txt" %tag,
         "error = weighted/%s/stderr$(cluster)_$(process)_%s%s.txt"  %tag,
         "log = weighted/%s/condor$(cluster)_$(process)_%s%s.txt" %tag,
-        "arguments = --dir %s %s" %(basedir,"--tchain" if options.tchain else ""), 
+        "arguments = --dir %s %s" %(basedir,"--tchain" if options.tchain else ""),
         "queue",]
 
 def submitcondorjob(desc_entries):
@@ -150,5 +150,5 @@ def submitcondorjob(desc_entries):
 
 if options.condor:
     submitjobs()
-else: 
+else:
     main()

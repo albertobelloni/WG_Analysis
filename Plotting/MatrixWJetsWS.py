@@ -61,8 +61,8 @@ def main() :
 
     workspaces_to_save = {}
 
-    selections = { 'base'    : { 
-                                'mu' : {'selection' : sel_base_mu }, 
+    selections = { 'base'    : {
+                                'mu' : {'selection' : sel_base_mu },
                                },
                  }
 
@@ -74,16 +74,16 @@ def main() :
     wjets              = ROOT.RooWorkspace( 'workspace_wjets' )
     elefake            = ROOT.RooWorkspace( 'elefake' )
 
-    for seltag, chdic in selections.iteritems() : 
-        
-        for ch, seldic in chdic.iteritems() : 
+    for seltag, chdic in selections.iteritems() :
+
+        for ch, seldic in chdic.iteritems() :
             for et in eta_cuts :
                 print 'WJets fit for MC'
                 make_wjets_matrix( sampManMuMu, 'Zgamma', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 make_wjets_matrix( sampManMuMu, 'ZJets', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 #make_wjets_matrix( sampManMuMu, 'WWG', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 #make_wjets_matrix( sampManMuMu, 'AllTop', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
-                
+
                 print 'WJets fit for data'
                 make_wjets_matrix( sampManMuMu, 'Data', seldic['selection'], et, True, suffix='data_%s' %(et), workspace=wjets)
 
@@ -161,13 +161,13 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     predR_sel = ' && '.join( [sel_base, ph_sel_basic, ph_pt_15To25, ph_sel_preid] ) #set pt cut here
     predR_sel = '(' + predR_sel + ')*' + myweight
 
-    zpeak_sel = ' && '.join( [sel_base, ph_sel_basic, ph_pt_40Up, ph_sel_preid, ph_sel_sieie_incl, ph_sel_chiso_incl] ) 
+    zpeak_sel = ' && '.join( [sel_base, ph_sel_basic, ph_pt_40Up, ph_sel_preid, ph_sel_sieie_incl, ph_sel_chiso_incl] )
     zpeak_sel =  '(' + zpeak_sel + ')*' + myweight
 
     sel_smp_zpeak = 'mu_n==2 && m_ll < 106.2 && m_ll > 76.2 && mu_pt_rc[0] > 25. && mu_pt_rc[1] > 25. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1] && (mu_charge[0]*mu_charge[1] < 0) && ph_n == 0'
 
     if workspace is None :
-        ws = ROOT.RooWorkspace( 'ws') 
+        ws = ROOT.RooWorkspace( 'ws')
     else :
         ws = workspace
 
@@ -222,7 +222,7 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
     #hist_mt = clone_sample_and_draw( sampMan, sample, mt_var, zpeak_sel, binning_mt )
     #hist_met = clone_sample_and_draw( sampMan, sample, met_var, zpeak_sel, binning_mt )
     hist_npu = clone_sample_and_draw( sampMan, sample, pu_var, zpeak_sel, binning_vtx )
-    
+
     sampMan.outputs['%s_sigmaIEIE_real_%s' %(sample,suffix)] = hist_real_sigmaIEIE
     sampMan.outputs['%s_chIso_real_%s' %(sample,suffix)] = hist_real_chIso
     sampMan.outputs['%s_sigmaIEIE_real_FR_%s' %(sample,suffix)] = hist_real_sigmaIEIE_FR
@@ -248,19 +248,19 @@ def make_wjets_matrix( sampMan, sample, sel_base, eta_cut, isdata=False, suffix=
 
 
 def clone_sample_and_draw( sampMan, samp, var, sel, binning ) :
-    newSamp = sampMan.clone_sample( oldname=samp, newname=samp+str(uuid.uuid4()), temporary=True ) 
+    newSamp = sampMan.clone_sample( oldname=samp, newname=samp+str(uuid.uuid4()), temporary=True )
     sampMan.create_hist( newSamp, var, sel, binning, ismodel=False, overflow=True )
     return newSamp.hist
 
 main()
 
-    
 
 
 
 
-    
-    
+
+
+
 
 
 

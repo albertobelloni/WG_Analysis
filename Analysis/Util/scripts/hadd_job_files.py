@@ -9,7 +9,7 @@ def main() :
 
     options = parser.parse_args()
 
-    # assume that the files are local 
+    # assume that the files are local
 
     if not os.path.isdir( options.path ) :
         print 'Could not find input dir'

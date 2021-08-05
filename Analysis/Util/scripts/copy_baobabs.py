@@ -33,7 +33,7 @@ keep_dirs = [
 
 def main() :
 
-    ofile = open( options.fileList ) 
+    ofile = open( options.fileList )
 
     file_list = pickle.load( ofile )
 

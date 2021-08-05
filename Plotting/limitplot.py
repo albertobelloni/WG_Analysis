@@ -44,12 +44,20 @@ if "0p01" in sys.argv[1]:
     text = "width = 0.01%"
 if "5" in sys.argv[1]:
     text = "width = 5%"
+text2=None
+if "mu" in  sname or "el" in sname:
+    ch = sname.split("_")[-1][:2]
+    year = int(sname.split("_")[-1][2:])
+    ch2 = "Electron" if ch=="el" else "Muon"
+    text2 = "%s Channel %i" %(ch2,year)
+    print text2
 l = ROOT.TLatex()
 l.SetNDC()
 l.SetTextSize(0.04)
 l.SetTextFont(72)
-l.DrawLatex(0.7,.65, "W#gamma#rightarrow l#gamma#nu")
-l.DrawLatex(0.7,.6, text)
+l.DrawLatex(0.6,.65, "W#gamma#rightarrow l#gamma#nu")
+l.DrawLatex(0.6,.6, text)
+if text2: l.DrawLatex(0.6,.55, text2)
 
 hmax = axis.GetMaximum()
 hmin = axis.GetMinimum()
@@ -59,11 +67,11 @@ def oneline(xval):
     ln.SetLineWidth(2)
     ln.Draw()
     return ln
-ln = oneline(950)
-ln2 = oneline(425)
+ln = oneline(625)
+#ln2 = oneline(425)
 
 # Standard CMS logo
-DrawCMSLogo(pads[0], 'CMS', 'Internal', 11, 0.145, 0.035, 1.2, '', 0.8)
+DrawCMSLogo(pads[0], 'CMS', 'Simulation Preliminary', 11, 0.200, 0.035, 1.2, '', 0.8)
 
 
 

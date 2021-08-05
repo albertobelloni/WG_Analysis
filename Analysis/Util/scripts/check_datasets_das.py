@@ -20,8 +20,7 @@ parser.add_argument( '--vetofail', dest='vetofail',default =False, action='store
 
 options = parser.parse_args()
 
-BASE_DIR   = '/store/user/kawong/WGamma2'
-#BASE_DIR   = '/store/user/friccita/'
+BASE_DIR   = '/store/group/WGAMMA'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_SAMPLES = ['SingleElectron', 'SingleMuon', 'HLT']
 
@@ -31,9 +30,9 @@ RECO_TYPE_DATA = ['07Aug17']
 RECO_TYPE_MC   = ['12Apr2018']
 FILE_KEY = 'ntuple'
 TREE_NAME = 'UMDNTuple/EventTree'
-MC_CAMPAIGN_STR = 'RunIIFall17'
-DATA_VERSION = 'UMDNTuple_0506_2016'
-MC_VERSION = 'UMDNTuple_0506_2016'
+MC_CAMPAIGN_STR = 'RunIIAutumn18'
+DATA_VERSION = 'UMDNTuple_0902_2016'
+MC_VERSION = 'UMDNTuple_0902_2016'
 
 
 def main() :
@@ -89,10 +88,9 @@ def main() :
             json_name = '%s_step1.json' %( samp )
 
             print 'dasgoclient --query=%s --format=json --limit=0 ' %(  query )
-            if not options.nodas: os.system('cd /cvmfs/cms.cern.ch/slc6_amd64_gcc530/cms/cmssw/CMSSW_8_0_25/src/;eval `scramv1 runtime -sh`;cd -')
+            if not options.nodas: os.system('cd /cvmfs/cms.cern.ch/slc7_amd64_gcc630/cms/cmssw/CMSSW_9_4_14_UL/src/;eval `scramv1 runtime -sh`;cd -')
             if not options.nodas: os.system( 'dasgoclient --query=%s --format=json --limit=0 >& %s' %(query, json_name ) )
 
-            
 
             ofile = open(  json_name )
 
@@ -103,10 +101,10 @@ def main() :
             ofile.close()
 
             # if this is data we want to sum over
-            # the data eras that were provided on 
+            # the data eras that were provided on
             # the command line.  If this is MC we
             # need to select the appropriate MC campaign
-            # assumption is given by the MC_CAMPAIGN_STR 
+            # assumption is given by the MC_CAMPAIGN_STR
             # at the top
             for idx, subdata in enumerate(data['data']) :
 
@@ -140,10 +138,10 @@ def main() :
 
 
                 json_name = '%s_step2_%d.json' %( samp, idx )
-                
-                print 'dasgoclient --query=%s --format=json >& %s' %(  subdata['dataset'][0]['name'], json_name ) 
+
+                print 'dasgoclient --query=%s --format=json >& %s' %(  subdata['dataset'][0]['name'], json_name )
                 if not options.nodas: os.system( 'dasgoclient --query=%s --format=json >& %s' %(  subdata['dataset'][0]['name'], json_name ) )
-                
+
                 ofile = open(  json_name )
 
                 data = json.load( ofile )
@@ -158,7 +156,7 @@ def main() :
                   for dataset in d['dataset'] :
 
                     if 'nevents' in dataset :
-                        nevents_das = dataset['nevents'] 
+                        nevents_das = dataset['nevents']
                         das_events[samp] .append( nevents_das)
                         break
 
@@ -170,11 +168,11 @@ def main() :
     local_events = {}
     if options.notree:
         ofile = open("treecount.json")
-    
+
         local_events=json.load(ofile )
-    
+
         ofile.close()
-    else:	
+    else:
         for samp in found_samples :
             isData = ( samp in DATA_SAMPLES )
 
@@ -196,7 +194,7 @@ def main() :
             diffs = [s-local_events[samp] for s in das_events[samp] if s -local_events[samp]>=0]
             if isData:
                 das_total = sum(das_events[samp])
-                diff = das_total - local_events[samp] 
+                diff = das_total - local_events[samp]
                 print '%s : Original = %d events, filtered = %d events.  \033[1mDifference = %d (%.4g%%)\033[0m' %( samp, das_total, local_events[samp], diff, 100.0*diff/das_total)
             elif not diffs:
                 maxevent = max(das_events[samp])
@@ -204,11 +202,11 @@ def main() :
             else:
                 mindiff = min(diffs)
                 print '%s : Original = %d events, filtered = %d events.  \033[1mDifference = %d\033[0m' %( samp, mindiff+local_events[samp], local_events[samp],mindiff)
-    
+
         ofile = open("treecount.json",'w')
-    
+
         json.dump( local_events, ofile )
-    
+
         ofile.close()
 
 
@@ -224,7 +222,7 @@ def main() :
         diffs = [s-local_events[samp] for s in das_events[samp] if s -local_events[samp]>=0]
         if isData:
             das_total = sum(das_events[samp])
-            diff = das_total - local_events[samp] 
+            diff = das_total - local_events[samp]
             print "%s : Original = %d events, filtered = %d events.  \033[1mDifference = %d (%.4g%%)\033[0m"\
                          %( samp, das_total, local_events[samp], diff, 100.0*diff/das_total)
         elif not diffs:
