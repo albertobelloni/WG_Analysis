@@ -85,21 +85,21 @@ sys:
 
 llvalid : 
 
-	python MakeMuValidPlot.py --batch --year 2016
-	python MakeMuValidPlot.py --batch --year 2017
-	python MakeMuValidPlot.py --batch --year 2018
-	python MakeEGValidPlot.py --batch --year 2016
-	python MakeEGValidPlot.py --batch --year 2017
-	python MakeEGValidPlot.py --batch --year 2018
+	python MakeMuValidPlot.py --batch --year 2016 --condor
+	python MakeMuValidPlot.py --batch --year 2017 --condor
+	python MakeMuValidPlot.py --batch --year 2018 --condor
+	python MakeEGValidPlot.py --batch --year 2016 --condor
+	python MakeEGValidPlot.py --batch --year 2017 --condor
+	python MakeEGValidPlot.py --batch --year 2018 --condor
 
 lgvalid : 
 
-	python MakeElGValidPlot.py --batch --year 2016
-	python MakeElGValidPlot.py --batch --year 2017
-	python MakeElGValidPlot.py --batch --year 2018
-	python MakeMuGValidPlot.py --batch --year 2016
-	python MakeMuGValidPlot.py --batch --year 2017
-	python MakeMuGValidPlot.py --batch --year 2018
+	python MakeElGValidPlot.py --batch --year 2016 --condor
+	python MakeElGValidPlot.py --batch --year 2017 --condor
+	python MakeElGValidPlot.py --batch --year 2018 --condor
+	python MakeMuGValidPlot.py --batch --year 2016 --condor
+	python MakeMuGValidPlot.py --batch --year 2017 --condor
+	python MakeMuGValidPlot.py --batch --year 2018 --condor
 
 money : 
 
@@ -109,9 +109,9 @@ money :
 
 signal : 
 
-	python MakeSignalWS.py --batch --year 2016
-	python MakeSignalWS.py --batch --year 2017
-	python MakeSignalWS.py --batch --year 2018
+	python MakeSignalWS.py --batch --condor --year 2016
+	python MakeSignalWS.py --batch --condor --year 2017
+	python MakeSignalWS.py --batch --condor --year 2018
 
 bkg : 
 
