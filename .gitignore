@@ -31,3 +31,8 @@ roofit_iterators*
 *.pcm
 Plotting/Plots
 .vscode
+.nfs000000000ba60eed00001db7
+CMSSW_*/
+log/
+plots/
+uncertainties-3.0.1/
