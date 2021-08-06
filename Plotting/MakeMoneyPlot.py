@@ -10,43 +10,42 @@ def main() :
     sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,readHists=False , weightHistName = "weighthist")
     sampManElG.ReadSamples( _SAMPCONF )
-    #samples = sampManMuG
-    plotvarsbase = [# ("mt_lep_met_ph",(100,0,2000)),
+    plotvarsbase = [ ("mt_lep_met_ph",(100,0,2000)),
                  ("p_{T}(#gamma)","ph_pt[0]"     ,(100,50,550)),
-                 #("#eta(#gamma)","ph_eta[0]"    ,(100,-3,3)),
-                 #("#phi(#gamma)","ph_phi[0]"    ,(100,-pi,pi)),
-                 #("MET"         ,"met_pt"       ,(100,0,500)),
-                 #("MET #phi"    ,"met_phi"      ,(100,-pi,pi)),
+                 ("#eta(#gamma)","ph_eta[0]"    ,(100,-3,3)),
+                 ("#phi(#gamma)","ph_phi[0]"    ,(100,-pi,pi)),
+                 ("MET"         ,"met_pt"       ,(100,0,500)),
+                 ("MET #phi"    ,"met_phi"      ,(100,-pi,pi)),
                 ]
-    plotvarsel=[ #("p_{T}(e)"    ,"el_pt[0]"     ,(100,0,500)),
-                 #("#eta(e)"     ,"el_eta[0]"    ,(100,-3,3)),
-                 #("#phi(e)"     ,"el_phi[0]"    ,(100,-pi,pi)),
+    plotvarsel=[ ("p_{T}(e)"    ,"el_pt[0]"     ,(100,0,500)),
+                 ("#eta(e)"     ,"el_eta[0]"    ,(100,-3,3)),
+                 ("#phi(e)"     ,"el_phi[0]"    ,(100,-pi,pi)),
                  ]
-    plotvarsmu=[ #("p_{T}(#mu)"  ,"mu_pt[0]"     ,(100,0,500)),
-                 #("#eta(#mu)"   ,"mu_eta[0]"    ,(100,-3,3)),
-                 #("#phi(#mu)"   ,"mu_phi[0]"    ,(100,-pi,pi)),
+    plotvarsmu=[ ("p_{T}(#mu)"  ,"mu_pt[0]"     ,(100,0,500)),
+                 ("#eta(#mu)"   ,"mu_eta[0]"    ,(100,-3,3)),
+                 ("#phi(#mu)"   ,"mu_phi[0]"    ,(100,-pi,pi)),
                  ]
 
     for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
-    #for ch, samples in [("el",sampManElG),]:
-    #for ch, samples in [("mu",sampManMuG),]:
         labelname = "%i Muon Channel" %options.year if ch == "mu" else "%i Electron Channel" %options.year
+        lepname = "e" if ch == "el" else "#mu"
         #labelname+=" scaled to 2016 luminosity"
         #if ch == "el": selection = baseel + ph_eb + metgt40 + invZ + passpix + phpt80 + "&&el_passTight[0] && ph_passTight[0]" + elpt40 + el_eb
         ##if ch == "mu": selection = basemu + ph_eb + metgt40  + passpix + phpt80 + "&& mu_passTight[0] && ph_passTight[0]"
-        selection = defs.makeselstring(ch, 80, 35, 40)
+        #selection , weight = defs.makeselstring(ch, 210, 35, 160)
+        selection , weight = defs.makeselstring(ch,  80, 35,  40)
 
 
         ## prepare config
-        hist_config   = {"xlabel":"m_{T}(e,#gamma,p^{miss}_{T})","logy":1,"ymin":.1,"weight":weight, "ymax_scale":1.5} ## "unblind":False
+        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":.05,"weight":weight, "ymax_scale":1.5} ## "unblind":False
         label_config  = {"extra_label":labelname, "extra_label_loc":(.17,.82), "labelStyle":str(options.year)}
-        legend_config = {'legendLoc':"Double","legendTranslateX":0.35, "legendCompress":.9, "fillalpha":.5}
+        legend_config = {'legendLoc':"Double","legendTranslateX":0.3, "legendCompress":1, "fillalpha":.5, "legendWiden":.9}
 
         ### MT_LEP_MET_PH
         samples.Draw("mt_res", selection, (50,0,2000), hist_config,legend_config,label_config)
 
         ## save histogram
-        samples.SaveStack("moneymtres%i%s.pdf" %(options.year, ch), options.outputDir, "base")
+        samples.SaveStack("moneymtres_cut2_%i%s.pdf" %(options.year, ch), options.outputDir, "base")
         samples.print_stack_count()
         samples.print_stack_count(doacceptance=True)
         samples.print_stack_count(dolatex=True)
@@ -64,81 +63,6 @@ def main() :
             samples.SaveStack("%sSIGSEL%i%s.pdf" %(varname,options.year, ch), options.outputDir, "base")
     return sampManMuG, sampManElG
 
-
-#        ### MT_RES
-#        hist_config    ={"xlabel":"Resonance Mass","logy":1,"ymin":.1,"weight":weight} ## "unblind":False
-#        samples.Draw("mt_res", selection, (100,0,2000), hist_config,legend_config, label_config)
-#
-#        ## save histogram
-#        samples.SaveStack("moneymtres%i%s.pdf" %(options.year, ch), options.outputDir, "base")
-#        samples.print_stack_count()
-#        samples.print_stack_count(acceptance=True)
-#        samples.print_stack_count(dolatex=True)
-#        samples.print_stack_count(dolatex=True,acceptance=True)
-
-
-#    selbase_mu = 'mu_pt30_n==1 && mu_n==1'
-#    ## with bad tracker portions excluded
-#    selbase_el_excludephi = 'ph_n>=1 && el_n==1 &&!( ph_eta[0]<0&&ph_phi[0]>2.3&&ph_phi[0]<2.7)&&!(ph_phi[0]>1.2&&ph_phi[0]<1.5) '
-#    selbase_el = 'ph_n>=1 && el_n==1'
-#
-#
-#    ## general event selections
-#    nocut = ("","")
-#    ltmet25 = 'met_pt<25'
-#    gtmet25 = 'met_pt>25'
-#    cut_met = [nocut, (ltmet25,"ltmet25"), (gtmet25,"gtmet25")]
-#
-#    phpt50 = "ph_pt[0]>50"
-#    phpt100 = "ph_pt[0]>100"
-#    cut_phpt = [nocut, (phpt50,"phpt50"), (phpt100,"phpt100")]
-#
-#    ## 1 and only 1 photon with pt greater than 50, 100 GeV
-#    phpt30neq1 = "ph_pt[0]>%.2g && (ph_n==1 || ph_pt[1]<%.2g)" %(30,30)
-#    phpt50neq1 = "ph_pt[0]>%.2g && (ph_n==1 || ph_pt[1]<%.2g)" %(50,50)
-#    phpt100neq1 = "ph_pt[0]>%.2g && (ph_n==1 || ph_pt[1]<%.2g)" %(100,100)
-#    cut_phptneq1 = [nocut, (phpt30neq1,"phpt30neq1"),(phpt50neq1,"phpt50neq1"), (phpt100neq1,"phpt100neq1")]
-#
-#    invZ = 'abs(m_lep_ph-91)>15' ## inverse Z resonance cut
-#    inZ  = 'abs(m_lep_ph-91)<15' ## Z resonance cut
-#    gtZ = '(m_lep_ph-91)>15'     ## greater than Z mass
-#    ltZ = '(91-m_lep_ph)>15'     ## less than Z mass
-#    cut_z = [nocut, (inZ, "inz"), (invZ, "invz"),(gtZ,"gtZ"), (ltZ,"ltZ")]
-#
-#    ### electron selections
-#    selbase_el_EB = selbase_el + ' && ph_IsEB[0]' #leading photon in barrel
-#
-#    passpix = 'ph_hasPixSeed[0]==0'  #Pixel seed
-#    failpix = 'ph_hasPixSeed[0]==1'
-#    cut_pix = [nocut, (passpix,"ppix"), (failpix,"fpix")]
-#
-#    passcsev = 'ph_passEleVeto[0]==1' #CSEV: Conversion safe electron veto
-#    failcsev = 'ph_passEleVeto[0]==0'
-#    cut_csev = [nocut, (passcsev,"pcsev"), (failcsev,"fcsev")]
-#
-#    selarray = [[(selbase_el_EB,"basephEB"),], cut_pix, cut_met, cut_phpt ]
-#
-#    ### edit here for plot variables i.e. what is on the x axis
-#    vararray = [ #("el_n",        (10,0,10),      "num of electrons"), ## variable name, x axis range, x axis label
-#                ("el_pt[0]",    (50,0,200),     "p_{T}(e, leading)"),
-#     #           ("ph_n",        (10,0,10),      "num of photons"),
-#     #           ("ph_pt[0]",    (50,0,200),     "p_{T}(#gamma, leading)"),
-#     #           ("met_pt",      (50,0,400),     "MET"),
-#     #           ("met_phi",    (20,-pi,pi),    "MET #phi"),
-#                ]
-#
-#
-##    legend_config = {'legendLoc':"Double","legendTranslateX":0.3}
-#    hist_config = {"logy":1,"blind":True, "weight": "NLOWeight"}
-#    makeplots(sampManElG,vararray, selarray, hist_config,{}, "log")
-#
-#    #legend_config = {'legendLoc':"Double","legendTranslateX":0.3}
-#    #hist_config = {"blind":True, "weight": "PUWeight*NLOWeight"}
-#    #makeplots(vararray, selarray, hist_config, legend_config)
-#    if options.outputDir:
-#        ## write and close root file
-#        f1.Write()
-#        f1.Close()
 
 
 
