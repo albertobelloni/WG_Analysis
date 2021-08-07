@@ -19,7 +19,7 @@ pads = OnePad()
 # Create an empty TH1 from the first TGraph to serve as the pad axis and frame
 axis = CreateAxisHist(graphs.values()[0])
 axis.GetXaxis().SetTitle('m_{res} (GeV)')
-axis.GetYaxis().SetTitle('95% CL limit')
+axis.GetYaxis().SetTitle('95% CL limit #sigma (fb)')
 pads[0].cd()
 pads[0].SetLogy()
 axis.Draw('axis')
