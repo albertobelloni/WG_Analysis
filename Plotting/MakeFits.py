@@ -42,7 +42,8 @@ _LUMI18   = 59740
 
 DEBUG = 1
 
-ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
+#ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
+from ROOT import RooDoubleCB
 
 tColor_Off="\033[0m"                    # Text Reset
 tPurple="\033[0;35m%s"+tColor_Off       # Purple
@@ -151,7 +152,7 @@ def main() :
 
 
         #ROOT.RooRandom.randomGenerator().SetSeed(int(time.time()))
-        ROOT.RooRandom.randomGenerator().SetSeed(int(12345))
+        ROOT.RooRandom.randomGenerator().SetSeed(int(12346))
         var_opt = MakeLimits(  var=  "mt_res" ,
                                wskeys = ws_keys,
                                masspoints  = signal_masses,
@@ -1268,6 +1269,7 @@ class MakeLimits( ) :
     @f_Dumpfname
     def prepare_signal_functions( self) :
 
+
         for mass in self.masspoints:
             for width in self.widthpoints:
                 for ibin in self.bins :
@@ -1308,12 +1310,14 @@ class MakeLimits( ) :
         ws_entry_sysdown = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "down"])
         ws_entry_sysup   = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "up"])
 
-#        if ibin['channel']=="mu":
-#            ws_entry_sysup = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "mean_MuonEnUp"])
-#            ws_entry_sysdown = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "mean_MuonEnDown"])
-#        elif ibin['channel']=="el":
-#            ws_entry_sysup = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "mean_PhotonEnUp"])
-#            ws_entry_sysdown = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "mean_PhotonEnDown"])
+        ## open json file for shifted mean value
+        filepath = "data/sigfit/fitted_mass%i.txt" %ibin['year']
+        with open(filepath, "r") as fo:
+            mshifts = json.load(fo)
+        w="5.0" if width=="5" else "0.01"
+        maxshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["max"][1]
+        minshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["min"][1]
+
 
         if DEBUG:
            print ws_entry
@@ -1321,10 +1325,7 @@ class MakeLimits( ) :
         ## Resonance mass shift
         pdf = ws_in.pdf( ws_entry )
         pdf.SetName("Resonance")
-        pdfup = ws_in.pdf( ws_entry_sysup )
-        pdfup.SetName("Resonance_cms_eUp")
-        pdfdn = ws_in.pdf( ws_entry_sysdown )
-        pdfdn.SetName("Resonance_cms_eDown")
+
 
         for ipar in self.wskeys[self.signame].params_prefix:
             if DEBUG:
@@ -1348,11 +1349,27 @@ class MakeLimits( ) :
         #norm_var.setError(0.0)
         #norm_var.setConstant( False )
         norm_var.setConstant()
-        #getattr( ws_out, 'import' ) ( norm_var )
-        #getattr( ws_out, 'import' ) ( pdf )
         import_workspace( ws_out, pdf )
-        import_workspace( ws_out, pdfup )
-        import_workspace( ws_out, pdfdn )
+
+        #pdb.set_trace()
+        full_suffix = "_".join(['MG', "M%d"%mass, 'W%s'%width, binid(ibin)])
+        ## UP variation
+        exprstr = "expr::cb_mass_{tag}_UP('cb_mass_{tag}*cb_mass_{tag}_shift_UP',"\
+                   "cb_mass_{tag},cb_mass_{tag}_shift_UP[{maxshift}])".format(tag = full_suffix,
+                                                                              maxshift = maxshift)
+        ws_out.factory(exprstr)
+
+        ws_out.factory("RooDoubleCB::Resonance_cms_eUp(mt_res,cb_mass_{tag}_UP,cb_sigma_{tag},"
+              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix))
+
+        # DOWN variation
+        exprstr = "expr::cb_mass_{tag}_DN('cb_mass_{tag}*cb_mass_{tag}_shift_DN',"\
+                   "cb_mass_{tag},cb_mass_{tag}_shift_DN[{minshift}])".format(tag = full_suffix,
+                                                                        minshift = minshift)
+        ws_out.factory(exprstr)
+
+        ws_out.factory("RooDoubleCB::Resonance_cms_eDown(mt_res,cb_mass_{tag}_DN,cb_sigma_{tag},"
+              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix))
 
         ifile.Close()
 
@@ -1360,15 +1377,6 @@ class MakeLimits( ) :
         print outputfile, "885"
         ws_out.writeToFile( outputfile )
 
-#        ## info for generating toy data and datacard
-#        self.signals.update(
-#                    {sigpar) : {'channel': binid(ibin),
-#                               'file': fname,
-#                               'workspace': wsname,
-#                               'pdf': ws_entry, #pdf.GetName(),
-#                               'rate': rate,
-#                               'params': sigfitparams} }
-#                           )
 
         ## info for generating toy data and datacard
         self.signals.update( {sigpar : {'channel': binid(ibin),
@@ -1553,8 +1561,8 @@ class MakeLimits( ) :
 
         ## generate commands
         if self.method == 'AsymptoticLimits' :
-            command = 'combine -M AsymptoticLimits -m %d --rMin 0.00001'\
-                    ' --rMax 10 %s >& %s'  %( mass, card, log_file )
+            command = 'combine -M AsymptoticLimits -m %d --rMin 0.0001'\
+                    ' --rMax 100 %s >& %s'  %( mass, card, log_file )
 
         if self.method == 'AsymptoticLimitsManual' :
             command = ''
@@ -1658,7 +1666,6 @@ class MakeLimits( ) :
         #for width in self.widthpoints:
         #    output_files.setdefault( width, {} )
 
-        # FIXME this should be improved
         if self.method == 'AsymptoticLimits' \
           or self.method == 'AsymptoticLimitsManual' \
           or self.method == 'MaxLikelihoodFit' :

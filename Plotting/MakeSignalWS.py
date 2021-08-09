@@ -4,9 +4,10 @@ import re
 import json
 import uuid
 from uncertainties import ufloat
+from pprint import pprint
 def addparser(parser):
-    parser.add_argument('--plots',  action='store_true', help='Plot fit parameter shifts' )
-    parser.add_argument('--doAllFits',  action='store_true', help='Fit all possible systematics (do not flag for combine)' )
+   parser.add_argument('--plots',  action='store_true', help='Plot fit parameter shifts' )
+   parser.add_argument('--doSpecialFits',  action='store_true', help='Fit only specific systematics' )
 execfile("MakeBase.py")
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
@@ -124,12 +125,11 @@ def main() :
             make_signal_fits( man, workspaces_to_save=workspaces_to_save,
                                suffix='%s%i'%(ch,options.year), **vardata)
 
-    #multidict_tojson2(_JSONLOC, fitted_masses )
+    multidict_tojson2(_JSONLOC, fitted_masses )
 
     for fileid, ws in workspaces_to_save.iteritems() :
             ws.writeToFile( '%s/%s/%s.root' %( options.dataDir, options.year, fileid ) )
 
-    sys.exit()
 
 
 
@@ -191,7 +191,6 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         print 'Sample = ', samp.name
         mass, width, wid, iwidth = parsesampname(samp.name)
 
-        #if mass!=400: continue #FIXME test
         ### exclude certain samples
         if samp.name.count( 'MadGraph' ) == 0:
            continue
@@ -241,7 +240,7 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         fitted_masses[(ch,mass,width,"norm")] = normval
 
 
-        if options.doAllFits:
+        if not options.doSpecialFits:
             sel_odict = make_syssellist(var, full_sel_sr, weight, ch= ch)
 
             for tag, (v, s, w) in sel_odict.iteritems():
@@ -265,6 +264,8 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
                 #fitted_masses[(ch, mass, width, "sigma_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
         else:
 
+            ## use a reduced list specified in make_syssel()
+
             sel_odict = make_syssel(var, full_sel_sr, weight, ch= ch)
 
             for tag, (v, s, w) in sel_odict.iteritems():
@@ -285,16 +286,26 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         assert workspaces_to_save.get(workspace.GetName())==None, workspace.GetName()
         workspaces_to_save[ workspace.GetName() ] = workspace
 
-        fitted_mass =  search_multidict(fitted_masses, (mass,width,None))
-        for k,v in fitted_mass.iteritems():
-            print "%-30s %10.1f %6.1f%% %10.1f %6.0f%%" %(k, (v[0][0]-normval[0][0]), v[0][0]/normval[0][0]*100-100, v[1][0]-normval[1][0], v[1][0]/normval[1][0]*100-100,)
-        #if "q" in raw_input("cont"):
-        #   sys.exit()
 
-    #fitted_masses_json = {"%i_%g_%s" %k: v for k,v in fitted_masses.iteritems()}
-    #with open(_JSONLOC, "w") as fo:
-    #    json.dump( fitted_masses_json, fo)
-    print fitted_masses.keys()
+        fitted_mass =  search_multidict(fitted_masses, (ch,mass,width,None))
+
+
+        print "%-30s %10s %10s %6s %10s %6s" %("Systematics Name", "Mean(GeV)", "Shift", "Shift %%", "Sig shift", "Shift %%")
+        for k,v in fitted_mass.iteritems():
+            print "%-30s %10.1f %10.1f %6.1f%% %10.1f %6.0f%%" %(k, v[0][0], (v[0][0]-normval[0][0]), v[0][0]/normval[0][0]*100-100, v[1][0]-normval[1][0], v[1][0]/normval[1][0]*100-100,)
+
+        ## list of all fitted mean
+        meanlist = [v[0][0]for k,v in fitted_mass.iteritems() if "mean" in k]
+        maxmean= max(meanlist)
+        minmean= min(meanlist)
+
+        # NOTE: different format from other values, ie no sigma or fit uncertainty
+        fitted_masses[(ch, mass, width, "max")] = (maxmean, maxmean/normval[0][0])
+        fitted_masses[(ch, mass, width, "min")] = (minmean, minmean/normval[0][0])
+        print "%-30s %10.1f %10.1f %6.1f%%" % ("Max", maxmean, maxmean - normval[0][0], maxmean/normval[0][0]*100-100)
+        print "%-30s %10.1f %10.1f %6.1f%%" % ("Min", minmean, minmean - normval[0][0], minmean/normval[0][0]*100-100)
+
+    pprint(fitted_masses.keys())
 
 
 
@@ -330,16 +341,17 @@ def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, us
                 val.setConstant(True)
 
     for k, val in fitManager.fit_params.iteritems():
+        print
+        print "Parameter list:"
         print k
         val.Print()
+        print
 
     fitManager.run_fit_minuit( fitrange = xvar ) #, debug = True)
     fitManager.get_results( workspace )
 
     ## NOTE uncomment this to make a flat mass shift (default 0.5%) for all samples
     #if not fittype: fitManager.shifted_dscb( workspace )
-    #fitManager.save_fit( sampMan, workspace, stats_pos='left',
-    #                     extra_label = extra_label , plotParam =True)
 
     canv = fitManager.draw( subplot = "pull", paramlayout = (0.12,0.5,0.78),
                             useOldsetup = True, label_config = label_config)
@@ -398,6 +410,7 @@ eventweightlist = ["muR1muF2",
                    "muRp5muFp5"
                    ]
 
+@f_Obsolete
 def make_syssel( varnorm, selnorm, weightnorm, ch = "el"):
 
     """ This function hard-codes the up/down shape variation
@@ -465,31 +478,31 @@ def make_syssellist( varnorm, selnorm, weightnorm, ch = "el"):
         var = "mt_res_%s" %tag
         selection_list[tag] = (var, sel, w)
 
-    ### muon and electron scale factors
-    var = "mt_res"
-    SFlist = SFlistel if ch=="el" else SFlistmu
-    sftaglist = [sfname+"SF"+shift for sfname in SFlist for shift in ["UP","DN"]]
-    for tag in sftaglist:
-        sel = selnorm
-        w = weightnorm.replace(tag[:-2], tag)
-        selection_list[tag] = (var, sel, w)
+#    ### muon and electron scale factors
+#    var = "mt_res"
+#    SFlist = SFlistel if ch=="el" else SFlistmu
+#    sftaglist = [sfname+"SF"+shift for sfname in SFlist for shift in ["UP","DN"]]
+#    for tag in sftaglist:
+#        sel = selnorm
+#        w = weightnorm.replace(tag[:-2], tag)
+#        selection_list[tag] = (var, sel, w)
 
-    for shift in ["up","down"]:
-        sel=selnorm
-        w = weightnorm.replace("prefweight" , "prefweight%s" % shift )
-        selection_list["pref"+shift] = (var, sel, w)
+#    for shift in ["up","down"]:
+#        sel=selnorm
+#        w = weightnorm.replace("prefweight" , "prefweight%s" % shift )
+#        selection_list["pref"+shift] = (var, sel, w)
 
-    #for shift in ["UP5", "UP10", "DN5", "DN10"]:
-    for shift in ["UP5", "UP10",]:
-        sel=selnorm
-        w = weightnorm.replace("PUWeight" , "PUWeight%s" % shift )
-        selection_list["PU"+shift] = (var, sel, w)
-
-    # event weights (pdf)
-    for i, shift in enumerate(eventweightlist):
-        sel=selnorm
-        w = weightnorm.replace("NLOWeight" , "NLOWeight*PDFWeights[%i]" % i )
-        selection_list[shift] = (var, sel, w)
+#    #for shift in ["UP5", "UP10", "DN5", "DN10"]:
+#    for shift in ["UP5", "UP10",]:
+#        sel=selnorm
+#        w = weightnorm.replace("PUWeight" , "PUWeight%s" % shift )
+#        selection_list["PU"+shift] = (var, sel, w)
+#
+#    # event weights (pdf)
+#    for i, shift in enumerate(eventweightlist):
+#        sel=selnorm
+#        w = weightnorm.replace("NLOWeight" , "NLOWeight*PDFWeights[%i]" % i )
+#        selection_list[shift] = (var, sel, w)
 
     return selection_list
 
@@ -533,6 +546,7 @@ def multidict_tojson2(filepath, indict):
         transformed_dict[a][b][c][d] = v
     with open(filepath, "w") as fo:
         json.dump( transformed_dict, fo)
+        print "save to %s" %filepath
 
 
 def makeplots():
@@ -563,7 +577,7 @@ def makeplots():
             plt.savefig("%s/shifts_%s%i_%s_mean.png"%(options.outputDir,ch,options.year,w))
             plt.savefig("%s/shifts_%s%i_%s_mean.pdf"%(options.outputDir,ch,options.year,w))
 
-            ## sigma shifts
+            # sigma shifts
             fig=plt.figure()
             for sys in syslist:
                 yup = [fm[ch][m][width]["sigma_%sUp"%sys][1][0]/fm[ch][m][width]["norm"][1][0]*100-100 for m in masses]
@@ -581,10 +595,6 @@ if options.plots:
 main()
 
 
-
-
-
-
-
+print "Script Sucessfully Ran"
 
 

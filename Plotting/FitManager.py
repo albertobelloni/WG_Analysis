@@ -9,9 +9,8 @@ import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
-from pprint import pprint
 #gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
-from ROOT import RooDoubleCB
+#from ROOT import RooDoubleCB
 
 
 ROOT.gStyle.SetPalette(ROOT.kBird)
@@ -1010,17 +1009,22 @@ class FitManager :
         #self.fit_params['cb'] = cb
 
     def shifted_dscb(self, workspace):
-        ## FIXME makeshift test for shifting mean of crystal ball
         self.wk = workspace
-        exprstr = "expr::cb_mass_{tag}_up('cb_mass_{tag}*cb_mass_{tag}_shift_up',"\
-                   "cb_mass_{tag},cb_mass_{tag}_shift_up[1.005])".format(tag=self.label) ##FIXME later
+
+        ## UP variation
+        exprstr = "expr::cb_mass_{tag}_UP('cb_mass_{tag}*cb_mass_{tag}_shift_UP',"\
+                   "cb_mass_{tag},cb_mass_{tag}_shift_UP[1.005])".format(tag=self.label)
         self.fact(exprstr)
-        self.fact("RooDoubleCB::cb_{tag}_up(mt_res,cb_mass_{tag}_up,cb_sigma_{tag},"
+
+        self.fact("RooDoubleCB::cb_{tag}_UP(mt_res,cb_mass_{tag}_UP,cb_sigma_{tag},"
               "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=self.label))
-        exprstr = "expr::cb_mass_{tag}_down('cb_mass_{tag}*cb_mass_{tag}_shift_down',"\
-                   "cb_mass_{tag},cb_mass_{tag}_shift_down[0.995])".format(tag=self.label) ##FIXME later
+
+        # DOWN variation
+        exprstr = "expr::cb_mass_{tag}_DN('cb_mass_{tag}*cb_mass_{tag}_shift_DN',"\
+                   "cb_mass_{tag},cb_mass_{tag}_shift_DN[0.995])".format(tag=self.label)
         self.fact(exprstr)
-        self.fact("RooDoubleCB::cb_{tag}_down(mt_res,cb_mass_{tag}_down,cb_sigma_{tag},"
+
+        self.fact("RooDoubleCB::cb_{tag}_DN(mt_res,cb_mass_{tag}_DN,cb_sigma_{tag},"
               "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=self.label))
         return
 
