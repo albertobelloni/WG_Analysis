@@ -156,6 +156,8 @@ flatphi = "ph_phi[0]+3.1416*(1+2*(ph_eta[0]>0))"
 UNBLIND = "ph_hasPixSeed[0]==1 || met_pt<40"
 #weight="PUWeight*NLOWeight"
 weight = defs.get_weight_str("nosf")
+if options.year == 2018:
+    weight = weight.replace("prefweight","1")
 pie = 3.1416
 
 ## read MuG samples

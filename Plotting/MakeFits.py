@@ -14,6 +14,7 @@ import selection_defs as defs
 import json
 
 from SampleInfo import SampleInfo
+from SampleManager import f_Obsolete
 
 ## need to read the xsection info
 import analysis_utils
@@ -35,7 +36,7 @@ parser.add_argument( '--condor',        action='store_true', help='run condor jo
 options = parser.parse_args()
 
 _WLEPBR = (1.-0.6741)
-_XSFILE   = 'cross_sections/photon16_smallsig2.py'
+_XSFILE   = 'cross_sections/photon16_smallsig.py'
 _LUMI16   = 36000
 _LUMI17   = 41000
 _LUMI18   = 59740
@@ -43,17 +44,11 @@ _LUMI18   = 59740
 DEBUG = 1
 
 #ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
-from ROOT import RooDoubleCB
+#from ROOT import RooDoubleCB
 
-tColor_Off="\033[0m"                    # Text Reset
-tPurple="\033[0;35m%s"+tColor_Off       # Purple
-
-def f_Obsolete(f):
-        @wraps(f)
-        def f_wrapper(*args, **kws):
-                print f.__name__,": This method is obsolete"
-                return f(*args,**kws)
-        return f_wrapper
+tColor_Off = "\033[0m"                    # Text Reset
+tPurple = "\033[0;35m%s"+tColor_Off       # Purple
+tRed    = "\033[1;31m%s"+tColor_Off       # Red
 
 
 
@@ -151,8 +146,7 @@ def main() :
     if True:
 
 
-        #ROOT.RooRandom.randomGenerator().SetSeed(int(time.time()))
-        ROOT.RooRandom.randomGenerator().SetSeed(int(12346))
+        ROOT.RooRandom.randomGenerator().SetSeed(int(12345))
         var_opt = MakeLimits(  var=  "mt_res" ,
                                wskeys = ws_keys,
                                masspoints  = signal_masses,
@@ -173,6 +167,12 @@ def main() :
                                #method = 'AsymptoticLimitsManual', ## only use --condor with manual
                                #manualpoints = [ -1., -0.1,0,0.001,0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
                                #                 3.5,4.,5.,8.,10.]
+                               #rmin = 0.1,
+                               #rmax = 1.0,
+                               seed = 123456,
+                               doImpact=False,
+                               floatBkg = True,
+                               numberOfToys = 100 ## -1 for Asimov, 0 for "data" (or homemade toy)
                              )
 
         var_opt.setup()
@@ -201,8 +201,6 @@ def main() :
         #for key, opt in var_opt.iteritems() :
         #    print key
         results = var_opt.get_combine_results()
-
-        print results
 
     else: ## run test sequence
         var_opt = MakeLimits( useToySignal = True )
@@ -323,6 +321,9 @@ class MakeLimits( ) :
         self.outputDir        = kwargs.get('outputDir'  ,  None )
         self.bins             = kwargs.get('bins'       ,  None )
         self.bkgnames         = kwargs.get('backgrounds',  None )
+        self.rmin             = kwargs.get('rmin'       ,  None )
+        self.rmax             = kwargs.get('rmax'       ,  None )
+        self.seed             = kwargs.get('seed'       ,  None )
 
         self.wskeys           = kwargs.get('wskeys'     ,  None )
 
@@ -331,6 +332,9 @@ class MakeLimits( ) :
 
         #self.keepNorms        = kwargs.get('keepNorms', False )
         self.noShapeUnc       = kwargs.get('noShapeUnc', False)
+        self.doImpact         = kwargs.get("doImpact", False)
+        self.floatBkg         = kwargs.get("floatBkg", False)
+        self.numberOfToys     = kwargs.get("numberOfToys", None)
 
 
         self.wstag = kwargs.get('wsTag', 'base' )
@@ -805,7 +809,11 @@ class MakeLimits( ) :
         for ibin, sig in viablesig:
             bin_id = binid(ibin)
             all_binids.append(bin_id)
-            card_entries.append( 'shapes Resonance %s %s %s:%s %s:%s'\
+            if self.noShapeUnc:
+                card_entries.append( 'shapes Resonance %s %s %s:%s'\
+                  %( bin_id, sig['file'], sig['workspace'], sig['pdf'] ) )
+            else:
+                card_entries.append( 'shapes Resonance %s %s %s:%s %s:%s'\
                   %( bin_id, sig['file'], sig['workspace'], sig['pdf'], sig['workspace'], sig['pdf_sys'] ) )
 
         for ibin in viablebins:
@@ -913,11 +921,9 @@ class MakeLimits( ) :
                     bkgsysstr = sysstr(bkg.sys[bin_id][cuttag].get(sn))
                     sys_line.append(bkgsysstr)
             card_entries.append( listformat(sys_line, "%-15s"))
-        #raise Exception()
-        #pdb.set_trace()
 
 
-        ##FIXME hard coded shape uncertainty
+        ## hard coded shape uncertainty
         sys_line = ["cms_e", "shape"]
         for ibin, sig in viablesig:
             bin_id = binid(ibin)
@@ -925,7 +931,7 @@ class MakeLimits( ) :
 
             for bkgname, bkg in self.backgrounds.iteritems():
                 sys_line.append('-')
-        card_entries.append( listformat(sys_line, "%-15s"))
+        if not self.noShapeUnc: card_entries.append( listformat(sys_line, "%-15s"))
 
 
 
@@ -950,8 +956,10 @@ class MakeLimits( ) :
         for iparname, iparval in self.params.iteritems():
             ## FIXME stopgap measure 
             if any([ ibin['channel']+cuttag+str(ibin["year"]) in iparname for ibin in viablebins]):
-                card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
-                #card_entries.append('%s flatParam'%iparname)
+                if self.floatBkg:
+                    card_entries.append('%s flatParam'%iparname)
+                else:
+                    card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
 
         for ibin, sig in viablesig:
             #sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
@@ -1337,6 +1345,7 @@ class MakeLimits( ) :
             import_workspace( ws_out, var)
 
         var = ws_in.var(self.var)
+        #var.setRange(200,2000)
         var.setBins(50)
         import_workspace( ws_out, var)
 
@@ -1357,19 +1366,25 @@ class MakeLimits( ) :
         exprstr = "expr::cb_mass_{tag}_UP('cb_mass_{tag}*cb_mass_{tag}_shift_UP',"\
                    "cb_mass_{tag},cb_mass_{tag}_shift_UP[{maxshift}])".format(tag = full_suffix,
                                                                               maxshift = maxshift)
+        print tPurple%exprstr
         ws_out.factory(exprstr)
 
-        ws_out.factory("RooDoubleCB::Resonance_cms_eUp(mt_res,cb_mass_{tag}_UP,cb_sigma_{tag},"
-              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix))
+        exprstr = "RooDoubleCB::Resonance_cms_eUp(mt_res,cb_mass_{tag}_UP,cb_sigma_{tag},"\
+              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix)
+        print tPurple%exprstr
+        ws_out.factory(exprstr)
 
         # DOWN variation
         exprstr = "expr::cb_mass_{tag}_DN('cb_mass_{tag}*cb_mass_{tag}_shift_DN',"\
                    "cb_mass_{tag},cb_mass_{tag}_shift_DN[{minshift}])".format(tag = full_suffix,
                                                                         minshift = minshift)
+        print tPurple%exprstr
         ws_out.factory(exprstr)
 
-        ws_out.factory("RooDoubleCB::Resonance_cms_eDown(mt_res,cb_mass_{tag}_DN,cb_sigma_{tag},"
-              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix))
+        exprstr = "RooDoubleCB::Resonance_cms_eDown(mt_res,cb_mass_{tag}_DN,cb_sigma_{tag},"\
+              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix)
+        print tPurple%exprstr
+        ws_out.factory(exprstr)
 
         ifile.Close()
 
@@ -1561,8 +1576,35 @@ class MakeLimits( ) :
 
         ## generate commands
         if self.method == 'AsymptoticLimits' :
-            command = 'combine -M AsymptoticLimits -m %d --rMin 0.0001'\
-                    ' --rMax 100 %s >& %s'  %( mass, card, log_file )
+            command = ""
+
+            ## flag to limit fit range
+            mtrange=" --setParameterRanges mt_res=%i,%i" %((200,200+2*mass) if mass<625 else (400,2000))
+
+            if self.doImpact:
+                # validation (not related to impact)
+                command += "ValidateDatacards.py %s\n" %card
+                command += "text2workspace.py %s -m %d \n" %(card, mass)
+
+                card = card.replace(".txt",".root")
+                impactcommand = "combineTool.py -M Impacts -d %s -m %d %s" %(card, mass, mtrange)
+                command += "%s --doInitialFit --robustFit 1\n" %impactcommand
+                command += "%s --doFits --robustFit 1 --parallel 10\n" %impactcommand
+                command += "%s -o impacts.json \n" %impactcommand
+                command += "plotImpacts.py -i impacts.json -o impacts_%s\n\n" %(sigpar)
+
+            flagstr = "-t -1 "
+            flagstr = ""
+            if self.numberOfToys is not None: flagstr+=" -t %d"  %self.numberOfToys
+            if self.rmin is not None: flagstr+= " --rMin %.2g" %self.rmin
+            if self.rmax is not None: flagstr+= " --rMax %.2g" %self.rmax
+            if self.seed is not None: flagstr+= " -s %i" %self.seed
+
+            #flagstr+=" --freezeParameters 'rgx{cb_.*_MG_M.*_W.*},rgx{dijet_order.*_all_dijet}'"
+            flagstr+=" --freezeParameters allConstrainedNuisances"
+            flagstr+= mtrange
+            command+= 'combine -M AsymptoticLimits -m %d %s %s >& %s'\
+                        %( mass, flagstr, card, log_file )
 
         if self.method == 'AsymptoticLimitsManual' :
             command = ''
@@ -1606,7 +1648,7 @@ class MakeLimits( ) :
 
             log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
                                  %( self.outputDir, wid, ch, mass, self.var, sigpar )
-            command= self.get_combine_command(sigpar, card, log_file)
+            command= self.get_combine_command(sigpar, os.path.basename(card), log_file)
             print tPurple%command
             commands.append(command)
 
@@ -1681,7 +1723,8 @@ class MakeLimits( ) :
                 rundir = '%s/Width%s/%s/Mass%i/' %( self.outputDir, wid, ch, mass )
                 log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
                                              %( self.outputDir, wid, ch, mass, self.var, sigpar )
-                command= self.get_combine_command(sigpar, card, log_file) + "\n"
+                command= self.get_combine_command(sigpar, os.path.basename(card), log_file) + "\n"
+                print tPurple %command
 
                 ## write shell script (for condor jobs)
                 ofile = open( fname, 'w' )
@@ -1822,6 +1865,9 @@ class MakeLimits( ) :
                        results["exp+2"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
                     elif "Observed" in spline[0]:
                        results["obs"]   = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
+
+        if results.get("obs") == None or results.get("exp-2") == None:
+            print tRed %"No observed or expected value"
 
 
         if self.method == 'HybridNew' :
