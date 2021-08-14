@@ -25,10 +25,10 @@ class RunModule : public virtual RunModuleBase {
         RunModule();
 
         // The run function must exist and be defined exactly as this
-        // because it is defined in RunModuleBase 
+        // because it is defined in RunModuleBase
         // In src/RunModule.cxx all the analysis is defind
 	// in this RunModule function
-        void initialize( TChain * chain, TTree *outtree, TFile *outfile, 
+        void initialize( TChain * chain, TTree *outtree, TFile *outfile,
 			 const CmdOptions & options,
 			 std::vector<ModuleConfig> & config) ;
         bool execute( std::vector<ModuleConfig> & config ) ;
@@ -62,7 +62,7 @@ class RunModule : public virtual RunModuleBase {
 
         bool get_constriained_nu_pz( const TLorentzVector lepton, TLorentzVector & metlv ) const ;
         bool calc_constrained_nu_momentum( const TLorentzVector lepton, const TLorentzVector metlv, float &result ) const ;
-        bool solve_quadratic( float Aval, float Bval, float Cval, float & solution1, float &solution2 ) const; 
+        bool solve_quadratic( float Aval, float Bval, float Cval, float & solution1, float &solution2 ) const;
         void calc_corr_iso( float chIso, float phoIso, float neuIso, float rho, float eta, float &chIsoCorr, float &phoIsoCorr, float &neuIsoCorr )  const;
 
         float calc_pu_weight( float puval, float mod=1.0) const;
@@ -112,7 +112,7 @@ class RunModule : public virtual RunModuleBase {
 
 };
 
-// Ouput namespace 
+// Ouput namespace
 // Declare any output variables that you'll fill here
 namespace OUT {
 
@@ -237,7 +237,7 @@ namespace OUT {
     float m_ll;
     float m_llph;
     Bool_t nu_z_solution_success;
-   
+
     float leadjet_pt;
     float subljet_pt;
     float leaddijet_m;
@@ -398,6 +398,11 @@ namespace OUT {
     float PUWeightUP10;
     float PUWeightDN5;
     float PUWeightDN10;
+#ifndef EXISTS_prefweight
+    float prefweight;
+    float prefweightup;
+    float prefweightdown;
+#endif
 
 };
 
