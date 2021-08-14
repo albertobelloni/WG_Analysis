@@ -958,7 +958,7 @@ class MakeLimits( ) :
                 if self.floatBkg:
                     card_entries.append('%s flatParam'%iparname)
                 else:
-                    card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]*10000))
+                    card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
 
         for ibin, sig in viablesig:
             #sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
