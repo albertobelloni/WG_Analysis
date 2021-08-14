@@ -142,6 +142,7 @@ def main() :
     signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
     signal_widths    = ['5', '0p01']
 
+    fitrangefx = lambda m : (200,200+1.5*m) if m<625 else (400,2000)
 
     ROOT.RooRandom.randomGenerator().SetSeed(int(12345))
     var_opt = MakeLimits(  var=  "mt_res" ,
@@ -149,9 +150,7 @@ def main() :
                            masspoints  = signal_masses,
                            widthpoints = signal_widths,
                            #backgrounds=['WGamma', 'TTG', 'TTbar', 'Wjets', 'Zgamma'],
-                           #backgrounds = ['WGamma'],
                            backgrounds = ['All'],
-                           #backgrounds=['Backgrounds'],
                            baseDir = options.baseDir,
                            bins = bins,
                            cutsetlist = "AB",
@@ -165,12 +164,13 @@ def main() :
                            #manualpoints = [ -1., -0.1,0,0.001,0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
                            #                 3.5,4.,5.,8.,10.]
                            #rmin = 0.1,
-                           #rmax = 1.0,
-                           seed = 123456,
+                           #rmax = 20,
+                           #seed = 123456,
                            doImpact=False,
-                           floatBkg = True,
-                           numberOfToys = -1, ## -1 for Asimov, 0 for "data" (or homemade toy)
-                           freezeParameter = "all" ## "all", "bkg" or "sig", or "s+b", or "constrained"
+                           floatBkg =False, ## background parameters will be contrained if False
+                           numberOfToys = 2, ## -1 for Asimov, 0 for "data" (or homemade toy)
+                           #freezeParameter = "all", ## "all", "bkg" or "sig", or "s+b", or "constrained"
+                           #fitrange = fitrangefx # a function that takes mass and return fit range
                          )
 
     var_opt.setup()
@@ -314,6 +314,7 @@ class MakeLimits( ) :
         self.rmin             = kwargs.get('rmin'       ,  None )
         self.rmax             = kwargs.get('rmax'       ,  None )
         self.seed             = kwargs.get('seed'       ,  None )
+        self.fitrange         = kwargs.get('fitrange'   ,  None )
 
         self.wskeys           = kwargs.get('wskeys'     ,  None )
 
@@ -594,7 +595,13 @@ class MakeLimits( ) :
 
         ## LUMI POG
         ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
-        newsysdict["CMS_lumi"] = 1.023 if yr == 2017 else 1.025
+
+        #newsysdict["CMS_lumi"] = 1.023 if yr == 2017 else 1.025
+        if yr ==2016: newsysdict["CMS_lumi2016"] = 1.01
+        if yr ==2017: newsysdict["CMS_lumi2017"] = 1.02
+        if yr ==2018: newsysdict["CMS_lumi2018"] = 1.01
+        newsysdict["CMS_lumicorr"]  = {2016:1.006,2017:1.009,2018:1.02}[yr]
+        if yr !=2016: newsysdict["CMS_lumicorr2"] = {2017:1.006,2018:1.002}[yr]
 
         ## trigger
         if ch == "mu":
@@ -951,7 +958,7 @@ class MakeLimits( ) :
                 if self.floatBkg:
                     card_entries.append('%s flatParam'%iparname)
                 else:
-                    card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
+                    card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]*10000))
 
         for ibin, sig in viablesig:
             #sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
@@ -1049,8 +1056,8 @@ class MakeLimits( ) :
            if xvar is None :
                xvar = ws.var( self.xvarname )
            xvar.setRange( defs.bkgfitlowbin(cutset) ,2000)
-           print xvar
-           #raw_input()
+           xvar.setBins(50)
+           print xvar.Print()
 
            ofile.Close()
 
@@ -1091,7 +1098,6 @@ class MakeLimits( ) :
                        norm = data_norm
                    #norm=norm*2
                    print "toy data #: ",norm
-                   #raw_input("generating")
                    dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
                              ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
                                              'toydata_%s' %suffix ) )
@@ -1259,7 +1265,6 @@ class MakeLimits( ) :
         #                       )
         self.backgrounds.update( { bkgn: self.wskeys[bkgn]} )
         print "BACKGROUND: ",self.backgrounds
-        #raw_input()
 
 
 
@@ -1352,7 +1357,6 @@ class MakeLimits( ) :
         norm_var.setConstant()
         import_workspace( ws_out, pdf )
 
-        #pdb.set_trace()
         full_suffix = "_".join(['MG', "M%d"%mass, 'W%s'%width, binid(ibin)])
         ## UP variation
         exprstr = "expr::cb_mass_{tag}_UP('cb_mass_{tag}*cb_mass_{tag}_shift_UP',"\
@@ -1571,7 +1575,7 @@ class MakeLimits( ) :
             command = ""
 
             ## flag to limit fit range
-            mtrange=" --setParameterRanges mt_res=%i,%i" %((200,200+2*mass) if mass<625 else (400,2000))
+            mtrange=" --setParameterRanges mt_res=%i,%i" %self.fitrange(mass) if self.fitrange else ""
 
             if self.doImpact:
                 # validation (not related to impact)
@@ -1607,8 +1611,10 @@ class MakeLimits( ) :
 
 
             flagstr+= mtrange
+
             command+= 'combine -M AsymptoticLimits -m %d %s %s >& %s'\
                         %( mass, flagstr, card, log_file )
+
 
         if self.method == 'AsymptoticLimitsManual' :
             command = ''
@@ -1657,7 +1663,7 @@ class MakeLimits( ) :
             commands.append(command)
 
             #self.output_files[wid].setdefault( mass, {} )
-            self.output_files[wid][ch][mass] = log_file
+            self.output_files[wid][ch][mass] = rundir+log_file
         return commands
 
 
@@ -1703,7 +1709,7 @@ class MakeLimits( ) :
         cnum = multiprocessing.cpu_count()
 
         while len(commands)>0:
-            while len(processes)<cnum:
+            while len(processes)<cnum-1:
                 c = commands.pop()
                 i+=1
                 print "command #",i, c
@@ -1749,10 +1755,9 @@ class MakeLimits( ) :
 
                 fname = '%s/Width%s/%s/Mass%i/run_combine_%s.sh' %( self.outputDir, wid, ch, mass, sigpar )
                 rundir = '%s/Width%s/%s/Mass%i/' %( self.outputDir, wid, ch, mass )
-                #log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
-                #                            %( self.outputDir, wid, ch, mass, self.var, sigpar )
-                log_file = 'results_%s_%s.txt'  %( self.var, sigpar )
-                command= self.get_combine_command(sigpar, os.path.basename(card), log_file) + "\n"
+                log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
+                                            %( self.outputDir, wid, ch, mass, self.var, sigpar )
+                command= self.get_combine_command(sigpar, os.path.basename(card), os.path.basename(log_file)) + "\n"
                 print tPurple %command
 
                 ## write shell script (for condor jobs)
