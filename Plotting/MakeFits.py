@@ -191,7 +191,7 @@ def main() :
             wait_for_jobs( 'kakw')
         else:
             ### run local shell commands in parallel
-            var_opt.run_commands_new()
+            var_opt.run_commands()
 
     results = var_opt.get_combine_results()
 
@@ -1403,58 +1403,6 @@ class MakeLimits( ) :
 
 
 
-# ---------------------------------------------------
-
-
-    @f_Dumpfname
-    @f_Obsolete
-    def get_signal_data( self, signal_file, ws_key, signal_points, plot_var, bins ) :
-        '''
-         currently this function is not used
-        '''
-
-        signal_data = {}
-
-        ofile = ROOT.TFile.Open( signal_file, 'READ'  )
-
-        signal_ws = ofile.Get( ws_key )
-
-        if plot_var.count('pt') :
-            xvar = signal_ws.var( 'x_pt' )
-        else :
-            xvar = signal_ws.var( 'x_m' )
-
-        for gen in ['MadGraph', 'Pythia'] :
-            for width in ['width5', 'width0p01'] :
-                for sig_pt in signal_points :
-
-                    signal_base = 'srhist_%sResonanceMass%d_%s' %(gen, sig_pt, width )
-                    signal_data.setdefault( signal_base, {} )
-                    signal_data[signal_base].setdefault( plot_var, {} )
-                    for ibin in bins :
-                        binid= binid(ibin)
-
-                        signal_entry = get_workspace_entry( signal_base, ibin['channel'], ibin['eta'], plot_var)
-
-                        dist = signal_ws.data( signal_entry )
-
-                        if not dist :
-                            continue
-
-                        reco_events   = signal_ws.var( '%s_norm' %signal_entry ).getValV()
-                        scale         = signal_ws.var(signal_entry.replace('srhist', 'scale' )).getValV()
-                        total_events  = signal_ws.var(signal_entry.replace('srhist', 'total_events')).getValV()
-                        cross_section = signal_ws.var(signal_entry.replace('srhist', 'cross_section')).getValV()
-
-                        efficiency = reco_events / ( scale * total_events )
-                        signal_data[signal_base][plot_var].setdefault(binid,  {} )
-                        signal_data[signal_base][plot_var][binid]['norm'] = dist.sumEntries()
-                        signal_data[signal_base][plot_var][binid]['efficiency'] = efficiency
-                        signal_data[signal_base][plot_var][binid]['cross_section'] = cross_section
-
-        ofile.Close()
-        return signal_data
-
 
 
 # ---------------------------------------------------
@@ -1669,37 +1617,7 @@ class MakeLimits( ) :
 
 # ---------------------------------------------------
 
-    @f_Obsolete
     def run_commands(self):
-        processes = []
-        doneset = set()
-
-        ## get list of commands
-        commands = self.get_commands()
-
-        ## run command
-        for i,c in enumerate(commands):
-            print "command #",i, c
-            processes.append(subprocess.Popen(c, shell=True))
-
-        ## check command state
-        while any([p.poll() == None for p in processes]):
-            time.sleep(10)
-            for i, p in enumerate(processes):
-                status = p.poll()
-                if status == None:
-                    continue
-                elif status == 0:
-                    if i not in doneset:
-                        doneset.add(i)
-                        print "FINISHED", i
-                else:
-                    if i not in doneset:
-                        doneset.add(i)
-                    print "ERROR", i
-        return
-
-    def run_commands_new(self):
         """ limit number of processes to cpu # """
         processes = []
 
