@@ -317,6 +317,12 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::PUWeightDN5                            = 1;
     OUT::PUWeightDN10                           = 1;
 
+#ifndef EXISTS_prefweight
+    OUT::prefweight                             = 1;
+    OUT::prefweightup                           = 1;
+    OUT::prefweightdown                         = 1;
+#endif
+
     // *************************
     // Declare Branches
     // *************************
@@ -609,6 +615,12 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("PUWeightUP10", &OUT::PUWeightUP10, "PUWeightUP10/F" );
     outtree->Branch("PUWeightDN5", &OUT::PUWeightDN5, "PUWeightDN5/F" );
     outtree->Branch("PUWeightDN10", &OUT::PUWeightDN10, "PUWeightDN10/F" );
+
+#ifndef EXISTS_prefweight
+    outtree->Branch("prefweight", &OUT::prefweight, "prefweight/F" );
+    outtree->Branch("prefweightup", &OUT::prefweightup, "prefweightup/F" );
+    outtree->Branch("prefweightdown", &OUT::prefweightdown, "prefweightdown/F" );
+#endif
 
 
     std::map<std::string, std::string>::const_iterator eitr;

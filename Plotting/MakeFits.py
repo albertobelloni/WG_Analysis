@@ -7,10 +7,12 @@ import uuid
 import os
 import time
 import subprocess
+import multiprocessing
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from argparse import ArgumentParser
 from collections import OrderedDict,defaultdict
 import selection_defs as defs
+from pprint import pprint
 import json
 
 from SampleInfo import SampleInfo
@@ -41,10 +43,7 @@ _LUMI16   = 36000
 _LUMI17   = 41000
 _LUMI18   = 59740
 
-DEBUG = 1
-
-#ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
-#from ROOT import RooDoubleCB
+DEBUG = 0
 
 tColor_Off = "\033[0m"                    # Text Reset
 tPurple = "\033[0;35m%s"+tColor_Off       # Purple
@@ -59,7 +58,7 @@ def f_Dumpfname(func):
     """ decorator to show function name and caller name """
     @wraps(func)
     def echo_func(*func_args, **func_kwargs):
-        print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'.format(func.__name__,sys._getframe(1).f_code.co_name))
+        if DEBUG: print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'.format(func.__name__,sys._getframe(1).f_code.co_name))
         return func(*func_args, **func_kwargs)
     return echo_func
 
@@ -143,68 +142,59 @@ def main() :
     signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
     signal_widths    = ['5', '0p01']
 
-    if True:
+    fitrangefx = lambda m : (200,200+1.5*m) if m<625 else (400,2000)
 
+    ROOT.RooRandom.randomGenerator().SetSeed(int(12345))
+    var_opt = MakeLimits(  var=  "mt_res" ,
+                           wskeys = ws_keys,
+                           masspoints  = signal_masses,
+                           widthpoints = signal_widths,
+                           #backgrounds=['WGamma', 'TTG', 'TTbar', 'Wjets', 'Zgamma'],
+                           backgrounds = ['All'],
+                           baseDir = options.baseDir,
+                           bins = bins,
+                           cutsetlist = "AB",
+                           outputDir = options.outputDir,
+                           useToySignal = options.useToySignal,
+                           useToyBackground = options.useToyBkgd,
+                           # don't put norms in new file
+                           #keepNorms = False, FIXME
+                           noShapeUnc = True,
+                           #method = 'AsymptoticLimitsManual', ## only use --condor with manual
+                           #manualpoints = [ -1., -0.1,0,0.001,0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
+                           #                 3.5,4.,5.,8.,10.]
+                           #rmin = 0.1,
+                           #rmax = 20,
+                           #seed = 123456,
+                           doImpact=False,
+                           floatBkg =False, ## background parameters will be contrained if False
+                           numberOfToys = 2, ## -1 for Asimov, 0 for "data" (or homemade toy)
+                           #freezeParameter = "all", ## "all", "bkg" or "sig", or "s+b", or "constrained"
+                           #fitrange = fitrangefx # a function that takes mass and return fit range
+                         )
 
-        ROOT.RooRandom.randomGenerator().SetSeed(int(12345))
-        var_opt = MakeLimits(  var=  "mt_res" ,
-                               wskeys = ws_keys,
-                               masspoints  = signal_masses,
-                               widthpoints = signal_widths,
-                               #backgrounds=['WGamma', 'TTG', 'TTbar', 'Wjets', 'Zgamma'],
-                               #backgrounds = ['WGamma'],
-                               backgrounds = ['All'],
-                               #backgrounds=['Backgrounds'],
-                               baseDir = options.baseDir,
-                               bins = bins,
-                               cutsetlist = "AB",
-                               outputDir = options.outputDir,
-                               useToySignal = options.useToySignal,
-                               useToyBackground = options.useToyBkgd,
-                               # don't put norms in new file
-                               #keepNorms = False, FIXME
-                               noShapeUnc = True,
-                               #method = 'AsymptoticLimitsManual', ## only use --condor with manual
-                               #manualpoints = [ -1., -0.1,0,0.001,0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
-                               #                 3.5,4.,5.,8.,10.]
-                               #rmin = 0.1,
-                               #rmax = 1.0,
-                               seed = 123456,
-                               doImpact=False,
-                               floatBkg = True,
-                               numberOfToys = 100 ## -1 for Asimov, 0 for "data" (or homemade toy)
-                             )
+    var_opt.setup()
 
-        var_opt.setup()
+    combine_jobs = var_opt.get_combine_files()
 
-        combine_jobs = var_opt.get_combine_files()
+    if not options.noRunCombine :
 
-        if not options.noRunCombine :
+        if options.condor:
+            ### run condor jobs
+            jdl_name = '%s/job_desc.jdl'  %( options.outputDir )
+            make_jdl( combine_jobs, jdl_name )
 
-            if options.condor:
-                ### run condor jobs
-                jdl_name = '%s/job_desc.jdl'  %( options.outputDir )
-                make_jdl( combine_jobs, jdl_name )
+            os.system( 'condor_submit %s' %jdl_name )
 
-                os.system( 'condor_submit %s' %jdl_name )
+            print tPurple% "WARNING: unstable method"
+            #wait_for_jobs( 'run_combine')
+            wait_for_jobs( 'kakw')
+        else:
+            ### run local shell commands in parallel
+            var_opt.run_commands()
 
-                print tPurple% "WARNING: unstable method"
-                #wait_for_jobs( 'run_combine')
-                wait_for_jobs( 'kakw')
-            else:
-                ### run local shell commands in parallel
-                var_opt.run_commands()
+    results = var_opt.get_combine_results()
 
-        #raw_input("continue")
-
-        #results = {}
-        #for key, opt in var_opt.iteritems() :
-        #    print key
-        results = var_opt.get_combine_results()
-
-    else: ## run test sequence
-        var_opt = MakeLimits( useToySignal = True )
-        var_opt.run_commands()
 
 
 # ---------------------------------------------------
@@ -324,6 +314,7 @@ class MakeLimits( ) :
         self.rmin             = kwargs.get('rmin'       ,  None )
         self.rmax             = kwargs.get('rmax'       ,  None )
         self.seed             = kwargs.get('seed'       ,  None )
+        self.fitrange         = kwargs.get('fitrange'   ,  None )
 
         self.wskeys           = kwargs.get('wskeys'     ,  None )
 
@@ -335,6 +326,7 @@ class MakeLimits( ) :
         self.doImpact         = kwargs.get("doImpact", False)
         self.floatBkg         = kwargs.get("floatBkg", False)
         self.numberOfToys     = kwargs.get("numberOfToys", None)
+        self.freezeParameter  = kwargs.get("freezeParameter", None)
 
 
         self.wstag = kwargs.get('wsTag', 'base' )
@@ -603,7 +595,13 @@ class MakeLimits( ) :
 
         ## LUMI POG
         ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/TWikiLUM
-        newsysdict["CMS_lumi"] = 1.023 if yr == 2017 else 1.025
+
+        #newsysdict["CMS_lumi"] = 1.023 if yr == 2017 else 1.025
+        if yr ==2016: newsysdict["CMS_lumi2016"] = 1.01
+        if yr ==2017: newsysdict["CMS_lumi2017"] = 1.02
+        if yr ==2018: newsysdict["CMS_lumi2018"] = 1.01
+        newsysdict["CMS_lumicorr"]  = {2016:1.006,2017:1.009,2018:1.02}[yr]
+        if yr !=2016: newsysdict["CMS_lumicorr2"] = {2017:1.006,2018:1.002}[yr]
 
         ## trigger
         if ch == "mu":
@@ -669,7 +667,8 @@ class MakeLimits( ) :
             print 'Initialzation failed, will not setup'
             return []
 
-        print "all cards: ",  self.allcards
+        print "all cards: "
+        pprint(self.allcards)
         print "method: ",     self.method
         print "outputDir: ",  self.outputDir
 
@@ -1057,8 +1056,8 @@ class MakeLimits( ) :
            if xvar is None :
                xvar = ws.var( self.xvarname )
            xvar.setRange( defs.bkgfitlowbin(cutset) ,2000)
-           print xvar
-           #raw_input()
+           xvar.setBins(50)
+           print xvar.Print()
 
            ofile.Close()
 
@@ -1099,7 +1098,6 @@ class MakeLimits( ) :
                        norm = data_norm
                    #norm=norm*2
                    print "toy data #: ",norm
-                   #raw_input("generating")
                    dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
                              ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
                                              'toydata_%s' %suffix ) )
@@ -1267,7 +1265,6 @@ class MakeLimits( ) :
         #                       )
         self.backgrounds.update( { bkgn: self.wskeys[bkgn]} )
         print "BACKGROUND: ",self.backgrounds
-        #raw_input()
 
 
 
@@ -1360,7 +1357,6 @@ class MakeLimits( ) :
         norm_var.setConstant()
         import_workspace( ws_out, pdf )
 
-        #pdb.set_trace()
         full_suffix = "_".join(['MG', "M%d"%mass, 'W%s'%width, binid(ibin)])
         ## UP variation
         exprstr = "expr::cb_mass_{tag}_UP('cb_mass_{tag}*cb_mass_{tag}_shift_UP',"\
@@ -1406,58 +1402,6 @@ class MakeLimits( ) :
 
 
 
-
-# ---------------------------------------------------
-
-
-    @f_Dumpfname
-    @f_Obsolete
-    def get_signal_data( self, signal_file, ws_key, signal_points, plot_var, bins ) :
-        '''
-         currently this function is not used
-        '''
-
-        signal_data = {}
-
-        ofile = ROOT.TFile.Open( signal_file, 'READ'  )
-
-        signal_ws = ofile.Get( ws_key )
-
-        if plot_var.count('pt') :
-            xvar = signal_ws.var( 'x_pt' )
-        else :
-            xvar = signal_ws.var( 'x_m' )
-
-        for gen in ['MadGraph', 'Pythia'] :
-            for width in ['width5', 'width0p01'] :
-                for sig_pt in signal_points :
-
-                    signal_base = 'srhist_%sResonanceMass%d_%s' %(gen, sig_pt, width )
-                    signal_data.setdefault( signal_base, {} )
-                    signal_data[signal_base].setdefault( plot_var, {} )
-                    for ibin in bins :
-                        binid= binid(ibin)
-
-                        signal_entry = get_workspace_entry( signal_base, ibin['channel'], ibin['eta'], plot_var)
-
-                        dist = signal_ws.data( signal_entry )
-
-                        if not dist :
-                            continue
-
-                        reco_events   = signal_ws.var( '%s_norm' %signal_entry ).getValV()
-                        scale         = signal_ws.var(signal_entry.replace('srhist', 'scale' )).getValV()
-                        total_events  = signal_ws.var(signal_entry.replace('srhist', 'total_events')).getValV()
-                        cross_section = signal_ws.var(signal_entry.replace('srhist', 'cross_section')).getValV()
-
-                        efficiency = reco_events / ( scale * total_events )
-                        signal_data[signal_base][plot_var].setdefault(binid,  {} )
-                        signal_data[signal_base][plot_var][binid]['norm'] = dist.sumEntries()
-                        signal_data[signal_base][plot_var][binid]['efficiency'] = efficiency
-                        signal_data[signal_base][plot_var][binid]['cross_section'] = cross_section
-
-        ofile.Close()
-        return signal_data
 
 
 
@@ -1571,7 +1515,7 @@ class MakeLimits( ) :
     def get_combine_command( self, sigpar, card, log_file):
 
         ### essential info
-        wid = sigpar.split('_W')[1].split('_')[0] ## FIXME should split a new class
+        wid = sigpar.split('_W')[1].split('_')[0]
         mass = int(sigpar.split('_')[0].lstrip("M"))
 
         ## generate commands
@@ -1579,7 +1523,7 @@ class MakeLimits( ) :
             command = ""
 
             ## flag to limit fit range
-            mtrange=" --setParameterRanges mt_res=%i,%i" %((200,200+2*mass) if mass<625 else (400,2000))
+            mtrange=" --setParameterRanges mt_res=%i,%i" %self.fitrange(mass) if self.fitrange else ""
 
             if self.doImpact:
                 # validation (not related to impact)
@@ -1593,18 +1537,32 @@ class MakeLimits( ) :
                 command += "%s -o impacts.json \n" %impactcommand
                 command += "plotImpacts.py -i impacts.json -o impacts_%s\n\n" %(sigpar)
 
-            flagstr = "-t -1 "
             flagstr = ""
             if self.numberOfToys is not None: flagstr+=" -t %d"  %self.numberOfToys
             if self.rmin is not None: flagstr+= " --rMin %.2g" %self.rmin
             if self.rmax is not None: flagstr+= " --rMax %.2g" %self.rmax
             if self.seed is not None: flagstr+= " -s %i" %self.seed
 
-            #flagstr+=" --freezeParameters 'rgx{cb_.*_MG_M.*_W.*},rgx{dijet_order.*_all_dijet}'"
-            flagstr+=" --freezeParameters allConstrainedNuisances"
+            if self.freezeParameter is not None:
+                if self.freezeParameter == "all":
+                    flagstr+=" --freezeParameters 'rgx{.*}'"
+                elif self.freezeParameter == "sig":
+                    flagstr+=" --freezeParameters 'rgx{cb_.*_MG_M.*_W.*}'"
+                elif self.freezeParameter == "bkg":
+                    flagstr+=" --freezeParameters 'rgx{dijet_order.*_all_dijet}'"
+                elif self.freezeParameter == "s+b":
+                    flagstr+=" --freezeParameters 'rgx{cb_.*_MG_M.*_W.*},rgx{dijet_order.*_all_dijet}'"
+                elif self.freezeParameter == "constrained":
+                    flagstr+=" --freezeParameters allConstrainedNuisances"
+                else:
+                    flagstr+=" --freezeParameters %s" %self.freezeParameter
+
+
             flagstr+= mtrange
+
             command+= 'combine -M AsymptoticLimits -m %d %s %s >& %s'\
                         %( mass, flagstr, card, log_file )
+
 
         if self.method == 'AsymptoticLimitsManual' :
             command = ''
@@ -1640,55 +1598,49 @@ class MakeLimits( ) :
 
         for sigpar, card in self.allcards.iteritems() :
 
-            print sigpar
             wid = sigpar.split('_W')[1].split('_')[0]
             mass = int(sigpar.split('_')[0].lstrip("M"))
             ch = sigpar.split('_')[2]
             print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 
-            log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
-                                 %( self.outputDir, wid, ch, mass, self.var, sigpar )
-            command= self.get_combine_command(sigpar, os.path.basename(card), log_file)
+            log_file = 'results_%s_%s.txt'  %( self.var, sigpar )
+            rundir = '%s/Width%s/%s/Mass%i/' %( self.outputDir, wid, ch, mass )
+            command = "cd %s;" %rundir
+            command += self.get_combine_command(sigpar,os.path.basename(card), log_file)
             print tPurple%command
             commands.append(command)
 
             #self.output_files[wid].setdefault( mass, {} )
-            self.output_files[wid][ch][mass] = log_file
+            self.output_files[wid][ch][mass] = rundir+log_file
         return commands
 
 
 # ---------------------------------------------------
 
-
     def run_commands(self):
+        """ limit number of processes to cpu # """
         processes = []
-        doneset = set()
 
+        i = 0
         ## get list of commands
         commands = self.get_commands()
-        ## FIXME for testing
-        #commands = [ ['sleep','%i'%i] for i in range(0,30,5)]
+        cnum = multiprocessing.cpu_count()
 
-        ## run command
-        for i,c in enumerate(commands):
-            print "command #",i, c
-            processes.append(subprocess.Popen(c, shell=True))
+        while len(commands)>0:
+            while len(processes)<cnum-1:
+                c = commands.pop()
+                i+=1
+                print "command #",i, c
+                ## run commands
+                processes.append((i,subprocess.Popen(c, shell=True)))
 
-        ## check command state
-        while any([p.poll() == None for p in processes]):
-            time.sleep(10)
-            for i, p in enumerate(processes):
-                status = p.poll()
-                if status == None:
-                    continue
-                elif status == 0:
-                    if i not in doneset:
-                        doneset.add(i)
-                        print "FINISHED", i
-                else:
-                    if i not in doneset:
-                        doneset.add(i)
-                    print "ERROR", i
+            for j,p in processes:
+                if p.poll() is not None:
+                    print j, " status: ", p.poll()
+                    processes.remove((j,p))
+                    break
+            else:
+                time.sleep(10)
         return
 
 
@@ -1722,8 +1674,8 @@ class MakeLimits( ) :
                 fname = '%s/Width%s/%s/Mass%i/run_combine_%s.sh' %( self.outputDir, wid, ch, mass, sigpar )
                 rundir = '%s/Width%s/%s/Mass%i/' %( self.outputDir, wid, ch, mass )
                 log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
-                                             %( self.outputDir, wid, ch, mass, self.var, sigpar )
-                command= self.get_combine_command(sigpar, os.path.basename(card), log_file) + "\n"
+                                            %( self.outputDir, wid, ch, mass, self.var, sigpar )
+                command= self.get_combine_command(sigpar, os.path.basename(card), os.path.basename(log_file)) + "\n"
                 print tPurple %command
 
                 ## write shell script (for condor jobs)
@@ -1792,7 +1744,13 @@ class MakeLimits( ) :
             for ch, massdict in self.output_files[width].iteritems() :
                 for mass, f in massdict.iteritems() :
 
-                    result = self.process_combine_file( f, mass )
+                    xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section']\
+                          *self.weightMap['ResonanceMass%d'%mass]['gen_eff']\
+                          *self.weightMap['ResonanceMass%d'%mass]['k_factor']
+                    Wlepbr = (10.71 + 10.63 + 11.38)/100.
+                    xsfactor = xsec * 1000 / Wlepbr
+
+                    result = self.process_combine_file( f, xsfactor )
 
                     if self.method == 'AsymptoticLimits' or self.method == 'AsymptoticLimitsManual':
 
@@ -1834,37 +1792,30 @@ class MakeLimits( ) :
 
 
     @f_Dumpfname
-    def process_combine_file( self, fname, mass) :
+    def process_combine_file( self, fname, xsfactor) :
 
         ofile = open( fname, 'r' )
-
-        xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section']\
-              *self.weightMap['ResonanceMass%d'%mass]['gen_eff']\
-              *self.weightMap['ResonanceMass%d'%mass]['k_factor']
 
         results = {}
 
         # http://pdg.lbl.gov/2018/tables/rpp2018-sum-gauge-higgs-bosons.pdf
 
-        Wlepbr = 10.71 + 10.63 + 11.38
+        cllabeldict= { "Expected 50.0%": "exp0",
+                       "Expected  2.5%": "exp-2",
+                       "Expected 16.0%": "exp-1",
+                       "Expected 84.0%": "exp+1",
+                       "Expected 97.5%": "exp+2",
+                       "Observed Limit": "obs"    }
 
         if self.method == 'AsymptoticLimits' or self.method == 'AsymptoticLimitsManual':
+
             for line in ofile :
-                if line.count(':') > 0 :
-                    spline = line.split(':')
-                    #results[spline[0]] = spline[1].rstrip('\n')
-                    if "Expected 50.0%" in spline[0]:
-                       results["exp0"]  = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
-                    elif "Expected  2.5%" in spline[0]:
-                       results["exp-2"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
-                    elif "Expected 16.0%" in spline[0]:
-                       results["exp-1"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
-                    elif "Expected 84.0%" in spline[0]:
-                       results["exp+1"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
-                    elif "Expected 97.5%" in spline[0]:
-                       results["exp+2"] = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
-                    elif "Observed" in spline[0]:
-                       results["obs"]   = float(spline[1].rstrip('\n').split('<')[1]) * xsec * 1000.0 * 100.0/Wlepbr
+                rvalue=-1
+                if line.count(':') == 1 and ("Expected" in line or "Observed" in line):
+                    clname, rvstr = line.split(':')
+                    rvalue = float(rvstr.rstrip('\n').split('<')[1])
+                    results[cllabeldict[clname]] = rvalue * xsfactor
+
 
         if results.get("obs") == None or results.get("exp-2") == None:
             print tRed %"No observed or expected value"

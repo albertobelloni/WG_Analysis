@@ -104,6 +104,19 @@ def get_electron_sf(options) :
 
     return electron_sf
 
+def get_bjet_sf(options) :
+
+    base_path = '%s/TreeFilter/ApplyScaleFactors/data/' %_workarea
+
+    bjet_sf = Filter( 'AddBJetSF' )
+    bjet_sf.add_var( 'FilePath', '%s/DeepJet_102XSF_WP_V1.csv' %base_path )
+    bjet_sf.add_var( 'HistPath', '%s/2018/btageff2018mu.root' %base_path )
+    bjet_sf.add_var( 'HistLJetEff', "heffl" )
+    bjet_sf.add_var( 'HistBJetEff', "heffb" )
+    bjet_sf.add_var( 'HistCJetEff', "heffc" )
+
+    return bjet_sf
+
 def get_photon_sf(options) :
 
     base_path = '%s/TreeFilter/ApplyScaleFactors/data' %_workarea
