@@ -20,7 +20,7 @@ int_lumi_gh = int_lumi_g + int_lumi_h
 
 def get_remove_filter() :
     """ Define list of regex strings to filter input branches to remove from the output.
-        Defining a non-empty list does not apply the filter, 
+        Defining a non-empty list does not apply the filter,
         you must also supply --enableRemoveFilter on the command line.
         If both filters are used, all branches in keep_filter are used
         except for those in remove_filter """
@@ -28,8 +28,8 @@ def get_remove_filter() :
     return []
 
 def get_keep_filter() :
-    """ Define list of regex strings to filter input branches to retain in the output.  
-        Defining a non-empty list does not apply the filter, 
+    """ Define list of regex strings to filter input branches to retain in the output.
+        Defining a non-empty list does not apply the filter,
         you must also supply --enableKeepFilter on the command line
         If both filters are used, all branches in keep_filter are used
         except for those in remove_filter """
@@ -109,7 +109,7 @@ def get_bjet_sf(options) :
 
     bjet_sf = Filter( 'AddBJetSF' )
     bjet_sf.add_var( 'FilePath', '%s/DeepJet_2016LegacySF_WP_V1.csv' %base_path )
-    bjet_sf.add_var( 'HistPath', '%s/btageff2016mu.root' %base_path )
+    bjet_sf.add_var( 'HistPath', '%s/2016/btageff2016mu.root' %base_path )
     bjet_sf.add_var( 'HistLJetEff', "heffl" )
     bjet_sf.add_var( 'HistBJetEff', "heffb" )
     bjet_sf.add_var( 'HistCJetEff', "heffc" )
@@ -126,7 +126,7 @@ def get_photon_sf(options) :
 
     photon_sf.add_var( 'FilePathId', '%s/2016/Fall17V2_2016_Medium_photons.root' %base_path )
     photon_sf.add_var( 'HistId', 'EGamma_SF2D' )
-    
+
     # high-pt photon ID fit: https://indico.cern.ch/event/879936/#3-high-pt-photon-sfs-for-wgamm
     photon_sf.add_var( 'HiPtId_inner_const', +1.006511e+00 )
     photon_sf.add_var( 'HiPtId_inner_cov00', +6.162762e-05 )

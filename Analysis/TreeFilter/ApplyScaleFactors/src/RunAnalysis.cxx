@@ -885,9 +885,9 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
     OUT::jet_btagSFDN = 1.0;
     
     ValWithErr effval;
-    double jet_scalefactor;
-    double jet_scalefactor_up;
-    double jet_scalefactor_do;
+    double jet_scalefactor=1;
+    double jet_scalefactor_up=1;
+    double jet_scalefactor_do=1;
 
 
   for (int idx; idx<OUT::jet_n; idx++) {
@@ -1208,8 +1208,8 @@ void RunModule::AddMuonSF(ModuleConfig & /*config*/) const {
     for (int idx = 0; idx < OUT::mu_n; ++idx) {
         float eta = OUT::mu_eta->at(idx);
         float pt = OUT::mu_pt_rc->at(idx);
-        float phi = OUT::mu_phi->at(idx);
-        float Q = OUT::mu_charge->at(idx);
+        //float phi = OUT::mu_phi->at(idx);
+        //float Q = OUT::mu_charge->at(idx);
         float feta = fabs(eta);
 
         ValWithErr entry_id;
@@ -1270,7 +1270,7 @@ void RunModule::AddMuonSF(ModuleConfig & /*config*/) const {
 template <class HIST>
 ValWithErr RunModule::PhGetVals1D(const HIST *hist) const {
     ValWithErr result;
-    int nbinsX = hist->GetNbinsX();
+    //int nbinsX = hist->GetNbinsX();
 
     // Assumes only EB photons!
     result.val = hist->GetBinContent(1);
