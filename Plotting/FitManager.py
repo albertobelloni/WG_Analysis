@@ -1033,7 +1033,7 @@ class FitManager :
         width = self.sample_params['width']
 
         # TODO: this can be updated and merged to setuparray
-        cut1_vals   = (  0.3,       0.1,      0.6  )
+        cut1_vals   = (  0.3,       0.1,      2.0  )
         sigma_vals  = ( 28. ,       1. ,      200. )
         power1_vals = (  2.0,       1.4,      4.6  ) if width==1e-4 else ( 3.0,        2.4,       4.0 )
         mass_vals   = ( mass,  0.5*mass,  1.1*mass )
