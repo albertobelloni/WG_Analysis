@@ -3,7 +3,6 @@ def config_samples(samples) :
     import ROOT
 
     samples.AddSample('SingleMuon'                       , path='SingleMuon'    ,  isActive=False, isData = True)
-    #samples.AddSample('SingleElectron'                       , path='SingleElectron'    ,  isActive=False, isData = True)
     samples.AddSample('EGamma'                       , path='EGamma'    ,  isActive=False, isData = True)
 
     samples.AddSample('DYJetsToLL_M-50',
@@ -24,7 +23,6 @@ def config_samples(samples) :
 
     samples.AddSample('TTJets_DiLept',
                       path='TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      #path='TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTJets_SingleLeptFromTbar',
@@ -88,13 +86,11 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan , XSName='WGToLNuG_PtG-500-madgraphMLM'  )
 
     samples.AddSample('WGToLNuG-madgraphMLMMTResCut',
-                      path='WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8',
-                      #path='WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8PhCutMax',
+                      path='WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-madgraphMLM' )
 
     samples.AddSample('WGToLNuG_PtG-130-madgraphMLMMTResCut',
-                      path='WGToLNuG_PtG-130_TuneCP5_13TeV-madgraphMLM-pythia8',
-                      #path='WGToLNuG_PtG-130_TuneCP5_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin',
+                      path='WGToLNuG_PtG-130_TuneCP5_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-madgraphMLM' )
 
     samples.AddSample('WGToLNuG_PtG-500-madgraphMLMMTResCut',
@@ -295,7 +291,6 @@ def config_samples(samples) :
     samples.AddSampleGroup( 'Data', legend_name='Data',
                             input_samples = [
                                              'SingleMuon',
-                                             #'SingleElectron',
                                              'EGamma',
                                             ],
                            plotColor=ROOT.kBlack,
@@ -304,7 +299,7 @@ def config_samples(samples) :
 
 
     samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
-                           input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut' ],
+                           input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut'],
                            #input_samples = ['WGToLNuG-amcatnloFXFX'],
                            plotColor = ROOT.kRed-2,
                            isActive=True,
@@ -319,14 +314,12 @@ def config_samples(samples) :
 
     samples.AddSampleGroup(  'ZJets', legend_name='Z+Jets',
                            input_samples = ['DYJetsToLL_M-50-amcatnloFXFXPhOlap'],
-                           #input_samples = ['DYJetsToLL_M-50-amcatnloFXFX'],
                            plotColor = ROOT.kCyan-5,
                           )
 
     samples.AddSampleGroup(  'Zgamma', legend_name='Z#gamma',
                            input_samples = ['ZGTo2LG'],
                            plotColor = ROOT.kRed-8,
-                           #isActive=False
                           )
 
     samples.AddSampleGroup(  'ZJetsLO', legend_name='Z+JetsLO',
@@ -334,9 +327,6 @@ def config_samples(samples) :
                            plotColor = ROOT.kCyan-2,
                            isActive=False,
                           )
-
-
-
 
     samples.AddSampleGroup(  'WGammaLO', legend_name='W#gamma LO',
 #                           #input_samples = ['WGToLNuG-madgraphMLMPhCut', 'WGToLNuG_PtG-130-madgraphMLMPhCut','WGToLNuG_PtG-500-madgraphMLMPhCut' ],
@@ -347,7 +337,6 @@ def config_samples(samples) :
                           )
 
     samples.AddSampleGroup(  'WJets', legend_name='W+Jets',
-                           #input_samples = ['WJetsToLNu-madgraphMLMPhOlap'],
                            input_samples = [
                                             'WJetsToLNuTrueHTOlap',
                                             'WJetsToLNu_HT-100To200',
@@ -395,7 +384,6 @@ def config_samples(samples) :
                             plotColor = ROOT.kBlue-2,
                             )
 
-
     samples.AddSampleGroup( 'GJets', legend_name='#gamma+Jets',
                            input_samples = [
                                            'GJets_HT-100To200',
@@ -407,9 +395,6 @@ def config_samples(samples) :
                            plotColor = ROOT.kOrange,
                            #isActive=False,
                           )
-
-
-
 
     samples.AddSampleGroup( 'TTbar_DiLep', legend_name='t#bar{t} dileptonic',
                            input_samples = ['TTJets_DiLept'],
@@ -448,8 +433,60 @@ def config_samples(samples) :
                            isActive=False,
                           )
 
+    samples.AddSampleGroup( 'AllSignals', legend_name='All Signals',
+                           input_samples = [
+                                'MadGraphResonanceMass200_width0p01',
+                                'MadGraphResonanceMass200_width5',
+                                'MadGraphResonanceMass250_width0p01',
+                                'MadGraphResonanceMass250_width5',
+                                'MadGraphResonanceMass300_width0p01',
+                                'MadGraphResonanceMass300_width5',
+                                'MadGraphResonanceMass350_width0p01',
+                                'MadGraphResonanceMass350_width5',
+                                'MadGraphResonanceMass400_width0p01',
+                                'MadGraphResonanceMass400_width5',
+                                'MadGraphResonanceMass450_width0p01',
+                                'MadGraphResonanceMass450_width5',
+                                'MadGraphResonanceMass500_width0p01',
+                                'MadGraphResonanceMass500_width5',
+                                'MadGraphResonanceMass600_width0p01',
+                                'MadGraphResonanceMass600_width5',
+                                'MadGraphResonanceMass700_width0p01',
+                                'MadGraphResonanceMass700_width5',
+                                'MadGraphResonanceMass800_width0p01',
+                                'MadGraphResonanceMass800_width5',
+                                'MadGraphResonanceMass900_width0p01',
+                                'MadGraphResonanceMass900_width5',
+                                'MadGraphResonanceMass1000_width0p01',
+                                'MadGraphResonanceMass1000_width5',
+                                'MadGraphResonanceMass1200_width0p01',
+                                'MadGraphResonanceMass1200_width5',
+                                'MadGraphResonanceMass1400_width0p01',
+                                'MadGraphResonanceMass1400_width5',
+                                'MadGraphResonanceMass1600_width0p01',
+                                'MadGraphResonanceMass1600_width5',
+                                'MadGraphResonanceMass1800_width0p01',
+                                'MadGraphResonanceMass1800_width5',
+                                'MadGraphResonanceMass2000_width0p01',
+                                'MadGraphResonanceMass2000_width5',
+                                #'MadGraphResonanceMass2200_width0p01',
+                                #'MadGraphResonanceMass2200_width5',
+                                #'MadGraphResonanceMass2400_width0p01',
+                                #'MadGraphResonanceMass2400_width5',
+                                #'MadGraphResonanceMass2600_width0p01',
+                                #'MadGraphResonanceMass2800_width0p01',
+                                #'MadGraphResonanceMass2800_width5',
+                                #'MadGraphResonanceMass3000_width0p01',
+                                #'MadGraphResonanceMass3000_width5',
+                                #'MadGraphResonanceMass3500_width0p01',
+                                #'MadGraphResonanceMass3500_width5',
+                                #'MadGraphResonanceMass4000_width0p01',
+                                #'MadGraphResonanceMass4000_width5',
+                                ],
+                           isActive=False,
+                          )
     samples.AddSampleGroup( 'MCBackground', legend_name='MC Background',
-                           input_samples = ['WGamma', 'WJets', 'TTbar_DiLep', 'TTbar_SingleLep'],
+                           input_samples = ['WGamma', 'WJets', 'TTbar_DiLep', 'TTbar_SingleLep','TTG','GammaGamma','GJets','TopW','ZJets','Zgamma'],
                            isActive=False,
                           )
     samples.AddSampleGroup( 'MCBackgroundLO', legend_name='MC Background',
@@ -467,4 +504,6 @@ def config_samples(samples) :
 
 def print_examples() :
     pass
+
+
 

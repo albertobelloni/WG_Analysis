@@ -23,17 +23,14 @@ def config_samples(samples) :
 
     samples.AddSample('TTJets_DiLept',
                       path='TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
-                      #path='TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTJets_SingleLeptFromTbar',
                       path='TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
-                      #path='TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTJets_SingleLeptFromT',
                       path='TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
-                      #path='TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTGJets',
@@ -66,12 +63,10 @@ def config_samples(samples) :
 
     samples.AddSample('WGToLNuG-amcatnloFXFXPhCut',
                       path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax',
-                      #path='WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-amcatnloFXFX')
 
     samples.AddSample('WGToLNuG_PtG-130-amcatnloFXFXPhCut',
                       path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutRange',
-                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-amcatnloFXFX' )
 
     samples.AddSample('WGToLNuG_PtG-500-amcatnloFXFXPhCut',
@@ -80,12 +75,10 @@ def config_samples(samples) :
 
     samples.AddSample('WGToLNuG-madgraphMLMPhCut',
                       path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax',
-                      #path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-madgraphMLM' )
 
     samples.AddSample('WGToLNuG_PtG-130-madgraphMLMPhCut',
                       path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin',
-                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-madgraphMLM' )
 
     samples.AddSample('WGToLNuG_PtG-500-madgraphMLMPhCut',
@@ -93,12 +86,10 @@ def config_samples(samples) :
                       isActive=False, useXSFile=True, plotColor=ROOT.kCyan , XSName='WGToLNuG_PtG-500-madgraphMLM'  )
 
     samples.AddSample('WGToLNuG-madgraphMLMMTResCut',
-                      #path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       path='WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax',
                       isActive=False, useXSFile=True, plotColor=ROOT.kOrange, XSName='WGToLNuG-madgraphMLM' )
 
     samples.AddSample('WGToLNuG_PtG-130-madgraphMLMMTResCut',
-                      #path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8',
                       path='WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMaxPhCutMin',
                       isActive=False, useXSFile=True, plotColor=ROOT.kViolet, XSName='WGToLNuG_PtG-130-madgraphMLM' )
 
@@ -204,25 +195,6 @@ def config_samples(samples) :
     samples.AddSample('GJets_HT-400To600', path='GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', isActive=False, useXSFile=True)
     samples.AddSample('GJets_HT-600ToInf', path='GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', isActive=False, useXSFile=True)
 
-    samples.AddSample('QCD_Pt-1000toInf_MuEnrichedPt5', path='QCD_Pt-1000toInf_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8', isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-120to170_MuEnrichedPt5',  path='QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-15to20_MuEnrichedPt5',    path='QCD_Pt-15to20_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',    isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-20to30_MuEnrichedPt5',    path='QCD_Pt-20to30_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',    isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-20toInf_MuEnrichedPt15',  path='QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-300to470_MuEnrichedPt5',  path='QCD_Pt-300to470_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-30to50_MuEnrichedPt5',    path='QCD_Pt-30to50_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',    isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-470to600_MuEnrichedPt5',  path='QCD_Pt-470to600_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-50to80_MuEnrichedPt5',    path='QCD_Pt-50to80_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',    isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-600to800_MuEnrichedPt5',  path='QCD_Pt-600to800_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-800to1000_MuEnrichedPt5', path='QCD_Pt-800to1000_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8', isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-80to120_MuEnrichedPt5',   path='QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',   isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-120to170_EMEnriched',     path='QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8',     isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-170to300_EMEnriched',     path='QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8',     isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-20to30_EMEnriched',       path='QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8',       isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-300toInf_EMEnriched',     path='QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8',     isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-30to50_EMEnriched',       path='QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8',       isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-50to80_EMEnriched',       path='QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8',       isActive=False, useXSFile=True)
-    samples.AddSample('QCD_Pt-80to120_EMEnriched',      path='QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8',      isActive=False, useXSFile=True)
 
     samples.AddSample('MadGraphResonanceMass200_width0p01', path='MadGraphChargedResonance_WGToLNu_M200_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kCyan, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 200 GeV', XSName='ResonanceMass200')
     samples.AddSample('MadGraphResonanceMass200_width5', path='MadGraphChargedResonance_WGToLNu_M200_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 200 GeV', XSName='ResonanceMass200')
@@ -321,6 +293,25 @@ def config_samples(samples) :
     samples.AddSample('PythiaResonanceMass4000_width0p01', path='PythiaChargedResonance_WGToLNu_M4000_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 4000 GeV', XSName='ResonanceMass4000')
     samples.AddSample('PythiaResonanceMass4000_width5', path='PythiaChargedResonance_WGToLNu_M4000_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 4000 GeV', XSName='ResonanceMass4000')
 
+    samples.AddSample('QCD_Pt-1000toInf_MuEnrichedPt5', path='QCD_Pt-1000toInf_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-120to170_MuEnrichedPt5',  path='QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-15to20_MuEnrichedPt5',    path='QCD_Pt-15to20_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',    isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-20to30_MuEnrichedPt5',    path='QCD_Pt-20to30_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',    isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-20toInf_MuEnrichedPt15',  path='QCD_Pt-20toInf_MuEnrichedPt15_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-300to470_MuEnrichedPt5',  path='QCD_Pt-300to470_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-30to50_MuEnrichedPt5',    path='QCD_Pt-30to50_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',    isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-470to600_MuEnrichedPt5',  path='QCD_Pt-470to600_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-50to80_MuEnrichedPt5',    path='QCD_Pt-50to80_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',    isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-600to800_MuEnrichedPt5',  path='QCD_Pt-600to800_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',  isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-800to1000_MuEnrichedPt5', path='QCD_Pt-800to1000_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-80to120_MuEnrichedPt5',   path='QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8',   isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-120to170_EMEnriched',     path='QCD_Pt-120to170_EMEnriched_TuneCUETP8M1_13TeV_pythia8',     isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-170to300_EMEnriched',     path='QCD_Pt-170to300_EMEnriched_TuneCUETP8M1_13TeV_pythia8',     isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-20to30_EMEnriched',       path='QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8',       isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-300toInf_EMEnriched',     path='QCD_Pt-300toInf_EMEnriched_TuneCUETP8M1_13TeV_pythia8',     isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-30to50_EMEnriched',       path='QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8',       isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-50to80_EMEnriched',       path='QCD_Pt-50to80_EMEnriched_TuneCUETP8M1_13TeV_pythia8',       isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-80to120_EMEnriched',      path='QCD_Pt-80to120_EMEnriched_TuneCUETP8M1_13TeV_pythia8',      isActive=False, useXSFile=True)
 
     samples.AddSampleGroup( 'Data', legend_name='Data',
                             input_samples = [
@@ -379,7 +370,6 @@ def config_samples(samples) :
     samples.AddSampleGroup(  'Zgamma', legend_name='Z#gamma',
                            input_samples = ['ZGTo2LG'],
                            plotColor = ROOT.kRed-8,
-                           isActive=True
                           )
 
     samples.AddSampleGroup(  'ZJetsLO', legend_name='Z+JetsLO',
@@ -494,8 +484,60 @@ def config_samples(samples) :
                            isActive=False,
                           )
 
+    samples.AddSampleGroup( 'AllSignals', legend_name='All Signals',
+                           input_samples = [
+                                'MadGraphResonanceMass200_width0p01',
+                                'MadGraphResonanceMass200_width5',
+                                'MadGraphResonanceMass250_width0p01',
+                                'MadGraphResonanceMass250_width5',
+                                'MadGraphResonanceMass300_width0p01',
+                                'MadGraphResonanceMass300_width5',
+                                'MadGraphResonanceMass350_width0p01',
+                                'MadGraphResonanceMass350_width5',
+                                'MadGraphResonanceMass400_width0p01',
+                                'MadGraphResonanceMass400_width5',
+                                'MadGraphResonanceMass450_width0p01',
+                                'MadGraphResonanceMass450_width5',
+                                'MadGraphResonanceMass500_width0p01',
+                                'MadGraphResonanceMass500_width5',
+                                'MadGraphResonanceMass600_width0p01',
+                                'MadGraphResonanceMass600_width5',
+                                'MadGraphResonanceMass700_width0p01',
+                                'MadGraphResonanceMass700_width5',
+                                'MadGraphResonanceMass800_width0p01',
+                                'MadGraphResonanceMass800_width5',
+                                'MadGraphResonanceMass900_width0p01',
+                                'MadGraphResonanceMass900_width5',
+                                'MadGraphResonanceMass1000_width0p01',
+                                'MadGraphResonanceMass1000_width5',
+                                'MadGraphResonanceMass1200_width0p01',
+                                'MadGraphResonanceMass1200_width5',
+                                'MadGraphResonanceMass1400_width0p01',
+                                'MadGraphResonanceMass1400_width5',
+                                'MadGraphResonanceMass1600_width0p01',
+                                'MadGraphResonanceMass1600_width5',
+                                'MadGraphResonanceMass1800_width0p01',
+                                'MadGraphResonanceMass1800_width5',
+                                'MadGraphResonanceMass2000_width0p01',
+                                'MadGraphResonanceMass2000_width5',
+                                #'MadGraphResonanceMass2200_width0p01',
+                                #'MadGraphResonanceMass2200_width5',
+                                #'MadGraphResonanceMass2400_width0p01',
+                                #'MadGraphResonanceMass2400_width5',
+                                #'MadGraphResonanceMass2600_width0p01',
+                                #'MadGraphResonanceMass2800_width0p01',
+                                #'MadGraphResonanceMass2800_width5',
+                                #'MadGraphResonanceMass3000_width0p01',
+                                #'MadGraphResonanceMass3000_width5',
+                                #'MadGraphResonanceMass3500_width0p01',
+                                #'MadGraphResonanceMass3500_width5',
+                                #'MadGraphResonanceMass4000_width0p01',
+                                #'MadGraphResonanceMass4000_width5',
+                                ],
+                           isActive=False,
+                          )
     samples.AddSampleGroup( 'MCBackground', legend_name='MC Background',
-                           input_samples = ['WGamma', 'WJets', 'TTbar_DiLep', 'TTbar_SingleLep'],
+                           input_samples = ['WGamma', 'WJets', 'TTbar_DiLep', 'TTbar_SingleLep','TTG','GammaGamma','GJets','TopW','ZJets','Zgamma'],
                            isActive=False,
                           )
     samples.AddSampleGroup( 'MCBackgroundLO', legend_name='MC Background',
@@ -513,4 +555,6 @@ def config_samples(samples) :
 
 def print_examples() :
     pass
+
+
 
