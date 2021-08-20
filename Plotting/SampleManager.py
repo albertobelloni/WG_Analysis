@@ -644,6 +644,10 @@ class SampleManager(SampleFrame) :
         super(SampleManager,self).__init__(samplemanager=self, dataFrame=dataFrame)
         self.state = "samplemanager"
 
+        # size of standard canvas
+        self.XSIZE=800
+        self.YSIZE=750
+
         #
         # path to directory containing samples
         # the samples that are read are configured through
@@ -2625,12 +2629,12 @@ class SampleManager(SampleFrame) :
                 self.create_count(sample, counter)
 
         result = [(s.legendName if dolatex else s.name,(s.count.n, s.count.s))\
-                         for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.count]
+                         for s in self.get_samples(isActive=isActive,isData=False) if s.name != "ratio" and s.count is not None]
         total = sum([s.count for s in self.get_samples(isSignal=False,isActive=isActive,isData=False)\
-                if s.name != "ratio" and s.count])
+                if s.name != "ratio" and s.count is not None])
         if sort: result.sort(key=lambda x: -x[1][0])
         resultdict = OrderedDict(result)
-        resultdict["TOTAL"] = (total.n, total.s)
+        resultdict["TOTAL"] = (total.n, total.s) if total !=0 else (0,0)
         self.print_stackresult(resultdict)
         return resultdict
 
@@ -4218,19 +4222,11 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     def create_standard_canvas(self, name='base') :
-        print "create_standard_canvas"
+        """create_standard_canvas"""
 
-        xsize = 800
-        #xsize = 650
-        #ysize = 500
-        ysize = 750
-        self.curr_canvases[name] = ROOT.TCanvas(name, name, xsize, ysize)
+        self.curr_canvases[name] = ROOT.TCanvas(name, name, self.XSIZE, self.YSIZE)
 
         self.curr_canvases['top'] = self.curr_canvases[name]
-        #self.curr_canvases[name].SetTopMargin(0.08)
-        #self.curr_canvases[name].SetBottomMargin(0.13)
-        #self.curr_canvases[name].SetLeftMargin(0.13)
-        #self.curr_canvases[name].SetTitle('')
         self.curr_canvases[name].SetTopMargin(0.08)
         self.curr_canvases[name].SetBottomMargin(0.13)
         self.curr_canvases[name].SetLeftMargin(0.15)
@@ -4243,7 +4239,6 @@ class SampleManager(SampleFrame) :
     def create_standard_ratio_canvas(self) :
 
         xsize = 800
-        #xsize = 750
         ysize = 1000
         self.curr_canvases['base'] = ROOT.TCanvas('basecan', 'basecan', xsize, ysize)
 
@@ -4889,12 +4884,13 @@ class SampleManager(SampleFrame) :
 
         for idx, samp in enumerate(created_samples) :
 
-            self.curr_canvases['base%d'%idx] = ROOT.TCanvas('basecan%d'%idx, '')
+            self.curr_canvases['base%d'%idx] = ROOT.TCanvas('basecan%d'%idx, '', self.XSIZE, self.YSIZE)
             if logz: self.curr_canvases['base%d'%idx].SetLogz()
             self.curr_canvases['base%d'%idx].SetRightMargin(0.15)
             self.curr_canvases['base%d'%idx].cd()
 
-            samp.hist.GetZaxis().SetRangeUser(zmin,zmax) # same z scale to all 2D histograms
+            if zmin and zmax:
+                samp.hist.GetZaxis().SetRangeUser(zmin,zmax) # same z scale to all 2D histograms
             samp.hist.Draw(drawopts)
 
 
@@ -5144,7 +5140,7 @@ class SampleManager(SampleFrame) :
         if legendLoc == 'TopLeft' :
             legend_limits = { 'x1' : 0.2+legendTranslateX, 'y1' : 0.88-legendCompress*entryWidth*nentries+legendTranslateY, 'x2' : 0.5*legendWiden+legendTranslateX, 'y2' : 0.88+legendTranslateY }
         elif legendLoc == 'Double' :
-            legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.6+legendTranslateY ,
+            legend_limits = { 'x1' : 0.18+legendTranslateX, 'y1' : 0.88-legendCompress*entryWidth*nentries/2+legendTranslateY ,
                               'x2' : 0.6*legendWiden+legendTranslateX, 'y2' : 0.85+legendTranslateY }
         else :
             legend_limits = { 'x1' : 0.9-0.25*legendWiden+legendTranslateX, 'y1' : 0.85-legendCompress*entryWidth*nentries+legendTranslateY,
