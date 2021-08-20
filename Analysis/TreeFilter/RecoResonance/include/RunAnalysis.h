@@ -11,6 +11,7 @@
 #include "TChain.h"
 #include "TLorentzVector.h"
 #include "include/RoccoR.h"
+#include "include/BranchDefs.h"
 
 // The RunModule inherits from RunModuleBase (an Abstract Base Class )
 // defined in the Core package so that all
