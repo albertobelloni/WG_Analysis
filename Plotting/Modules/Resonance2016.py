@@ -5,7 +5,7 @@ def config_samples(samples) :
     samples.AddSample('SingleMuon'                       , path='SingleMuon'    ,  isActive=False, isData = True)
     samples.AddSample('SingleElectron'                       , path='SingleElectron'    ,  isActive=False, isData = True)
 
-    samples.AddSample('DYJetsToLL_M-50',
+    samples.AddSample('DYJetsToLL_M-50_LO',
                       path='DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhOlap',
                       isActive=False, useXSFile=True )
 
@@ -373,7 +373,7 @@ def config_samples(samples) :
                           )
 
     samples.AddSampleGroup(  'ZJetsLO', legend_name='Z+JetsLO',
-                           input_samples = ['DYJetsToLL_M-50'],
+                           input_samples = ['DYJetsToLL_M-50_LO'],
                            plotColor = ROOT.kCyan-2,
                            isActive=False,
                           )
