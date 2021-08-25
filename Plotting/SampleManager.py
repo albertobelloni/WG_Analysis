@@ -4453,6 +4453,8 @@ class SampleManager(SampleFrame) :
             for samp in sighists :
                 if samp.isActive :
                     ## normalize signal samples
+                    if samp.hist.Integral()==0:
+                        break
                     if normalize == "Total":
                         samp.hist.Scale(1./samp.hist.GetBinContent(1))
                     elif normalize :

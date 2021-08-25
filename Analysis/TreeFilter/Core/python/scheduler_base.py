@@ -164,7 +164,7 @@ def RunJobs( jobs, configs, options, dry_run=False ) :
 
                 if PUPath is not None :
 
-                    module_str += '\'sampleFile\' : \'%s/%s/hist.root\', ' %( PUPath, job.sample )
+                    module_str += '\'sampleFile\' : \'%s/%s_hist.root\', ' %( PUPath, job.sample )
 
                 module_str += '}'
 
