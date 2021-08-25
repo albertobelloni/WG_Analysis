@@ -103,8 +103,9 @@ class RunModule : public virtual RunModuleBase {
 
         TFile * _puweight_sample_file;
         TFile * _puweight_data_file;
-        TH1F * _puweight_sample_hist;
+        TH1D * _puweight_sample_hist;
         TH1D * _puweight_data_hist;
+        TH1D * _pdfweight_sample_hist;
         TH1D * h_EventWeight;
 
 	RoccoR rc;

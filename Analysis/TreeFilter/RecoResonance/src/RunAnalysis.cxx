@@ -835,10 +835,12 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             std::string data_filename;
             std::string sample_histname;
             std::string data_histname;
+            std::string pdf_histname;
             std::map<std::string, std::string>::const_iterator sfitr = mod_conf.GetInitData().find( "sample_file" );
             std::map<std::string, std::string>::const_iterator dfitr = mod_conf.GetInitData().find( "data_file" );
             std::map<std::string, std::string>::const_iterator shitr = mod_conf.GetInitData().find( "sample_hist" );
             std::map<std::string, std::string>::const_iterator dhitr = mod_conf.GetInitData().find( "data_hist" );
+            std::map<std::string, std::string>::const_iterator phitr = mod_conf.GetInitData().find( "pdf_hist" );
 
             bool get_weight_hists = true;
 
@@ -866,19 +868,30 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
             else {
                 get_weight_hists = false;
             }
+            if( phitr != mod_conf.GetInitData().end() ) {
+                pdf_histname = phitr->second;
+            }
+            else {
+                get_weight_hists = false;
+            }
 
             if( get_weight_hists ) {
 
                 _puweight_sample_file = TFile::Open( sample_filename.c_str(), "READ" );
                 _puweight_data_file = TFile::Open( data_filename.c_str(), "READ" );
 
-                _puweight_sample_hist = dynamic_cast<TH1F*>(_puweight_sample_file->Get( sample_histname.c_str() ) ) ;
+                _puweight_sample_hist = dynamic_cast<TH1D*>(_puweight_sample_file->Get( sample_histname.c_str() ) ) ;
                 _puweight_data_hist = dynamic_cast<TH1D*>(_puweight_data_file->Get( data_histname.c_str() ) );
+
+                _pdfweight_sample_hist = dynamic_cast<TH1D*>(_puweight_sample_file->Get( pdf_histname.c_str() ) ) ;
                 if( !_puweight_sample_hist ) {
                     std::cout << "Could not retrieve histogram " << sample_histname << " from " << sample_filename  << std::endl;
                 }
                 if( !_puweight_data_hist ) {
                     std::cout << "Could not retrieve histogram " << data_histname << " from " << data_filename << std::endl;
+                }
+                if( !_pdfweight_sample_hist ) {
+                    std::cout << "Could not retrieve histogram " << pdf_histname << " from " << sample_filename  << std::endl;
                 }
             }
             else {
@@ -4658,7 +4671,10 @@ void RunModule::WeightEvent( ModuleConfig & config ) const {
       OUT::PDFWeights->clear();
       //for (int i = 1; i<10; i++){
       for ( int i : { 1, 2, 3, 4, 6, 8 } ){
-        OUT::PDFWeights->push_back(IN::EventWeights->at(i)/IN::EventWeights->at(0));
+        std::cout<<i<<"  "
+        <<(IN::EventWeights->at(i)/IN::EventWeights->at(0)/_pdfweight_sample_hist->GetBinContent(i+1))<<" "
+        <<IN::EventWeights->at(i)/IN::EventWeights->at(0)<<"  "<<_pdfweight_sample_hist->GetBinContent(i+1)<<std::endl;
+        OUT::PDFWeights->push_back(IN::EventWeights->at(i)/IN::EventWeights->at(0)/_pdfweight_sample_hist->GetBinContent(i+1));
       }
     }
 
