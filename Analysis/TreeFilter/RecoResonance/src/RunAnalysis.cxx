@@ -11,7 +11,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "BranchDefs.h"
 #include "BranchInit.h"
 #include "include/RoccoR.h"
 
