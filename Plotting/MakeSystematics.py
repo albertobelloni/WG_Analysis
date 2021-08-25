@@ -324,6 +324,14 @@ for key, (selfull, weight) in cutsetdict.iteritems():
             sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
         if tag == "MuonEnDown":
             sel = sel.replace("mu_pt_rc", "mu_pt_rc_down")
+        if tag == "ElectronEnUp":
+            sel = sel.replace("el_pt", "el_pt_ScaleUp")
+        if tag == "ElectronEnDown":
+            sel = sel.replace("el_pt", "el_pt_ScaleDown")
+        if tag == "PhotonEnUp":
+            sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
+        if tag == "PhotonEnDown":
+            sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
         var = "mt_res_%s" %tag
         selection_list[key][tag] = dict( w = w, sel = sel, var = var)
 

@@ -3,7 +3,7 @@ import subprocess
 from argparse import Namespace
 from check_dataset_completion import check_dataset_completion
 
-hostname = os.getenv('HOSTNAME')
+hostname = os.getenv('HOST')
 
 _AT_UMD = ( hostname.count('umd') > 0 )
 

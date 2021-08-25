@@ -399,11 +399,6 @@ namespace OUT {
     float PUWeightUP10;
     float PUWeightDN5;
     float PUWeightDN10;
-#ifndef EXISTS_prefweight
-    float prefweight;
-    float prefweightup;
-    float prefweightdown;
-#endif
 
 };
 
