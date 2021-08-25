@@ -23,6 +23,7 @@ parser.add_argument('--dryrun', dest='dryrun', action = "store_true", help='prod
 options = parser.parse_args()
 
 _NTUPLE_DIR = '/store/group/WGAMMA/'
+_QUICKNMAX = 1000000
 if not options.version:
     options.version = 'UMDNTuple_0902'
 if options.outputDir is None:
@@ -131,7 +132,7 @@ def get_histograms(files, outfile) :
     histpu = ROOT.TH1D("pileup_true","Pile up histogram", 100, 0, 100)
 
     if options.quick:
-        chain.Draw( '%s >> pileup_true' %branch_name, '1 * ( EventWeights[0] > 0 ) - 1* ( EventWeights[0] < 0 ) ', '', 3000000 )
+        chain.Draw( '%s >> pileup_true' %branch_name, '1 * ( EventWeights[0] > 0 ) - 1* ( EventWeights[0] < 0 ) ', '', _QUICKNMAX)
     else:
         chain.Draw( '%s >> pileup_true' %branch_name, '1 * ( EventWeights[0] > 0 ) - 1* ( EventWeights[0] < 0 ) ' )
 
@@ -142,11 +143,14 @@ def get_histograms(files, outfile) :
     histpdf = ROOT.TH1D("pdfscale","PDF Scale Weights", 100, 0, 100)
 
     if options.quick:
-        chain.Draw( "Iteration$>>pdfscale", "EventWeights[]/EventWeights[0]", "", 3000000)
+        chain.Draw( "Iteration$>>pdfscale", "EventWeights[]/EventWeights[0]", "",  _QUICKNMAX)
     else:
         chain.Draw( "Iteration$>>pdfscale", "EventWeights[]/EventWeights[0]")
 
-    histpdf.Scale(1./chain.GetEntries())
+    if options.quick:
+        histpdf.Scale(1./_QUICKNMAX)
+    else:
+        histpdf.Scale(1./chain.GetEntries())
 
     histpdf.Write()
 
