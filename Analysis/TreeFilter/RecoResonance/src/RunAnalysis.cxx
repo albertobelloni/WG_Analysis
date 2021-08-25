@@ -976,7 +976,7 @@ bool RunModule::execute( std::vector<ModuleConfig> & configs ) {
     // loop over configured modules
     bool save_event = true;
     printevent = false;
-    if( IN::eventNumber%1000000 == 42 ) printevent = true;
+    if( IN::eventNumber%10000 == 42 ) printevent = true;
     if( printevent ) std::cout << " eventNumber " << IN::eventNumber << std::endl;
     BOOST_FOREACH( ModuleConfig & mod_conf, configs ) {
         save_event &= ApplyModule( mod_conf );
@@ -4671,7 +4671,7 @@ void RunModule::WeightEvent( ModuleConfig & config ) const {
       OUT::PDFWeights->clear();
       //for (int i = 1; i<10; i++){
       for ( int i : { 1, 2, 3, 4, 6, 8 } ){
-        std::cout<<i<<"  "
+        if (printevent) std::cout<<i<<"  "
         <<(IN::EventWeights->at(i)/IN::EventWeights->at(0)/_pdfweight_sample_hist->GetBinContent(i+1))<<" "
         <<IN::EventWeights->at(i)/IN::EventWeights->at(0)<<"  "<<_pdfweight_sample_hist->GetBinContent(i+1)<<std::endl;
         OUT::PDFWeights->push_back(IN::EventWeights->at(i)/IN::EventWeights->at(0)/_pdfweight_sample_hist->GetBinContent(i+1));
