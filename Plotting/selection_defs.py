@@ -233,6 +233,7 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
 
     el_tight = ' el_passTight[0] == 1'
     #el_tight = ' el_passVIDTight[0] == 1'
+    el_trigMatch = ' el_hasTrigMatch[0] == 1'
     el_eta   = ' fabs( el_eta[0] ) < 2.1 '
     el_pt  = 'el_pt[0] > %i ' %leppt
 

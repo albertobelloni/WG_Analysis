@@ -384,6 +384,13 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
+            itr = mod_conf.GetInitData().find("FilePathTrigElHighPt");
+            hname = mod_conf.GetInitData().find("GraphTrigElHighPt");
+            if (itr != mod_conf.GetInitData().end()) {
+                _sffile_el_trighighpt = TFile::Open((itr->second).c_str(), "READ");
+                _sfgraph_el_trighighpt = dynamic_cast<TGraphAsymmErrors *>(
+                    _sffile_el_trighighpt->Get((hname->second).c_str()));
+            }
         }
         if (mod_conf.GetName() == "AddBJetSF") {
 
@@ -630,12 +637,19 @@ void RunModule::AddElectronSF(ModuleConfig & /*config*/) const {
         float pt = OUT::el_pt->at(idx);
 
         float ptcut = -999.;
-        if (_year_el == 2016)
+        float highptcut = -999.; // HLT_Photon threshold
+        if (_year_el == 2016) {
             ptcut = 35.;
-        else if (_year_el == 2017)
+            highptcut = 175.;
+        }
+        else if (_year_el == 2017) {
             ptcut = 40.;
-        else if (_year_el == 2018)
+            highptcut = 200.;
+        }
+        else if (_year_el == 2018) {
             ptcut = 35.;
+            highptcut = 200.;
+        }
         else
             std::cout << "ERROR AddElectronSF: year not recognized!" << std::endl;
 
@@ -647,7 +661,12 @@ void RunModule::AddElectronSF(ModuleConfig & /*config*/) const {
         ValWithErr entry;
         ValWithErr entry_data;
         ValWithErr entry_mc;
-        entry = GetVals2D(_sfhist_el_trig, eta, pt);
+        if (pt < highptcut) {
+            entry = GetVals2D(_sfhist_el_trig, eta, pt);
+        }
+        else {
+            entry = GetValsFromGraph(_sfgraph_el_trighighpt, eta);
+        }
         entry_data = GetVals2D(_effhist_el_trig_data, eta, pt);
         entry_mc = GetVals2D(_effhist_el_trig_mc, eta, pt);
 
