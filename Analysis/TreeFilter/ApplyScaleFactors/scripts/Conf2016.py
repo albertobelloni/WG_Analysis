@@ -100,6 +100,8 @@ def get_electron_sf(options) :
     electron_sf.add_var( 'HistTrigEl', 'EGamma_SF2D' )
     electron_sf.add_var( 'HistTrigElData', 'EGamma_EffData2D' )
     electron_sf.add_var( 'HistTrigElMC', 'EGamma_EffMC2D' )
+    electron_sf.add_var( 'FilePathTrigElHighPt', '%s/2016/ElectronTriggerScaleFactors_eta_ele_binned_official_pt175toInf.root' %base_path )
+    electron_sf.add_var( 'GraphTrigElHighPt', 'ScaleFactors' )
 
     return electron_sf
 

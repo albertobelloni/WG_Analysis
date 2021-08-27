@@ -94,6 +94,7 @@ class RunModule : public virtual RunModuleBase {
 
         TFile *_sffile_el_id;
         TFile *_sffile_el_trig;
+        TFile *_sffile_el_trighighpt;
         TFile *_sffile_el_recohighpt;
         TFile *_sffile_el_recolowpt;
 
@@ -103,6 +104,7 @@ class RunModule : public virtual RunModuleBase {
         TH2F *_sfhist_el_trig;
         TH2F *_effhist_el_trig_data;
         TH2F *_effhist_el_trig_mc;
+        TGraphAsymmErrors *_sfgraph_el_trighighpt;
 
         TFile *_sffile_ph_id;
         TFile *_sffile_ph_psv;
