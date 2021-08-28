@@ -216,7 +216,7 @@ void AnaConfig::Run( RunModuleBase & runmod, const CmdOptions & options ) {
                     boost::posix_time::ptime time_now = boost::posix_time::microsec_clock::local_time();
                     boost::posix_time::time_duration deltat = time_now - time_start;
                     double dtins = deltat.total_milliseconds()/1000.;
-                    std::cout << "Processed " << n_evt << " entries in " << std::fixed << std::setprecision(2) <<dtins
+                    std::cout << "Processed " << n_evt << " entries in "  <<dtins
                         << " seconds. Expects to finish in "<<dtins/n_evt*(maxevt-minevt) <<"secs = "<<dtins/n_evt*(maxevt-minevt)/3600. << std::fixed << std::setprecision(2)<<"hours"<<  std::endl;
                     //time_start = boost::posix_time::microsec_clock::local_time();
                 }

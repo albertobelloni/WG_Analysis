@@ -238,6 +238,18 @@ namespace OUT {
     float recoW_phi;
     float m_ll;
     float m_llph;
+    float met_PhotonEnUpByHand_pt;
+    float met_PhotonEnUpByHand_phi;
+    float met_PhotonEnDownByHand_pt;
+    float met_PhotonEnDownByHand_phi;
+    float met_ElectronEnUpByHand_pt;
+    float met_ElectronEnUpByHand_phi;
+    float met_ElectronEnDownByHand_pt;
+    float met_ElectronEnDownByHand_phi;
+    float met_MuonEnUpByHand_pt;
+    float met_MuonEnUpByHand_phi;
+    float met_MuonEnDownByHand_pt;
+    float met_MuonEnDownByHand_phi;
     Bool_t nu_z_solution_success;
 
     float leadjet_pt;

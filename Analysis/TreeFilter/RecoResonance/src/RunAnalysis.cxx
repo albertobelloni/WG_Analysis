@@ -158,6 +158,18 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::recoW_phi                              = 0;
     OUT::m_ll                                   = 0;
     OUT::m_llph                                 = 0;
+    OUT::met_PhotonEnUpByHand_pt                = 0;
+    OUT::met_PhotonEnUpByHand_phi               = 0;
+    OUT::met_PhotonEnDownByHand_pt              = 0;
+    OUT::met_PhotonEnDownByHand_phi             = 0;
+    OUT::met_ElectronEnUpByHand_pt              = 0;
+    OUT::met_ElectronEnUpByHand_phi             = 0;
+    OUT::met_ElectronEnDownByHand_pt            = 0;
+    OUT::met_ElectronEnDownByHand_phi           = 0;
+    OUT::met_MuonEnUpByHand_pt                  = 0;
+    OUT::met_MuonEnUpByHand_phi                 = 0;
+    OUT::met_MuonEnDownByHand_pt                = 0;
+    OUT::met_MuonEnDownByHand_phi               = 0;
     OUT::nu_z_solution_success                  = 0;
    
     OUT::leadjet_pt                             = 0;
@@ -430,6 +442,18 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mt_res_PhotonEnDown",      &OUT::mt_res_PhotonEnDown         ,"mt_res_PhotonEnDown/F" );
     outtree->Branch("mt_res_UnclusteredEnUp",   &OUT::mt_res_UnclusteredEnUp      ,"mt_res_UnclusteredEnUp/F" );
     outtree->Branch("mt_res_UnclusteredEnDown", &OUT::mt_res_UnclusteredEnDown    ,"mt_res_UnclusteredEnDown/F" );
+    outtree->Branch("met_PhotonEnUpByHand_pt", &OUT::met_PhotonEnUpByHand_pt, "met_PhotonEnUpByHand_pt/F");
+    outtree->Branch("met_PhotonEnUpByHand_phi", &OUT::met_PhotonEnUpByHand_phi, "met_PhotonEnUpByHand_phi/F");
+    outtree->Branch("met_PhotonEnDownByHand_pt", &OUT::met_PhotonEnDownByHand_pt, "met_PhotonEnDownByHand_pt/F");
+    outtree->Branch("met_PhotonEnDownByHand_phi", &OUT::met_PhotonEnDownByHand_phi, "met_PhotonEnDownByHand_phi/F");
+    outtree->Branch("met_ElectronEnUpByHand_pt", &OUT::met_ElectronEnUpByHand_pt, "met_ElectronEnUpByHand_pt/F");
+    outtree->Branch("met_ElectronEnUpByHand_phi", &OUT::met_ElectronEnUpByHand_phi, "met_ElectronEnUpByHand_phi/F");
+    outtree->Branch("met_ElectronEnDownByHand_pt", &OUT::met_ElectronEnDownByHand_pt, "met_ElectronEnDownByHan0d_pt/F");
+    outtree->Branch("met_ElectronEnDownByHand_phi", &OUT::met_ElectronEnDownByHand_phi, "met_ElectronEnDownByHand_phi/F");
+    outtree->Branch("met_MuonEnUpByHand_pt", &OUT::met_MuonEnUpByHand_pt, "met_MuonEnUpByHand_pt/F");
+    outtree->Branch("met_MuonEnUpByHand_phi", &OUT::met_MuonEnUpByHand_phi, "met_MuonEnUpByHand_phi/F");
+    outtree->Branch("met_MuonEnDownByHand_pt", &OUT::met_MuonEnDownByHand_pt, "met_MuonEnDownByHand_pt/F");
+    outtree->Branch("met_MuonEnDownByHand_phi", &OUT::met_MuonEnDownByHand_phi, "met_MuonEnDownByHand_phi/F");
     outtree->Branch("mt_lep_ph"        , &OUT::mt_lep_ph        , "mt_lep_ph/F"  );
     outtree->Branch("dphi_lep_ph"        , &OUT::dphi_lep_ph        , "dphi_lep_ph/F"  );
     outtree->Branch("dr_lep_ph"        , &OUT::dr_lep_ph        , "dr_lep_ph/F"  );
@@ -2892,6 +2916,18 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::recoW_phi= 0;
     OUT::m_ll = 0;
     OUT::m_llph = 0;
+    OUT::met_PhotonEnUpByHand_pt = 0;
+    OUT::met_PhotonEnUpByHand_phi = 0;
+    OUT::met_PhotonEnDownByHand_pt = 0;
+    OUT::met_PhotonEnDownByHand_phi = 0;
+    OUT::met_ElectronEnUpByHand_pt = 0;
+    OUT::met_ElectronEnUpByHand_phi = 0;
+    OUT::met_ElectronEnDownByHand_pt = 0;
+    OUT::met_ElectronEnDownByHand_phi = 0;
+    OUT::met_MuonEnUpByHand_pt = 0;
+    OUT::met_MuonEnUpByHand_phi = 0;
+    OUT::met_MuonEnDownByHand_pt = 0;
+    OUT::met_MuonEnDownByHand_phi = 0;
 
     OUT::leadjet_pt = 0;
     OUT::subljet_pt = 0;
@@ -2976,6 +3012,10 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     }
     metlv_MuonEnUp.SetPtEtaPhiM(   metlv_MuonEnUp.Pt(),   0.0, metlv_MuonEnUp.Phi(),   0.0 );
     metlv_MuonEnDown.SetPtEtaPhiM( metlv_MuonEnDown.Pt(), 0.0, metlv_MuonEnDown.Phi(), 0.0 );
+    OUT::met_MuonEnUpByHand_pt = metlv_MuonEnUp.Pt();
+    OUT::met_MuonEnUpByHand_phi = metlv_MuonEnUp.Phi();
+    OUT::met_MuonEnDownByHand_pt = metlv_MuonEnDown.Pt();
+    OUT::met_MuonEnDownByHand_phi = metlv_MuonEnDown.Phi();
 
     for( int idx = 0; idx < OUT::el_n; ++idx ) {
         TLorentzVector tlv;
@@ -3005,6 +3045,10 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     }
     metlv_ElectronEnUp.SetPtEtaPhiM(   metlv_ElectronEnUp.Pt(),   0.0, metlv_ElectronEnUp.Phi(),   0.0 );
     metlv_ElectronEnDown.SetPtEtaPhiM( metlv_ElectronEnDown.Pt(), 0.0, metlv_ElectronEnDown.Phi(), 0.0 );
+    OUT::met_ElectronEnUpByHand_pt = metlv_ElectronEnUp.Pt();
+    OUT::met_ElectronEnUpByHand_phi = metlv_ElectronEnUp.Phi();
+    OUT::met_ElectronEnDownByHand_pt = metlv_ElectronEnDown.Pt();
+    OUT::met_ElectronEnDownByHand_phi = metlv_ElectronEnDown.Phi();
 
 
     for( int idx = 0; idx < OUT::ph_n; ++idx ) {
@@ -3033,6 +3077,10 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     }
     metlv_PhotonEnUp.SetPtEtaPhiM(   metlv_PhotonEnUp.Pt(),   0.0, metlv_PhotonEnUp.Phi(),   0.0 );
     metlv_PhotonEnDown.SetPtEtaPhiM( metlv_PhotonEnDown.Pt(), 0.0, metlv_PhotonEnDown.Phi(), 0.0 );
+    OUT::met_PhotonEnUpByHand_pt = metlv_PhotonEnUp.Pt();
+    OUT::met_PhotonEnUpByHand_phi = metlv_PhotonEnUp.Phi();
+    OUT::met_PhotonEnDownByHand_pt = metlv_PhotonEnDown.Pt();
+    OUT::met_PhotonEnDownByHand_phi = metlv_PhotonEnDown.Phi();
 
     if( leptons.size() > 0 ) {
         OUT::mt_lep_met = Utils::calc_mt( leptons[0], metlvOrig );
