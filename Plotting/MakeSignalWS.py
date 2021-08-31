@@ -5,6 +5,7 @@ import json
 import uuid
 from uncertainties import ufloat
 from pprint import pprint
+import pdb
 def addparser(parser):
    parser.add_argument('--plots',  action='store_true', help='Plot fit parameter shifts' )
    parser.add_argument('--doSpecialFits',  action='store_true', help='Fit only specific systematics' )
@@ -12,7 +13,7 @@ execfile("MakeBase.py")
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
-_XMIN_M = 60
+_XMIN_M = 0
 _XMAX_M = 4000
 _DEFAULTDATADIR = 'data/sigfit/'
 
@@ -28,6 +29,12 @@ fitmlist = []
 fitted_masses = OrderedDict()
 _JSONLOC = "%s/fitted_mass%i.txt"%(options.dataDir,options.year)
 
+def hist_binning(mass):
+    return (50, mass * 0.5, mass * 1.1 + 40)
+
+def fit_range(mass):
+    return ( mass * 0.5, mass * 1.1 + 40)
+
 def main() :
     sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, lumi=-1)
     sampManElG = SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, lumi=-1)
@@ -36,82 +43,7 @@ def main() :
 
     workspaces_to_save = {}
 
-    bin_width_m = 20
-
-    xmin_pt = _XMIN_M/2
-    if xmin_pt < 50 :
-        xmin_pt = 50
-    xmax_pt = _XMAX_M/2
-    bin_width_pt = bin_width_m/2.
-
-
-    signal_binning_m_width1 = {
-                         200 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
-                         250 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
-                         300 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
-                         350 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
-                         400 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
-                         450 : ( (_XMAX_M)/5 , 0, _XMAX_M ),
-                         500 : ( (_XMAX_M)/8 , 0, _XMAX_M ),
-                         600 : ( (_XMAX_M)/10, 0, _XMAX_M ),
-                         700 : ( (_XMAX_M)/10, 0, _XMAX_M ),
-                         800 : ( (_XMAX_M)/10, 0, _XMAX_M ),
-                         900 : ( (_XMAX_M)/10, 0, _XMAX_M ),
-                        1000 : ( (_XMAX_M)/10, 0, _XMAX_M ),
-                        1200 : ( int((_XMAX_M)/15), 0, _XMAX_M ),
-                        1400 : ( int((_XMAX_M)/15), 0, _XMAX_M ),
-                        1600 : ( int((_XMAX_M)/15), 0, _XMAX_M ),
-                        1800 : ( int((_XMAX_M)/15), 0, _XMAX_M ),
-                        2000 : ( (_XMAX_M)/20, 0, _XMAX_M ),
-                        2200 : ( (_XMAX_M)/20, 0, _XMAX_M ),
-                        2400 : ( (_XMAX_M)/20, 0, _XMAX_M ),
-                        2600 : ( (_XMAX_M)/20, 0, _XMAX_M ),
-                        2800 : ( int((_XMAX_M)/25), 0, _XMAX_M ),
-                        3000 : ( int((_XMAX_M)/25), 0, _XMAX_M ),
-                        3500 : ( int((_XMAX_M)/40), 0, _XMAX_M ),
-                        4000 : ( int((_XMAX_M)/40), 0, _XMAX_M ),
-                       }
-
-    signal_binning_m_width2 = {
-                         200 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
-                         250 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
-                         300 : ( (_XMAX_M)/4 , 0, _XMAX_M ),
-                         350 : ( (_XMAX_M)/5 , 0, _XMAX_M ),
-                         400 : ( (_XMAX_M)/5 , 0, _XMAX_M ),
-                         450 : ( (_XMAX_M)/8 , 0, _XMAX_M ),
-                         500 : ( (_XMAX_M)/8 , 0, _XMAX_M ),
-                         600 : ( (_XMAX_M)/8 , 0, _XMAX_M ),
-                         700 : ( (_XMAX_M)/10, 0, _XMAX_M ),
-                         800 : ( (_XMAX_M)/10, 0, _XMAX_M ),
-                         900 : ( int((_XMAX_M)/15), 0, _XMAX_M ),
-                        1000 : ( int((_XMAX_M)/15), 0, _XMAX_M ),
-                        1200 : ( (_XMAX_M)/20, 0, _XMAX_M ),
-                        1400 : ( (_XMAX_M)/25, 0, _XMAX_M ),
-                        1600 : ( (_XMAX_M)/25, 0, _XMAX_M ),
-                        1800 : ( int((_XMAX_M)/30), 0, _XMAX_M ),
-                        2000 : ( int((_XMAX_M)/30), 0, _XMAX_M ),
-                        2200 : ( int((_XMAX_M)/30), 0, _XMAX_M ),
-                        2400 : ( int((_XMAX_M)/30), 0, _XMAX_M ),
-                        2600 : ( int((_XMAX_M)/35), 0, _XMAX_M ),
-                        2800 : ( int((_XMAX_M)/35), 0, _XMAX_M ),
-                        3000 : ( int((_XMAX_M)/35), 0, _XMAX_M ),
-                        3500 : ( int((_XMAX_M)/40), 0, _XMAX_M ),
-                        4000 : ( int((_XMAX_M)/40), 0, _XMAX_M ),
-                       }
-
-    signal_binning_m = [ signal_binning_m_width1, signal_binning_m_width2 ]
-
-    ### pT binning is just mass binning divided by two, with floor of 50 GeV
-    signal_binning_pt = {}
-    for mass, binning in signal_binning_m_width1.iteritems() :
-        pt_min = binning[1]/2.
-        if pt_min < 50 :
-            pt_min = 50
-        signal_binning_pt[mass] = ( binning[0]/2., pt_min, binning[2]/2. )
-
-
-
-    kine_vars = { 'mt_res' : { 'var' : 'mt_res' , 'signal_binning' : signal_binning_m }, }
+    kine_vars = { 'mt_res' : { 'var' : 'mt_res' , 'signal_binning' : hist_binning }, }
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
 
@@ -158,16 +90,6 @@ def numtostr(num=0):
 
 
 
-def makevar(var, mass):
-    xvar = ROOT.RooRealVar( var, var, _XMIN_M , _XMAX_M)
-    fit_max = mass * 1.20
-    fit_min = max ( mass * 0.50,  200.0 )
-    ## set the fit range
-    xvar.setMin( fit_min )
-    xvar.setMax( fit_max )
-    return xvar
-
-
 def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",  signal_binning=[]):
 
     sampMan.clear_hists()
@@ -196,18 +118,12 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
            continue
         if mass > 2000 or mass < 300:
            continue
-        if iwidth >=len(signal_binning):
-           print "exclude", iwidth,signal_binning
-           continue
-        if mass not in signal_binning[iwidth]:
-           print "exclude mass", mass, signal_binning[iwidth]
-           continue
 
         ## make full suffix
         full_suffix = "_".join(['MG', "M%d"%mass, 'W%s'%wid, suffix])
 
         ## make full selection string
-        binning = signal_binning[iwidth][mass]
+        binning = signal_binning(mass)
         addition = " (%s > %d && %s < %d )" %(var, binning[1], var ,binning[2])
         cuttag, (full_sel_sr, weight) = defs.selectcutstring( mass , ch, addition )
         print full_sel_sr
@@ -216,8 +132,9 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
             weight = weight.replace("*prefweight","") ## no prefiring weight in 2018
 
         ## make RooRealVar for fit variable
-
-        xvar = makevar(var, mass)
+        ## fit range is set here
+        xvar = ROOT.RooRealVar( var, var, _XMIN_M , _XMAX_M)
+        xvar.setRange("signal", *fit_range(mass))
 
         sample_params = {'mass' : mass, 'width' : width}
 
@@ -228,11 +145,14 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
                  "extra_label_loc":(.12,.82)}
 
         ## make histogram
-        sampMan.create_hist( samp, var, "(%s)*%s" %(full_sel_sr,weight), signal_binning[iwidth][mass] )
+        sampMan.create_hist( samp, var, "(%s)*%s" %(full_sel_sr,weight), signal_binning(mass) )
         print "Integral: ", samp.hist.Integral()
 
+        scale_norm = 1./samp.total_events_onthefly
+
+        #pdb.set_trace()
         ## fit histogram
-        fitman = fit_sample( samp.hist, xvar, workspace, full_suffix, sample_params, lconf)
+        fitman = fit_sample( samp.hist, xvar, workspace, full_suffix, sample_params, lconf, scale_norm = scale_norm)
 
         fitvals = fitman.get_parameter_vals()
 
@@ -245,12 +165,12 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
 
             for tag, (v, s, w) in sel_odict.iteritems():
 
-                sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning[iwidth][mass] )
+                sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning(mass) )
 
                 ### fit with only mean floating
 
                 fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_mean_"+tag,
-                                     sample_params, lconf, fitvals, "mean")
+                                     sample_params, lconf, fitvals, "mean", scale_norm = scale_norm)
                 fitvalsnew = fitman.get_parameter_vals()
 
                 fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
@@ -270,12 +190,12 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
 
             for tag, (v, s, w) in sel_odict.iteritems():
 
-                sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning[iwidth][mass] )
+                sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning(mass) )
 
                 ### fit with only mean floating
 
                 fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_"+tag,
-                                     sample_params, lconf, fitvals, "mean")
+                                     sample_params, lconf, fitvals, "mean", scale_norm = scale_norm )
                 fitvalsnew = fitman.get_parameter_vals()
 
                 fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
@@ -296,20 +216,21 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
 
         ## list of all fitted mean
         meanlist = [v[0][0]for k,v in fitted_mass.iteritems() if "mean" in k]
-        maxmean= max(meanlist)
-        minmean= min(meanlist)
+        if len(meanlist):
+            maxmean= max(meanlist)
+            minmean= min(meanlist)
 
-        # NOTE: different format from other values, ie no sigma or fit uncertainty
-        fitted_masses[(ch, mass, width, "max")] = (maxmean, maxmean/normval[0][0])
-        fitted_masses[(ch, mass, width, "min")] = (minmean, minmean/normval[0][0])
-        print "%-30s %10.1f %10.1f %6.1f%%" % ("Max", maxmean, maxmean - normval[0][0], maxmean/normval[0][0]*100-100)
-        print "%-30s %10.1f %10.1f %6.1f%%" % ("Min", minmean, minmean - normval[0][0], minmean/normval[0][0]*100-100)
+            # NOTE: different format from other values, ie no sigma or fit uncertainty
+            fitted_masses[(ch, mass, width, "max")] = (maxmean, maxmean/normval[0][0])
+            fitted_masses[(ch, mass, width, "min")] = (minmean, minmean/normval[0][0])
+            print "%-30s %10.1f %10.1f %6.1f%%" % ("Max", maxmean, maxmean - normval[0][0], maxmean/normval[0][0]*100-100)
+            print "%-30s %10.1f %10.1f %6.1f%%" % ("Min", minmean, minmean - normval[0][0], minmean/normval[0][0]*100-100)
 
     pprint(fitted_masses.keys())
 
 
 
-def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, usevals=None, fittype=None):
+def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, usevals=None, fittype=None, scale_norm=None):
 
     fitManager = FitManager( 'dscb',  hist=hist,  xvardata = xvar,
                             sample_params=sample_params, label = suffix)
@@ -340,15 +261,14 @@ def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, us
             else:
                 val.setConstant(True)
 
+    print
+    print "Parameter list:"
     for k, val in fitManager.fit_params.iteritems():
-        print
-        print "Parameter list:"
-        print k
+        print k,
         val.Print()
-        print
 
-    fitManager.run_fit_minuit( fitrange = xvar ) #, debug = True)
-    fitManager.get_results( workspace )
+    fitManager.run_fit( Range="signal", Strategy=2, Save=True, SumW2Error=True)
+    fitManager.get_results( workspace, scale_norm=scale_norm )
 
     ## NOTE uncomment this to make a flat mass shift (default 0.5%) for all samples
     #if not fittype: fitManager.shifted_dscb( workspace )
