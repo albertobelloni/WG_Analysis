@@ -153,7 +153,7 @@ def main() :
                            backgrounds = ['All'],
                            baseDir = options.baseDir,
                            bins = bins,
-                           cutsetlist = "AB",
+                           cutsetlist = "A",
                            outputDir = options.outputDir,
                            useToySignal = options.useToySignal,
                            useToyBackground = options.useToyBkgd,
@@ -1056,8 +1056,8 @@ class MakeLimits( ) :
            if xvar is None :
                xvar = ws.var( self.xvarname )
            xvar.setRange( defs.bkgfitlowbin(cutset) ,2000)
-           xvar.setBins(50)
-           print xvar.Print()
+           xvar.setBins(360)
+           xvar.Print()
 
            ofile.Close()
 
@@ -1102,7 +1102,7 @@ class MakeLimits( ) :
                              ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
                                              'toydata_%s' %suffix ) )
            else :
-               if DEBUG: print "norms: ", norms
+               print "norms: ", norms
                total = sum( [int(x) for x in norms ] )
 
                fractions = [ float(x)/total for x in norms ]
@@ -1182,7 +1182,7 @@ class MakeLimits( ) :
         ws_out = ROOT.RooWorkspace( self.wskeys[bkgn].GetWSName() )
 
         var = ws_in.var(self.var)
-        var.setBins(50)
+        var.setBins(360)
         import_workspace( ws_out, var)
 
         for cutset in self.cutsetlist:
@@ -1292,7 +1292,7 @@ class MakeLimits( ) :
         inpar = "_".join(['M'+str(mass), 'W'+str(width), ibin['channel']])
 
         ## get the cross section and scale factor information
-        scale = self.weightMap['ResonanceMass%d'%mass]['scale'] * lumi(ibin)
+        scale = self.weightMap['ResonanceMass%d'%mass]['cross_section'] * lumi(ibin)
 
         fname= '%s/sigfit/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
         wsname = "ws" + self.signame + '_' + inpar
@@ -1316,12 +1316,13 @@ class MakeLimits( ) :
         ws_entry_sysup   = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "up"])
 
         ## open json file for shifted mean value
-        filepath = "data/sigfit/fitted_mass%i.txt" %ibin['year']
-        with open(filepath, "r") as fo:
-            mshifts = json.load(fo)
-        w="5.0" if width=="5" else "0.01"
-        maxshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["max"][1]
-        minshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["min"][1]
+        if not self.noShapeUnc:
+            filepath = "data/sigfit/fitted_mass%i.txt" %ibin['year']
+            with open(filepath, "r") as fo:
+                mshifts = json.load(fo)
+            w="5.0" if width=="5" else "0.01"
+            maxshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["max"][1]
+            minshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["min"][1]
 
 
         if DEBUG:
@@ -1343,49 +1344,49 @@ class MakeLimits( ) :
 
         var = ws_in.var(self.var)
         #var.setRange(200,2000)
-        var.setBins(50)
+        var.setBins(360)
         import_workspace( ws_out, var)
 
         norm_var = ws_in.var( '%s_norm' %ws_entry )
         rate = norm_var.getVal() * scale
         print tPurple%("norm %g scale %g rate %g" \
                                    %(norm_var.getVal(),scale,rate))
-        norm_var.setVal( norm_var.getValV() * scale )
-        norm_var.setError( norm_var.getError() * scale )
-        #norm_var.setError(0.0)
-        #norm_var.setConstant( False )
-        norm_var.setConstant()
+      #  norm_var.setVal( norm_var.getValV() * scale )
+      #  norm_var.setError( norm_var.getError() * scale )
+      #  #norm_var.setError(0.0)
+      #  #norm_var.setConstant( False )
+      #  norm_var.setConstant()
         import_workspace( ws_out, pdf )
 
-        full_suffix = "_".join(['MG', "M%d"%mass, 'W%s'%width, binid(ibin)])
-        ## UP variation
-        exprstr = "expr::cb_mass_{tag}_UP('cb_mass_{tag}*cb_mass_{tag}_shift_UP',"\
-                   "cb_mass_{tag},cb_mass_{tag}_shift_UP[{maxshift}])".format(tag = full_suffix,
-                                                                              maxshift = maxshift)
-        print tPurple%exprstr
-        ws_out.factory(exprstr)
+        if not self.noShapeUnc:
+            full_suffix = "_".join(['MG', "M%d"%mass, 'W%s'%width, binid(ibin)])
+            ## UP variation
+            exprstr = "expr::cb_mass_{tag}_UP('cb_mass_{tag}*cb_mass_{tag}_shift_UP',"\
+                       "cb_mass_{tag},cb_mass_{tag}_shift_UP[{maxshift}])".format(tag = full_suffix,
+                                                                                  maxshift = maxshift)
+            print tPurple%exprstr
+            ws_out.factory(exprstr)
 
-        exprstr = "RooDoubleCB::Resonance_cms_eUp(mt_res,cb_mass_{tag}_UP,cb_sigma_{tag},"\
-              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix)
-        print tPurple%exprstr
-        ws_out.factory(exprstr)
+            exprstr = "RooDoubleCB::Resonance_cms_eUp(mt_res,cb_mass_{tag}_UP,cb_sigma_{tag},"\
+                  "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix)
+            print tPurple%exprstr
+            ws_out.factory(exprstr)
 
-        # DOWN variation
-        exprstr = "expr::cb_mass_{tag}_DN('cb_mass_{tag}*cb_mass_{tag}_shift_DN',"\
-                   "cb_mass_{tag},cb_mass_{tag}_shift_DN[{minshift}])".format(tag = full_suffix,
-                                                                        minshift = minshift)
-        print tPurple%exprstr
-        ws_out.factory(exprstr)
+            # DOWN variation
+            exprstr = "expr::cb_mass_{tag}_DN('cb_mass_{tag}*cb_mass_{tag}_shift_DN',"\
+                       "cb_mass_{tag},cb_mass_{tag}_shift_DN[{minshift}])".format(tag = full_suffix,
+                                                                            minshift = minshift)
+            print tPurple%exprstr
+            ws_out.factory(exprstr)
 
-        exprstr = "RooDoubleCB::Resonance_cms_eDown(mt_res,cb_mass_{tag}_DN,cb_sigma_{tag},"\
-              "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix)
-        print tPurple%exprstr
-        ws_out.factory(exprstr)
+            exprstr = "RooDoubleCB::Resonance_cms_eDown(mt_res,cb_mass_{tag}_DN,cb_sigma_{tag},"\
+                  "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix)
+            print tPurple%exprstr
+            ws_out.factory(exprstr)
 
         ifile.Close()
 
         outputfile = '%s/%s/%s.root' %( self.outputDir, self.signame, ws_out.GetName() )
-        print outputfile, "885"
         ws_out.writeToFile( outputfile )
 
 
@@ -1450,7 +1451,6 @@ class MakeLimits( ) :
 
                 outputfile = '%s/%s/%s.root' %( self.outputDir, self.signame,
                         workspace.GetName() )
-                print outputfile, "982"
                 workspace.writeToFile( outputfile )
 
                 self.signals.update(
@@ -1497,7 +1497,6 @@ class MakeLimits( ) :
 
         outputfile = "%s/%s/%s.root"%( self.outputDir, self.bkgnames[0],
                 workspace.GetName() )
-        print outputfile, "1019"
         workspace.writeToFile( outputfile )
 
         ## infor for generating toy data and datacard
@@ -1744,9 +1743,7 @@ class MakeLimits( ) :
             for ch, massdict in self.output_files[width].iteritems() :
                 for mass, f in massdict.iteritems() :
 
-                    xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section']\
-                          *self.weightMap['ResonanceMass%d'%mass]['gen_eff']\
-                          *self.weightMap['ResonanceMass%d'%mass]['k_factor']
+                    xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section']
                     Wlepbr = (10.71 + 10.63 + 11.38)/100.
                     xsfactor = xsec * 1000 / Wlepbr
 

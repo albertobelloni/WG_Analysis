@@ -506,41 +506,49 @@ class FitManager :
             self.run_fit(fitrange)
         return self.func_pdf
 
-    def run_fit(self, fitrange = None):
+    def run_fit_helper(self, fitrange = None, **options):
+        assert not ( options["Range"] and fitrange ), "conflict of ranges"
+        self.optionlist = [getattr(rf,opt)(arg) if arg is not None else \
+                      getattr(rf,opt)()    for opt,arg in options.viewitems()]
+
+        ## default options
+        if len(self.optionlist)==0:
+            self.optionlist = [ rf.SumW2Error(ROOT.kTRUE), rf.Save(ROOT.kTRUE), ]
+
+        ### if fitrange is a string, then take it as a named range
+        ### if it is a RooFit variable, extract range with helper
+        if isinstance(fitrange, str):
+            self.optionlist.append(rf.Range(fitrange))
+        elif fitrange:
+            self.fitrange = self.fitrangehelper(fitrange)
+            self.xvardata.setRange("runfit",*self.fitrange)
+            self.optionlist.append(rf.Range("runfit"))
+
+    def run_fit(self, fitrange=None, **options):
         """ run RooFit Fitter """
-        self.fitrange = self.fitrangehelper(fitrange)
-        self.xvardata.setRange("runfit",*self.fitrange)
-        self.fitresult = self.func_pdf.fitTo( self.datahist,
-                                         rf.Range("runfit"),
-                                         rf.SumCoefRange("runfit"),
-                                         #rf.Range(*self.fitrange),
-                                         rf.Extended(),
-                                         rf.Minos(),
-                                         rf.SumW2Error(True),
-                                         rf.Strategy( 3 ) ,
-                                         rf.Save(ROOT.kTRUE))
+
+        self.run_fit_helper(fitrange, **options)
+
+        self.fitresult = self.func_pdf.fitTo( self.datahist, *self.optionlist)
+
         return
 
-    def run_fit_chi2(self, fitrange = None):
+
+    def run_fit_chi2(self, fitrange = None, **options):
         """ run RooFit Chi2 Fitter
             - To be used with weighted data
         """
-        self.fitrange = self.fitrangehelper(fitrange)
+
+        self.run_fit_helper(fitrange, **options)
+
         self.roolinkedlist =  ROOT.RooLinkedList()
-        self.optionlist = [ rf.Range(*self.fitrange),
-                            rf.SumW2Error(True),
-                            rf.Save(ROOT.kTRUE),
-                            ROOT.RooCmdArg( 'Strategy', 1) ,
-                          ]
         for opt in self.optionlist:
             self.roolinkedlist.Add(opt)
         self.fitresult = self.func_pdf.chi2FitTo( self.datahist,
                                                   self.roolinkedlist )
-                     #rf.SumW2Error(True), ROOT.RooCmdArg( 'Strategy', 3 ) ,
-                     #rf.Save(ROOT.kTRUE))
         return
 
-    def run_fit_minuit(self, fitrange= None, debug = True ):
+    def run_fit_minuit(self, fitrange= None, debug = False ):
         """
         run the RooFit Fitter and MIGRAD, HESSE and MINOS
         """
@@ -549,8 +557,7 @@ class FitManager :
         #self.xvardata.setRange("runfit",*self.fitrange)
         self.func_pdf.fitTo( self.datahist,
                              rf.Save(),
-                             #rf.Range("runfit"),
-                             rf.SumW2Error(True),
+                             rf.SumW2Error(ROOT.kTRUE),
                              ROOT.RooCmdArg( 'Strategy', 3 ) )
         if debug:
            print "\n**************************"
@@ -652,10 +659,12 @@ class FitManager :
         arg_list.add( self.xvardata )
         self.add_vars( arg_list )
 
-        for i in range( 0, arg_list.getSize() )  :
+        for i in range( 1, arg_list.getSize() )  :
             fitted_error = self.func.GetParError(i)
             print "fitted error: ", tPurple %fitted_error
+
             arg_list[i].setError( fitted_error )
+
 
         func_str = self.get_fit_function( forceUseRooFit=True)
 
@@ -698,15 +707,14 @@ class FitManager :
             return self.func_pdf.createHistogram( "%s%s" %(self.label,self.func_name), self.xvardata)
         return self.func_pdf.createHistogram( "%s%s" %(self.label,self.func_name), self.xvardata, rf.Binning(xbins) )
 
-    def get_results( self, workspace = None, savedatahist=True) :
+    def get_results( self, workspace = None, savedatahist=True, scale_norm=None) :
         print "get_results",workspace, self.datahist
 
 
         results = {}
         for param in self.fit_params.values() :
-            ## FIXME getErrorHi ??
-            results[param.GetName()] = ufloat( param.getValV(), param.getErrorHi() )
-            print param.GetName(), ufloat( param.getValV(), param.getErrorHi( ))
+            results[param.GetName()] = ufloat( param.getValV(), param.getError() )
+            print param.GetName(), ufloat( param.getValV(), param.getError( ))
 
 
         #power_res = ufloat( power.getValV(), power.getErrorHi() )
@@ -714,6 +722,9 @@ class FitManager :
         #int_res   = ufloat( integral, math.sqrt( integral ) )
 
         results['integral'] = self.Integral( )
+        if scale_norm:
+            results['integral'] = self.Integral()*scale_norm
+
         integral_var = ROOT.RooRealVar('%s_norm' %( self.func_pdf.GetName() ),
                         'normalization', results['integral'].n )
         integral_var.setError( results['integral'].s )
