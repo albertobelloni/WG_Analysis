@@ -334,6 +334,9 @@ class Sample :
                 print "total event from histogram: %.8g total event in"\
                       "imported XS file: %.8g ratio: %g"  \
                        %(totevt, self.total_events, totevt/self.total_events)
+                ## Yihui -- not correct number
+                if('ChargedResonance' in str(files[0]) and totevt!= 50000):
+                     print('-----------',files[0])
 
         if readHists:
             for f in files :
@@ -1921,11 +1924,12 @@ class SampleManager(SampleFrame) :
                 if canname is not None :
                     if canname not in self.curr_canvases :
                         print 'provided can name does not exist'
-                    else :
-                        self.curr_canvases[canname].SaveAs(histnamepdf)
-                        self.curr_canvases[canname].SaveAs(histnameeps)
-                        self.curr_canvases[canname].SaveAs(histnameroot)
-                        self.curr_canvases[canname].SaveAs(histnamepng)
+                    #seems to cause the MakeSystematics.py error 
+                    #else :
+                    #    self.curr_canvases[canname].SaveAs(histnamepdf)
+                    #    self.curr_canvases[canname].SaveAs(histnameeps)
+                    #    self.curr_canvases[canname].SaveAs(histnameroot)
+                    #    self.curr_canvases[canname].SaveAs(histnamepng)
 
                 else :
 

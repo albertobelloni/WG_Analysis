@@ -131,6 +131,8 @@ def makeplots():
     syslists= [  ('JetResUp',        'JetResDown'),
                  ('JetEnUp',         'JetEnDown'),
                  ('MuonEnUp',        'MuonEnDown'),
+                 ('ElectronPtScaleUp', 'ElectronPtScaleDown'),
+                 ('PhotonPtScaleUp', 'PhotonPtScaleDown'),
                  ('ElectronEnUp',    'ElectronEnDown'),
                  ('PhotonEnUp',      'PhotonEnDown'),
                  ('UnclusteredEnUp', 'UnclusteredEnDown'),]
@@ -138,7 +140,7 @@ def makeplots():
     scs = lambda m: defs.selectcutstring(m, ch)[0]
     fig = plt.figure(figsize=(12,12))
     for i,syslist in enumerate(syslists):
-        print syslist, [[systematic_dict[c][sys]['MadGraphResonanceMass%i_width%s' %(1000,w)] for c in "ABC"]  \
+        print syslist, [[systematic_dict[c][sys]['MadGraphResonanceMass%i_width%s' %(1000,w)] for c in "A"]  \
           for sys in syslist for w in ("0p01","5")]
         sysvalues=[[systematic_dict[scs(m)][sys]['MadGraphResonanceMass%i_width%s' %(m,w)] for m in xpoints] \
           for sys in syslist for w in ("0p01","5")]
@@ -277,10 +279,14 @@ if ch=="mu":
     SFlist = [ "mu_trig", "mu_id", "mu_trk", "mu_iso", 
               "ph_id",   "ph_psv"] 
 
+SFlist.append("jet_btag") #need to be added
+
 metlist=[
             "JetRes",
             "JetEn",
             "MuonEn",
+            "ElectronPtScale",
+            "PhotonPtScale",
             "ElectronEn",
             "PhotonEn",
             "UnclusteredEn", #--/Up/Down
@@ -320,6 +326,7 @@ for key, (selfull, weight) in cutsetdict.iteritems():
                   .replace("met_pt", "met_%s_pt" %tag )
         sel = selfull.replace("mt_res", "mt_res_%s" % tag )\
                      .replace("met_pt", "met_%s_pt" % tag )
+        var = "mt_res_%s" %tag
         if tag == "MuonEnUp":
             sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
         if tag == "MuonEnDown":
@@ -332,7 +339,20 @@ for key, (selfull, weight) in cutsetdict.iteritems():
             sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
         if tag == "PhotonEnDown":
             sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
-        var = "mt_res_%s" %tag
+
+        if tag == "PhotonPtScaleDown" or tag == "PhotonPtScaleUp" or  tag == "ElectronPtScaleDown" or tag == "ElectronPtScaleUp":
+            w = weight
+            sel = selfull
+            var = "mt_res"
+        if tag == "PhotonPtScaleDown":
+             sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
+        if tag == "PhotonPtScaleUp":
+            sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
+        if tag == "ElectronPtScaleDown":
+            sel = sel.replace("el_pt", "el_pt_ScaleDown")
+        if tag == "ElectronPtScaleUp":
+            sel = sel.replace("el_pt", "el_pt_ScaleUp")
+
         selection_list[key][tag] = dict( w = w, sel = sel, var = var)
 
     ### muon and electron scale factors

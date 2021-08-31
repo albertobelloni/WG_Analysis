@@ -75,6 +75,7 @@ def main() :
 
                 #hist = makehist(var, binning[seltag], sampnames, sampMan, sel, weight = "NLOWeight")
                 if options.year ==2018: weight = weight.replace("prefweight","1")
+                #weight = weight.replace("*jet_btagSF","") ## Yihui -- no jet_btagSF
                 hist = makehistall(var, binning[seltag],  sampMan, sel, weight)
                 #histarray[ch+seltag+var].DrawSave()
                 #hist = sampMan['__AllStack__'].hist.Clone()
