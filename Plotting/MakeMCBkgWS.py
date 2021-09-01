@@ -58,7 +58,7 @@ def main() :
     protag = "all"
 
 
-    fitfunc = ["dijet","expow","atlas"] 
+    fitfunc = ["dijet"]#,"expow","atlas"] 
     #fitfunc = ["atlas"] 
     #fitfunc = "dijet"
 
