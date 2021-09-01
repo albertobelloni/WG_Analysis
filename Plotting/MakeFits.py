@@ -560,8 +560,8 @@ class MakeLimits( ) :
 
         syslist = [
              ('jet_btagSFUP','jet_btagSFDN'),
-             ('ElectronPtScaleUp', 'ElectronPtScaleDown'),
-             ('PhotonPtScaleUp', 'PhotonPtScaleDown'),
+             #('ElectronPtScaleUp', 'ElectronPtScaleDown'),
+             #('PhotonPtScaleUp', 'PhotonPtScaleDown'),
              ('JetResUp', 'JetResDown'),
              ('JetEnUp', 'JetEnDown'),
              ('MuonEnUp', 'MuonEnDown'),
@@ -660,11 +660,11 @@ class MakeLimits( ) :
             newsysdict["CMS_el_scale"]  = tuple(sysdict[s]/100.+1 for s in elennames)
 
         ## ph pt scale
-        newsysdict["CMS_phpt_scale"]  = tuple(sysdict[s]/100.+1 for s in phptnames)
+        #newsysdict["CMS_phpt_scale"]  = tuple(sysdict[s]/100.+1 for s in phptnames)
 
         ## el pt scale
-        if ch == "el":
-            newsysdict["CMS_elpt_scale"]  = tuple(sysdict[s]/100.+1 for s in elptnames)
+        #if ch == "el":
+        #    newsysdict["CMS_elpt_scale"]  = tuple(sysdict[s]/100.+1 for s in elptnames)
 
         ## prefiring
         newsysdict["CMS_pref"]  = tuple(sysdict[s]/100.+1 for s in prefnames)
