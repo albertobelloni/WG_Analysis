@@ -131,8 +131,8 @@ def makeplots():
     syslists= [  ('JetResUp',        'JetResDown'),
                  ('JetEnUp',         'JetEnDown'),
                  ('MuonEnUp',        'MuonEnDown'),
-                 ('ElectronPtScaleUp', 'ElectronPtScaleDown'),
-                 ('PhotonPtScaleUp', 'PhotonPtScaleDown'),
+                 #('ElectronPtScaleUp', 'ElectronPtScaleDown'),
+                 #('PhotonPtScaleUp', 'PhotonPtScaleDown'),
                  ('ElectronEnUp',    'ElectronEnDown'),
                  ('PhotonEnUp',      'PhotonEnDown'),
                  ('UnclusteredEnUp', 'UnclusteredEnDown'),]
@@ -285,8 +285,8 @@ metlist=[
             "JetRes",
             "JetEn",
             "MuonEn",
-            "ElectronPtScale",
-            "PhotonPtScale",
+            #"ElectronPtScale",
+            #"PhotonPtScale",
             "ElectronEn",
             "PhotonEn",
             "UnclusteredEn", #--/Up/Down
@@ -339,20 +339,18 @@ for key, (selfull, weight) in cutsetdict.iteritems():
             sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
         if tag == "PhotonEnDown":
             sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
-
-        if tag == "PhotonPtScaleDown" or tag == "PhotonPtScaleUp" or  tag == "ElectronPtScaleDown" or tag == "ElectronPtScaleUp":
-            w = weight
-            sel = selfull
-            var = "mt_res"
-        if tag == "PhotonPtScaleDown":
-             sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
-        if tag == "PhotonPtScaleUp":
-            sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
-        if tag == "ElectronPtScaleDown":
-            sel = sel.replace("el_pt", "el_pt_ScaleDown")
-        if tag == "ElectronPtScaleUp":
-            sel = sel.replace("el_pt", "el_pt_ScaleUp")
-
+        #if tag == "PhotonPtScaleDown" or tag == "PhotonPtScaleUp" or  tag == "ElectronPtScaleDown" or tag == "ElectronPtScaleUp":
+        #    w = weight
+        #    sel = selfull
+        #    var = "mt_res"
+        #if tag == "PhotonPtScaleDown":
+        #     sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
+        #if tag == "PhotonPtScaleUp":
+        #    sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
+        #if tag == "ElectronPtScaleDown":
+        #    sel = sel.replace("el_pt", "el_pt_ScaleDown")
+        #if tag == "ElectronPtScaleUp":
+        #    sel = sel.replace("el_pt", "el_pt_ScaleUp")
         selection_list[key][tag] = dict( w = w, sel = sel, var = var)
 
     ### muon and electron scale factors

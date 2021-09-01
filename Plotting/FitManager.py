@@ -737,7 +737,6 @@ class FitManager :
             else:
                 import_workspace( workspace,
                         [self.func_pdf, integral_var])
-
         return results
 
 
