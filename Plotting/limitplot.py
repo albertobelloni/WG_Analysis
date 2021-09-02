@@ -67,12 +67,12 @@ def oneline(xval):
     ln.SetLineWidth(2)
     ln.Draw()
     return ln
-ln = oneline(625)
+#ln = oneline(625)
 #ln2 = oneline(425)
 
 # Standard CMS logo
-DrawCMSLogo(pads[0], 'CMS', 'Simulation Preliminary', 11, 0.200, 0.035, 1.2, '', 0.8)
-
+#DrawCMSLogo(pads[0], 'CMS', 'Simulation Preliminary', 11, 0.200, 0.035, 1.2, '', 0.8)
+DrawCMSLogo(pads[0], 'CMS', 'Simulation Work in Progress', 11, 0.100, 0.035, 1.2, '', 0.8)
 
 
 canv.Print('.pdf')

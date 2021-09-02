@@ -21,6 +21,7 @@ from SampleManager import f_Obsolete
 ## need to read the xsection info
 import analysis_utils
 
+ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
 parser = ArgumentParser()
 
 parser.add_argument( '--baseDir',                            help='path to workspace directory' )
@@ -34,6 +35,7 @@ parser.add_argument( '--useToyBkgd',    action='store_true', help='use exponenti
 parser.add_argument( '--noRunCombine',  action='store_true', help='Dont run combine, use existing results' )
 parser.add_argument( '--combineDir',    default=None,        help='path to combine directory' )
 parser.add_argument( '--condor',        action='store_true', help='run condor jobs' )
+parser.add_argument( '--paramodel',        action='store_true', help='Use fully para model' )
 
 options = parser.parse_args()
 
@@ -124,13 +126,13 @@ def main() :
         raise RuntimeError
 
     if options.outputDir is None :
-        options.outputDir = "/home/kakw/efake/WG_Analysis/Plotting/data/higgs/"
+        options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data/higgs"
     if options.outputDir is not None :
         if not os.path.isdir( options.outputDir ) :
             os.makedirs( options.outputDir )
 
     if options.baseDir is None :
-        options.baseDir = "/home/kakw/efake/WG_Analysis/Plotting/data/"
+        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data"
 
     if options.combineDir == None:
         options.combineDir = "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_11_0_0/src/"
@@ -167,8 +169,8 @@ def main() :
                            #rmax = 20,
                            #seed = 123456,
                            doImpact=False,
-                           floatBkg =False, ## background parameters will be contrained if False
-                           numberOfToys = 2, ## -1 for Asimov, 0 for "data" (or homemade toy)
+                           floatBkg =True, ## background parameters will be contrained if False
+                           #numberOfToys = 2, ## -1 for Asimov, 0 for "data" (or homemade toy)
                            #freezeParameter = "all", ## "all", "bkg" or "sig", or "s+b", or "constrained"
                            #fitrange = fitrangefx # a function that takes mass and return fit range
                          )
@@ -188,7 +190,7 @@ def main() :
 
             print tPurple% "WARNING: unstable method"
             #wait_for_jobs( 'run_combine')
-            wait_for_jobs( 'kakw')
+            wait_for_jobs( 'yihuilai')
         else:
             ### run local shell commands in parallel
             var_opt.run_commands()
@@ -557,6 +559,9 @@ class MakeLimits( ) :
 
 
         syslist = [
+             ('jet_btagSFUP','jet_btagSFDN'),
+             #('ElectronPtScaleUp', 'ElectronPtScaleDown'),
+             #('PhotonPtScaleUp', 'PhotonPtScaleDown'),
              ('JetResUp', 'JetResDown'),
              ('JetEnUp', 'JetEnDown'),
              ('MuonEnUp', 'MuonEnDown'),
@@ -573,6 +578,7 @@ class MakeLimits( ) :
              ("mu_trkSFUP", "mu_trkSFDN"),
              ("mu_isoSFUP", "mu_isoSFDN"),]
 
+        bjetsfnames= ( 'jet_btagSFUP',   'jet_btagSFDN'   )
         prefnames  = ( 'prefup',         'prefdown'    )
         punames    = ( 'PUUP5',          'PUDN5'       )
         pdfnames   = ( 'muR1muF2',       'muR1muFp5',
@@ -589,6 +595,8 @@ class MakeLimits( ) :
         muennames  = ( 'MuonEnUp',       'MuonEnDown'  )
         elennames  = ( 'ElectronEnUp',   'ElectronEnDown')
         phennames  = ( 'PhotonEnUp',     'PhotonEnDown' )
+        elptnames  = ( 'ElectronPtScaleUp',   'ElectronPtScaleDown')
+        phptnames  = ( 'PhotonPtScaleUp',   'PhotonPtScaleDown' )
 
 
         newsysdict = recdd()
@@ -608,6 +616,9 @@ class MakeLimits( ) :
             newsysdict["CMS_mu_trig"] = tuple(sysdict[s]/100.+1 for s in mutrnames)
         if ch == "el":
             newsysdict["CMS_el_trig"] = tuple(sysdict[s]/100.+1 for s in eltrnames)
+
+        ## btag SF
+        newsysdict["CMS_bjetsf"]  = tuple(sysdict[s]/100.+1 for s in bjetsfnames)
 
         ## PU
         newsysdict["CMS_pile"] = tuple(sysdict[s]/100.+1 for s in punames)
@@ -647,6 +658,13 @@ class MakeLimits( ) :
         ## el scale
         if ch == "el":
             newsysdict["CMS_el_scale"]  = tuple(sysdict[s]/100.+1 for s in elennames)
+
+        ## ph pt scale
+        #newsysdict["CMS_phpt_scale"]  = tuple(sysdict[s]/100.+1 for s in phptnames)
+
+        ## el pt scale
+        #if ch == "el":
+        #    newsysdict["CMS_elpt_scale"]  = tuple(sysdict[s]/100.+1 for s in elptnames)
 
         ## prefiring
         newsysdict["CMS_pref"]  = tuple(sysdict[s]/100.+1 for s in prefnames)
@@ -710,7 +728,7 @@ class MakeLimits( ) :
 
                     card_path = '%s/wgamma_test_%s_%s_%s.txt' %(suboutputdir, self.var, sigpar, binid(obin) )
 
-                    self.generate_card( card_path, sigpar, cuttag = cuttag , obin = obin)
+                    self.generate_card( card_path, sigpar, cuttag = cuttag , obin = obin, imass=int(mass))
 
                     self.allcards[sigpar+"_"+binid(obin)] =  card_path
 
@@ -720,7 +738,7 @@ class MakeLimits( ) :
 
                 card_path = '%s/wgamma_test_%s_%s.txt' %(outputdir, self.var, sigpar )
 
-                self.generate_card( card_path, sigpar, cuttag = cuttag )
+                self.generate_card( card_path, sigpar, cuttag = cuttag , imass=int(mass))
 
                 self.allcards[sigpar + '_all'] =  card_path
 
@@ -731,7 +749,7 @@ class MakeLimits( ) :
 
 
     @f_Dumpfname
-    def generate_card( self, outputCard, sigpar,  tag='base' , cuttag = "", obin = None) :
+    def generate_card( self, outputCard, sigpar,  tag='base' , cuttag = "", obin = None, imass = 300) :
         """
 
             generates card
@@ -919,6 +937,7 @@ class MakeLimits( ) :
                 for bkgname, bkg in self.backgrounds.iteritems():
                     bkgsysstr = sysstr(bkg.sys[bin_id][cuttag].get(sn))
                     sys_line.append(bkgsysstr)
+            #Yihui -- no syst
             card_entries.append( listformat(sys_line, "%-15s"))
 
 
@@ -967,6 +986,16 @@ class MakeLimits( ) :
             for iparname, iparval in sig['params'].iteritems():
                 if iparval[1] != 0:
                    card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], iparval[1]))
+                   #Yihui --- use smooth signal model
+                   #print(imass, 24.7695+imass*0.0197778+1.21337e-05*imass**2-3.19634e-09*imass**3, 26.5736-0.0111605*imass+8.90339e-06*imass**2-1.42801e-09*imass**3)
+                   #if 'cb_mass_MG' in iparname:
+                   #    card_entries.append('%s param %.5f %.5f'%(iparname, -17.1296+imass, (-17.1296+imass)*0.01))
+                   #elif 'cb_cut1_MG' in iparname:
+                   #    card_entries.append('%s param %.5f %.5f'%(iparname, 1.4756823440075475-0.0023051161425137827*imass+1.60096e-06*imass**2-3.71669e-10*imass**3, (1.4756823440075475-0.0023051161425137827*imass+1.60096e-06*imass**2-3.71669e-10*imass**3)*0.01))
+                   #elif 'cb_sigma_MG' in iparname:
+                   #    card_entries.append('%s param %.5f %.5f'%(iparname, 24.7695+imass*0.0197778+1.21337e-05*imass**2-3.19634e-09*imass**3, (24.7695+imass*0.0197778+1.21337e-05*imass**2-3.19634e-09*imass**3)*0.01))
+                   #else:
+                   #    card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], iparval[1]))
 
         card_entries.append( section_divider )
 
@@ -1281,8 +1310,6 @@ class MakeLimits( ) :
                     self.prepare_signal_functions_helper( mass, width, ibin )
 
 
-
-
 # ---------------------------------------------------
 
 
@@ -1295,6 +1322,9 @@ class MakeLimits( ) :
         scale = self.weightMap['ResonanceMass%d'%mass]['cross_section'] * lumi(ibin)
 
         fname= '%s/sigfit/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
+        if options.paramodel :
+            print("will use the parameterized model! ")
+            fname= '%s/sigfit_para/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
         wsname = "ws" + self.signame + '_' + inpar
         if DEBUG:
             print fname, " : ", wsname
@@ -1318,6 +1348,8 @@ class MakeLimits( ) :
         ## open json file for shifted mean value
         if not self.noShapeUnc:
             filepath = "data/sigfit/fitted_mass%i.txt" %ibin['year']
+            #if options.paramodel :
+            #    filepath = "data/sigfit_para/fitted_mass%i.txt" %ibin['year']
             with open(filepath, "r") as fo:
                 mshifts = json.load(fo)
             w="5.0" if width=="5" else "0.01"
@@ -1348,7 +1380,69 @@ class MakeLimits( ) :
         import_workspace( ws_out, var)
 
         norm_var = ws_in.var( '%s_norm' %ws_entry )
+
+
+        #HardCoded correction -- Yihui
+        #smooth function
+        #func = ROOT.TF1('func', '[0]-[1]*TMath::Exp(-x/[2])', 0, 3000)
+        #para_ = {
+        #      "0p01el2018" : [7437.76, 8876.01, 599.598],
+        #      "0p01el2017" : [6007.32, 7641.63, 446.119],
+        #      "0p01el2016" : [6788.02, 8283.48, 533.676],
+        #      "5el2018"    : [6743.37, 8593.86, 497.502],
+        #      "5el2017"    : [5958.72, 7543.81, 449.917],
+        #      "5el2016"    : [6841.47,7739.86,617.44],
+        #      "0p01mu2018" : [7591.1, 9011.9, 493.194],
+        #      "0p01mu2017" : [6528.5, 7532.04, 433.261],
+        #      "0p01mu2016" : [7865.54, 8823.12, 521.907],
+        #      "5mu2018" : [7019.54, 8570.47, 423.879],
+        #      "5mu2017" : [6324.52, 7213.24, 420.338],
+        #      "5mu2016" : [7294.15, 8993.34, 440.464],
+        #}
+
+        ##0827
+        #N_tot = {
+        #      "1400_0p01_2016" : 49405,
+        #      "700_0p01_2016" : 49030,
+        #      "200_0p01_2016" : 48997,
+        #      "1200_0p01_2017" : 44000,
+        #      "1600_0p01_2017" : 48000,
+        #      "1600_5_2017" : 48000,
+        #      "2000_0p01_2017" : 48000,
+        #      "2000_5_2017" : 48000,
+        #      "2400_5_2017" : 42000,
+        #      "2800_0p01_2017" : 48000,
+        #      "2800_5_2017" : 48000,
+        #      "3000_5_2017" : 46000,
+        #      "4000_0p01_2017" : 48000,
+        #      "300_0p01_2018" : 41000,
+        #      "350_0p01_2018" : 46000,
+        #      "350_5_2018" : 46000,
+        #      "400_5_2018" : 100000,
+        #      "700_0p01_2018" : 46000,
+        #      "800_0p01_2018" : 46000,
+        #      "800_5_2018" : 44000,
+        #      "900_5_2018" : 47000,
+        #      "1600_0p01_2018" : 48000,
+        #      "1800_5_2018" : 48000,
+        #      "2000_5_2018" : 46000,
+        #      "2200_0p01_2018" : 48000,
+        #      "2400_0p01_2018" : 48000,
+        #      "2800_5_2018" : 100000,
+        #      "3000_0p01_2018" : 48000,
+        #      "3000_5_2018" : 72000,
+        #}
+        #func.SetParameters(para_["%s%s%s"%(width,ibin['channel'],ibin['year'])][0], para_["%s%s%s"%(width,ibin['channel'],ibin['year'])][1],para_["%s%s%s"%(width,ibin['channel'],ibin['year'])][2])
+        #print("mass, width, ibin ", mass, width, ibin," ---------- correction ", func.Eval(int(mass))/norm_var.getVal() )
+        #rate = func.Eval(int(mass)) * scale
+        #norm_var.setError( norm_var.getError() * scale * func.Eval(int(mass)) / norm_var.getValV() )
+        #norm_var.setVal( func.Eval(int(mass)) * scale )
+        #Yihui -- use corrected weights
+
         rate = norm_var.getVal() * scale
+        #don't need if use para signal model -- Yihui
+        #if("%s_%s_%s"%(str(mass),width,ibin['year']) in N_tot):
+        #    rate = rate* 50000.0/N_tot["%s_%s_%s"%(str(mass),width,ibin['year'])]
         print tPurple%("norm %g scale %g rate %g" \
                                    %(norm_var.getVal(),scale,rate))
       #  norm_var.setVal( norm_var.getValV() * scale )

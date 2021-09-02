@@ -22,7 +22,8 @@ def get_base_selection( channel ) :
 
 def get_weight_str( ch = None ) :
 
-    weight_str = 'PUWeight*NLOWeight*prefweight'
+    weight_str = '(isinf(PUWeight)?1:PUWeight)*NLOWeight*prefweight*(isinf(jet_btagSF)?1:jet_btagSF)'
+    #weight_str = 'PUWeight*NLOWeight*prefweight*jet_btagSF'
     weight_str_mu = weight_str + '*(mu_trigSF*mu_idSF*mu_isoSF*mu_trkSF*ph_idSF*ph_psvSF)'
     weight_str_el = weight_str + '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF)'
     if ch == "el":
@@ -32,7 +33,8 @@ def get_weight_str( ch = None ) :
     elif ch == "nosf":
         weight = weight_str
     else:
-        weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF )'
+        weight =' ( isData ? isData : (isinf(PUWeight)?1:PUWeight) * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF )'
+        #weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF )'
     return weight
 
 
@@ -240,7 +242,8 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     mu_pt  = 'mu_pt_rc[0] > %i ' %leppt
 
     ph_base = 'ph_IsEB[0]'
-    ph_pt  = 'ph_pt[0] > %i ' %phpt
+    #ph_pt  = 'ph_pt[0] > %i ' %phpt
+    ph_pt  = 'ph_pt[0] > 0.50*mt_res - 40 && ph_pt[0] < 0.50*mt_res + 40'
     ph_passpix = '!ph_hasPixSeed[0]'
     ph_tight = 'ph_passTight[0]' # already in base selection
     sel_ph =  [ph_base, ph_tight, ph_pt, ph_passpix]
@@ -283,7 +286,7 @@ def kinedictgen( ch, addition = "" ):
 #               "B": dict( phpt = 60, leppt = 35, met = 100, addition = addition),
 #               "C": dict( phpt = 60, leppt = 35, met = 40, addition = addition),
 #               "B": dict(phpt = 130, leppt = leppt, met = 40, addition = addition),
-               "B": dict( phpt = 200, leppt = leppt, met = 40, addition = addition),
+#               "B": dict( phpt = 200, leppt = leppt, met = 40, addition = addition),
             }
     return cutsetdict
 
@@ -313,7 +316,8 @@ def selectcutstring( mass, ch, addition = "" ):
     #    return returner("B")
     #else:
     #    return returner("C")
-    if mass < 625:
-        return returner("A")
-    else:
-        return returner("B")
+    return returner("A")
+#    if mass < 625:
+#        return returner("A")
+#    else:
+#        return returner("B")
