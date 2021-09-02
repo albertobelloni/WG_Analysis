@@ -126,16 +126,16 @@ def main() :
         raise RuntimeError
 
     if options.outputDir is None :
-        options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data/higgs"
+        options.outputDir = "/home/kakw/efake/WG_Analysis_AUG21/Plotting/data/higgs/"
     if options.outputDir is not None :
         if not os.path.isdir( options.outputDir ) :
             os.makedirs( options.outputDir )
 
     if options.baseDir is None :
-        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data"
+        options.baseDir = "/home/kakw/efake/WG_Analysis_AUG21/Plotting/data/"
 
     if options.combineDir == None:
-        options.combineDir = "/home/kakw/efake/WG_Analysis/Plotting/CMSSW_11_0_0/src/"
+        options.combineDir = "/home/kakw/efake/WG_Analysis_AUG21/CMSSW_11_0_0/src/"
 
 
     #signal_masses   = [900]
@@ -161,16 +161,16 @@ def main() :
                            useToyBackground = options.useToyBkgd,
                            # don't put norms in new file
                            #keepNorms = False, FIXME
-                           noShapeUnc = True,
+                           noShapeUnc = False,
                            #method = 'AsymptoticLimitsManual', ## only use --condor with manual
                            #manualpoints = [ -1., -0.1,0,0.001,0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
                            #                 3.5,4.,5.,8.,10.]
                            #rmin = 0.1,
                            #rmax = 20,
-                           #seed = 123456,
+                           seed = 123456,
                            doImpact=False,
                            floatBkg =True, ## background parameters will be contrained if False
-                           #numberOfToys = 2, ## -1 for Asimov, 0 for "data" (or homemade toy)
+                           numberOfToys = 0, ## -1 for Asimov, 0 for "data" (or homemade toy)
                            #freezeParameter = "all", ## "all", "bkg" or "sig", or "s+b", or "constrained"
                            #fitrange = fitrangefx # a function that takes mass and return fit range
                          )

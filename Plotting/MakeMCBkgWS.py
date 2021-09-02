@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#import ipdb
+from IPython.core.debugger import Pdb
+ipdb = Pdb()
 import re
 import uuid
 import pickle
@@ -46,7 +49,7 @@ def main() :
 
 
     kine_vars = {
-                    'mt_res'    : { tag: binner(defs.bkgfitlowbin(tag)) for tag in "ABC"}
+                    'mt_res'    : { tag: binner(defs.bkgfitlowbin(tag)) for tag in "A"}
                 }
 
     cutsetdict = {}
@@ -179,6 +182,7 @@ def get_mc_fit( hist ,var, fitfunc, workspace, suffix='') :
     #fitManager.fit_histogram( workspace )
 
     print """ cast it from TF1 to RooGenericPdf """
+    #ipdb.set_trace()
     fitManager.calculate_func_pdf()
     fitManager.get_results( workspace, False )
     outhist = fitManager.get_pdf_histogram( xbins = hist.GetNbinsX() )

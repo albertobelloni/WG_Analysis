@@ -31,10 +31,10 @@ fitted_masses = OrderedDict()
 _JSONLOC = "%s/fitted_mass%i.txt"%(options.dataDir,options.year)
 
 def hist_binning(mass):
-    return (50, mass * 0.5, mass * 1.1 + 40)
+    return (50, mass * 0.3, mass * 1.2 + 40)
 
 def fit_range(mass):
-    return ( mass * 0.5, mass * 1.1 + 40)
+    return ( mass * 0.3, mass * 1.2 + 40)
 
 def main() :
     sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, lumi=-1)
@@ -129,9 +129,6 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         cuttag, (full_sel_sr, weight) = defs.selectcutstring( mass , ch, addition )
         print full_sel_sr
         #weight = "NLOWeight"
-        if options.year == 2018:
-            weight = weight.replace("*prefweight","") ## no prefiring weight in 2018
-        #weight = weight.replace("*jet_btagSF","") ## Yihui -- no jet_btagSF
 
         ## make RooRealVar for fit variable
         ## fit range is set here
@@ -398,6 +395,14 @@ def make_syssellist( varnorm, selnorm, weightnorm, ch = "el"):
             sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
         if tag == "MuonEnDown":
             sel = sel.replace("mu_pt_rc", "mu_pt_rc_down")
+        if tag == "PhotonEnUp":
+            sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
+        if tag == "PhotonEnDown":
+            sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
+        if tag == "ElectronEnUp":
+            sel = sel.replace("el_pt", "el_pt_ScaleUp")
+        if tag == "ElectronEnDown":
+            sel = sel.replace("el_pt", "el_pt_ScaleDown")
 
         if tag == "PhotonPtScaleUp":
             sel = sel.replace("ph_pt", "ph_pt_Scale_up")
