@@ -48,6 +48,16 @@ matrix:
 
 	python MatrixWJetsWS.py --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --outputDir ${OUTPUTMAIN}/WJetsWS
 
+
+beff:
+
+	./MakeBEff.py --year 2016 --ch mu --batch --condor
+	./MakeBEff.py --year 2017 --ch mu --batch --condor
+	./MakeBEff.py --year 2018 --ch mu --batch --condor
+	./MakeBEff.py --year 2016 --ch el --batch --condor
+	./MakeBEff.py --year 2017 --ch el --batch --condor
+	./MakeBEff.py --year 2018 --ch el --batch --condor
+
 fit:
 
 	python MakeFits.py --condor
@@ -103,9 +113,9 @@ lgvalid :
 
 money : 
 
-	python MakeMoneyPlot.py --batch --year 2016
-	python MakeMoneyPlot.py --batch --year 2017
-	python MakeMoneyPlot.py --batch --year 2018
+	python MakeMoneyPlot.py --batch --year 2016 --condor
+	python MakeMoneyPlot.py --batch --year 2017 --condor
+	python MakeMoneyPlot.py --batch --year 2018 --condor
 
 signal : 
 
@@ -115,9 +125,9 @@ signal :
 
 bkg : 
 
-	python MakeMCBkgWS.py --process All --batch --year 2016
-	python MakeMCBkgWS.py --process All --batch --year 2017
-	python MakeMCBkgWS.py --process All --batch --year 2018
+	python MakeMCBkgWS.py --process All --batch --year 2016 --condor
+	python MakeMCBkgWS.py --process All --batch --year 2017 --condor
+	python MakeMCBkgWS.py --process All --batch --year 2018 --condor
 
 efake : 
 
