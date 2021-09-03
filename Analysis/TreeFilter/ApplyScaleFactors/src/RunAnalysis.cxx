@@ -384,13 +384,6 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
                     std::cout << "Could not open file " << itr->second << std::endl;
                 }
             }
-            itr = mod_conf.GetInitData().find("FilePathTrigElHighPt");
-            hname = mod_conf.GetInitData().find("GraphTrigElHighPt");
-            if (itr != mod_conf.GetInitData().end()) {
-                _sffile_el_trighighpt = TFile::Open((itr->second).c_str(), "READ");
-                _sfgraph_el_trighighpt = dynamic_cast<TGraphAsymmErrors *>(
-                    _sffile_el_trighighpt->Get((hname->second).c_str()));
-            }
         }
         if (mod_conf.GetName() == "AddBJetSF") {
 
@@ -637,19 +630,12 @@ void RunModule::AddElectronSF(ModuleConfig & /*config*/) const {
         float pt = OUT::el_pt->at(idx);
 
         float ptcut = -999.;
-        float highptcut = -999.; // HLT_Photon threshold
-        if (_year_el == 2016) {
+        if (_year_el == 2016)
             ptcut = 35.;
-            highptcut = 175.;
-        }
-        else if (_year_el == 2017) {
+        else if (_year_el == 2017)
             ptcut = 40.;
-            highptcut = 200.;
-        }
-        else if (_year_el == 2018) {
+        else if (_year_el == 2018)
             ptcut = 35.;
-            highptcut = 200.;
-        }
         else
             std::cout << "ERROR AddElectronSF: year not recognized!" << std::endl;
 
@@ -661,12 +647,7 @@ void RunModule::AddElectronSF(ModuleConfig & /*config*/) const {
         ValWithErr entry;
         ValWithErr entry_data;
         ValWithErr entry_mc;
-        if (pt < highptcut) {
-            entry = GetVals2D(_sfhist_el_trig, eta, pt);
-        }
-        else {
-            entry = GetValsFromGraph(_sfgraph_el_trighighpt, eta);
-        }
+        entry = GetVals2D(_sfhist_el_trig, eta, pt);
         entry_data = GetVals2D(_effhist_el_trig_data, eta, pt);
         entry_mc = GetVals2D(_effhist_el_trig_mc, eta, pt);
 
@@ -902,6 +883,9 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
     OUT::jet_btagSF = 1.0;
     OUT::jet_btagSFUP = 1.0;
     OUT::jet_btagSFDN = 1.0;
+    if (OUT::isData) {
+        return;
+    }
     
     ValWithErr effval;
     double jet_scalefactor=1;
@@ -985,10 +969,12 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
           std::cout<< "accepted: "<< jet_scalefactor << " " <<OUT::jet_btagSF <<std::endl; 
       } else {
           // FIXME: uncertainty from SF and eff are independent
-          OUT::jet_btagSF   = OUT::jet_btagSF*(1-effval.val * jet_scalefactor) / (1-effval.val);
-          OUT::jet_btagSFUP = OUT::jet_btagSFUP*(1-(effval.val+effval.err_up) * jet_scalefactor_up) / (1- (effval.val+effval.err_up));
-          OUT::jet_btagSFDN = OUT::jet_btagSFDN*(1-(effval.val-effval.err_dn) * jet_scalefactor_do) / (1- (effval.val-effval.err_dn));
-          std::cout<< "rejected: "<< effval.val<< " "<<jet_scalefactor << " "<< (1-effval.val * jet_scalefactor) / (1-effval.val) <<" "<<OUT::jet_btagSF<<std::endl; 
+          if (effval.val != 1){
+            OUT::jet_btagSF   = OUT::jet_btagSF*(1-effval.val * jet_scalefactor) / (1-effval.val);
+            OUT::jet_btagSFUP = OUT::jet_btagSFUP*(1-(effval.val+effval.err_up) * jet_scalefactor_up) / (1- (effval.val+effval.err_up));
+            OUT::jet_btagSFDN = OUT::jet_btagSFDN*(1-(effval.val-effval.err_dn) * jet_scalefactor_do) / (1- (effval.val-effval.err_dn));
+            std::cout<<"index: "<<idx<< "rejected: "<< effval.val<< " "<<jet_scalefactor << " "<< (1-effval.val * jet_scalefactor) / (1-effval.val) <<" "<<OUT::jet_btagSF<<std::endl; 
+          }
       }
 
 

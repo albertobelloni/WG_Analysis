@@ -54,7 +54,7 @@ def get_keep_filter(tag=None) :
     jet_addtl = ['jet_CSVLoose_n', 'jet_CSVMedium_n', 'jet_CSVTight_n',"jet_bTagCisvV2", "jet.*"]
 
     event_basic = ['rho', 'pu_n', 'truepu_n', 'vtx_n', 'pdf_id1', 'pdf_id2', 'pdf_scale', 'pdf_x2', 'pdf_x1',
-                   'lumiSection', 'eventNumber', 'runNumber', 'bxNumber', 'isData', 'EventWeights','prefweight.*']
+                   'lumiSection', 'eventNumber', 'runNumber', 'bxNumber', 'isData','prefweight.*']
 
 
     branches_tight = mu_basic + el_basic + ph_basic + met_basic + jet_basic + event_basic
