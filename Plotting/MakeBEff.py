@@ -146,7 +146,6 @@ samples.Draw("jet_eta:jet_pt",teststr + "&& jet_flav==5 && jet_bTagDeepb > %g" %
 #samples.SaveStack("hnumb%i%s.pdf" %(year,ch), options.outputDir, "base")
 hnumb = samples["__AllStack__"].hist.Clone("hnumb")
 heffb = samples["__AllStack__"].hist.Clone("heffb")
-heffb.Divide(hbaseb)
 heffb.Divide(hnumb,hbaseb,1,1,"B")
 #heffb.Draw("COLZ TEXT")
 #samples.SaveStack("heffb%i%s.pdf" %(year,ch), options.outputDir, "base")

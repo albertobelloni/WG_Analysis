@@ -6,10 +6,8 @@ def get_base_selection( channel ) :
     if channel == 'mu' :
         return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && mu_passTight[0] '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
     if channel == 'mug' :
-        #return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && ph_n==1'
         return 'mu_n==1 && el_n==0 && ph_n==1'
     if channel == 'elg' :
-        #return 'el_pt30_n==1 && el_n==1 && mu_n==0 && ph_n==1'
         return 'el_n==1 && mu_n==0 && ph_n==1'
     if channel == 'el' :
         return 'el_pt30_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && HLT_Ele27_WPTight_Gsf ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
@@ -33,8 +31,7 @@ def get_weight_str( ch = None ) :
     elif ch == "nosf":
         weight = weight_str
     else:
-        weight =' ( isData ? isData : (isinf(PUWeight)?1:PUWeight) * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF )'
-        #weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF )'
+        weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * (isinf(jet_btagSF)?1:jet_btagSF))'
     return weight
 
 
@@ -228,7 +225,6 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     ## NOTE met filter, prefweight, Zvtx weight
 
     weight = get_weight_str(ch)
-    #weight =  'NLOWeight*PUWeight' ## FIXME PUWeight issue
 
     sel_base_mu = get_base_selection( 'mug' )
     sel_base_el = get_base_selection( 'elg' ) ## FIXME trigger doesn't work on 2017/HLT_Ele27_WPTight_Gsf?
@@ -271,22 +267,12 @@ def bkgfitlowbin( cuttag ):
     """ low range of bin content (the upper range is set to 2000 by default) """
     if cuttag == "A":
         return 200
-    if cuttag == "B":
-        return 340
-    if cuttag == "C":
-        return 460
 
 def kinedictgen( ch, addition = "" ):
     """ define here cut-sets and tag as function of mass """
-    leppt = 35 #if ch=="el" else 30
+    leppt = 35
     cutsetdict = {
-               #"A": dict( phpt = 100, leppt = leppt, met = 20, addition = addition),
-               "A": dict(phpt = 100, leppt = leppt, met = 40, addition = addition),
-               #"A": dict( phpt = 60, leppt = 35 , met = 40, addition = addition),
-#               "B": dict( phpt = 60, leppt = 35, met = 100, addition = addition),
-#               "C": dict( phpt = 60, leppt = 35, met = 40, addition = addition),
-#               "B": dict(phpt = 130, leppt = leppt, met = 40, addition = addition),
-#               "B": dict( phpt = 200, leppt = leppt, met = 40, addition = addition),
+               "A": dict( phpt = 0, leppt = leppt, met = 40, addition = addition),
             }
     return cutsetdict
 
@@ -294,30 +280,10 @@ def selectcutdictgen( ch, addition = "" ):
     """ define here cut-sets and tag as function of mass """
     kinedict = kinedictgen( ch , addition )
     cutsetdict = { k: makeselstring(ch, **w) for k,w in kinedict.iteritems()}
-#    leppt = 35 #if ch=="el" else 30
-#    cutsetdict = {
-#               #"A": makeselstring(ch, phpt = 100, leppt = leppt, met = 20, addition = addition),
-#               "A": makeselstring(ch, phpt = 80, leppt = leppt, met = 40, addition = addition),
-#               #"A": makeselstring(ch, phpt = 60, leppt = 35 , met = 40, addition = addition),
-##               "B": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 100, addition = addition),
-##               "C": makeselstringwweight(ch, phpt = 60, leppt = 35, met = 40, addition = addition),
-#               "B": makeselstring(ch, phpt = 130, leppt = leppt, met = 40, addition = addition),
-#               "C": makeselstring(ch, phpt = 200, leppt = leppt, met = 40, addition = addition),
-#            }
     return cutsetdict
 
 def selectcutstring( mass, ch, addition = "" ):
     """ define here cut-sets and tag as function of mass """
     cutsetdict = selectcutdictgen( ch, addition )
     returner = lambda d: (d, cutsetdict[d])
-    #if mass < 425:
-    #    return returner("A")
-    #elif mass < 625:
-    #    return returner("B")
-    #else:
-    #    return returner("C")
     return returner("A")
-#    if mass < 625:
-#        return returner("A")
-#    else:
-#        return returner("B")
