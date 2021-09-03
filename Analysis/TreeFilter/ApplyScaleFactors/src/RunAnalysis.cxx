@@ -902,6 +902,9 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
     OUT::jet_btagSF = 1.0;
     OUT::jet_btagSFUP = 1.0;
     OUT::jet_btagSFDN = 1.0;
+    if (OUT::isData) {
+        return;
+    }
     
     ValWithErr effval;
     double jet_scalefactor=1;
@@ -985,10 +988,12 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
           std::cout<< "accepted: "<< jet_scalefactor << " " <<OUT::jet_btagSF <<std::endl; 
       } else {
           // FIXME: uncertainty from SF and eff are independent
-          OUT::jet_btagSF   = OUT::jet_btagSF*(1-effval.val * jet_scalefactor) / (1-effval.val);
-          OUT::jet_btagSFUP = OUT::jet_btagSFUP*(1-(effval.val+effval.err_up) * jet_scalefactor_up) / (1- (effval.val+effval.err_up));
-          OUT::jet_btagSFDN = OUT::jet_btagSFDN*(1-(effval.val-effval.err_dn) * jet_scalefactor_do) / (1- (effval.val-effval.err_dn));
-          std::cout<< "rejected: "<< effval.val<< " "<<jet_scalefactor << " "<< (1-effval.val * jet_scalefactor) / (1-effval.val) <<" "<<OUT::jet_btagSF<<std::endl; 
+          if (effval.val != 1){
+            OUT::jet_btagSF   = OUT::jet_btagSF*(1-effval.val * jet_scalefactor) / (1-effval.val);
+            OUT::jet_btagSFUP = OUT::jet_btagSFUP*(1-(effval.val+effval.err_up) * jet_scalefactor_up) / (1- (effval.val+effval.err_up));
+            OUT::jet_btagSFDN = OUT::jet_btagSFDN*(1-(effval.val-effval.err_dn) * jet_scalefactor_do) / (1- (effval.val-effval.err_dn));
+            std::cout<<"index: "<<idx<< "rejected: "<< effval.val<< " "<<jet_scalefactor << " "<< (1-effval.val * jet_scalefactor) / (1-effval.val) <<" "<<OUT::jet_btagSF<<std::endl; 
+          }
       }
 
 

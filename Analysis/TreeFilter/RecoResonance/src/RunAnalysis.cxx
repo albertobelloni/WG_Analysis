@@ -4778,9 +4778,9 @@ float RunModule::calc_pu_weight( float puval, float mod ) const {
 
     float weight = num/den;
 
-    //std::cout << "puval = " << puval << " data_val = " << val_data << " sample_val = " << val_sample << " num = " << num << " den = " << den << " weight = " << weight << std::endl;
+    if ( weight < 0.00000005 || den==0 || printevent ) std::cout << "puval = " << puval << " data_val = " << val_data << " sample_val = " << val_sample << " num = " << num << " den = " << den << " weight = " << weight << std::endl;
 
-    if( weight < 0.00000005 ) {
+    if( weight < 0.00000005 || den == 0) {
 
         int bin_min_sample = _puweight_sample_hist->FindBin(puval-2.5);
         int bin_max_sample = _puweight_sample_hist->FindBin(puval+2.5);
@@ -4794,6 +4794,7 @@ float RunModule::calc_pu_weight( float puval, float mod ) const {
         den = val_sample/tot_sample;
 
         weight = num/den;
+        std::cout << "corrected puval = " << puval << " data_val = " << val_data << " sample_val = " << val_sample << " num = " << num << " den = " << den << " weight = " << weight << std::endl;
 
     }
     return weight;

@@ -179,10 +179,7 @@ bool RunModule::ApplyTrueWPtKNeg( ModuleConfig & config ) const {
     else {
         return keep_event;
     }
-    double NLOWeight = 1.0;
-    if( OUT::EventWeights->at(0) < 0 ) {
-        NLOWeight = -1.0;
-    }
+    double NLOWeight = IN::NLOWeight;
     
     if (NLOWeight < 0) {
         if (trueW_pt < truewpt_bound_lo) {
