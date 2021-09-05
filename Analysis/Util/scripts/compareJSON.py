@@ -31,8 +31,14 @@ if __name__ == '__main__':
     if not options.command:
         raise RuntimeError("Exactly one command option must be specified")
 
-    alphaList = LumiList (filename = args[0])  # Read in first  JSON file
-    betaList  = LumiList (filename = args[1])  # Read in second JSON file
+    if "http://" in args[0] or "https://" in args[0] :
+        alphaList = LumiList (url = args[0])  # Read in first  JSON file
+    else:
+        alphaList = LumiList (filename = args[0])  # Read in first  JSON file
+    if "http://" in args[1] or "https://" in args[1] :
+        betaList  = LumiList (url = args[1])  # Read in second JSON file
+    else:
+        betaList  = LumiList (filename = args[1])  # Read in second JSON file
 
     ##################
     ## Diff Command ##

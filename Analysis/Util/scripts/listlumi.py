@@ -112,6 +112,7 @@ def main():
     histrange = (runrange[1]-runrange[0], runrange[0],runrange[1])
     c.Draw("runNumber:lumiSection>>h1(4000,0,4000,%i,%i,%i)" %histrange,"","COLZ")
     c1.SaveAs("processedruns%i%s%s.pdf" %yechera)
+    c1.SaveAs("processedruns%i%s%s.png" %yechera)
     h1 = ROOT.gDirectory.Get("h1")
     for runnum in range(*runrange):
         for i in range(3001):
@@ -161,7 +162,7 @@ if options.condor :
                 condor_script +=[ "Arguments = --batch --ch {ch} --year {year} --era {era}".format(era=iera, ch=ich, year=iyear), "Queue",""]
     condor_script = "\n".join(condor_script)
     condor_script = condor_script.format(thisfile = filename, workd = working_dir)
-    job_desc_file = "{workd}/log/{thisfile}.jdl".format(thisfile = filename, workd = working_dir)
+    job_desc_file = "{workd}/{thisfile}.jdl".format(thisfile = filename, workd = working_dir)
     print condor_script
     with open(job_desc_file, "w") as fo:
         fo.write(condor_script)
