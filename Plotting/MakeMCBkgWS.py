@@ -46,7 +46,7 @@ def main() :
 
 
     kine_vars = {
-                    'mt_res'    : { tag: binner(defs.bkgfitlowbin(tag)) for tag in "ABC"}
+                    'mt_res'    : { tag: binner(defs.bkgfitlowbin(tag)) for tag in "A"}
                 }
 
     cutsetdict = {}

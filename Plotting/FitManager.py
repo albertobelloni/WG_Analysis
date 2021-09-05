@@ -328,9 +328,9 @@ class FitManager :
 
             function = 'TMath::Power( @0/13000., @1 + ' + '+'.join( order_entries) + ')'
 
-            self.defs['dijet'] = {}
-            self.defs['dijet'][0] = ( 1e-10,  0,  1)
-            self.defs['dijet'][1] = (-11.0,  -20.0,  -10.0)
+            self.defs['dijet'] = [0]*4
+            self.defs['dijet'][0] = ( 1e-9,  0,  1)
+            self.defs['dijet'][1] = (-10.0,  -20.0,  -10.0)
             self.defs['dijet'][2] = ( -2.0,   -9.0,  -3.0 )
             self.defs['dijet'][3] = ( -1.5,   -5.0,  -1.0 )
 
@@ -349,11 +349,11 @@ class FitManager :
 
             function = function % (' + '.join( order_entries ))
 
-            self.defs['atlas'] = {}
-            self.defs['atlas'][0] = (   1e-10 ,      0, 100000) #norm
+            self.defs['atlas'] = [0]*6
+            self.defs['atlas'][0] = (   1e-4 ,      0, 100000) #norm
             self.defs['atlas'][1] = (   0 ,      0,  1000)  #power numerator
-            self.defs['atlas'][2] = (   2 ,     -10,   100) #power denominator
-            self.defs['atlas'][3] = (  -1 ,     -10,    10) # log coeff
+            self.defs['atlas'][2] = (   6 ,     -10,   100) #power denominator
+            self.defs['atlas'][3] = (  1 ,     -10,    10) # log coeff
             self.defs['atlas'][4] = (  -1 ,     -10,    0)
             self.defs['atlas'][5] = (  -1 ,     -5,    10)
 
@@ -373,8 +373,7 @@ class FitManager :
                 function = 'TMath::Power( (1-(@0/13000.)), @1 ) /'+\
                           '(TMath::Power( @0/13000. , @2 ))'
 
-            #FIXME not tested IC
-            self.defs['vvdijet'] = {}
+            self.defs['vvdijet'] = [0]*6
             self.defs['vvdijet'][0] = (   1 ,      0, 100000) #norm
             self.defs['vvdijet'][1] = (   0 ,      0,   1000)  #power numerator
             self.defs['vvdijet'][2] = (   2 ,     -10,   100) #power denominator
@@ -393,11 +392,10 @@ class FitManager :
 
             function = function %("+".join(order_entries))
 
-            #FIXME not tested IC
-            self.defs['expow'] = {}
-            self.defs['expow'][0] = ( 1e-5,    0,    1e7 )
-            self.defs['expow'][1] = ( -5,       0,   -10 )
-            self.defs['expow'][2] = ( -10,    -200,   -1 )
+            self.defs['expow'] = [0]*6
+            self.defs['expow'][0] = ( 1e-3,    0,    1e7 )
+            self.defs['expow'][1] = ( -3,       0,   -10 )
+            self.defs['expow'][2] = ( -30,    -200,   -1 )
             self.defs['expow'][3] = ( 5,        0,    10 )
             self.defs['expow'][4] = ( 10,    -200,    -1 )
             self.defs['expow'][5] = ( -10,    -20,     0 )
@@ -412,7 +410,7 @@ class FitManager :
 
             function = '+'.join( order_entries )
 
-            self.defs['power'] = {}
+            self.defs['power'] = [0]*6
             self.defs['power'][0] = ( 1,    0,    1e7)
             self.defs['power'][1] = (-5,       0,   -10 )
             self.defs['power'][2] = (-10,    -200,   -1 )
@@ -510,6 +508,9 @@ class FitManager :
         assert not ( options["Range"] and fitrange ), "conflict of ranges"
         self.optionlist = [getattr(rf,opt)(arg) if arg is not None else \
                       getattr(rf,opt)()    for opt,arg in options.viewitems()]
+
+        ## NOTE on newer versions of ROOT where kwargs are supporter for fitTo
+        #self.optionlist = {opt:arg    for opt,arg in options.viewitems()}
 
         ## default options
         if len(self.optionlist)==0:
@@ -1044,10 +1045,10 @@ class FitManager :
         # TODO: this can be updated and merged to setuparray
         cut1_vals   = (  0.3,       0.1,      2.0  )
         sigma_vals  = ( 28. ,       1. ,      200. ) if width==0.01 else ( 58. ,       1. ,      200.)
-        power1_vals = (  2.0,       1.4,      4.6  ) if width==1e-4 else ( 3.0,        2.4,       4.0 )
+        power1_vals = (  2.0,       1.4,      6.  )
         mass_vals   = ( mass,  0.5*mass,  1.1*mass )
         cut2_vals   = (  1.5,       1.,       2.5  )
-        power2_vals = (  4.0,       0.,       5.0  )
+        power2_vals = (  4.0,       0.,       10.0  )
 
         cb_cut1   = ROOT.RooRealVar('cb_cut1_%s'   %self.label,   'Cut1'  ,
                                    cut1_vals[0],   cut1_vals[1],   cut1_vals[2],   '')

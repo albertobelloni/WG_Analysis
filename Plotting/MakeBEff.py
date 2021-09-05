@@ -10,14 +10,9 @@ def addparser(parser):
 execfile("MakeBase.py")
 from DrawConfig import DrawConfig
 
-## overriding default
-datestr = "2020_11_26"
-baseDirMuG = "/data2/users/kakw/Resonances%i/LepGamma_mug_%s/"%(options.year,datestr)
-baseDirElG = "/data2/users/kakw/Resonances%i/LepGamma_elg_%s/"%(options.year,datestr)
-
 
 ###
-### This script makes systematic shape comparison plots and normlization estimates
+### This script makes efficiency map for b tagging SF
 ###
 print os.getcwd()
 
@@ -36,12 +31,12 @@ lgconf = { 'legendLoc':"Double","legendTranslateX":0.33, "legendCompress":.8,
 ptbin = [0,20,30,50,70,100,140,200,300,600,1000]
 etabin = [-2.5,-2.,-1.5,-1.,-0.5,0.,0.5,1.,1.5,2.,2.5]
 
-def makeplots():
+def makeplots(year, ch):
     f1 = ROOT.TFile("data/btag/btageff%i%s.root"%(year,ch))
     heffb = f1.Get("heffb")
     heffc = f1.Get("heffc")
     heffl = f1.Get("heffl")
-    c1 =  ROOT.TCanvas("c1","c1",800,800)
+    c1 =  ROOT.TCanvas("c1","c1",800,500)
     c1.SetLogx(1)
     heffb.GetZaxis().SetRangeUser(0.,1.)
     heffb.Draw("COLZ TEXT")
@@ -61,14 +56,16 @@ def makeplots():
     c1.SaveAs("%s/heffl%i%s.C" %(options.outputDir, year, ch))
 
 if options.plot:
-    makeplots()
+    for year in [2016,2017,2018]:
+        for ch in ["mu","el"]:
+            makeplots(year,ch)
     sys.exit()
 
 
 if ch=="mu":
 
     ## read MuG samples
-    sampManMuG= SampleManager( baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio,
+    sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio,
                                readHists=False , weightHistName = "weighthist", dataFrame = False, quiet = options.quiet)
 
     sampManMuG.ReadSamples( _SAMPCONF )
@@ -77,7 +74,7 @@ if ch=="mu":
 if ch=="el":
 
     ## read ElG samples
-    sampManElG= SampleManager( baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,
+    sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,
                                readHists=False , weightHistName = "weighthist", dataFrame = False, quiet = options.quiet)
 
     sampManElG.ReadSamples( _SAMPCONF )
@@ -101,6 +98,8 @@ teststr='mu_n==1 && el_n==0 && ph_n==1 && met_pt > 40 && mu_pt_rc[0] > 35  && ph
 if ch == "el":
     teststr = "el_n==1 && mu_n==0 && ph_n==1 &&  fabs( el_eta[0] ) < 2.1  && el_pt[0] > 35  &&  el_passTight[0] == 1 && met_pt > 40 && fabs(m_lep_ph-91)>20.0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 80  && !ph_hasPixSeed[0]"
 
+if not os.path.isdir( "data/btag") :
+    os.makedirs( "data/btag" )
 f1 = ROOT.TFile("data/btag/btageff%i%s.root"%(year,ch),"RECREATE")
 ## cutsets
 for key, (selfull, weight) in cutsetdict.iteritems():
@@ -120,7 +119,7 @@ samples.Draw("jet_eta:jet_pt",teststr + "&& jet_flav==0 && jet_bTagDeepb > %g" %
 #samples.SaveStack("hnuml%i%s.pdf" %(year,ch), options.outputDir, "base")
 hnuml = samples["__AllStack__"].hist.Clone("hnuml")
 heffl = samples["__AllStack__"].hist.Clone("heffl")
-heffl.Divide(hbasel)
+heffl.Divide(hnuml,hbasel,1,1,"B")
 #heffl.Draw("COLZ TEXT")
 #samples.SaveStack("heffl%i%s.pdf" %(year,ch), options.outputDir, "base")
 
@@ -133,7 +132,7 @@ samples.Draw("jet_eta:jet_pt",teststr + "&& jet_flav==4 && jet_bTagDeepb > %g" %
 #samples.SaveStack("hnumc%i%s.pdf" %(year,ch), options.outputDir, "base")
 hnumc = samples["__AllStack__"].hist.Clone("hnumc")
 heffc = samples["__AllStack__"].hist.Clone("heffc")
-heffc.Divide(hbasec)
+heffc.Divide(hnumc,hbasec,1,1,"B")
 #heffc.Draw("COLZ TEXT")
 #samples.SaveStack("heffc%i%s.pdf" %(year,ch), options.outputDir, "base")
 
@@ -147,7 +146,7 @@ samples.Draw("jet_eta:jet_pt",teststr + "&& jet_flav==5 && jet_bTagDeepb > %g" %
 #samples.SaveStack("hnumb%i%s.pdf" %(year,ch), options.outputDir, "base")
 hnumb = samples["__AllStack__"].hist.Clone("hnumb")
 heffb = samples["__AllStack__"].hist.Clone("heffb")
-heffb.Divide(hbaseb)
+heffb.Divide(hnumb,hbaseb,1,1,"B")
 #heffb.Draw("COLZ TEXT")
 #samples.SaveStack("heffb%i%s.pdf" %(year,ch), options.outputDir, "base")
 
