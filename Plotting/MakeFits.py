@@ -36,6 +36,7 @@ parser.add_argument( '--noRunCombine',  action='store_true', help='Dont run comb
 parser.add_argument( '--combineDir',    default=None,        help='path to combine directory' )
 parser.add_argument( '--condor',        action='store_true', help='run condor jobs' )
 parser.add_argument( '--paramodel',        action='store_true', help='Use fully para model' )
+parser.add_argument( '--usedata',        action='store_true', help='Unblind data' )
 
 options = parser.parse_args()
 
@@ -1204,6 +1205,9 @@ class MakeLimits( ) :
 
         fname = '%s/bkgfit/%i/%s' %( self.baseDir, ibin['year'],
                                      self.wskeys[bkgn].GetRootFileName() )
+        if options.usedata:
+            fname = '%s/bkgfit_data/%i/%s' %( self.baseDir, ibin['year'],
+                                         self.wskeys[bkgn].GetRootFileName() )
         ofile = ROOT.TFile.Open( fname , 'READ' )
 
         ws_in = ofile.Get( self.wskeys[bkgn].GetWSName() )
