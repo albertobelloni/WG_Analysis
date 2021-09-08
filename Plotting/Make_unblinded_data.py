@@ -39,6 +39,23 @@ def import_workspace( ws , objects):
     for o in objects:
         getattr( ws, "import") ( o )
 
+### sets up the margins of the canvas ###
+def canvas_margin(c1, c1_up, c1_down):
+  c1_up.SetTopMargin( 0.07 )
+  c1_up.SetBottomMargin( 0.02 )
+  c1_up.SetLeftMargin( 0.15 )
+  c1_up.SetRightMargin( 0.03 )
+
+  c1_down.SetTopMargin( 0.03 )
+  c1_down.SetBottomMargin( 0.4 )
+  c1_down.SetLeftMargin( 0.15 )
+  c1_down.SetRightMargin( 0.03 )
+
+  c1.SetTopMargin( 0.05 )
+  c1.SetBottomMargin( 0.13 )
+  c1.SetRightMargin( 0.05 )
+  c1.SetLeftMargin( 0.16 )
+
 # ---------------------------------------------------
 
 def prepare_data(frac, year, ch, skimtree, skimfile):
@@ -61,7 +78,7 @@ def prepare_data(frac, year, ch, skimtree, skimfile):
 def prepareWS(year,baseDir,skimtree,skimfile):
 
     #prepare Working Space with Roofit
-    #Readin Data
+    #Reading Data
     mt_res = ROOT.RooRealVar("mt_res", "mt_res", 0, 2000);
     mt_res.setRange( MIN_ ,MAX_)
     F=ROOT.TFile(baseDir+'/el'+year+'_'+skimfile)
@@ -104,30 +121,136 @@ def prepareWS(year,baseDir,skimtree,skimfile):
     resu_m = func_pdf_m.fitTo(dsm,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
     frame_e = mt_res.frame(ROOT.RooFit.Title("Unbinned ML fit, el"))
     frame_m = mt_res.frame(ROOT.RooFit.Title("Unbinned ML fit, mu"))
-    dse.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2)) ;
+    dse.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+    dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+    func_pdf_m.plotOn(frame_m, ROOT.RooFit.VisualizeError(resu_m, 1,ROOT.kFALSE),ROOT.RooFit.FillColor(ROOT.kOrange))
+    func_pdf_e.plotOn(frame_e, ROOT.RooFit.VisualizeError(resu_e, 1), ROOT.RooFit.FillColor(ROOT.kOrange))
+    #func_pdf_m.plotOn(frame_m, ROOT.RooFit.VisualizeError(resu_m, 1), ROOT.RooFit.FillColor(ROOT.kOrange))
     func_pdf_e.plotOn(frame_e)
-    dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2)) ;
     func_pdf_m.plotOn(frame_m)
+    dse.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+    dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2)) 
+
     print("===> fit result")
     resu_e.Print()
     print("===> fit result")
     resu_m.Print()
-    c = ROOT.TCanvas("c","c",600,600) ;
-    ROOT.gPad.SetLeftMargin(0.15)
-    frame_e.GetYaxis().SetTitleOffset(1.8)
-    ROOT.gPad.SetLogy()
-    frame_e.Draw()
-    c.SaveAs('%s/%s/el.C' %( data_outDir,year))
-    c.SaveAs('%s/%s/el.root' %( data_outDir,year))
-    c.SaveAs('%s/%s/el.png' %( data_outDir,year))
-    c = ROOT.TCanvas("c","c",600,600) ;
-    ROOT.gPad.SetLeftMargin(0.15)
-    ROOT.gPad.SetLogy()
-    frame_m.GetYaxis().SetTitleOffset(1.8)
-    frame_m.Draw()
-    c.SaveAs('%s/%s/mu.C' %( data_outDir,year))
-    c.SaveAs('%s/%s/mu.root' %( data_outDir,year))
-    c.SaveAs('%s/%s/mu.png' %( data_outDir,year))
+
+    #plot 
+    for ch, frame in zip(["mu","el"],[frame_m, frame_e]):
+        c = ROOT.TCanvas("c","c",600,600) ;
+        ROOT.gStyle.SetOptStat(0)
+        c.SetFillColor(0)
+        c.SetBorderMode(0)
+        c.SetBorderSize(2)
+        c.SetFrameBorderMode(0)
+        #------------>Primitives in pad: toppad
+        toppad = ROOT.TPad('toppad','toppad',0,0.3 ,1.0,1.0)
+        bottompad = ROOT.TPad('bottompad','bottompad',0,0.0,1.0,0.32)
+        canvas_margin(c,toppad,bottompad)
+        toppad.SetFillStyle(4000)
+        toppad.SetFrameFillStyle(1000)
+        toppad.SetFrameFillColor(0)
+        toppad.SetFillColor(0)
+        toppad.SetBorderMode(0)
+        toppad.SetBorderSize(2)
+        toppad.SetLogy()
+        toppad.SetFrameBorderMode(0)
+        toppad.SetFrameBorderMode(0)
+        toppad.SetLeftMargin(0.15)
+        bottompad.SetFillStyle(4000)
+        bottompad.SetFrameFillStyle(1000)
+        bottompad.SetFrameFillColor(0)
+        bottompad.SetFillColor(0)
+        bottompad.SetBorderMode(0)
+        bottompad.SetBorderSize(2)
+        bottompad.SetFrameBorderMode(0)
+        bottompad.SetFrameBorderMode(0)
+        toppad.Draw()
+        bottompad.Draw()
+
+        c.cd()
+        c.Update()
+        c.RedrawAxis()
+        cframe = c.GetFrame()
+        cframe.Draw()
+        toppad.cd()
+        frame_4fa51a0__1 = ROOT.TH1D("frame_4fa51a0__1","Unbinned ML fit, %s %s"%(ch,year),100,200,2000)
+        frame_4fa51a0__1.GetXaxis().SetTitle("mt_res");
+        frame_4fa51a0__1.GetXaxis().SetLabelFont(42);
+        frame_4fa51a0__1.GetXaxis().SetLabelSize(0.05);
+        frame_4fa51a0__1.GetXaxis().SetTitleSize(0.05);
+        frame_4fa51a0__1.GetXaxis().SetTitleOffset(1);
+        frame_4fa51a0__1.GetXaxis().SetTitleFont(42);
+        frame_4fa51a0__1.GetYaxis().SetTitle("Events / ( 18 )");
+        frame_4fa51a0__1.GetYaxis().SetLabelFont(42);
+        frame_4fa51a0__1.GetYaxis().SetLabelSize(0.05);
+        frame_4fa51a0__1.GetYaxis().SetTitleSize(0.05);
+        frame_4fa51a0__1.GetYaxis().SetTitleFont(42);
+        frame_4fa51a0__1.GetYaxis().SetRangeUser(0.1,1e3)
+        frame_4fa51a0__1.GetXaxis().SetLabelOffset(999)
+        frame_4fa51a0__1.GetXaxis().SetLabelSize(0)
+        frame_4fa51a0__1.Draw("AXISSAME");
+        frame.Draw("same")
+
+        hpull = frame.pullHist()
+        frame3 = mt_res.frame(ROOT.RooFit.Title("Pull Distribution"))
+        frame3.addPlotable(hpull, "P")
+
+        leg = ROOT.TLegend(0.55,0.6,0.95,0.85);
+        leg.SetBorderSize(0);
+        leg.SetLineStyle(1);
+        leg.SetLineWidth(1);
+        entry=leg.AddEntry(frame,"data","lp");
+        entry.SetFillStyle(1001);
+        entry.SetMarkerStyle(8);
+        entry.SetMarkerSize(1.5);
+        entry.SetLineStyle(1);
+        entry.SetLineWidth(2);
+        entry.SetTextFont(42);
+        entry.SetTextSize(0.06);
+        entry=leg.AddEntry("","Fit","l");
+        entry.SetFillStyle(1001);
+        entry.SetLineStyle(1);
+        entry.SetLineWidth(2);
+        entry.SetLineColor(ROOT.kBlue);
+        entry.SetMarkerStyle(20);
+        entry.SetTextFont(42);
+        entry.SetTextSize(0.06);
+        htmp=ROOT.TH1F("htmp","htmp",10,0,1)
+        htmp.SetFillColor(ROOT.kOrange)
+        entry=leg.AddEntry(htmp,"1-sigma error band","f");
+        entry.SetFillStyle(1001);
+        entry.SetLineStyle(1);
+        entry.SetLineWidth(2);
+        entry.SetMarkerStyle(20);
+        entry.SetTextFont(42);
+        entry.SetTextSize(0.06);
+        leg.Draw()
+        
+        bottompad.cd()
+        frame_4fa51a0__2 = ROOT.TH1D("frame_4fa51a0__2","",100,200,2000)
+        frame_4fa51a0__2.GetXaxis().SetTitle("mt_res [GeV]");
+        frame_4fa51a0__2.GetXaxis().SetLabelFont(42);
+        frame_4fa51a0__2.GetXaxis().SetLabelSize(0.1);
+        frame_4fa51a0__2.GetXaxis().SetTitleSize(0.1);
+        frame_4fa51a0__2.GetXaxis().SetTitleOffset(1);
+        frame_4fa51a0__2.GetXaxis().SetTitleFont(42);
+        frame_4fa51a0__2.GetYaxis().SetTitle("Pull");
+        frame_4fa51a0__2.GetYaxis().SetLabelFont(42);
+        frame_4fa51a0__2.GetYaxis().SetLabelSize(0.15);
+        frame_4fa51a0__2.GetYaxis().SetTitleSize(0.15);
+        frame_4fa51a0__2.GetYaxis().SetTitleFont(42);
+        frame_4fa51a0__2.GetYaxis().SetNdivisions(4)
+        frame_4fa51a0__2.GetYaxis().SetRangeUser(-3,3)
+        frame_4fa51a0__2.GetYaxis().SetTitleOffset(0.4)
+        frame_4fa51a0__2.Draw("AXISSAME");
+        frame3.Draw("same")
+        c.SaveAs('fit_%s%s.png' %( year,ch))
+        c.SaveAs('%s/%s/%s.C' %( data_outDir,year,ch))
+        c.SaveAs('%s/%s/%s.root' %( data_outDir,year,ch))
+        c.SaveAs('%s/%s/%s.png' %( data_outDir,year,ch))
+        
     #Work space
     ws_out  = ROOT.RooWorkspace( "workspace_all" )
     rootfilename = '%s/%s/%s.root' %( data_outDir,year,ws_out.GetName() )
@@ -145,7 +268,7 @@ def prepareWS(year,baseDir,skimtree,skimfile):
     ws_out.writeToFile( rootfilename )
 
 
-def foodnessOfFit(year,baseDir,skimtree,skimfile):
+def goodnessOfFit(year,baseDir,skimtree,skimfile):
 
     rootfilename = '%s/%s/%s.root' %( data_outDir,year,'workspace_all' )
     ifile = ROOT.TFile.Open( rootfilename, 'READ' )
@@ -193,15 +316,64 @@ def foodnessOfFit(year,baseDir,skimtree,skimfile):
     input()
    
 
+def CombineGoF(ch, year):
+    mass = '300'
+    c = ROOT.TCanvas()
+    ROOT.gStyle.SetOptStat(0)
+    #rootfilename = 'data/higgs/Width5/all/Mass2000/higgsCombine.saturated.GoodnessOfFit.mH120.root'
+    rootfilename = 'data/higgs/Width5/%s%s/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.root' %( ch,year ,mass)
+    ifile = ROOT.TFile.Open( rootfilename, 'READ' )
+    tree = ifile.Get( 'limit' )
+    for e in tree:
+        print e.limit
+        datalimit =  e.limit
+    rootfilename = 'data/higgs/Width5/%s%s/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.1234.root' %( ch,year ,mass)
+    #rootfilename = 'data/higgs/Width5/all/Mass2000/higgsCombine.saturated.GoodnessOfFit.mH120.1234.root'
+    ifile = ROOT.TFile.Open( rootfilename, 'READ' )
+    tree = ifile.Get( 'limit' )
+    tree.Show(0)
+    hlimit = ROOT.TH1D("hlimit", "Goodness of Fit (%s %s);limit;"%(ch,year), 60, 0, 500);
+    tree.Draw("limit>>hlimit")
+    hlimit.SetLineColor(ROOT.kRed)
+    ln = ROOT.TLine(datalimit, 0, datalimit, 0.9*hlimit.GetMaximum())
+    ln.SetLineStyle(10)
+    ln.SetLineWidth(3)
+
+    hlimit.Draw("HIST")
+    ln.Draw("same")
+
+    leg = ROOT.TLegend(0.61,0.6,0.8,0.85);
+    leg.SetBorderSize(0);
+    leg.SetLineStyle(1);
+    leg.SetLineWidth(1);
+    entry=leg.AddEntry("hlimit","toy-data","l");
+    entry.SetFillStyle(1001);
+    entry.SetLineStyle(1);
+    entry.SetLineWidth(1);
+    entry.SetTextFont(42);
+    entry.SetTextSize(0.1);
+    entry=leg.AddEntry("ln","Data","l");
+    entry.SetFillStyle(1001);
+    entry.SetLineStyle(1);
+    entry.SetLineWidth(1);
+    entry.SetMarkerStyle(20);
+    entry.SetTextFont(42);
+    entry.SetTextSize(0.1);
+    leg.Draw()
+    input()
+    c.SaveAs('year'+ch+year+"_Mass"+mass+"_hlimit.C")
+    c.SaveAs('year'+ch+year+"_Mass"+mass+"_hlimit.png")
+
 
 
 skimtree   =  "outputTree"
-skimfile     =  "skim.root"
+skimfile     =  "skim_1in5.root"
 
-for year in ['2018']:#,'2017','2018']:
-    foodnessOfFit(year,data_outDir,skimtree,skimfile)
-    #prepareWS(year,data_outDir,skimtree,skimfile)
+for year in ['2016','2017','2018']:
+    #goodnessOfFit(year,data_outDir,skimtree,skimfile)
+    prepareWS(year,data_outDir,skimtree,skimfile)
     #for ch in ['el','mu']:
+    #    CombineGoF(ch, year)
         #prepare_data(1, year, ch, skimtree, data_outDir+'/'+ch+year+'_'+skimfile)
 
 

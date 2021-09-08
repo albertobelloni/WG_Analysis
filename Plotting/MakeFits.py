@@ -37,6 +37,7 @@ parser.add_argument( '--combineDir',    default=None,        help='path to combi
 parser.add_argument( '--condor',        action='store_true', help='run condor jobs' )
 parser.add_argument( '--paramodel',        action='store_true', help='Use fully para model' )
 parser.add_argument( '--usedata',        action='store_true', help='Unblind data' )
+parser.add_argument( '--GoF',        action='store_true', help='Do Goodness of Fit' )
 
 options = parser.parse_args()
 
@@ -144,6 +145,9 @@ def main() :
     #                   1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3500, 4000]
     signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
     signal_widths    = ['5', '0p01']
+    signal_masses    = [300, 2000]
+    signal_widths    = ['5']
+
 
     fitrangefx = lambda m : (200,200+1.5*m) if m<625 else (400,2000)
 
@@ -848,7 +852,11 @@ class MakeLimits( ) :
             bin_id = binid(ibin)
             ###  DATA (=1) X CH
             data = self.datas[self.dataname+binid(ibin)]
-            card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, data['file'], data['workspace'], data['data'][cuttag] ) )
+            #Yihui -- use real data instead of toy
+            if options.usedata:
+                card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, options.baseDir+'/bkgfit_data/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) )
+            else:
+                card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, data['file'], data['workspace'], data['data'][cuttag] ) )
 
         card_entries.append( section_divider )
 
@@ -891,7 +899,7 @@ class MakeLimits( ) :
             for bkgname, bkg in self.backgrounds.iteritems():
                 #rate_entries.append( str(bkgdic['norm'][bin_id]) )
                 jbin = ibin['channel']+cuttag+str(ibin["year"])
-                print jbin
+                #print jbin
                 rate_entries.append( bkg.norm[jbin][0] )
                 #bkg rate
                 #rate_entries.append( str(1.0) )
@@ -938,8 +946,9 @@ class MakeLimits( ) :
                 for bkgname, bkg in self.backgrounds.iteritems():
                     bkgsysstr = sysstr(bkg.sys[bin_id][cuttag].get(sn))
                     sys_line.append(bkgsysstr)
-            #Yihui -- no syst
-            card_entries.append( listformat(sys_line, "%-15s"))
+            #Yihui -- no syst when do GoF
+            if not options.GoF:
+                card_entries.append( listformat(sys_line, "%-15s"))
 
 
         ## hard coded shape uncertainty
@@ -1350,6 +1359,7 @@ class MakeLimits( ) :
         ws_entry_sysup   = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "up"])
 
         ## open json file for shifted mean value
+        #FIXME do we need this for the fully parameterized signal model? -- Yihui
         if not self.noShapeUnc:
             filepath = "data/sigfit/fitted_mass%i.txt" %ibin['year']
             #if options.paramodel :
@@ -1659,7 +1669,10 @@ class MakeLimits( ) :
 
             command+= 'combine -M AsymptoticLimits -m %d %s %s >& %s'\
                         %( mass, flagstr, card, log_file )
-
+            #do goodness of fit -- Yihui
+            if options.GoF:
+                command = 'combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 >& %s \n' %(card, 'goodnessdata'+log_file)
+                command+= 'combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 -t 500 -s 1234 --toysFreq  >& %s \n' %(card, 'goodnesstoy'+log_file)
 
         if self.method == 'AsymptoticLimitsManual' :
             command = ''
