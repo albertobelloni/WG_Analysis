@@ -1924,12 +1924,12 @@ class SampleManager(SampleFrame) :
                 if canname is not None :
                     if canname not in self.curr_canvases :
                         print 'provided can name does not exist'
-                    #seems to cause the MakeSystematics.py error 
-                    #else :
-                    #    self.curr_canvases[canname].SaveAs(histnamepdf)
-                    #    self.curr_canvases[canname].SaveAs(histnameeps)
-                    #    self.curr_canvases[canname].SaveAs(histnameroot)
-                    #    self.curr_canvases[canname].SaveAs(histnamepng)
+                    #Yihui - seems to cause the MakeSystematics.py error 
+                    else :
+                        self.curr_canvases[canname].SaveAs(histnamepdf)
+                        self.curr_canvases[canname].SaveAs(histnameeps)
+                        self.curr_canvases[canname].SaveAs(histnameroot)
+                        self.curr_canvases[canname].SaveAs(histnamepng)
 
                 else :
 
@@ -3562,7 +3562,10 @@ class SampleManager(SampleFrame) :
 
                 if not self.dataFrame or dataframefailed:
                     drawstr = varexp + ' >> ' + sample.hist.GetName()
-                    res = sample.chain.Draw( drawstr, selection , 'goff' )
+                    print('drawstr, selection', drawstr, selection)
+                    #Yihui --- unblind error
+                    res = sample.chain.Draw( drawstr, selection , '' )
+                    #res = sample.chain.Draw( drawstr, selection , 'goff' )
 
                 if res < 0 :
                     sample.failed_draw=True

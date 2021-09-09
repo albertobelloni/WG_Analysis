@@ -77,3 +77,4 @@ DrawCMSLogo(pads[0], 'CMS', 'Simulation Work in Progress', 11, 0.100, 0.035, 1.2
 
 canv.Print('.pdf')
 canv.Print('.png')
+canv.Print('.C')
