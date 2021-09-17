@@ -11,7 +11,7 @@ from functools import wraps
 from DrawConfig import DrawConfig
 #gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
 #from ROOT import RooDoubleCB
-
+import json
 
 ROOT.gStyle.SetPalette(ROOT.kBird)
 
@@ -1049,6 +1049,37 @@ class FitManager :
         mass_vals   = ( mass,  0.5*mass,  1.1*mass )
         cut2_vals   = (  1.5,       1.,       2.5  )
         power2_vals = (  4.0,       0.,       10.0  )
+        # use a function 
+        f = open ('data/para_fit.txt', "r")
+        sigfitparams = json.loads(f.read())
+        paramname = ['cb_sigma_MG_Mass_Width_CHYEAR','cb_cut1_MG_Mass_Width_CHYEAR']#'cb_mass_MG_Mass_Width_CHYEAR','cb_MG_Mass_Width_CHYEAR_norm']
+        for ipar in paramname:
+            print(ipar)
+            iipar = ipar.replace("YEAR",str(2016))
+            iipar = iipar.replace("CH",str('el'))
+            if str(width)=='5':
+                iipar = iipar.replace("idth",str(5)) 
+            else:
+                iipar = iipar.replace("idth",str('0p01'))
+            if sigfitparams[iipar]['func'] == 'expnorm':
+                func = ROOT.TF1('func', '[0] - [1]*TMath::Exp(-x/[2])', 0, 3000)
+                func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
+            elif sigfitparams[iipar]['func'] == 'expcut1':
+                func = ROOT.TF1('func', '[0] + [1]*TMath::Exp(-x/[2])', 0, 3000)
+                func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
+            elif sigfitparams[iipar]['func'] == 'inv':
+                func = ROOT.TF1('func', "[0] + [1]/(x-[2])", 0, 3000)
+                func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
+            elif sigfitparams[iipar]['func'] == 'pol1':
+                func = ROOT.TF1('func', 'pol1', 0, 3000)
+                func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'])
+            else:
+                func = ROOT.TF1('func', 'pol2', 0, 3000)
+                func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
+            if 'cb_cut1' in ipar:
+                cut1_vals   = (  func.Eval(int(mass)),       0.1,      2.0  )
+            if 'cb_sigma' in ipar:
+                sigma_vals  = ( func.Eval(int(mass)) ,       1. ,      200. ) 
 
         cb_cut1   = ROOT.RooRealVar('cb_cut1_%s'   %self.label,   'Cut1'  ,
                                    cut1_vals[0],   cut1_vals[1],   cut1_vals[2],   '')

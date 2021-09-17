@@ -20,10 +20,10 @@ Date = '2021_08_27'
 for year in ['2016','2017','2018']:
     for ch in ['el','mu']:
         if ch == 'el':
-            FileMap[year+ch] = glob.glob('/data2/users/kakw/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/SingleElectron/Job*/tree.root')
-            if(year=='2018'): FileMap[year+ch] = glob.glob('/data2/users/kakw/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/EGamma/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF2/SingleElectron/Job*/tree.root')
+            if(year=='2018'): FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF2/EGamma/Job*/tree.root')
         if ch == 'mu':
-            FileMap[year+ch] = glob.glob('/data2/users/kakw/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF/SingleMuon/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF2/SingleMuon/Job*/tree.root')
             
 print('Loaded FileMap')
 
@@ -64,13 +64,17 @@ def prepare_data(frac, year, ch, skimtree, skimfile):
     for n in FileMap[year+ch]: names.push_back(n)
     d = ROOT.RDataFrame(treeIn, names)
     #hardcoded selections
+    print('hardcoded selections')
     if ch=='el':
-        myfilter = d.Filter("el_n==1&& mu_n==0 && ph_n==1&&  fabs( el_eta[0] ) < 2.1&& el_pt[0] > 35  &&  el_passTight[0] == 1 && met_pt > 40 && fabs(m_lep_ph-91)>20.0 && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.50*mt_res - 40 && ph_pt[0] < 0.50*mt_res + 40&& !ph_hasPixSeed[0]").Range(0,0,frac)
+        myfilter = d.Filter("el_n==1&& mu_n==0 && ph_n==1&&  fabs( el_eta[0] ) < 2.1&& el_pt[0] > 35  &&  el_passTight[0] == 1 && met_pt > 40 && fabs(m_lep_ph-91)>20.0 && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res && !ph_hasPixSeed[0]").Range(1,0,frac)
+        #myfilter = d.Filter("el_n==1&& mu_n==0 && ph_n==1&&  fabs( el_eta[0] ) < 2.1&& el_pt[0] > 35  &&  el_passTight[0] == 1 && met_pt > 40 && fabs(m_lep_ph-91)>20.0 && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res && !ph_hasPixSeed[0]")
     elif ch=='mu':
-        myfilter = d.Filter("mu_n==1 && el_n==0 && ph_n==1 && met_pt > 40 && mu_pt_rc[0] > 35  && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.50*mt_res - 40 && ph_pt[0] < 0.50*mt_res + 40 && !ph_hasPixSeed[0]").Range(0,0,frac)
+        myfilter = d.Filter("mu_n==1 && el_n==0 && ph_n==1 && met_pt > 40 && mu_pt_rc[0] > 35  && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res && !ph_hasPixSeed[0]").Range(1,0,frac)
+        #myfilter = d.Filter("mu_n==1 && el_n==0 && ph_n==1 && met_pt > 40 && mu_pt_rc[0] > 35  && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res && !ph_hasPixSeed[0]")
     else:
         print("use el or mu")
         exit()
+    print('make histo')
     Hmt = myfilter.Histo1D("mt_res")
     Hmt.Draw()
     myfilter.Snapshot(skimtree, skimfile)
@@ -84,12 +88,14 @@ def prepareWS(year,baseDir,skimtree,skimfile):
     F=ROOT.TFile(baseDir+'/el'+year+'_'+skimfile)
     tree=F.Get(skimtree)
     print('read ',baseDir+'/el'+year+'_'+skimfile)
-    print('tot:',tree.GetEntries())
+    #print('tot:',tree.GetEntries())
+    netot = tree.GetEntries()
     dse = ROOT.RooDataSet('data_elA'+year+'_mt_res_base', "dse", ROOT.RooArgSet(mt_res), ROOT.RooFit.Import(tree));
     F=ROOT.TFile(baseDir+'/mu'+year+'_'+skimfile)
     tree=F.Get(skimtree)
     print('read ',baseDir+'/mu'+year+'_'+skimfile)
-    print('tot:',tree.GetEntries())
+    #print('tot:',tree.GetEntries())
+    nmtot = tree.GetEntries()
     dsm = ROOT.RooDataSet('data_muA'+year+'_mt_res_base', "dsm", ROOT.RooArgSet(mt_res), ROOT.RooFit.Import(tree));
     #dijet_elA2016_all_dijet_norm,dijet_muA2016_all_dijet_norm
     ne = dse.sumEntries("mt_res>200")
@@ -100,10 +106,17 @@ def prepareWS(year,baseDir,skimtree,skimfile):
     integral_var_m = ROOT.RooRealVar('%s_norm' %( 'dijet_muA'+year+'_all_dijet' ),
                         'normalization', nm )
     #dijet_order1_elA2016_all_dijet,dijet_order1_muA2016_all_dijet,dijet_order2_elA2016_all_dijet,dijet_order2_muA2016_all_dijet
-    dijet_order1_e = ROOT.RooRealVar('dijet_order1_elA'+year+'_all_dijet', "power1", -9.1155748, -50.0, 0.0)
-    dijet_order1_m = ROOT.RooRealVar('dijet_order1_muA'+year+'_all_dijet', "power1", -9, -50.0, 0.0)
-    dijet_order2_e = ROOT.RooRealVar('dijet_order2_elA'+year+'_all_dijet', "power2", -1.4998414, -10.0, 0.0)
-    dijet_order2_m = ROOT.RooRealVar('dijet_order2_muA'+year+'_all_dijet', "power2", -1, -10.0, 0.0)
+    dijet_order1_e = ROOT.RooRealVar('dijet_order1_elA'+year+'_all_dijet', "power1", -9, -50.0, 0)
+    dijet_order1_m = ROOT.RooRealVar('dijet_order1_muA'+year+'_all_dijet', "power1", -9, -50.0, 0)
+    dijet_order2_e = ROOT.RooRealVar('dijet_order2_elA'+year+'_all_dijet', "power2", -1.5, -10.0, 0)
+    dijet_order2_m = ROOT.RooRealVar('dijet_order2_muA'+year+'_all_dijet', "power2", -1.5, -10.0, 0)
+
+    #dijet_order3_e = ROOT.RooRealVar('dijet_order3_elA'+year+'_all_dijet', "power3", -1.5, -100.0, 0)
+    #dijet_order3_m = ROOT.RooRealVar('dijet_order3_muA'+year+'_all_dijet', "power3", -1.5, -100.0, 0)
+
+    #dijet_order3_e = ROOT.RooRealVar('dijet_order3_elA'+year+'_all_dijet', "power3", 1.5, -10.0, 10)
+    #dijet_order3_m = ROOT.RooRealVar('dijet_order3_muA'+year+'_all_dijet', "power3", 1.5, -10.0, 10)
+
     #p.d.f
     function = ''
     func_name = 'dijet'
@@ -113,9 +126,13 @@ def prepareWS(year,baseDir,skimtree,skimfile):
         for i in range( 1, 2) :
             order_entries.append('@'+str(i+1)+'*' + '*'.join( [log_str]*i))
         function = 'TMath::Power( @0/13000., @1 + ' + '+'.join( order_entries) + ')'
-        print "function: ", function
+        #print "function: ", function
+        #function = 'TMath::Power( @0/13000., @1 + @2*TMath::Log10(@0/13000)*(1+@3*TMath::Log10(@0/13000)))'
         func_pdf_e = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'elA'+year+'_all_dijet'), func_name, function, ROOT.RooArgList(mt_res,dijet_order1_e,dijet_order2_e))
         func_pdf_m = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'muA'+year+'_all_dijet'), func_name, function, ROOT.RooArgList(mt_res,dijet_order1_m,dijet_order2_m))
+        #func_pdf_e = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'elA'+year+'_all_dijet'), func_name, function, ROOT.RooArgList(mt_res,dijet_order1_e,dijet_order2_e, dijet_order3_e))
+        #func_pdf_m = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'muA'+year+'_all_dijet'), func_name, function, ROOT.RooArgList(mt_res,dijet_order1_m,dijet_order2_m, dijet_order3_m))
+
     #Fit to model
     resu_e = func_pdf_e.fitTo(dse,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
     resu_m = func_pdf_m.fitTo(dsm,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
@@ -123,9 +140,8 @@ def prepareWS(year,baseDir,skimtree,skimfile):
     frame_m = mt_res.frame(ROOT.RooFit.Title("Unbinned ML fit, mu"))
     dse.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
     dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
-    func_pdf_m.plotOn(frame_m, ROOT.RooFit.VisualizeError(resu_m, 1,ROOT.kFALSE),ROOT.RooFit.FillColor(ROOT.kOrange))
+    func_pdf_m.plotOn(frame_m, ROOT.RooFit.VisualizeError(resu_m, 1),ROOT.RooFit.FillColor(ROOT.kOrange))
     func_pdf_e.plotOn(frame_e, ROOT.RooFit.VisualizeError(resu_e, 1), ROOT.RooFit.FillColor(ROOT.kOrange))
-    #func_pdf_m.plotOn(frame_m, ROOT.RooFit.VisualizeError(resu_m, 1), ROOT.RooFit.FillColor(ROOT.kOrange))
     func_pdf_e.plotOn(frame_e)
     func_pdf_m.plotOn(frame_m)
     dse.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
@@ -133,11 +149,17 @@ def prepareWS(year,baseDir,skimtree,skimfile):
 
     print("===> fit result")
     resu_e.Print()
+    print("chi^2 = ", frame_e.chiSquare())
+    print("netot:", netot)
     print("===> fit result")
     resu_m.Print()
+    print "function: ", function
+    print("chi^2 = ", frame_m.chiSquare())
+    print("nmtot:", nmtot)
+    #return 
 
     #plot 
-    for ch, frame in zip(["mu","el"],[frame_m, frame_e]):
+    for ch, frame in zip(["el","mu"],[frame_e, frame_m]):
         c = ROOT.TCanvas("c","c",600,600) ;
         ROOT.gStyle.SetOptStat(0)
         c.SetFillColor(0)
@@ -246,6 +268,7 @@ def prepareWS(year,baseDir,skimtree,skimfile):
         frame_4fa51a0__2.GetYaxis().SetTitleOffset(0.4)
         frame_4fa51a0__2.Draw("AXISSAME");
         frame3.Draw("same")
+        #input()
         c.SaveAs('fit_%s%s.png' %( year,ch))
         c.SaveAs('%s/%s/%s.C' %( data_outDir,year,ch))
         c.SaveAs('%s/%s/%s.root' %( data_outDir,year,ch))
@@ -261,6 +284,8 @@ def prepareWS(year,baseDir,skimtree,skimfile):
     import_workspace( ws_out, dijet_order1_m )
     import_workspace( ws_out, dijet_order2_e )
     import_workspace( ws_out, dijet_order2_m )
+    #import_workspace( ws_out, dijet_order3_e )
+    #import_workspace( ws_out, dijet_order3_m )
     import_workspace( ws_out, func_pdf_e )
     import_workspace( ws_out, func_pdf_m )
     import_workspace( ws_out, integral_var_e )
@@ -320,42 +345,55 @@ def CombineGoF(ch, year):
     mass = '300'
     c = ROOT.TCanvas()
     ROOT.gStyle.SetOptStat(0)
-    #rootfilename = 'data/higgs/Width5/all/Mass2000/higgsCombine.saturated.GoodnessOfFit.mH120.root'
-    rootfilename = 'data/higgs/Width5/%s%s/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.root' %( ch,year ,mass)
+    rootfilename = 'data/higgs/Width5/all/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.root'%(mass)
+    #rootfilename = 'data/higgs/Width5/%s%s/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.root' %( ch,year ,mass)
     ifile = ROOT.TFile.Open( rootfilename, 'READ' )
     tree = ifile.Get( 'limit' )
     for e in tree:
         print e.limit
         datalimit =  e.limit
-    rootfilename = 'data/higgs/Width5/%s%s/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.1234.root' %( ch,year ,mass)
-    #rootfilename = 'data/higgs/Width5/all/Mass2000/higgsCombine.saturated.GoodnessOfFit.mH120.1234.root'
+    #rootfilename = 'data/higgs/Width5/%s%s/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.1234.root' %( ch,year ,mass)
+    rootfilename = 'data/higgs/Width5/all/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.1234.root'%(mass)
     ifile = ROOT.TFile.Open( rootfilename, 'READ' )
     tree = ifile.Get( 'limit' )
     tree.Show(0)
-    hlimit = ROOT.TH1D("hlimit", "Goodness of Fit (%s %s);limit;"%(ch,year), 60, 0, 500);
+    hlimit = ROOT.TH1D("hlimit", "Goodness of Fit (%s %s);limit;"%(ch,year), 60, 0, 600);
     tree.Draw("limit>>hlimit")
     hlimit.SetLineColor(ROOT.kRed)
     ln = ROOT.TLine(datalimit, 0, datalimit, 0.9*hlimit.GetMaximum())
     ln.SetLineStyle(10)
     ln.SetLineWidth(3)
-
+    tot = 0
+    for i in range(1,hlimit.GetNbinsX()):
+        if hlimit.GetBinCenter(i)<=datalimit:
+            tot+=hlimit.GetBinContent(i)
+        else:
+            break
+    print(1-tot/500.0)
     hlimit.Draw("HIST")
     ln.Draw("same")
 
-    leg = ROOT.TLegend(0.61,0.6,0.8,0.85);
+    leg = ROOT.TLegend(0.11,0.6,0.3,0.85);
     leg.SetBorderSize(0);
     leg.SetLineStyle(1);
     leg.SetLineWidth(1);
     entry=leg.AddEntry("hlimit","toy-data","l");
     entry.SetFillStyle(1001);
     entry.SetLineStyle(1);
-    entry.SetLineWidth(1);
+    entry.SetLineWidth(3);
     entry.SetTextFont(42);
     entry.SetTextSize(0.1);
     entry=leg.AddEntry("ln","Data","l");
     entry.SetFillStyle(1001);
+    entry.SetLineStyle(10);
+    entry.SetLineWidth(3);
+    entry.SetMarkerStyle(20);
+    entry.SetTextFont(42);
+    entry.SetTextSize(0.1);
+    entry=leg.AddEntry("","P=%0.2f"%(1-tot/500.0),"l");
+    entry.SetFillStyle(1001);
     entry.SetLineStyle(1);
-    entry.SetLineWidth(1);
+    entry.SetLineWidth(0);
     entry.SetMarkerStyle(20);
     entry.SetTextFont(42);
     entry.SetTextSize(0.1);
@@ -367,14 +405,15 @@ def CombineGoF(ch, year):
 
 
 skimtree   =  "outputTree"
-skimfile     =  "skim_1in5.root"
+#skimfile     =  "skim_1in5.root"
+skimfile     =  "skim.root"
 
 for year in ['2016','2017','2018']:
     #goodnessOfFit(year,data_outDir,skimtree,skimfile)
     prepareWS(year,data_outDir,skimtree,skimfile)
     #for ch in ['el','mu']:
     #    CombineGoF(ch, year)
-        #prepare_data(1, year, ch, skimtree, data_outDir+'/'+ch+year+'_'+skimfile)
+    #    prepare_data(1, year, ch, skimtree, data_outDir+'/'+ch+year+'_'+skimfile)
 
 
 

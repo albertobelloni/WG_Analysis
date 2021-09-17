@@ -38,6 +38,7 @@ parser.add_argument( '--condor',        action='store_true', help='run condor jo
 parser.add_argument( '--paramodel',        action='store_true', help='Use fully para model' )
 parser.add_argument( '--usedata',        action='store_true', help='Unblind data' )
 parser.add_argument( '--GoF',        action='store_true', help='Do Goodness of Fit' )
+parser.add_argument( '--NoBKGUnc',        action='store_true', help='No bkg uncertainty, because use data as template' )
 
 options = parser.parse_args()
 
@@ -145,9 +146,11 @@ def main() :
     #                   1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3500, 4000]
     signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
     signal_widths    = ['5', '0p01']
+    if options.GoF:
+        signal_masses    = [300, 2000]
+        signal_widths    = ['5']
     signal_masses    = [300, 2000]
     signal_widths    = ['5']
-
 
     fitrangefx = lambda m : (200,200+1.5*m) if m<625 else (400,2000)
 
@@ -167,13 +170,14 @@ def main() :
                            # don't put norms in new file
                            #keepNorms = False, FIXME
                            noShapeUnc = True,
+                           addShapeUnc2Mass = True,
                            #method = 'AsymptoticLimitsManual', ## only use --condor with manual
                            #manualpoints = [ -1., -0.1,0,0.001,0.01,0.03,0.1,0.2,0.3,0.5,1.,1.5,2.,2.3,2.6,3,
                            #                 3.5,4.,5.,8.,10.]
                            #rmin = 0.1,
                            #rmax = 20,
                            #seed = 123456,
-                           doImpact=False,
+                           doImpact=True,
                            floatBkg =True, ## background parameters will be contrained if False
                            #numberOfToys = 2, ## -1 for Asimov, 0 for "data" (or homemade toy)
                            #freezeParameter = "all", ## "all", "bkg" or "sig", or "s+b", or "constrained"
@@ -330,6 +334,7 @@ class MakeLimits( ) :
 
         #self.keepNorms        = kwargs.get('keepNorms', False )
         self.noShapeUnc       = kwargs.get('noShapeUnc', False)
+        self.addShapeUnc2Mass = kwargs.get('addShapeUnc2Mass', False)
         self.doImpact         = kwargs.get("doImpact", False)
         self.floatBkg         = kwargs.get("floatBkg", False)
         self.numberOfToys     = kwargs.get("numberOfToys", None)
@@ -733,7 +738,7 @@ class MakeLimits( ) :
 
                     card_path = '%s/wgamma_test_%s_%s_%s.txt' %(suboutputdir, self.var, sigpar, binid(obin) )
 
-                    self.generate_card( card_path, sigpar, cuttag = cuttag , obin = obin, imass=int(mass))
+                    self.generate_card( card_path, sigpar, cuttag = cuttag , obin = obin, imass=int(mass), iwid=width)
 
                     self.allcards[sigpar+"_"+binid(obin)] =  card_path
 
@@ -743,7 +748,7 @@ class MakeLimits( ) :
 
                 card_path = '%s/wgamma_test_%s_%s.txt' %(outputdir, self.var, sigpar )
 
-                self.generate_card( card_path, sigpar, cuttag = cuttag , imass=int(mass))
+                self.generate_card( card_path, sigpar, cuttag = cuttag , imass=int(mass), iwid=width)
 
                 self.allcards[sigpar + '_all'] =  card_path
 
@@ -754,7 +759,7 @@ class MakeLimits( ) :
 
 
     @f_Dumpfname
-    def generate_card( self, outputCard, sigpar,  tag='base' , cuttag = "", obin = None, imass = 300) :
+    def generate_card( self, outputCard, sigpar,  tag='base' , cuttag = "", obin = None, imass = 300, iwid='0p01') :
         """
 
             generates card
@@ -945,7 +950,10 @@ class MakeLimits( ) :
 
                 for bkgname, bkg in self.backgrounds.iteritems():
                     bkgsysstr = sysstr(bkg.sys[bin_id][cuttag].get(sn))
-                    sys_line.append(bkgsysstr)
+                    if options.NoBKGUnc:
+                        sys_line.append('-')
+                    else:
+                        sys_line.append(bkgsysstr)
             #Yihui -- no syst when do GoF
             if not options.GoF:
                 card_entries.append( listformat(sys_line, "%-15s"))
@@ -960,7 +968,6 @@ class MakeLimits( ) :
             for bkgname, bkg in self.backgrounds.iteritems():
                 sys_line.append('-')
         if not self.noShapeUnc: card_entries.append( listformat(sys_line, "%-15s"))
-
 
 
         #lumi_vals = ["%-13g "%1.025] * (len(all_binids)*( len(self.backgrounds) + 1 ))
@@ -989,26 +996,37 @@ class MakeLimits( ) :
                 else:
                     card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
 
+        #Yihui -- add shape uncertainty into signal mean mass uncertainty
+        maxshift = 0
+        minshift = 0
+        if self.addShapeUnc2Mass:
+            filepath = "data/sigfit/fitted_mass%i.txt" %ibin['year']
+            with open(filepath, "r") as fo:
+                mshifts = json.load(fo)
+            w="5.0" if iwid=="5" else "0.01"
+            maxshift = mshifts[ibin["channel"]]["%.1f"%int(imass)][w]["max"][1]
+            minshift = mshifts[ibin["channel"]]["%.1f"%int(imass)][w]["min"][1]
+
         for ibin, sig in viablesig:
             #sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
             #if not sig: ## model not exist
             #    continue
             for iparname, iparval in sig['params'].iteritems():
                 if iparval[1] != 0:
-                   card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], iparval[1]))
                    #Yihui --- use smooth signal model
-                   #print(imass, 24.7695+imass*0.0197778+1.21337e-05*imass**2-3.19634e-09*imass**3, 26.5736-0.0111605*imass+8.90339e-06*imass**2-1.42801e-09*imass**3)
-                   #if 'cb_mass_MG' in iparname:
-                   #    card_entries.append('%s param %.5f %.5f'%(iparname, -17.1296+imass, (-17.1296+imass)*0.01))
+                   if 'cb_mass_MG' in iparname and self.addShapeUnc2Mass:
+                       card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], max(ROOT.TMath.Sqrt(maxshift**2+ iparval[1]**2), ROOT.TMath.Sqrt(minshift**2+ iparval[1]**2))))
+                       #card_entries.append('%s param %.5f %.5f/%.5f'%(iparname, iparval[0], ROOT.TMath.Sqrt(maxshift**2+ iparval[1]**2), ROOT.TMath.Sqrt(minshift**2+ iparval[1]**2)))
+                   else:
+                       card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], iparval[1]))
                    #elif 'cb_cut1_MG' in iparname:
                    #    card_entries.append('%s param %.5f %.5f'%(iparname, 1.4756823440075475-0.0023051161425137827*imass+1.60096e-06*imass**2-3.71669e-10*imass**3, (1.4756823440075475-0.0023051161425137827*imass+1.60096e-06*imass**2-3.71669e-10*imass**3)*0.01))
                    #elif 'cb_sigma_MG' in iparname:
                    #    card_entries.append('%s param %.5f %.5f'%(iparname, 24.7695+imass*0.0197778+1.21337e-05*imass**2-3.19634e-09*imass**3, (24.7695+imass*0.0197778+1.21337e-05*imass**2-3.19634e-09*imass**3)*0.01))
                    #else:
                    #    card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], iparval[1]))
-
+        
         card_entries.append( section_divider )
-
         #for ibin in bins :
         #    card_entries.append( 'logcoef_dijet_Wgamma_%s flatParam' %( ibin ) )
         #    card_entries.append( 'power_dijet_Wgamma_%s flatParam' %( ibin ) )
@@ -1359,7 +1377,6 @@ class MakeLimits( ) :
         ws_entry_sysup   = "_".join([self.wskeys[self.signame].pdf_prefix, suffix, "up"])
 
         ## open json file for shifted mean value
-        #FIXME do we need this for the fully parameterized signal model? -- Yihui
         if not self.noShapeUnc:
             filepath = "data/sigfit/fitted_mass%i.txt" %ibin['year']
             #if options.paramodel :
@@ -1369,7 +1386,6 @@ class MakeLimits( ) :
             w="5.0" if width=="5" else "0.01"
             maxshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["max"][1]
             minshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["min"][1]
-
 
         if DEBUG:
            print ws_entry
@@ -1646,6 +1662,8 @@ class MakeLimits( ) :
 
             flagstr = ""
             if self.numberOfToys is not None: flagstr+=" -t %d"  %self.numberOfToys
+            if options.usedata:
+                flagstr+=" -t -1"
             if self.rmin is not None: flagstr+= " --rMin %.2g" %self.rmin
             if self.rmax is not None: flagstr+= " --rMax %.2g" %self.rmax
             if self.seed is not None: flagstr+= " -s %i" %self.seed
@@ -1671,8 +1689,8 @@ class MakeLimits( ) :
                         %( mass, flagstr, card, log_file )
             #do goodness of fit -- Yihui
             if options.GoF:
-                command = 'combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 >& %s \n' %(card, 'goodnessdata'+log_file)
-                command+= 'combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 -t 500 -s 1234 --toysFreq  >& %s \n' %(card, 'goodnesstoy'+log_file)
+                command = '\n combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 >& %s \n' %(card, 'goodnessdata'+log_file)
+                command += 'combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 -t 500 -s 1234 --toysFreq  >& %s \n' %(card, 'goodnesstoy'+log_file)
 
         if self.method == 'AsymptoticLimitsManual' :
             command = ''

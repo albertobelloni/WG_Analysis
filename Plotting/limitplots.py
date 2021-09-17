@@ -29,15 +29,15 @@ pads = OnePad()
 
 x = ROOT.Double(0.)
 y = ROOT.Double(0.)
+
 for i in range((len(sys.argv)+1)/2):
     if i ==0: continue
-    fgraphs[i].values()[2].GetPoint(0, x, y)
-    print(x,y)
+    print(sys.argv[i])
+    for j in range(3):
+        fgraphs[i].values()[2].GetPoint(j, x, y)
+        print(x,y)
+
 print("\n")
-for i in range((len(sys.argv)+1)/2):
-    if i ==0: continue
-    fgraphs[i].values()[2].GetPoint(1, x, y)
-    print(x,y)
 for i in range((len(sys.argv)+1)/2):
     if i ==0: continue
     #fgraphs[i].values()[2].GetPoint(10, x, y)
@@ -135,4 +135,5 @@ leg1.Draw()
 DrawCMSLogo(pads[0], 'CMS', 'Simulation Preliminary', 11, 0.200, 0.035, 1.2, '', 0.8)
 
 canv.Print('.pdf')
+canv.Print('.C')
 canv.Print('.png')
