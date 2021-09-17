@@ -665,7 +665,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         if( mod_conf.GetName() == "FilterEvent" ) { 
 
             for ( int i = 0 ; i < 6 ; i++ ) OUT::QCDScaleWeights->push_back(1.);
-            for ( int i = 0 ; i < 100 ; i++ ) OUT::PDFWeights->push_back(1.);
+            for ( int i = 0 ; i < 101 ; i++ ) OUT::PDFWeights->push_back(1.);
 
             eitr = mod_conf.GetInitData().find( "evalCutflow" );
             if( eitr != mod_conf.GetInitData().end() ) {
