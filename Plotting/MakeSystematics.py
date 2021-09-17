@@ -197,18 +197,12 @@ def makeplots():
     plt.savefig("%s/%s_%isys_sf_bymass.pdf" %(options.outputDir,ch,options.year))
 
     ### plot 3: pdf scale and pu weights
-    pdflist = ['muF1muR2',
-     'muF1muRp5',
-     'muF2muR1',
-     'muF2muR2',
-     'muFp5muR1',
-     'muFp5muRp5',]
     pileup = ['PUUP5','PUDN5','PUUP10','PUDN10']
 
     sysvalues = [[systematic_dict[scs(m)][sys]['MadGraphResonanceMass%i_width%s' %(m,w)] for m in xpoints] \
-      for sys in  pdflist for w in ("0p01","5")]
+      for sys in  qcdscaleweightlist for w in ("0p01","5")]
     sysnamess = [ "%s %s" %(sys,w)
-      for sys in  pdflist for w in ("narrow","wide")]
+      for sys in  qcdscaleweightlist for w in ("narrow","wide")]
     puvalues = [[systematic_dict[scs(m)][sys]['MadGraphResonanceMass%i_width%s' %(m,w)] for m in xpoints] \
       for sys in  pileup for w in ("0p01","5")]
     punamess = [ "%s %s" %(sys,w)
@@ -292,13 +286,15 @@ metlist=[
             "UnclusteredEn", #--/Up/Down
         ]
 
-eventweightlist = ["muR1muF2",
+qcdscaleweightlist = ["muR1muF2",
                    "muR1muFp5",
                    "muR2muF1",
                    "muR2muF2",
                    "muRp5muF1",
                    "muRp5muFp5"
                    ]
+
+pdfweightlist = ['NNPDF3.0:Member%i'%i for i in range(101)]
 
 
 summarylist = [("TOTAL","bkg"),
@@ -361,14 +357,20 @@ for key, (selfull, weight) in cutsetdict.iteritems():
         selection_list[key]["PU"+shift] = dict( w=w, sel=sel )
         pupreftaglist.append("PU%s"%shift)
 
-    # event weights (pdf)
-    for i, shift in enumerate(eventweightlist):
+    # event weights (renormalization and factorization scales)
+    for i, shift in enumerate(qcdscaleweightlist):
+        sel=selfull
+        w = weight.replace("NLOWeight" , "NLOWeight*QCDScaleWeights[%i]" % i )
+        selection_list[key][shift] = dict( w=w, sel=sel )
+
+    # event weights (NNPDF3.0)
+    for i, shift in enumerate(pdfweightlist):
         sel=selfull
         w = weight.replace("NLOWeight" , "NLOWeight*PDFWeights[%i]" % i )
         selection_list[key][shift] = dict( w=w, sel=sel )
 
 
-hkeys = ["norm",]+mettaglist+sftaglist+pupreftaglist+eventweightlist
+hkeys = ["norm",]+mettaglist+sftaglist+pupreftaglist+qcdscaleweightlist+pdfweightlist
 ## systematics as function of mass
 ## systematic_dict[ cutsettag ][ systematic_name ][ sample_name ]
 recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
@@ -449,8 +451,8 @@ for cutsetkey, sellist in selection_list.iteritems():
     hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
                                                   "stackcomp_ppusys%s.pdf" %yeartag )
 
-    ## draw shape comparison plot for PDF weight shifts
-    taglist = ["norm",] + eventweightlist
+    ## draw shape comparison plot for ren/fac scale weight shifts
+    taglist = ["norm",] + qcdscaleweightlist
     lgconf["legend_entries"] = taglist
     histlist = [ sellist[t]["hstack"] for t in taglist ]
     hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
@@ -499,8 +501,8 @@ for cutsetkey, sellist in selection_list.iteritems():
         hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
                                                         lgconf, savename, logy=False)
 
-        ## draw shape comparison plot for PDF weight shifts
-        taglist = ["norm",] + eventweightlist
+        ## draw shape comparison plot for ren/fac scale weight shifts
+        taglist = ["norm",] + qcdscaleweightlist
         lgconf["legend_entries"] = taglist
         histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
         savename = "shapecomp%s_pdfsys%s.pdf" %(snameshort,yeartag)

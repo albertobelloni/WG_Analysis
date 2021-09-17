@@ -405,6 +405,7 @@ namespace OUT {
     Bool_t PassQuality;
 
     float NLOWeight;
+    std::vector<float> *QCDScaleWeights;
     std::vector<float> *PDFWeights;
 
     float PUWeight;
