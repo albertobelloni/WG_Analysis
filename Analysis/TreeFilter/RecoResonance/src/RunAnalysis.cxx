@@ -320,6 +320,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::WIDStep                                = 0;
 
     OUT::NLOWeight                              = 1;
+    OUT::QCDScaleWeight                         = 0;
     OUT::PDFWeights                             = 0;
 
     OUT::PUWeight                               = 1;
@@ -632,6 +633,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     }
 
     outtree->Branch("NLOWeight", &OUT::NLOWeight, "NLOWeight/F" );
+    outtree->Branch("QCDScaleWeights", &OUT::QCDScaleWeights );
     outtree->Branch("PDFWeights", &OUT::PDFWeights );
     outtree->Branch("PUWeight", &OUT::PUWeight, "PUWeight/F" );
     outtree->Branch("PUWeightUP5", &OUT::PUWeightUP5, "PUWeightUP5/F" );
@@ -662,7 +664,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
         }
         if( mod_conf.GetName() == "FilterEvent" ) { 
 
-            for ( int i = 0 ; i < 6 ; i++ ) OUT::PDFWeights->push_back(1.);
+            for ( int i = 0 ; i < 6 ; i++ ) OUT::QCDScaleWeights->push_back(1.);
+            for ( int i = 0 ; i < 100 ; i++ ) OUT::PDFWeights->push_back(1.);
 
             eitr = mod_conf.GetInitData().find( "evalCutflow" );
             if( eitr != mod_conf.GetInitData().end() ) {
@@ -4728,9 +4731,31 @@ void RunModule::WeightEvent( ModuleConfig & config ) const {
         }
     }
     if (IN::EventWeights->size()>=10){
-      OUT::PDFWeights->clear();
-      //for (int i = 1; i<10; i++){
+      OUT::QCDScaleWeights->clear();
+      /* MadGraphChargedResonance weights
+        *        0 *              Central scale variation: mur=1 muf=1  *
+        *        1 *              Central scale variation: mur=1 muf=2  *
+        *        2 *            Central scale variation: mur=1 muf=0.5  *
+        *        3 *              Central scale variation: mur=2 muf=1  *
+        *        4 *              Central scale variation: mur=2 muf=2  *
+        *        5 *            Central scale variation: mur=2 muf=0.5  * <- discard
+        *        6 *            Central scale variation: mur=0.5 muf=1  *
+        *        7 *            Central scale variation: mur=0.5 muf=2  * <- discard
+        *        8 *          Central scale variation: mur=0.5 muf=0.5  *
+        *        9 *                 NNPDF30_lo_as_0130.LHgrid:Member 0 * <- 100 NNPDF replicas
+        ...
+        *      109 *               NNPDF30_lo_as_0130.LHgrid:Member 100 *
+      */
       for ( int i : { 1, 2, 3, 4, 6, 8 } ){
+        if (printevent) std::cout<<i<<"  "
+        <<(IN::EventWeights->at(i)/IN::EventWeights->at(0)/_pdfweight_sample_hist->GetBinContent(i+1))<<" "
+        <<IN::EventWeights->at(i)/IN::EventWeights->at(0)<<"  "<<_pdfweight_sample_hist->GetBinContent(i+1)<<std::endl;
+        OUT::QCDScaleWeights->push_back(IN::EventWeights->at(i)/IN::EventWeights->at(0)/_pdfweight_sample_hist->GetBinContent(i+1));
+      }
+    }
+    if (IN::EventWeights->size()>=110){
+      OUT::PDFWeights->clear();
+      for ( int i = 9; i < 110; ++i ){
         if (printevent) std::cout<<i<<"  "
         <<(IN::EventWeights->at(i)/IN::EventWeights->at(0)/_pdfweight_sample_hist->GetBinContent(i+1))<<" "
         <<IN::EventWeights->at(i)/IN::EventWeights->at(0)<<"  "<<_pdfweight_sample_hist->GetBinContent(i+1)<<std::endl;
