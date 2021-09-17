@@ -591,9 +591,10 @@ class MakeLimits( ) :
         bjetsfnames= ( 'jet_btagSFUP',   'jet_btagSFDN'   )
         prefnames  = ( 'prefup',         'prefdown'    )
         punames    = ( 'PUUP5',          'PUDN5'       )
-        pdfnames   = ( 'muR1muF2',       'muR1muFp5',
+        qcdscalenames = ( 'muR1muF2',    'muR1muFp5',
                        'muR2muF1',       'muR2muF2',
                        'muRp5muF1',      'muRp5muFp5'  )
+        pdfnames   = ['NNPDF3.0:Member%i'%i for i in range(101)]
         mutrnames  = ( 'mu_trigSFUP',    'mu_trigSFDN' )
         eltrnames  = ( 'el_trigSFUP',    'el_trigSFDN' )
         jecnames   = ( 'JetEnUp',        'JetEnDown'   )
@@ -679,9 +680,15 @@ class MakeLimits( ) :
         ## prefiring
         newsysdict["CMS_pref"]  = tuple(sysdict[s]/100.+1 for s in prefnames)
 
-        ## PDF
-        pdfscales = [sysdict[s]/100.+1 for s in pdfnames]
-        newsysdict["pdf_scale"]  = ( max(pdfscales), min(pdfscales) )
+        ## renormalization/factorization scales
+        qcdscales = [sysdict[s]/100.+1 for s in qcdscalenames]
+        newsysdict["qcd_scale"]  = ( max(qcdscales), min(qcdscales) )
+        
+        ## PDF variations (NNPDF3.0 -> take RMS as uncertainty)
+        import numpy as np
+        pdfvars = [sysdict[s]/100.+1 for s in pdfnames]
+        width = np.std(pdfvars/np.mean(pdfvars))
+        newsysdict["pdf"] = ( 1.+width, 1.-width )
 
         return newsysdict
 
