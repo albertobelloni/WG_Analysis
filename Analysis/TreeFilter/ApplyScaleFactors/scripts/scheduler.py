@@ -31,7 +31,8 @@ if options.test :
     options.local = True
 
 ### ATTENTION! Here you specify the directory containing the ntuples that you want to run over.
-base = '/data/users/mseidel/Resonances%i/' % options.year
+#base = '/data/users/mseidel/Resonances%i/' % options.year
+base='/data/users/yihuilai/Resonances%i/' %options.year
 
 ### ATTENTION! Here you specify the type of ntuple you want to run over.
 input_dirs = [
@@ -40,7 +41,10 @@ input_dirs = [
 #              'LepGamma_elg_2019_04_11','LepGamma_mug_2019_04_11',
 #              'LepLep_mumu_2019_07_12',
               #'LepLep_mumu_2019_11_13',
-              'LepLep_elel_2019_11_13',
+              #'LepLep_elel_2019_11_13',
+              'LepGamma_elg_2021_09_17', 
+              'LepGamma_mug_2021_09_17',
+
 ]
 
 ### ATTENTION! consider using --all to apply SFs to all samples of the input directory
@@ -184,7 +188,8 @@ jobs2016 = [
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width0p01' ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width0p01' ),
 ]
-
+jobs2017 = []
+jobs2018 = []
 if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
 if options.year==2018: jobs=jobs2018 
@@ -220,7 +225,7 @@ for input_dir in input_dirs:
                     {
                      'module'      : 'Conf%i.py' %options.year,
                      #'args'        : {'functions' : 'get_muon_sf,get_electron_sf,get_photon_sf,get_pileup_sf' },
-                     'args'        : {'functions' : 'get_muon_sf,get_photon_sf,get_electron_sf'},
+                     'args'        : {'functions' : 'get_muon_sf,get_photon_sf,get_electron_sf,get_bjet_sf'},
                      'input'       : input_dir,
                      'output'      : base + input_dir + '/WithSF',
                      'tag'         : 'FinalSF'

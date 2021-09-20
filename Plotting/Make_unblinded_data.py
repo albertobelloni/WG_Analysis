@@ -16,14 +16,15 @@ if data_outDir is not None :
 
 import glob
 FileMap = {}
-Date = '2021_08_27'
+Date = '2021_09_17'
+#Date = '2021_08_27'
 for year in ['2016','2017','2018']:
     for ch in ['el','mu']:
         if ch == 'el':
-            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF2/SingleElectron/Job*/tree.root')
-            if(year=='2018'): FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF2/EGamma/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/SingleElectron/Job*/tree.root')
+            if(year=='2018'): FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/EGamma/Job*/tree.root')
         if ch == 'mu':
-            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF2/SingleMuon/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF/SingleMuon/Job*/tree.root')
             
 print('Loaded FileMap')
 

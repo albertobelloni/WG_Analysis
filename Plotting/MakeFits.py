@@ -149,8 +149,8 @@ def main() :
     if options.GoF:
         signal_masses    = [300, 2000]
         signal_widths    = ['5']
-    signal_masses    = [300, 2000]
-    signal_widths    = ['5']
+    #signal_masses    = [300]
+    #signal_widths    = ['5']
 
     fitrangefx = lambda m : (200,200+1.5*m) if m<625 else (400,2000)
 
@@ -177,7 +177,7 @@ def main() :
                            #rmin = 0.1,
                            #rmax = 20,
                            #seed = 123456,
-                           doImpact=True,
+                           doImpact=False,
                            floatBkg =True, ## background parameters will be contrained if False
                            #numberOfToys = 2, ## -1 for Asimov, 0 for "data" (or homemade toy)
                            #freezeParameter = "all", ## "all", "bkg" or "sig", or "s+b", or "constrained"
@@ -516,9 +516,16 @@ class MakeLimits( ) :
         ## opening json storing normalization information
         with open('data/%sgsys%i.json'%(ch,year)) as fo:
             systematic_dict = json.load(fo)
-            ## systematic_dict[cutset A?B?C][systematicname][MadGraphResonanceMass1000_width5/background]
-            ## FIXME not distinguishing background names
 
+            #Add More systematics from pdf -- Yihui
+            #print(systematic_dict['A'].keys())
+            morefiles = ['_pdf_0_20','_pdf_21_40','_pdf_41_60','_pdf_61_80','_pdf_81_100']           
+            for ifil in morefiles:
+                f = open('data/%sgsys%i%s.json'%(ch,year,ifil))
+                dd = json.load(f)
+                for sys in dd['A'].keys():
+                    systematic_dict['A'][sys] = dd['A'][sys]
+            #print(systematic_dict['A'].keys())
             ### process background systematics
 
             sysdict = recdd()
@@ -570,8 +577,6 @@ class MakeLimits( ) :
 
         syslist = [
              ('jet_btagSFUP','jet_btagSFDN'),
-             #('ElectronPtScaleUp', 'ElectronPtScaleDown'),
-             #('PhotonPtScaleUp', 'PhotonPtScaleDown'),
              ('JetResUp', 'JetResDown'),
              ('JetEnUp', 'JetEnDown'),
              ('MuonEnUp', 'MuonEnDown'),

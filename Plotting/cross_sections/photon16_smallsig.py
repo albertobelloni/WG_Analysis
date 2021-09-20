@@ -45,9 +45,23 @@
 ( 'DiPhoton'                      , { 'n_evt' : 19489569, 'cross_section' : 135.1, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # from SummaryTable1G25ns
 
 
+ ('ResonanceMass375'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass425'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass475'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass550'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass650'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass750'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass850'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass950'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass1100'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass1300'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass1500'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass1700'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass1900'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  ('ResonanceMass200'        , { 'n_evt' : 50000, 'cross_section' : 0.1    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  ('ResonanceMass250'        , { 'n_evt' : 50000, 'cross_section' : 0.03    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  ('ResonanceMass300'        , { 'n_evt' : 50000, 'cross_section' : 0.03    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
+ ('ResonanceMass325'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  ('ResonanceMass350'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  ('ResonanceMass400'        , { 'n_evt' : 50000, 'cross_section' : 0.01    , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),
  ('ResonanceMass450'        , { 'n_evt' : 50000, 'cross_section' : 0.003   , 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),

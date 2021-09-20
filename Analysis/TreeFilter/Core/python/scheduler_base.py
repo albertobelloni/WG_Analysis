@@ -5,7 +5,9 @@ from check_dataset_completion import check_dataset_completion
 
 hostname = os.getenv('HOST')
 
-_AT_UMD = ( hostname.count('umd') > 0 )
+#_AT_UMD = ( hostname.count('umd') > 0 )
+
+_AT_UMD = True
 
 tColor_Off="\033[0m"       # Text Reset
 tPurple="\033[0;35m%s"+tColor_Off       # Purple

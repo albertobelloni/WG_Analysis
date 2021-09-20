@@ -1,5 +1,4 @@
 ### ATTENTION: Set OUTPUTMAIN to the folder in your Plotting directory where you want to save your output
-OUTPUTMAIN=/home/kakw/efake/WG_Analysis/Plotting/data
 ### ATTENTION: Make sure that these DIR_* strings specify the directories containing the processed ntuples that you want to run over
 DIR_MUG=/data/users/friccita/WGammaNtuple/LepGamma_mug_2019_04_11/WithSF
 DIR_ELG=/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/WithSF
@@ -14,6 +13,7 @@ DIR_MUG=/data2/users/kakw/Resonances2016/LepGamma_mug_2019_10_04
 DIR_ELG=/data2/users/kakw/Resonances2016/LepGamma_elg_2019_10_04
 DIR_Combine=/home/kakw/efake/WG_Analysis_hcombinetest/CMSSW_8_1_0/src
 
+OUTPUTMAIN=/data/users/yihuilai/test_code/WG_Analysis/Plotting/data
 
 all : plots workspaces limits
 
@@ -45,8 +45,13 @@ beff:
 
 fit:
 
-	python MakeFits.py --condor
-	make limit
+	python MakeFits.py --NoBKGUnc --usedata --condor # --GoF--noRunCombine
+	#python MakeFits.py --paramodel --usedata --GoF --condor #--noRunCombine
+	#make limit
+
+nofit:
+
+	python MakeFits.py --noRunCombine --NoBKGUnc --usedata
 
 limit:
 
@@ -66,8 +71,44 @@ limit:
 	./limitplot.py data/higgs/Results/result_5_mu2016.json
 	./limitplot.py data/higgs/Results/result_5_mu2017.json
 	./limitplot.py data/higgs/Results/result_5_mu2018.json
-	mv result_*.pdf ~/public_html/
-	mv result_*.png ~/public_html/
+
+syspdf:	
+
+	python MakeSystematics.py --batch --year 2016 --ch mu --condor --Onlypdf --pdfstart 0 --pdfend 20
+	python MakeSystematics.py --batch --year 2016 --ch mu --condor --Onlypdf --pdfstart 21 --pdfend 40
+	python MakeSystematics.py --batch --year 2016 --ch mu --condor --Onlypdf --pdfstart 41 --pdfend 60
+	python MakeSystematics.py --batch --year 2016 --ch mu --condor --Onlypdf --pdfstart 61 --pdfend 80
+	python MakeSystematics.py --batch --year 2016 --ch mu --condor --Onlypdf --pdfstart 81 --pdfend 100
+
+	python MakeSystematics.py --batch --year 2016 --ch el --condor --Onlypdf --pdfstart 0 --pdfend 20
+	python MakeSystematics.py --batch --year 2016 --ch el --condor --Onlypdf --pdfstart 21 --pdfend 40
+	python MakeSystematics.py --batch --year 2016 --ch el --condor --Onlypdf --pdfstart 41 --pdfend 60
+	python MakeSystematics.py --batch --year 2016 --ch el --condor --Onlypdf --pdfstart 61 --pdfend 80
+	python MakeSystematics.py --batch --year 2016 --ch el --condor --Onlypdf --pdfstart 81 --pdfend 100
+
+	python MakeSystematics.py --batch --year 2017 --ch mu --condor --Onlypdf --pdfstart 0 --pdfend 20
+	python MakeSystematics.py --batch --year 2017 --ch mu --condor --Onlypdf --pdfstart 21 --pdfend 40
+	python MakeSystematics.py --batch --year 2017 --ch mu --condor --Onlypdf --pdfstart 41 --pdfend 60
+	python MakeSystematics.py --batch --year 2017 --ch mu --condor --Onlypdf --pdfstart 61 --pdfend 80
+	python MakeSystematics.py --batch --year 2017 --ch mu --condor --Onlypdf --pdfstart 81 --pdfend 100
+
+	python MakeSystematics.py --batch --year 2017 --ch el --condor --Onlypdf --pdfstart 0 --pdfend 20
+	python MakeSystematics.py --batch --year 2017 --ch el --condor --Onlypdf --pdfstart 21 --pdfend 40
+	python MakeSystematics.py --batch --year 2017 --ch el --condor --Onlypdf --pdfstart 41 --pdfend 60
+	python MakeSystematics.py --batch --year 2017 --ch el --condor --Onlypdf --pdfstart 61 --pdfend 80
+	python MakeSystematics.py --batch --year 2017 --ch el --condor --Onlypdf --pdfstart 81 --pdfend 100
+
+	python MakeSystematics.py --batch --year 2018 --ch mu --condor --Onlypdf --pdfstart 0 --pdfend 20
+	python MakeSystematics.py --batch --year 2018 --ch mu --condor --Onlypdf --pdfstart 21 --pdfend 40
+	python MakeSystematics.py --batch --year 2018 --ch mu --condor --Onlypdf --pdfstart 41 --pdfend 60
+	python MakeSystematics.py --batch --year 2018 --ch mu --condor --Onlypdf --pdfstart 61 --pdfend 80
+	python MakeSystematics.py --batch --year 2018 --ch mu --condor --Onlypdf --pdfstart 81 --pdfend 100
+
+	python MakeSystematics.py --batch --year 2018 --ch el --condor --Onlypdf --pdfstart 0 --pdfend 20
+	python MakeSystematics.py --batch --year 2018 --ch el --condor --Onlypdf --pdfstart 21 --pdfend 40
+	python MakeSystematics.py --batch --year 2018 --ch el --condor --Onlypdf --pdfstart 41 --pdfend 60
+	python MakeSystematics.py --batch --year 2018 --ch el --condor --Onlypdf --pdfstart 61 --pdfend 80
+	python MakeSystematics.py --batch --year 2018 --ch el --condor --Onlypdf --pdfstart 81 --pdfend 100
 
 sys:
 
@@ -104,15 +145,15 @@ money :
 
 signal : 
 
-	python MakeSignalWS.py --batch --condor --year 2016
-	python MakeSignalWS.py --batch --condor --year 2017
-	python MakeSignalWS.py --batch --condor --year 2018
+	python MakeSignalWS.py --batch --condor --year 2016 --dataDir ${OUTPUTMAIN}/sigfit
+	python MakeSignalWS.py --batch --condor --year 2017 --dataDir ${OUTPUTMAIN}/sigfit
+	python MakeSignalWS.py --batch --condor --year 2018 --dataDir ${OUTPUTMAIN}/sigfit
 
 bkg : 
 
-	python MakeMCBkgWS.py --process All --batch --year 2016 --condor
-	python MakeMCBkgWS.py --process All --batch --year 2017 --condor
-	python MakeMCBkgWS.py --process All --batch --year 2018 --condor
+	python MakeMCBkgWS.py --process All --batch --year 2016 --condor --dataDir ${OUTPUTMAIN}/bkgfit
+	python MakeMCBkgWS.py --process All --batch --year 2017 --condor --dataDir ${OUTPUTMAIN}/bkgfit
+	python MakeMCBkgWS.py --process All --batch --year 2018 --condor --dataDir ${OUTPUTMAIN}/bkgfit
 
 efake : 
 
