@@ -45,13 +45,13 @@ beff:
 
 fit:
 
-	python MakeFits.py --NoBKGUnc --usedata --condor # --GoF--noRunCombine
-	#python MakeFits.py --paramodel --usedata --GoF --condor #--noRunCombine
+	python MakeFits.py --BiasStudy --NoBKGUnc --usedata --condor # --GoF--noRunCombine
+	#python MakeFits.py --usedata --NoBKGUnc --condor #--noRunCombine
 	#make limit
 
 nofit:
 
-	python MakeFits.py --noRunCombine --NoBKGUnc --usedata
+	python MakeFits.py --noRunCombine --NoBKGUnc --usedata --BiasStudy
 
 limit:
 
