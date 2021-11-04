@@ -320,7 +320,7 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::WIDStep                                = 0;
 
     OUT::NLOWeight                              = 1;
-    OUT::QCDScaleWeight                         = 0;
+    OUT::QCDScaleWeights                        = 0;
     OUT::PDFWeights                             = 0;
 
     OUT::PUWeight                               = 1;
