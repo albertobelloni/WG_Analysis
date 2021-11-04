@@ -109,6 +109,7 @@ class Sample :
     def __init__ ( self, name, **kwargs ) :
 
         self.name = name
+        self.path = kwargs.get('path', '')
         self.hist = None
         self.count = None
         self.loop_hists = []
@@ -912,7 +913,7 @@ class SampleManager(SampleFrame) :
 
             samp.name += suffix
             for i, n in enumerate(samp.groupedSampleNames):
-                samp.groupSampleNames[i] = n + suffix
+                samp.groupedSampleNames[i] = n + suffix
 
             samp.manager = self
 
@@ -2211,11 +2212,11 @@ class SampleManager(SampleFrame) :
                 self.weightMap[xsname]['scale'] *= thisscale
                 thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
                                 sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
-                                color=plotColor, drawRatio=drawRatio, weightmap= self.weightMap[xsname], lumi=self.lumi, legendName=legend_name)
+                                color=plotColor, drawRatio=drawRatio, weightmap= self.weightMap[xsname], lumi=self.lumi, legendName=legend_name, path=path)
             else:
                 thisSample = Sample(name, manager=self, isActive=isActive, isData=isData, isSignal=isSignal,
                                 sigLineStyle=sigLineStyle, sigLineWidth=sigLineWidth, displayErrBand=displayErrBand,
-                                color=plotColor, drawRatio=drawRatio, scale=thisscale, lumi=self.lumi,  legendName=legend_name)
+                                color=plotColor, drawRatio=drawRatio, scale=thisscale, lumi=self.lumi,  legendName=legend_name, path=path)
 
             thisSample.AddFiles( input_files, self.treeName, self.readHists, self.weightHistName, self.dataFrame)
             rd = thisSample.getrdataframe()

@@ -174,6 +174,7 @@ def make_final_mu( alg_list, args) :
     ph_eta = args.get( 'ph_eta', None )
     sec_lep_veto = args.get( 'sec_lep_veto', 'True' )
     unblind = args.get( 'unblind', 'False' )
+    invertIso = args.get( 'invertIso', False )
 
     # order should be muon, electron, photon, jet
     alg_list.append( filter_muon( mu_pt, invertIso=invertIso ) )

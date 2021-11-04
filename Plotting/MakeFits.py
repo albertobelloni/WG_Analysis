@@ -716,8 +716,24 @@ class MakeLimits( ) :
         ## PDF variations (NNPDF3.0 -> take RMS as uncertainty)
         import numpy as np
         pdfvars = [sysdict[s]/100.+1 for s in pdfnames]
-        width = np.std(pdfvars/np.mean(pdfvars))
-        newsysdict["pdf"] = ( 1.+width, 1.-width )
+        if yr == 2016:
+            # 2016 samples produced with NNPDF30_lo_as_0130_nf_4
+            # Variations are from NNPDF30_lo_as_0130 (replicas)
+            width = np.std(pdfvars/np.mean(pdfvars))
+            newsysdict["pdf"] = ( 1.+width, 1.-width )
+        else:
+            # 2017/2018 samples produced with NNPDF31_nnlo_as_0118_nf_4
+            # Variations are from NNPDF31_nnlo_hessian_pdfas.LHgrid
+            # SetDesc: "Hessian conversion of NNPDF31_nnlo_as_0118_1000, mem=0 central value => Alphas(MZ)=0.118; mem=1-100 => PDF eig.; mem=101 => central value Alphas(MZ)=0.116; mem=102 => central value Alphas(MZ)=0.120"
+            pdfsyst2 = 0.
+            pdfcentral = pdfvars[0]
+            for i in range(100):
+                if i%2 == 0:
+                    continue
+                shift = abs(pdfvars[i]/pdfcentral - pdfvars[i+1]/pdfcentral) / 2.
+                pdfsyst2 += shift**2
+            newsysdict["pdf"] = ( 1.+np.sqrt(pdfsyst2), 1.-np.sqrt(pdfsyst2) )
+            
 
         return newsysdict
 
