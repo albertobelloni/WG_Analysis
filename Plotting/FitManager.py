@@ -350,37 +350,33 @@ class FitManager :
             function = function % (' + '.join( order_entries ))
 
             self.defs['atlas'] = [0]*6
-            self.defs['atlas'][0] = (   1e-4 ,      0, 100000) #norm
-            self.defs['atlas'][1] = (   0 ,      0,  1000)  #power numerator
-            self.defs['atlas'][2] = (   6 ,     -10,   100) #power denominator
-            self.defs['atlas'][3] = (  1 ,     -10,    10) # log coeff
-            self.defs['atlas'][4] = (  -1 ,     -10,    0)
+            self.defs['atlas'][0] = (   1 ,      0, 100000) #norm
+            self.defs['atlas'][1] = (   0 ,     -100,  100)  #power numerator
+            self.defs['atlas'][2] = (   2 ,     -100,   100) #power denominator
+            self.defs['atlas'][3] = (  -1 ,     -100,    100) # log coeff
+            self.defs['atlas'][4] = (  -1 ,     -100,    100)
             self.defs['atlas'][5] = (  -1 ,     -5,    10)
 
         if self.func_name == 'vvdijet' :
             self.dof = self.func_norders+3
 
-            if self.func_norders>1:
-                function = 'TMath::Power( (1-(@0/13000.)), @1 ) /'+\
-                           '( TMath::Power( @0/13000. , @2*(%s) ))'
-                order_entries = []
-                for i in range( 1, self.func_norders ) :
-                    order_entries.append( 'TMath::Power('+
-                                          'TMath::Log10( @0/13000.),%d)'  %( i ) )
+            function = 'TMath::Power( (1-@0/13000.), @1 ) /'+\
+                        ' ( TMath::Power( @0/13000. , @2+ %s ))'
+            order_entries = []
+            for i in range( 0, self.func_norders ) :
+                order_entries.append( '@%d*TMath::Power' %(i+3)+
+                                      '(TMath::Log10( @0/13000.),%d)'  %(i+1 ) )
 
-                function = function % (' + '.join( order_entries ))
-            else:
-                function = 'TMath::Power( (1-(@0/13000.)), @1 ) /'+\
-                          '(TMath::Power( @0/13000. , @2 ))'
+            function = function % (' + '.join( order_entries ))
 
             self.defs['vvdijet'] = [0]*6
             self.defs['vvdijet'][0] = (   1 ,      0, 100000) #norm
-            self.defs['vvdijet'][1] = (   0 ,      0,   1000)  #power numerator
-            self.defs['vvdijet'][2] = (   2 ,     -10,   100) #power denominator
-            self.defs['vvdijet'][3] = (  -1 ,     -10,    10) # log coeff
-            self.defs['vvdijet'][4] = (  -1 ,     -10,     0)
+            self.defs['vvdijet'][1] = (   0 ,      -100,   100)  #power numerator
+            self.defs['vvdijet'][2] = (   2 ,     -100,   100) #power denominator
+            self.defs['vvdijet'][3] = (  -1 ,     -100,    100) # log coeff
+            self.defs['vvdijet'][4] = (  -1 ,     -100,     100)
             self.defs['vvdijet'][5] = (  -1 ,     -5,     10)
-            self.defs['vvdijet'][6] = (  -1 ,     -5,     10)
+            #self.defs['vvdijet'][6] = (  -1 ,     -5,     10)
 
         if self.func_name == 'expow' :
             self.dof = self.func_norders+2
