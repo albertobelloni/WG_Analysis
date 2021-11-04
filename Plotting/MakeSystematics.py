@@ -6,7 +6,10 @@ from collections import OrderedDict, defaultdict
 def addparser(parser):
     parser.add_argument('--massplots',  action='store_true', help='Make nuisance parameters vs mass plots' )
     parser.add_argument('--ch',         default="el",        help='Choose muon or electron channel [mu/el]' )
-
+    parser.add_argument('--Onlypdf',         action='store_true',        help='Choose pdf only' )
+    parser.add_argument('--pdfstart',         default='0',        help='Choose pdf start)' )
+    parser.add_argument('--pdfend',         default='5',        help='Choose pdf end' )
+ 
 execfile("MakeBase.py")
 from DrawConfig import DrawConfig
 #import defs_selections as defs
@@ -20,8 +23,10 @@ year = options.year
 ch = options.ch
 chname = "Electron" if ch=="el" else "Muon"
 leplatex = "e" if ch=="el" else "#mu"
-_JSONNAME = 'data/%sgsys%i.json' %(ch,year)
-
+if options.Onlypdf:
+    _JSONNAME = 'data/%sgsys%i_pdf_%s_%s.json' %(ch,year,str(options.pdfstart),str(options.pdfend))
+else:
+    _JSONNAME = 'data/%sgsys%i.json' %(ch,year)
 lconf = {"labelStyle":str(year),"extra_label":["%i %s Channel" %(year,chname),
                                                "p_{T}^{%s}>35GeV, MET>40GeV" %leplatex,
                                                "Tight barrel #gamma p_{T}^{#gamma}>80GeV"],
@@ -131,8 +136,6 @@ def makeplots():
     syslists= [  ('JetResUp',        'JetResDown'),
                  ('JetEnUp',         'JetEnDown'),
                  ('MuonEnUp',        'MuonEnDown'),
-                 #('ElectronPtScaleUp', 'ElectronPtScaleDown'),
-                 #('PhotonPtScaleUp', 'PhotonPtScaleDown'),
                  ('ElectronEnUp',    'ElectronEnDown'),
                  ('PhotonEnUp',      'PhotonEnDown'),
                  ('UnclusteredEnUp', 'UnclusteredEnDown'),]
@@ -279,13 +282,10 @@ metlist=[
             "JetRes",
             "JetEn",
             "MuonEn",
-            #"ElectronPtScale",
-            #"PhotonPtScale",
             "ElectronEn",
             "PhotonEn",
             "UnclusteredEn", #--/Up/Down
         ]
-
 qcdscaleweightlist = ["muR1muF2",
                    "muR1muFp5",
                    "muR2muF1",
@@ -294,7 +294,15 @@ qcdscaleweightlist = ["muR1muF2",
                    "muRp5muFp5"
                    ]
 
-pdfweightlist = ['NNPDF3.0:Member%i'%i for i in range(101)]
+pdfweightlist = ['NNPDF3.0:Member%i'%i for i in range(int(options.pdfstart),int(options.pdfend)+1)]
+#pdfweightlist = ['NNPDF3.0:Member%i'%i for i in range(101)]
+
+if options.Onlypdf:
+    SFlist = []
+    metlist=[]
+    qcdscaleweightlist = []
+else:
+    pdfweightlist = []
 
 
 summarylist = [("TOTAL","bkg"),
@@ -369,8 +377,11 @@ for key, (selfull, weight) in cutsetdict.iteritems():
         w = weight.replace("NLOWeight" , "NLOWeight*PDFWeights[%i]" % i )
         selection_list[key][shift] = dict( w=w, sel=sel )
 
+if options.Onlypdf:
+    hkeys = ["norm",]+pdfweightlist
+else:
+    hkeys = ["norm",]+mettaglist+sftaglist+pupreftaglist+qcdscaleweightlist
 
-hkeys = ["norm",]+mettaglist+sftaglist+pupreftaglist+qcdscaleweightlist+pdfweightlist
 ## systematics as function of mass
 ## systematic_dict[ cutsettag ][ systematic_name ][ sample_name ]
 recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
@@ -422,42 +433,43 @@ for cutsetkey, sellist in selection_list.iteritems():
                  "p_{{T}}^{{{lep}}}>{kine[phpt]}GeV, MET>{kine[met]}GeV".format(kine=kine,lep=leplatex),
                  "Tight barrel #gamma p_{{T}}^{{#gamma}}>{kine[met]}GeV".format(kine=kine)],
                  "extra_label_loc":(.17,.82)}
+    if not options.Onlypdf:
 
-    ## met uncertainty
-    yeartag = "%s%i%s" %(ch,year,cutsetkey)
-    taglist = ["norm",]+ mettaglist #[mname+shift for mname in metlist for shift in ["Up","Down"]]
-    lgconf["legend_entries"] = taglist
-    histlist = [ sellist[t]["hstack"] for t in taglist ]
-    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
-                                                  "stackcomp_metsys_%s.pdf" %yeartag )
-    for mname in metlist:
-        taglist = ["norm",]+[mname+shift for shift in ["Up","Down"]]
+        ## met uncertainty
+        yeartag = "%s%i%s" %(ch,year,cutsetkey)
+        taglist = ["norm",]+ mettaglist #[mname+shift for mname in metlist for shift in ["Up","Down"]]
         lgconf["legend_entries"] = taglist
         histlist = [ sellist[t]["hstack"] for t in taglist ]
         hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                      "stackcomp_metsys_%s.pdf" %yeartag )
+        for mname in metlist:
+            taglist = ["norm",]+[mname+shift for shift in ["Up","Down"]]
+            lgconf["legend_entries"] = taglist
+            histlist = [ sellist[t]["hstack"] for t in taglist ]
+            hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
                                                       "stackcomp_%ssys%s.pdf" %(mname, yeartag) )
 
-    ## draw shape comparison plot for SF shifts
-    taglist = ["norm",] +sftaglist
-    lgconf["legend_entries"] = taglist
-    histlist = [ sellist[t]["hstack"] for t in taglist ]
-    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
-                                                  "stackcomp_sfsys%s.pdf" %yeartag )
+        ## draw shape comparison plot for SF shifts
+        taglist = ["norm",] +sftaglist
+        lgconf["legend_entries"] = taglist
+        histlist = [ sellist[t]["hstack"] for t in taglist ]
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                      "stackcomp_sfsys%s.pdf" %yeartag )
+    
+        ## draw shape comparison plot for prefiring weights and PU shifts
+        taglist = ["norm",] +pupreftaglist
+        lgconf["legend_entries"] = taglist
+        histlist = [ sellist[t]["hstack"] for t in taglist ]
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                      "stackcomp_ppusys%s.pdf" %yeartag )
 
-    ## draw shape comparison plot for prefiring weights and PU shifts
-    taglist = ["norm",] +pupreftaglist
-    lgconf["legend_entries"] = taglist
-    histlist = [ sellist[t]["hstack"] for t in taglist ]
-    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
-                                                  "stackcomp_ppusys%s.pdf" %yeartag )
-
-    ## draw shape comparison plot for ren/fac scale weight shifts
-    taglist = ["norm",] + qcdscaleweightlist
-    lgconf["legend_entries"] = taglist
-    histlist = [ sellist[t]["hstack"] for t in taglist ]
-    hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
-                                                  "stackcomp_pdfsys%s.pdf" %yeartag )
-
+        ## draw shape comparison plot for ren/fac scale weight shifts
+        taglist = ["norm",] + qcdscaleweightlist
+        lgconf["legend_entries"] = taglist
+        histlist = [ sellist[t]["hstack"] for t in taglist ]
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                      "stackcomp_pdfsys%s.pdf" %yeartag )
+    
 
     ### plot for individual signals
     for sname in activesignames:
@@ -470,44 +482,45 @@ for cutsetkey, sellist in selection_list.iteritems():
                  "extra_label_loc":(.17,.82)}
 
         hconf["rrange"]=(0.85,1.15)
-        ## met uncertainty
-        taglist = ["norm",]+ mettaglist #[mname+shift for mname in metlist for shift in ["Up","Down"]]
-        lgconf["legend_entries"] = taglist
-        histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
-        savename = "shapecomp%s_metsys%s.pdf" %(snameshort,yeartag)
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
-                                                        lgconf, savename, logy=False)
-        for mname in metlist:
-            taglist = ["norm",]+[mname+shift for shift in ["Up","Down"]]
+        if not options.Onlypdf:
+            ## met uncertainty
+            taglist = ["norm",]+ mettaglist #[mname+shift for mname in metlist for shift in ["Up","Down"]]
             lgconf["legend_entries"] = taglist
-            savename = "shapecomp%s_%ssys%s.pdf" %(snameshort,mname,yeartag)
             histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
+            savename = "shapecomp%s_metsys%s.pdf" %(snameshort,yeartag)
             hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
-                                                        lgconf, savename, logy=False )
-
-        ## draw shape comparison plot for SF shifts
-        taglist = ["norm",] +sftaglist
-        lgconf["legend_entries"] = taglist
-        histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
-        savename = "shapecomp%s_sfsys%s.pdf" %(snameshort,yeartag)
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
-                                                        lgconf, savename, logy=False)
-
-        ## draw shape comparison plot for prefiring weights and PU shifts
-        taglist = ["norm",] +pupreftaglist
-        lgconf["legend_entries"] = taglist
-        histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
-        savename = "shapecomp%s_ppusys%s.pdf" %(snameshort,yeartag)
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
-                                                        lgconf, savename, logy=False)
-
-        ## draw shape comparison plot for ren/fac scale weight shifts
-        taglist = ["norm",] + qcdscaleweightlist
-        lgconf["legend_entries"] = taglist
-        histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
-        savename = "shapecomp%s_pdfsys%s.pdf" %(snameshort,yeartag)
-        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
-                                                        lgconf, savename, logy=False)
+                                                            lgconf, savename, logy=False)
+            for mname in metlist:
+                taglist = ["norm",]+[mname+shift for shift in ["Up","Down"]]
+                lgconf["legend_entries"] = taglist
+                savename = "shapecomp%s_%ssys%s.pdf" %(snameshort,mname,yeartag)
+                histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
+                hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                            lgconf, savename, logy=False )
+    
+            ## draw shape comparison plot for SF shifts
+            taglist = ["norm",] +sftaglist
+            lgconf["legend_entries"] = taglist
+            histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
+            savename = "shapecomp%s_sfsys%s.pdf" %(snameshort,yeartag)
+            hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                            lgconf, savename, logy=False)
+    
+            ## draw shape comparison plot for prefiring weights and PU shifts
+            taglist = ["norm",] +pupreftaglist
+            lgconf["legend_entries"] = taglist
+            histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
+            savename = "shapecomp%s_ppusys%s.pdf" %(snameshort,yeartag)
+            hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                            lgconf, savename, logy=False)
+    
+            ## draw shape comparison plot for ren/fac scale weight shifts
+            taglist = ["norm",] + qcdscaleweightlist
+            lgconf["legend_entries"] = taglist
+            histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
+            savename = "shapecomp%s_pdfsys%s.pdf" %(snameshort,yeartag)
+            hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                            lgconf, savename, logy=False)
 
     bkgcountnorm = sellist["norm"]["stackcount"]["TOTAL"][0]
     bkgcountnormerr = sellist["norm"]["stackcount"]["TOTAL"][0]

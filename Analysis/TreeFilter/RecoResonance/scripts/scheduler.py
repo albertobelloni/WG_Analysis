@@ -33,7 +33,7 @@ options.copyInputFiles=False
 options.enableKeepFilter=True
 options.enableRemoveFilter=False
 options.filekey = 'ntuple'
-options.PUPath='/data2/users/kakw/Resonances%i/pileup/' %options.year
+options.PUPath='/data/users/yihuilai/Resonances%i/pileup_full/' %options.year
 
 if options.test :
     options.nproc = 1
@@ -45,18 +45,22 @@ if options.test :
 
 ### ATTENTION! Specify the output directory where the processed ntuple output will be saved.
 
-output_base = '/data2/users/kakw/Resonances%i/' %options.year
-jobtag = '_2020_12_01'
+output_base='/data/users/yihuilai/Resonances%i/' %options.year
+jobtag = '_2021_09_17'
 
 version2016 = 'UMDNTuple_0902_2016'
 version2017 = 'UMDNTuple_0902_2017'
 version2018 = 'UMDNTuple_0902_2018'
 
+version2016data = 'UMDNTuple_0902_2016'
+version2017data = 'UMDNTuple_0902_2017'
+version2018data = 'UMDNTuple_0902_2018'
+
 jobs2018 = [
         #--------------------------
 
-#        JobConf(base,'EGamma',    version=version2018data, year=2018, isData=True),
-#        JobConf(base,'SingleMuon',version=version2018data, year=2018, isData=True),
+        JobConf(base,'EGamma',    version=version2018data, year=2018, isData=True),
+        JobConf(base,'SingleMuon',version=version2018data, year=2018, isData=True),
         JobConf(base,'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
         JobConf(base,'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8',version="UMDNTuple_1014_2018",year=2018, tags=['NLO']),
         JobConf(base,'GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8',version=version2018,year=2018),
@@ -196,8 +200,9 @@ jobs2017 = [
         JobConf(base,'WGToLNuG_PtG-500_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2017,year=2017, tags=['NLO']),
         JobConf(base, 'ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8', version=version2017, year=2017 ,tags=['NLO']),
         JobConf(base, 'DiPhotonJets_MGG-80toInf_13TeV_amcatnloFXFX_pythia8', version=version2017, tags=['NLO'], year=2017),
-        ##JobConf(base, 'SingleMuon', isData=True, version=version2017, year=2017),
-        ##JobConf(base, 'SingleElectron', isData=True, version=version2017, year=2017),
+
+        JobConf(base, 'SingleMuon', isData=True, version=version2017, year=2017),
+        JobConf(base, 'SingleElectron', isData=True, version=version2017, year=2017),
 
         JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8', version=version2017, year=2017                         ),
         JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8',version=version2017 , year=2017 ,tags=['NLO']),
@@ -302,8 +307,8 @@ jobs2017 = [
 ]
 
 jobs2016 = [
-        #JobConf(base, 'SingleMuon', isData=True, version=version2016, year=2016),
-        #JobConf(base, 'SingleElectron', isData=True, version=version2016, year=2016),
+        JobConf(base, 'SingleMuon', isData=True, version=version2016, year=2016),
+        JobConf(base, 'SingleElectron', isData=True, version=version2016, year=2016),
         #JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                     ),
         #JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
         #JobConf(base, 'WGToLNuG_PtG-500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', version=version2016, year=2016                         ),
@@ -378,54 +383,54 @@ jobs2016 = [
 
 
         ###### signal stuff ######
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3000_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width5'   , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width5'    , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3000_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width0p01', version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width0p01' , version=version2016 , year=2016  ),
-        #JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M3000_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width5'   , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width5'    , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1000_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1200_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1400_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1600_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M1800_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2000_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M200_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2200_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2400_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M250_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2600_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M2800_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M3000_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M300_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M3500_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M350_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M4000_width0p01', version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M400_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M450_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M500_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M600_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M700_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M800_width0p01' , version=version2016 , year=2016  ),
+        JobConf(base,'MadGraphChargedResonance_WGToLNu_M900_width0p01' , version=version2016 , year=2016  ),
 
 
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M1000_width5' , version=version_py   ),

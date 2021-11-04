@@ -36,7 +36,8 @@ recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
 
 _FILENAME = 'tree.root'
 _TREENAME = 'UMDNTuple/EventTree'
-datestr   = "2021_08_27"
+#datestr   = "2021_08_27"
+datestr   = "2021_09_17"
 
 lumiratio = 1.
 datestrmm=datestree=datestreg=datestrmg=""
@@ -108,8 +109,10 @@ tColor_Off="\033[0m"                    # Text Reset
 tPurple="\033[0;35m%s"+tColor_Off       # Purple
 
 # if no option is given, here are the default directories to read
-if options.baseDirMuG is None: options.baseDirMuG = "/data2/users/kakw/Resonances%i/LepGamma_mug_%s/WithSF/"%(options.year,datestrmg or datestr)
-if options.baseDirElG is None: options.baseDirElG = "/data2/users/kakw/Resonances%i/LepGamma_elg_%s/WithSF/"%(options.year,datestreg or datestr)
+#if options.baseDirMuG is None: options.baseDirMuG = "/data2/users/kakw/Resonances%i/LepGamma_mug_%s/WithSF/"%(options.year,datestrmg or datestr)
+if options.baseDirMuG is None: options.baseDirMuG = "/data/users/yihuilai/Resonances%i/LepGamma_mug_%s/WithSF/"%(options.year,datestrmg or datestr)
+#if options.baseDirElG is None: options.baseDirElG = "/data2/users/kakw/Resonances%i/LepGamma_elg_%s/WithSF/"%(options.year,datestreg or datestr)
+if options.baseDirElG is None: options.baseDirElG = "/data/users/yihuilai/Resonances%i/LepGamma_elg_%s/WithSF/"%(options.year,datestreg or datestr)
 if options.baseDirMuMu is None: options.baseDirMuMu = "/data2/users/kakw/Resonances%i/LepLep_mumu_%s/"%(options.year,datestrmm or datestr)
 if options.baseDirElEl is None: options.baseDirElEl = "/data2/users/kakw/Resonances%i/LepLep_elel_%s/"%(options.year,datestree or datestr)
 #options.baseDirElG = "/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/"

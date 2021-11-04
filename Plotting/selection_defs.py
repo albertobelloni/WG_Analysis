@@ -20,8 +20,8 @@ def get_base_selection( channel ) :
 
 def get_weight_str( ch = None ) :
 
-    weight_str = '(isinf(PUWeight)?1:PUWeight)*NLOWeight*prefweight*(isinf(jet_btagSF)?1:jet_btagSF)'
-    #weight_str = 'PUWeight*NLOWeight*prefweight*jet_btagSF'
+    #weight_str = '(isinf(PUWeight)?1:PUWeight)*NLOWeight*prefweight*(isinf(jet_btagSF)?1:jet_btagSF)'
+    weight_str = 'PUWeight*NLOWeight*prefweight*jet_btagSF'
     weight_str_mu = weight_str + '*(mu_trigSF*mu_idSF*mu_isoSF*mu_trkSF*ph_idSF*ph_psvSF)'
     weight_str_el = weight_str + '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF)'
     if ch == "el":
@@ -31,7 +31,8 @@ def get_weight_str( ch = None ) :
     elif ch == "nosf":
         weight = weight_str
     else:
-        weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * (isinf(jet_btagSF)?1:jet_btagSF))'
+        weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * jet_btagSF)'
+        #weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * (isinf(jet_btagSF)?1:jet_btagSF))'
     return weight
 
 
@@ -239,7 +240,18 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
 
     ph_base = 'ph_IsEB[0]'
     #ph_pt  = 'ph_pt[0] > %i ' %phpt
-    ph_pt  = 'ph_pt[0] > 0.50*mt_res - 40 && ph_pt[0] < 0.50*mt_res + 40'
+    #ph_pt  = 'ph_pt[0] > 0.50*mt_res - 40 && ph_pt[0] < 0.50*mt_res + 40'
+    #ph_pt  = 'ph_pt[0] > 0.50*mt_res-40'
+    #ph_pt  = 'ph_pt[0] > 0.50*mt_res-30'
+    #ph_pt  = 'ph_pt[0] > 0.40*mt_res-20'
+    #ph_pt  = 'ph_pt[0] > 0.40*mt_res'
+    #ph_pt  = 'ph_pt[0] > 0.30*mt_res-20'
+    #ph_pt  = 'ph_pt[0] > 0.20*mt_res'
+    #ph_pt  = 'ph_pt[0] < 0.55*mt_res'
+    #ph_pt  = 'ph_pt[0] < 0.50*mt_res+30'
+    #ph_pt  = 'ph_pt[0] < 0.50*mt_res+40'
+    #ph_pt  = 'ph_pt[0] < 0.65*mt_res-20'
+    ph_pt  = 'ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res'
     ph_passpix = '!ph_hasPixSeed[0]'
     ph_tight = 'ph_passTight[0]' # already in base selection
     sel_ph =  [ph_base, ph_tight, ph_pt, ph_passpix]
