@@ -58,7 +58,7 @@ def main() :
     protag = "all"
 
 
-    fitfunc = ["dijet"]#,"expow","atlas"] 
+    fitfunc = ["dijet","vvdijet","atlas"] 
     #fitfunc = ["atlas"] 
     #fitfunc = "dijet"
 
@@ -161,7 +161,7 @@ def get_mc_fit( hist ,var, fitfunc, workspace, suffix='') :
 
     ## power, expow, vvdijet, atlas, dijet
     norders=2
-    if fitfunc == "expow" or fitfunc == "atlas":
+    if fitfunc == "expow" or fitfunc == "atlas" or fitfunc == "vvdijet":
         norders=1
     fitManager = FitManager( fitfunc , hist , xvar, suffix, norders =norders)
     #fitManager.addhist(hist, "datahist"+fitfunc)

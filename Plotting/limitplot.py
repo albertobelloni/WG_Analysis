@@ -40,9 +40,9 @@ pads[0].GetFrame().Draw()
 # the top of the frame. Fix the minimum to zero.
 FixBothRanges(pads[0], 0, 0, GetPadYMax(pads[0]), 0.25)
 
-if "0p01" in sys.argv[1]:
+if "_0p01_" in sys.argv[1]:
     text = "width = 0.01%"
-if "5" in sys.argv[1]:
+if "_5_" in sys.argv[1]:
     text = "width = 5%"
 text2=None
 if "mu" in  sname or "el" in sname:

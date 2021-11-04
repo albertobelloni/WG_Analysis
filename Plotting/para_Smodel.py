@@ -21,7 +21,7 @@ def addparser(parser):
     parser.add_argument( '--makeplots',        action='store_true', help='makeplots' )
 execfile("MakeBase.py")
 
-inputDir = "/data/users/yihuilai/WG_Analysis/Plotting/WG_Analysis/Plotting/data/sigfit/2018/"
+inputDir = "/data/users/yihuilai/WG_Analysis/Plotting/WG_Analysis/Plotting/data_1015_afterbias_study/sigfit/2018/"
 outputDir = "./"
 _XSFILE   = 'cross_sections/photon16_smallsig.py'
 
@@ -31,10 +31,10 @@ _LUMI18   = 59740
 
 # make parametrized signal model
 
-_JSONLOC = "data/para.txt"
-_JSONLOC_Fit = "data/para_fit.txt"
+_JSONLOC = "data_1015_afterbias_study/para.txt"
+_JSONLOC_Fit = "data_1015_afterbias_study/para_fit.txt"
 plot_outDir = "plots/MakeSignalWS_para"
-data_outDir = "data/sigfit_para"
+data_outDir = "data_1015_afterbias_study/sigfit_para"
 if plot_outDir is not None :
     if not os.path.isdir( plot_outDir ) :
         os.makedirs( plot_outDir )
@@ -249,12 +249,12 @@ def make_parametrized_signal_model( ):
 
 #-------------------------------------------------
 
-def prepare_signal_functions_helper( mass, width,  iyear, ich , Use_scaleError=True) :
+def prepare_signal_functions_helper( mass, width,  iyear, ich , Use_scaleError=False) :
 
     sigpar = "_".join(['M'+str(mass), 'W'+str(width), '%s_%s' %( ich,str(iyear) )])
     inpar = "_".join(['M'+str(mass), 'W'+str(width), ich])
 
-    fname= 'data/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
+    fname= 'data_1015_afterbias_study/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
     wsname = "wssignal" + '_' + inpar
     print fname, " : ", wsname
     ifile = ROOT.TFile.Open( fname, 'READ' )
@@ -311,14 +311,20 @@ def prepare_signal_functions_helper( mass, width,  iyear, ich , Use_scaleError=T
             else:
                 #Use new error from the fitting
                 varmean = func.Eval(int(mass))
-                func.SetParameters(sigfitparams[iipar]['0']+sigfitparams[iipar+'err']['0'],sigfitparams[iipar]['1']+sigfitparams[iipar+'err']['1'],sigfitparams[iipar]['2']+sigfitparams[iipar+'err']['2'])
-                varup = func.Eval(int(mass))
-                func.SetParameters(sigfitparams[iipar]['0']-sigfitparams[iipar+'err']['0'],sigfitparams[iipar]['1']-sigfitparams[iipar+'err']['1'],sigfitparams[iipar]['2']-sigfitparams[iipar+'err']['2'])
-                vardown = func.Eval(int(mass))
+                if sigfitparams[iipar]['func'] == 'pol1':
+                    func.SetParameters(sigfitparams[iipar]['0']+sigfitparams[iipar+'err']['0'],sigfitparams[iipar]['1']+sigfitparams[iipar+'err']['1'])
+                    varup = func.Eval(int(mass))
+                    func.SetParameters(sigfitparams[iipar]['0']-sigfitparams[iipar+'err']['0'],sigfitparams[iipar]['1']-sigfitparams[iipar+'err']['1'])
+                    vardown = func.Eval(int(mass))
+                else:
+                    func.SetParameters(sigfitparams[iipar]['0']+sigfitparams[iipar+'err']['0'],sigfitparams[iipar]['1']+sigfitparams[iipar+'err']['1'],sigfitparams[iipar]['2']+sigfitparams[iipar+'err']['2'])
+                    varup = func.Eval(int(mass))
+                    func.SetParameters(sigfitparams[iipar]['0']-sigfitparams[iipar+'err']['0'],sigfitparams[iipar]['1']-sigfitparams[iipar+'err']['1'],sigfitparams[iipar]['2']-sigfitparams[iipar+'err']['2'])
+                    vardown = func.Eval(int(mass))
                 print('varup,',varup, 'vardown,',vardown,' new error',max(abs(varmean-varup),abs(varmean-vardown)) )
-                var.setError( max(abs(varmean-varup),abs(varmean-vardown)) )
+                var.setError( varmean*0.0001 )
+                #var.setError( max(abs(varmean-varup),abs(varmean-vardown)) )
                 var.setVal( varmean )
-
             import_workspace( ws_out, var)
 
     var = ws_in.var( "mt_res" )
@@ -445,7 +451,7 @@ def make_comparison_plots( mass, width,  iyear, ich ) :
     sigpar = "_".join(['M'+str(mass), 'W'+str(width), '%s_%s' %( ich,str(iyear) )])
     inpar = "_".join(['M'+str(mass), 'W'+str(width), ich])
 
-    inputfile0 = 'data/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
+    inputfile0 = 'data_1015_afterbias_study/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
     wsname = "wssignal" + '_' + inpar
     print inputfile0, " : ", wsname
     ifile0 = ROOT.TFile.Open( inputfile0, 'READ' )
@@ -503,7 +509,7 @@ if options.fitSignal:
 
 #Prepare Parameterized signal model
 widthpoints    = ['5','0p01']
-yearpoints = [2018]#,2017,2018]
+yearpoints = [2016,2017,2018]
 chpoints = ['el','mu']
 masspoints = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
 for mass in masspoints:

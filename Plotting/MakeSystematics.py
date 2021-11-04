@@ -468,9 +468,14 @@ for cutsetkey, sellist in selection_list.iteritems():
         lgconf["legend_entries"] = taglist
         histlist = [ sellist[t]["hstack"] for t in taglist ]
         hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
-                                                      "stackcomp_pdfsys%s.pdf" %yeartag )
-    
-
+                                                      "stackcomp_qcdsys%s.pdf" %yeartag )
+    else:
+        yeartag = "%s%i%s" %(ch,year,cutsetkey)
+        taglist = ["norm",] + pdfweightlist
+        lgconf["legend_entries"] = taglist
+        histlist = [ sellist[t]["hstack"] for t in taglist ]
+        hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf, lgconf,
+                                                            "stackcomp_pdfsys%s.pdf" %yeartag)
     ### plot for individual signals
     for sname in activesignames:
         snameshort = sname.replace("MadGraphResonanceMass", "M")
@@ -516,6 +521,13 @@ for cutsetkey, sellist in selection_list.iteritems():
     
             ## draw shape comparison plot for ren/fac scale weight shifts
             taglist = ["norm",] + qcdscaleweightlist
+            lgconf["legend_entries"] = taglist
+            histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
+            savename = "shapecomp%s_qcdsys%s.pdf" %(snameshort,yeartag)
+            hratiolist, leg, labels = makecomparisonplot( samples, histlist, hconf, lconf,
+                                                            lgconf, savename, logy=False)
+        else:
+            taglist = ["norm",] + pdfweightlist
             lgconf["legend_entries"] = taglist
             histlist = [ sellist[t]["hsignals"][sname] for t in taglist ]
             savename = "shapecomp%s_pdfsys%s.pdf" %(snameshort,yeartag)
