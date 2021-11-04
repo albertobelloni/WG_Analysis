@@ -473,11 +473,28 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         else :
             raw_input('cont')
 
-
         selection_ph = 'ph_n==1 && ph_pt[0] > 15 && ph_IsEB[0] && ph_passEleVeto[0] && ph_passMedium[0]'
         label_zg = 'Z + photon'
 
         full_sel_str_zg = ' %s * ( %s ) ' %( weight_str, ' && '.join( [selection, selection_ph] ) )
+        
+        sampMan.Draw( 'ph_eta', full_sel_str_zg, (20, -3, 3), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Photon #eta', 'xunit': ''}),
+                    label_config={'labelStyle' : 'fancy2016', 'extra_label': label_zg, 'extra_label_loc':(0.17, 0.87)},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'pho_eta_%sg.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
+
+        sampMan.Draw( 'ph_phi', full_sel_str_zg, (20, -math.pi, math.pi), 
+                    hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Photon #phi', 'xunit': ''}),
+                    label_config={'labelStyle' : 'fancy2016', 'extra_label': label_zg, 'extra_label_loc':(0.17, 0.87)},
+                    )
+        if options.outputDir is not None :
+            sampMan.SaveStack( 'pho_phi_%sg.pdf' % channel, outdir, 'base' ) 
+        else :
+            raw_input('cont')
 
         sampMan.Draw( 'm_ll', full_sel_str_zg, (50, 50, 250), 
                     hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Dilepton Mass', 'xunit': 'GeV'}),
@@ -489,7 +506,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
             raw_input('cont')
 
 
-        sampMan.Draw( 'ph_pt[0]', full_sel_str_zg, (50, 0, 250), 
+        sampMan.Draw( 'ph_pt', full_sel_str_zg, (50, 0, 250), 
                     hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Photon p_{T}', 'xunit': 'GeV'}),
                     label_config={'labelStyle' : 'fancy2016', 'extra_label': label_zg, 'extra_label_loc':(0.17, 0.87)},
                     )

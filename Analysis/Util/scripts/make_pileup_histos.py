@@ -58,7 +58,7 @@ def main() :
     else:
         samples = mc_samples
 
-    for samp in mc_samples :
+    for samp in samples :
 
         samp_files = []
 
