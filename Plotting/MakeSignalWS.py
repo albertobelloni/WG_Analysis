@@ -13,6 +13,7 @@ execfile("MakeBase.py")
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
+ROOT.gROOT.SetBatch()
 
 _XMIN_M = 0
 _XMAX_M = 4000
@@ -322,8 +323,6 @@ metlist=[
             "ElectronEn",
             "PhotonEn",
             "UnclusteredEn", #--/Up/Down
-            "PhotonPtScale",
-            "ElectronPtScale",
         ]
 
 eventweightlist = ["muR1muF2",
@@ -391,23 +390,27 @@ def make_syssellist( varnorm, selnorm, weightnorm, ch = "el"):
 
         w = weightnorm.replace("mt_res", "mt_res_%s" %tag )\
                   .replace("met_pt", "met_%s_pt" %tag )
-        sel = selnorm.replace("mt_res", "mt_res_%s" % tag )\
-                     .replace("met_pt", "met_%s_pt" % tag )
+        sel = selnorm.replace("mt_res", "mt_res_%s" % tag )
+        
+        if any(x in tag for x in ['Muon', 'Electron', 'Photon']):
+            sel = sel.replace("met_pt", "met_%sByHand_pt" % tag )
+        else:
+            sel = sel.replace("met_pt", "met_%s_pt" % tag )
 
         if tag == "MuonEnUp":
             sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
         if tag == "MuonEnDown":
             sel = sel.replace("mu_pt_rc", "mu_pt_rc_down")
 
-        if tag == "PhotonPtScaleUp":
-            sel = sel.replace("ph_pt", "ph_pt_Scale_up")
-        if tag == "PhotonPtScaleDown":
-            sel = sel.replace("ph_pt", "ph_pt_Scale_down")
+        if tag == "PhotonEnUp":
+            sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
+        if tag == "PhotonEnDown":
+            sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
 
-        if tag == "ElectronPtScaleUp":
-            sel = sel.replace("el_pt", "el_pt_Scale_up")
-        if tag == "ElectronPtScaleDown":
-            sel = sel.replace("el_pt", "el_pt_Scale_down")
+        if tag == "ElectronEnUp":
+            sel = sel.replace("el_pt", "el_pt_ScaleUp")
+        if tag == "ElectronEnDown":
+            sel = sel.replace("el_pt", "el_pt_ScaleDown")
 
         var = "mt_res_%s" %tag
         selection_list[tag] = (var, sel, w)
