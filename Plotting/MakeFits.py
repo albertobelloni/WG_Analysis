@@ -635,8 +635,6 @@ class MakeLimits( ) :
         muennames  = ( 'MuonEnUp',       'MuonEnDown'  )
         elennames  = ( 'ElectronEnUp',   'ElectronEnDown')
         phennames  = ( 'PhotonEnUp',     'PhotonEnDown' )
-        elptnames  = ( 'ElectronPtScaleUp',   'ElectronPtScaleDown')
-        phptnames  = ( 'PhotonPtScaleUp',   'PhotonPtScaleDown' )
 
 
         newsysdict = recdd()
@@ -698,13 +696,6 @@ class MakeLimits( ) :
         ## el scale
         if ch == "el":
             newsysdict["CMS_el_scale"]  = tuple(sysdict[s]/100.+1 for s in elennames)
-
-        ## ph pt scale
-        #newsysdict["CMS_phpt_scale"]  = tuple(sysdict[s]/100.+1 for s in phptnames)
-
-        ## el pt scale
-        #if ch == "el":
-        #    newsysdict["CMS_elpt_scale"]  = tuple(sysdict[s]/100.+1 for s in elptnames)
 
         ## prefiring
         newsysdict["CMS_pref"]  = tuple(sysdict[s]/100.+1 for s in prefnames)
