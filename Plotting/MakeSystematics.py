@@ -328,8 +328,11 @@ for key, (selfull, weight) in cutsetdict.iteritems():
     for tag in mettaglist:
         w = weight.replace("mt_res", "mt_res_%s" %tag )\
                   .replace("met_pt", "met_%s_pt" %tag )
-        sel = selfull.replace("mt_res", "mt_res_%s" % tag )\
-                     .replace("met_pt", "met_%s_pt" % tag )
+        sel = selfull.replace("mt_res", "mt_res_%s" % tag )
+        if any(x in tag for x in ['Muon', 'Electron', 'Photon']):
+            sel = sel.replace("met_pt", "met_%sByHand_pt" % tag )
+        else:
+            sel = sel.replace("met_pt", "met_%s_pt" % tag )
         var = "mt_res_%s" %tag
         if tag == "MuonEnUp":
             sel = sel.replace("mu_pt_rc", "mu_pt_rc_up")
