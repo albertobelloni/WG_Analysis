@@ -90,7 +90,7 @@ def make_final_mumu( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 9 | == 10 '
+    filter_trig.cut_bits = ' == 9 '
     alg_list.append( filter_trig )
 
     filtermet = filter_met()
@@ -183,7 +183,7 @@ def make_final_mu( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 9 | == 10 '
+    filter_trig.cut_bits = ' == 9 '
     alg_list.append( filter_trig )
 
     filter_event = Filter('FilterEvent')
@@ -307,7 +307,7 @@ def make_final_mug( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger(do_cutflow = True)
-    filter_trig.cut_bits = ' == 9 | == 10 '
+    filter_trig.cut_bits = ' == 9 '
     alg_list.append( filter_trig )
 
     #filtermet = filter_met()
