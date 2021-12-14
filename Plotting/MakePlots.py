@@ -49,10 +49,16 @@ if options.outputDir is not None :
 _TREENAME = 'UMDNTuple/EventTree'
 _FILENAME = 'tree.root'
 _XSFILE   = 'cross_sections/photon%i.py' % (options.year%2000)
-_LUMI     = 35900
+lumimap = { # https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#SummaryTable
+    2016: 36330,
+    2017: 41480,
+    2018: 59830,
+}
+_LUMI     = lumimap[options.year]
 _MODULE   = 'Modules/Resonance%i.py' % options.year
 
 if options.baseDir and options.tag:
+    options.baseDir += '/Resonances%i' % options.year
     if not options.baseDirMu:
         options.baseDirMu = options.baseDir + '/SingleLep_mu_' + options.tag
     if not options.baseDirEl:
@@ -237,7 +243,7 @@ def main() :
 
 def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
 
-    outdir = '%s/%s' %(options.outputDir, name )
+    outdir = '%s/%s_%i' %(options.outputDir, name, options.year)
     default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': ''}
     default_label_config = {'labelStyle' : 'fancy2016'}
     default_legend_config = {'fillalpha': 0.5, 'siglegPos': 'bottom'}
@@ -251,7 +257,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
     for channel in wchannels:
         sampMan = wchannels[channel]
         
-        selection = defs.get_base_selection( channel )
+        selection = defs.get_base_selection( channel, options.year )
         weight_str = defs.get_weight_str()
         full_sel_str = ' %s * ( %s ) ' %( weight_str, selection )
         
@@ -384,7 +390,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
 def MakeZCRPlots( sampManMu, sampManEl ) :
 
     name = 'ZCRPlots'
-    outdir = '%s/%s' %(options.outputDir, name )
+    outdir = '%s/%s_%i' %(options.outputDir, name, options.year)
     default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': ''}
 
     zchannels = {

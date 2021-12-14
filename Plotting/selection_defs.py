@@ -1,7 +1,7 @@
 import itertools
 from math import pi
 
-def get_base_selection( channel ) :
+def get_base_selection( channel, year=2016 ) :
 
     if channel == 'mu' :
         return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && mu_passTight[0] '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
@@ -10,7 +10,10 @@ def get_base_selection( channel ) :
     if channel == 'elg' :
         return 'el_n==1 && mu_n==0 && ph_n==1'
     if channel == 'el' :
-        return 'el_pt30_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && HLT_Ele27_WPTight_Gsf ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
+        if year == 2016:
+            return 'el_pt30_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && el_hasTrigMatch[0] && (HLT_Ele27_WPTight_Gsf || HLT_Photon175)  ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
+        else:
+            return 'el_pt30_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && el_hasTrigMatch[0] && (HLT_Ele32_WPTight_Gsf_L1DoubleEG || HLT_Photon200) '
     if channel == 'mumu' :
         return 'mu_pt30_n>=1 && mu_n==2 && mu_passTight[0] && mu_passTight[1] '  # require 1 muon with pt > 30 and 2 muons with pt > 10
     if channel == 'elel' :
@@ -218,7 +221,7 @@ def makeselstringwweight(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""
     selstr = " && ".join(selstrlist)
     return weight+'* ( %s )'% selstr
 
-def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
+def makeselstringlist(ch="el", phpt = -1, leppt = 35, met = 40):
     """ assemble selection strings
         return
             array of selections
@@ -251,7 +254,10 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     #ph_pt  = 'ph_pt[0] < 0.50*mt_res+30'
     #ph_pt  = 'ph_pt[0] < 0.50*mt_res+40'
     #ph_pt  = 'ph_pt[0] < 0.65*mt_res-20'
-    ph_pt  = 'ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res'
+    if phpt < 0:
+        ph_pt  = 'ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res'
+    else:
+        ph_pt  = 'ph_pt[0] > ' + str(phpt)
     ph_passpix = '!ph_hasPixSeed[0]'
     ph_tight = 'ph_passTight[0]' # already in base selection
     sel_ph =  [ph_base, ph_tight, ph_pt, ph_passpix]

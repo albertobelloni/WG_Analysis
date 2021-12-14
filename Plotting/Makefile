@@ -14,6 +14,7 @@ DIR_ELG=/data2/users/kakw/Resonances2016/LepGamma_elg_2019_10_04
 DIR_Combine=/home/kakw/efake/WG_Analysis_hcombinetest/CMSSW_8_1_0/src
 
 OUTPUTMAIN=/data/users/yihuilai/test_code/WG_Analysis/Plotting/data
+OUTPUTMAIN=data
 
 all : plots workspaces limits
 

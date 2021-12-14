@@ -295,6 +295,29 @@ def config_samples(samples) :
     samples.AddSample('PythiaResonanceMass4000_width0p01', path='PythiaChargedResonance_WGToLNuG_M4000_width0p01', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 4000 GeV', XSName='ResonanceMass4000')
     samples.AddSample('PythiaResonanceMass4000_width5', path='PythiaChargedResonance_WGToLNuG_M4000_width5', isActive=False, isSignal=True, useXSFile=True, plotColor=ROOT.kRed, legend_name = '#Phi^{#pm} #rightarrow W^{#pm}#gamma, M = 4000 GeV', XSName='ResonanceMass4000')
 
+    samples.AddSample('QCD_Pt-15to20_EMEnriched', path='QCD_Pt-15to20_EMEnriched_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-15to20_MuEnrichedPt5', path='QCD_Pt-15to20_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-20to30_EMEnriched', path='QCD_Pt-20to30_EMEnriched_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-20to30_MuEnrichedPt5', path='QCD_Pt-20to30_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf', path='QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCP5_13TeV_Pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-30to50_EMEnriched', path='QCD_Pt-30to50_EMEnriched_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-30to50_MuEnrichedPt5', path='QCD_Pt-30to50_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-30toInf_DoubleEMEnriched_MGG-40to80', path='QCD_Pt-30toInf_DoubleEMEnriched_MGG-40to80_TuneCP5_13TeV_Pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf', path='QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCP5_13TeV_Pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-50to80_EMEnriched', path='QCD_Pt-50to80_EMEnriched_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-50to80_MuEnrichedPt5', path='QCD_Pt-50to80_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-80to120_EMEnriched', path='QCD_Pt-80to120_EMEnriched_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-80to120_MuEnrichedPt5', path='QCD_Pt-80to120_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-120to170_EMEnriched', path='QCD_Pt-120to170_EMEnriched_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-120to170_MuEnrichedPt5', path='QCD_Pt-120to170_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-170to300_EMEnriched', path='QCD_Pt-170to300_EMEnriched_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-170to300_MuEnrichedPt5', path='QCD_Pt-170to300_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-300to470_MuEnrichedPt5', path='QCD_Pt-300to470_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-300toInf_EMEnriched', path='QCD_Pt-300toInf_EMEnriched_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-470to600_MuEnrichedPt5', path='QCD_Pt-470to600_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-600to800_MuEnrichedPt5', path='QCD_Pt-600to800_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-800to1000_MuEnrichedPt5', path='QCD_Pt-800to1000_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
+    samples.AddSample('QCD_Pt-1000toInf_MuEnrichedPt5', path='QCD_Pt-1000toInf_MuEnrichedPt5_TuneCP5_13TeV_pythia8', isActive=False, useXSFile=True)
 
     samples.AddSampleGroup( 'Data', legend_name='Data',
                             input_samples = [
@@ -347,7 +370,7 @@ def config_samples(samples) :
     samples.AddSampleGroup(  'WJets', legend_name='W+Jets',
                            #input_samples = ['WJetsToLNu-madgraphMLMPhOlap'],
                            input_samples = [
-                                            #'WJetsToLNuTrueHTOlap',
+                                            'WJetsToLNuTrueHTOlap',
                                             'WJetsToLNu_HT-100To200',
                                             'WJetsToLNu_HT-200To400',
                                             'WJetsToLNu_HT-400To600',
@@ -415,6 +438,36 @@ def config_samples(samples) :
                            input_samples = ['GammaGamma', 'GJets', 'WJets', "ZJets", "Zgamma"], ## for background shape comparisons
                            plotColor = ROOT.kGray,
                            isActive=False,
+                          )
+
+    samples.AddSampleGroup( 'QCD', legend_name='Multijet',
+                           input_samples = [
+                                'QCD_Pt-15to20_EMEnriched',
+                                'QCD_Pt-15to20_MuEnrichedPt5',
+                                'QCD_Pt-20to30_EMEnriched',
+                                'QCD_Pt-20to30_MuEnrichedPt5',
+                                'QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf',
+                                'QCD_Pt-30to50_EMEnriched',
+                                'QCD_Pt-30to50_MuEnrichedPt5',
+                                'QCD_Pt-30toInf_DoubleEMEnriched_MGG-40to80',
+                                'QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf',
+                                'QCD_Pt-50to80_EMEnriched',
+                                'QCD_Pt-50to80_MuEnrichedPt5',
+                                'QCD_Pt-80to120_EMEnriched',
+                                'QCD_Pt-80to120_MuEnrichedPt5',
+                                'QCD_Pt-120to170_EMEnriched',
+                                'QCD_Pt-120to170_MuEnrichedPt5',
+                                'QCD_Pt-170to300_EMEnriched',
+                                'QCD_Pt-170to300_MuEnrichedPt5',
+                                'QCD_Pt-300to470_MuEnrichedPt5',
+                                'QCD_Pt-300toInf_EMEnriched',
+                                'QCD_Pt-470to600_MuEnrichedPt5',
+                                'QCD_Pt-600to800_MuEnrichedPt5',
+                                'QCD_Pt-800to1000_MuEnrichedPt5',
+                                'QCD_Pt-1000toInf_MuEnrichedPt5',
+                           ],
+                           plotColor = ROOT.kGray,
+                        #    isActive=False,
                           )
 
     samples.AddSampleGroup( 'AllSignals', legend_name='All Signals',
