@@ -718,10 +718,8 @@ class MakeLimits( ) :
             # SetDesc: "Hessian conversion of NNPDF31_nnlo_as_0118_1000, mem=0 central value => Alphas(MZ)=0.118; mem=1-100 => PDF eig.; mem=101 => central value Alphas(MZ)=0.116; mem=102 => central value Alphas(MZ)=0.120"
             pdfsyst2 = 0.
             pdfcentral = pdfvars[0]
-            for i in range(100):
-                if i%2 == 0:
-                    continue
-                shift = abs(pdfvars[i]/pdfcentral - pdfvars[i+1]/pdfcentral) / 2.
+            for i in range(101):
+                shift = abs(pdfvars[i]/pdfcentral - 1.)
                 pdfsyst2 += shift**2
             newsysdict["pdf"] = ( 1.+np.sqrt(pdfsyst2), 1.-np.sqrt(pdfsyst2) )
             
