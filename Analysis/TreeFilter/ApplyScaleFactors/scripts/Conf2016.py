@@ -126,7 +126,7 @@ def get_photon_sf(options) :
 
     photon_sf.add_var( 'year', theyear)
 
-    photon_sf.add_var( 'FilePathId', '%s/2016/Fall17V2_2016_Medium_photons.root' %base_path )
+    photon_sf.add_var( 'FilePathId', '%s/2016/egammaPlots_MWP_PhoSFs_2016_LegacyReReco_New.root' %base_path )
     photon_sf.add_var( 'HistId', 'EGamma_SF2D' )
 
     # high-pt photon ID fit: https://indico.cern.ch/event/879936/#3-high-pt-photon-sfs-for-wgamm
