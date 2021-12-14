@@ -90,7 +90,7 @@ def make_final_mumu( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 9 | == 10 '
+    filter_trig.cut_bits = ' == 10 '
     alg_list.append( filter_trig )
 
     filtermet = filter_met()
@@ -121,7 +121,7 @@ def make_final_elel( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 28 | == 48'
+    filter_trig.cut_bits = ' == 2627 | == 48'
     alg_list.append( filter_trig )
 
     filtermet = filter_met()
@@ -183,7 +183,7 @@ def make_final_mu( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 9 | == 10 '
+    filter_trig.cut_bits = ' == 10 '
     alg_list.append( filter_trig )
 
     filter_event = Filter('FilterEvent')
@@ -217,7 +217,7 @@ def make_final_el( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger()
-    filter_trig.cut_bits = ' == 28 | == 48'
+    filter_trig.cut_bits = ' == 2627 | == 48'
     alg_list.append( filter_trig )
 
     filter_event = Filter('FilterEvent')
@@ -251,7 +251,7 @@ def make_final_elg( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger(do_cutflow=True)
-    filter_trig.cut_bits = ' == 28 | == 48'
+    filter_trig.cut_bits = ' == 2627 | == 48'
     alg_list.append( filter_trig )
 
     #filtermet = filter_met()
@@ -306,7 +306,7 @@ def make_final_mug( alg_list, args) :
     alg_list.append( filter_jet( ) )
 
     filter_trig = filter_trigger(do_cutflow=True)
-    filter_trig.cut_bits = ' == 9 | == 10 '
+    filter_trig.cut_bits = ' == 10 '
     alg_list.append( filter_trig )
 
     #filtermet = filter_met()
@@ -418,7 +418,7 @@ def filter_trigger(do_cutflow = False) :
     if do_cutflow: filter_trigger.do_cutflow = True
 
     # this will store branches for only these triggers
-    filter_trigger.add_var( 'triggerBits', '9:HLT_IsoMu24,28:HLT_Ele35_WPTight_Gsf,10:HLT_IsoMu27,48:HLT_Photon200,27:HLT_Ele32_WPTight_Gsf_L1DoubleEG')
+    filter_trigger.add_var( 'triggerBits', '9:HLT_IsoMu24,28:HLT_Ele35_WPTight_Gsf,10:HLT_IsoMu27,48:HLT_Photon200,27:HLT_Ele32_WPTight_Gsf_L1DoubleEG,2627:HLT_Ele32_WPTight_Gsf_L1DoubleEG_hltEGL1SingleEGOrFilter')
     # this will store branches for all triggers found in the provided tree
     filter_trigger.add_var( 'AuxTreeName', 'UMDNTuple/TrigInfoTree' )
 
@@ -453,7 +453,7 @@ def filter_muon( mu_pt = ' > 25 ', do_cutflow=False, apply_corrections=False, do
     filt.cut_pfiso_tight  = ' < 0.15 '
     filt.cut_trkiso_tight = ' < 0.05 '
 
-    filt.add_var( 'triggerMatchBits', '9' )
+    filt.add_var( 'triggerMatchBits', '10' )
     filt.add_var( 'FilePathRochester', '%s/roccor.Run2.v3/RoccoR2017.txt' %base_path )
 
     filt.cut_isPf_loose         = ' == True '

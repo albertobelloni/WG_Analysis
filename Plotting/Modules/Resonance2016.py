@@ -322,32 +322,6 @@ def config_samples(samples) :
                            isData=True,
                           )
 
-    samples.AddSampleGroup( 'QCD', legend_name='QCD multijet',
-                           input_samples = [
-                                           'QCD_Pt-1000toInf_MuEnrichedPt5',
-                                            'QCD_Pt-120to170_MuEnrichedPt5',
-                                            'QCD_Pt-15to20_MuEnrichedPt5',
-                                            'QCD_Pt-20to30_MuEnrichedPt5',
-                                            'QCD_Pt-20toInf_MuEnrichedPt15',
-                                            'QCD_Pt-300to470_MuEnrichedPt5',
-                                            'QCD_Pt-30to50_MuEnrichedPt5',
-                                            'QCD_Pt-470to600_MuEnrichedPt5',
-                                            'QCD_Pt-50to80_MuEnrichedPt5',
-                                            'QCD_Pt-600to800_MuEnrichedPt5',
-                                            'QCD_Pt-800to1000_MuEnrichedPt5',
-                                            'QCD_Pt-80to120_MuEnrichedPt5',
-                                            'QCD_Pt-120to170_EMEnriched',
-                                            'QCD_Pt-170to300_EMEnriched',
-                                            'QCD_Pt-20to30_EMEnriched',
-                                            'QCD_Pt-300toInf_EMEnriched',
-                                            'QCD_Pt-30to50_EMEnriched',
-                                            'QCD_Pt-50to80_EMEnriched',
-                                            'QCD_Pt-80to120_EMEnriched',
-                           ],
-                           plotColor = ROOT.kGray,
-                        #    isActive=False,
-                          )
-
     samples.AddSampleGroup(  'WGamma', legend_name='W#gamma',
                            input_samples = ['WGToLNuG-amcatnloFXFXPhCut', 'WGToLNuG_PtG-130-amcatnloFXFXPhCut','WGToLNuG_PtG-500-amcatnloFXFXPhCut'],
                            #input_samples = ['WGToLNuG-amcatnloFXFX'],
@@ -482,6 +456,32 @@ def config_samples(samples) :
                            input_samples = ['GammaGamma', 'GJets', 'WJets', "ZJets", "Zgamma"], ## for background shape comparisons
                            plotColor = ROOT.kGray,
                            isActive=False,
+                          )
+
+    samples.AddSampleGroup( 'QCD', legend_name='Multijet',
+                           input_samples = [
+                                            'QCD_Pt-15to20_MuEnrichedPt5',
+                                            'QCD_Pt-20to30_EMEnriched',
+                                            'QCD_Pt-20to30_MuEnrichedPt5',
+                                            'QCD_Pt-20toInf_MuEnrichedPt15',
+                                            'QCD_Pt-30to50_EMEnriched',
+                                            'QCD_Pt-30to50_MuEnrichedPt5',
+                                            'QCD_Pt-50to80_EMEnriched',
+                                            'QCD_Pt-50to80_MuEnrichedPt5',
+                                            'QCD_Pt-80to120_EMEnriched',
+                                            'QCD_Pt-80to120_MuEnrichedPt5',
+                                            'QCD_Pt-120to170_EMEnriched',
+                                            'QCD_Pt-120to170_MuEnrichedPt5',
+                                            'QCD_Pt-170to300_EMEnriched',
+                                            'QCD_Pt-300to470_MuEnrichedPt5',
+                                            'QCD_Pt-300toInf_EMEnriched',
+                                            'QCD_Pt-470to600_MuEnrichedPt5',
+                                            'QCD_Pt-600to800_MuEnrichedPt5',
+                                            'QCD_Pt-800to1000_MuEnrichedPt5',
+                                            'QCD_Pt-1000toInf_MuEnrichedPt5',
+                           ],
+                           plotColor = ROOT.kGray,
+                        #    isActive=False,
                           )
 
     samples.AddSampleGroup( 'AllSignals', legend_name='All Signals',

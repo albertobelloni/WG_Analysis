@@ -10,8 +10,9 @@ def main() :
     sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,readHists=False , weightHistName = "weighthist")
     sampManElG.ReadSamples( _SAMPCONF )
-    plotvarsbase = [ ("mt_lep_met_ph",(100,0,2000)),
-                 ("p_{T}(#gamma)","ph_pt[0]"     ,(100,50,550)),
+    plotvarsbase = [
+                 ("p_{T}(#gamma)","ph_pt[0]"     ,(100,50,1050)),
+                 ("E(#gamma)"   ,"ph_e[0]"       ,(100,50,1050)),
                  ("#eta(#gamma)","ph_eta[0]"    ,(100,-3,3)),
                  ("#phi(#gamma)","ph_phi[0]"    ,(100,-pi,pi)),
                  ("MET"         ,"met_pt"       ,(100,0,500)),
@@ -33,7 +34,7 @@ def main() :
         #if ch == "el": selection = baseel + ph_eb + metgt40 + invZ + passpix + phpt80 + "&&el_passTight[0] && ph_passTight[0]" + elpt40 + el_eb
         ##if ch == "mu": selection = basemu + ph_eb + metgt40  + passpix + phpt80 + "&& mu_passTight[0] && ph_passTight[0]"
         #selection , weight = defs.makeselstring(ch, 210, 35, 160)
-        selection , weight = defs.makeselstring(ch,  80, 35,  40)
+        selection , weight = defs.makeselstring(ch, 50, 35,  40)
 
 
         ## prepare config
@@ -42,10 +43,10 @@ def main() :
         legend_config = {'legendLoc':"Double","legendTranslateX":0.3, "legendCompress":1, "fillalpha":.5, "legendWiden":.9}
 
         ### MT_LEP_MET_PH
-        samples.Draw("mt_res", selection, (50,0,2000), hist_config,legend_config,label_config)
+        samples.Draw("mt_res", selection, (45,200,2000), hist_config,legend_config,label_config)
 
         ## save histogram
-        samples.SaveStack("moneymtres_cut2_%i%s.pdf" %(options.year, ch), options.outputDir, "base")
+        samples.SaveStack("moneymtres_%i%s.pdf" %(options.year, ch), options.outputDir, "base")
         samples.print_stack_count()
         samples.print_stack_count(doacceptance=True)
         samples.print_stack_count(dolatex=True)
@@ -60,7 +61,7 @@ def main() :
             samples.Draw(var, selection,vrange , hist_config,legend_config,label_config)
             ## save histogram
             varname = var.replace("[","").replace("]","")
-            samples.SaveStack("%sSIGSEL%i%s.pdf" %(varname,options.year, ch), options.outputDir, "base")
+            samples.SaveStack("%s_%i%s.pdf" %(varname,options.year, ch), options.outputDir, "base")
     return sampManMuG, sampManElG
 
 
