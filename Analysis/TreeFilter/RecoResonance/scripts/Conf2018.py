@@ -725,7 +725,7 @@ def filter_photon( ph_pt = ' > 10 ', id_cut='medium', ieta_cut=None, ele_veto='N
 
     filt.cut_pt           = ph_pt
     filt.cut_eta          = ' < 2.5'
-    filt.cut_abseta_crack = ' > 1.44 & < 1.57 '
+    filt.cut_abseta_crack = ' > 1.4442 & < 1.566 '
     filt.invert('cut_abseta_crack')
 
     filt.cut_muon_dr    = ' > 0.4 '
