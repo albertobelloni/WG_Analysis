@@ -2097,6 +2097,7 @@ void RunModule::FilterPhoton( ModuleConfig & config ) {
         if( !config.PassFloat( "cut_eta", fabs(eta) ) ) continue;
         if( !config.PassBool( "cut_eb", iseb ) ) continue;
         if( !config.PassBool( "cut_ee", isee ) ) continue;
+        if( !config.PassFloat( "cut_abseta_crack", fabs(sceta)) ) continue;
 
         float sigmaIEIE = IN::ph_sigmaIEIEFull5x5->at(idx);
         float hovere = IN::ph_hOverE->at(idx);

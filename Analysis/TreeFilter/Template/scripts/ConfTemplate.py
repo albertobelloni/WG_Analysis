@@ -54,7 +54,7 @@ def build_photon( do_cutflow=False, do_hists=False ) :
     # require some special handling
     filt.cut_pt           = ' > 15 '
     filt.cut_abseta       = ' < 2.5'
-    filt.cut_abseta_crack = ' > 1.479 & < 1.566 '
+    filt.cut_abseta_crack = ' > 1.4442 & < 1.566 '
     filt.invert('cut_abseta_crack')
 
     filt.cut_sigmaIEIE = ' < 0.011 '
