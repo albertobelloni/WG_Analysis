@@ -13,6 +13,7 @@
 
 #include "BranchInit.h"
 #include "include/RoccoR.h"
+#include "include/XYMETCorrection.h"
 
 #include "Util.h"
 
@@ -681,6 +682,14 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                 else              _isData=false;
             }
 
+        }
+        if (mod_conf.GetName() == "BuildEventVars") {
+            std::map<std::string, std::string>::const_iterator year =
+                mod_conf.GetInitData().find("year");
+            if (year != mod_conf.GetInitData().end()) {
+                _year = std::stoi(year->second);
+                std::cout << "year = " << _year << std::endl;
+            }
         }
         if( mod_conf.GetName() == "FilterEvent" ) { 
 
@@ -2972,6 +2981,35 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::massdijet_m = 0;
     OUT::massdijet_pt = 0;
 
+    // MET XY corrections
+    // https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections#xy_Shift_Correction_MET_phi_modu
+    std::tie(OUT::met_pt,                   OUT::met_phi                  )
+        = METXYCorr_Met_MetPhi(OUT::met_pt,                   OUT::met_phi,                   OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_JetEnUp_pt,           OUT::met_JetEnUp_phi          )
+        = METXYCorr_Met_MetPhi(OUT::met_JetEnUp_pt,           OUT::met_JetEnUp_phi,           OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_JetEnDown_pt,         OUT::met_JetEnDown_phi        )
+        = METXYCorr_Met_MetPhi(OUT::met_JetEnDown_pt,         OUT::met_JetEnDown_phi,         OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_JetResUp_pt,          OUT::met_JetResUp_phi         )
+        = METXYCorr_Met_MetPhi(OUT::met_JetResUp_pt,          OUT::met_JetResUp_phi,          OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_JetResDown_pt,        OUT::met_JetResDown_phi       )
+        = METXYCorr_Met_MetPhi(OUT::met_JetResDown_pt,        OUT::met_JetResDown_phi,        OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_UnclusteredEnUp_pt,   OUT::met_UnclusteredEnUp_phi  )
+        = METXYCorr_Met_MetPhi(OUT::met_UnclusteredEnUp_pt,   OUT::met_UnclusteredEnUp_phi,   OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_UnclusteredEnDown_pt, OUT::met_UnclusteredEnDown_phi)
+        = METXYCorr_Met_MetPhi(OUT::met_UnclusteredEnDown_pt, OUT::met_UnclusteredEnDown_phi, OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_MuonEnUp_pt,          OUT::met_MuonEnUp_phi         )
+        = METXYCorr_Met_MetPhi(OUT::met_MuonEnUp_pt,          OUT::met_MuonEnUp_phi,          OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_MuonEnDown_pt,        OUT::met_MuonEnDown_phi       )
+        = METXYCorr_Met_MetPhi(OUT::met_MuonEnDown_pt,        OUT::met_MuonEnDown_phi,        OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_ElectronEnUp_pt,      OUT::met_ElectronEnUp_phi     )
+        = METXYCorr_Met_MetPhi(OUT::met_ElectronEnUp_pt,      OUT::met_ElectronEnUp_phi,      OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_ElectronEnDown_pt,    OUT::met_ElectronEnDown_phi   )
+        = METXYCorr_Met_MetPhi(OUT::met_ElectronEnDown_pt,    OUT::met_ElectronEnDown_phi,    OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_PhotonEnUp_pt,        OUT::met_PhotonEnUp_phi       )
+        = METXYCorr_Met_MetPhi(OUT::met_PhotonEnUp_pt,        OUT::met_PhotonEnUp_phi,        OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_PhotonEnDown_pt,      OUT::met_PhotonEnDown_phi     )
+        = METXYCorr_Met_MetPhi(OUT::met_PhotonEnDown_pt,      OUT::met_PhotonEnDown_phi,      OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+
     TLorentzVector metlv;
     metlv.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     TLorentzVector metlvOrig( metlv );
@@ -5040,6 +5078,7 @@ bool RunModule::HasTruthMatch( const TLorentzVector & objlv, const std::vector<i
 RunModule::RunModule() {
     _m_w = 80.385;
     _m_z = 91.2;
+    _year = 0;
     _isData = false;
     _filterevent_cutflow = false;
     passtrigger = true;

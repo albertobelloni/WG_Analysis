@@ -72,6 +72,7 @@ class RunModule : public virtual RunModuleBase {
 
         float _m_w;
         float _m_z;
+        int _year;
         bool _isData;
         bool printevent;
         bool passtrigger;
