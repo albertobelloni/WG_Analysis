@@ -13,6 +13,7 @@
 
 #include "BranchInit.h"
 #include "include/RoccoR.h"
+#include "include/XYMETCorrection.h"
 
 #include "Util.h"
 
@@ -162,10 +163,18 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::met_PhotonEnUpByHand_phi               = 0;
     OUT::met_PhotonEnDownByHand_pt              = 0;
     OUT::met_PhotonEnDownByHand_phi             = 0;
+    OUT::met_PhotonResUpByHand_pt               = 0;
+    OUT::met_PhotonResUpByHand_phi              = 0;
+    OUT::met_PhotonResDownByHand_pt             = 0;
+    OUT::met_PhotonResDownByHand_phi            = 0;
     OUT::met_ElectronEnUpByHand_pt              = 0;
     OUT::met_ElectronEnUpByHand_phi             = 0;
     OUT::met_ElectronEnDownByHand_pt            = 0;
     OUT::met_ElectronEnDownByHand_phi           = 0;
+    OUT::met_ElectronResUpByHand_pt             = 0;
+    OUT::met_ElectronResUpByHand_phi            = 0;
+    OUT::met_ElectronResDownByHand_pt           = 0;
+    OUT::met_ElectronResDownByHand_phi          = 0;
     OUT::met_MuonEnUpByHand_pt                  = 0;
     OUT::met_MuonEnUpByHand_phi                 = 0;
     OUT::met_MuonEnDownByHand_pt                = 0;
@@ -439,18 +448,30 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mt_res_MuonEnDown",        &OUT::mt_res_MuonEnDown           ,"mt_res_MuonEnDown/F" );
     outtree->Branch("mt_res_ElectronEnUp",      &OUT::mt_res_ElectronEnUp         ,"mt_res_ElectronEnUp/F" );
     outtree->Branch("mt_res_ElectronEnDown",    &OUT::mt_res_ElectronEnDown       ,"mt_res_ElectronEnDown/F" );
+    outtree->Branch("mt_res_ElectronResUp",      &OUT::mt_res_ElectronResUp         ,"mt_res_ElectronResUp/F" );
+    outtree->Branch("mt_res_ElectronResDown",    &OUT::mt_res_ElectronResDown       ,"mt_res_ElectronResDown/F" );
     outtree->Branch("mt_res_PhotonEnUp",        &OUT::mt_res_PhotonEnUp           ,"mt_res_PhotonEnUp/F" );
     outtree->Branch("mt_res_PhotonEnDown",      &OUT::mt_res_PhotonEnDown         ,"mt_res_PhotonEnDown/F" );
+    outtree->Branch("mt_res_PhotonResUp",        &OUT::mt_res_PhotonResUp           ,"mt_res_PhotonResUp/F" );
+    outtree->Branch("mt_res_PhotonResDown",      &OUT::mt_res_PhotonResDown         ,"mt_res_PhotonResDown/F" );
     outtree->Branch("mt_res_UnclusteredEnUp",   &OUT::mt_res_UnclusteredEnUp      ,"mt_res_UnclusteredEnUp/F" );
     outtree->Branch("mt_res_UnclusteredEnDown", &OUT::mt_res_UnclusteredEnDown    ,"mt_res_UnclusteredEnDown/F" );
     outtree->Branch("met_PhotonEnUpByHand_pt", &OUT::met_PhotonEnUpByHand_pt, "met_PhotonEnUpByHand_pt/F");
     outtree->Branch("met_PhotonEnUpByHand_phi", &OUT::met_PhotonEnUpByHand_phi, "met_PhotonEnUpByHand_phi/F");
     outtree->Branch("met_PhotonEnDownByHand_pt", &OUT::met_PhotonEnDownByHand_pt, "met_PhotonEnDownByHand_pt/F");
     outtree->Branch("met_PhotonEnDownByHand_phi", &OUT::met_PhotonEnDownByHand_phi, "met_PhotonEnDownByHand_phi/F");
+    outtree->Branch("met_PhotonResUpByHand_pt", &OUT::met_PhotonResUpByHand_pt, "met_PhotonResUpByHand_pt/F");
+    outtree->Branch("met_PhotonResUpByHand_phi", &OUT::met_PhotonResUpByHand_phi, "met_PhotonResUpByHand_phi/F");
+    outtree->Branch("met_PhotonResDownByHand_pt", &OUT::met_PhotonResDownByHand_pt, "met_PhotonResDownByHand_pt/F");
+    outtree->Branch("met_PhotonResDownByHand_phi", &OUT::met_PhotonResDownByHand_phi, "met_PhotonResDownByHand_phi/F");
     outtree->Branch("met_ElectronEnUpByHand_pt", &OUT::met_ElectronEnUpByHand_pt, "met_ElectronEnUpByHand_pt/F");
     outtree->Branch("met_ElectronEnUpByHand_phi", &OUT::met_ElectronEnUpByHand_phi, "met_ElectronEnUpByHand_phi/F");
-    outtree->Branch("met_ElectronEnDownByHand_pt", &OUT::met_ElectronEnDownByHand_pt, "met_ElectronEnDownByHan0d_pt/F");
+    outtree->Branch("met_ElectronEnDownByHand_pt", &OUT::met_ElectronEnDownByHand_pt, "met_ElectronEnDownByHand_pt/F");
     outtree->Branch("met_ElectronEnDownByHand_phi", &OUT::met_ElectronEnDownByHand_phi, "met_ElectronEnDownByHand_phi/F");
+    outtree->Branch("met_ElectronResUpByHand_pt", &OUT::met_ElectronResUpByHand_pt, "met_ElectronResUpByHand_pt/F");
+    outtree->Branch("met_ElectronResUpByHand_phi", &OUT::met_ElectronResUpByHand_phi, "met_ElectronResUpByHand_phi/F");
+    outtree->Branch("met_ElectronResDownByHand_pt", &OUT::met_ElectronResDownByHand_pt, "met_ElectronResDownByHand_pt/F");
+    outtree->Branch("met_ElectronResDownByHand_phi", &OUT::met_ElectronResDownByHand_phi, "met_ElectronResDownByHand_phi/F");
     outtree->Branch("met_MuonEnUpByHand_pt", &OUT::met_MuonEnUpByHand_pt, "met_MuonEnUpByHand_pt/F");
     outtree->Branch("met_MuonEnUpByHand_phi", &OUT::met_MuonEnUpByHand_phi, "met_MuonEnUpByHand_phi/F");
     outtree->Branch("met_MuonEnDownByHand_pt", &OUT::met_MuonEnDownByHand_pt, "met_MuonEnDownByHand_pt/F");
@@ -661,6 +682,14 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
                 else              _isData=false;
             }
 
+        }
+        if (mod_conf.GetName() == "BuildEventVars") {
+            std::map<std::string, std::string>::const_iterator year =
+                mod_conf.GetInitData().find("year");
+            if (year != mod_conf.GetInitData().end()) {
+                _year = std::stoi(year->second);
+                std::cout << "year = " << _year << std::endl;
+            }
         }
         if( mod_conf.GetName() == "FilterEvent" ) { 
 
@@ -2898,8 +2927,12 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::mt_res_MuonEnDown =0;
     OUT::mt_res_ElectronEnUp =0;
     OUT::mt_res_ElectronEnDown =0;
+    OUT::mt_res_ElectronResUp =0;
+    OUT::mt_res_ElectronResDown =0;
     OUT::mt_res_PhotonEnUp =0;
     OUT::mt_res_PhotonEnDown =0;
+    OUT::mt_res_PhotonResUp =0;
+    OUT::mt_res_PhotonResDown =0;
     OUT::mt_res_UnclusteredEnUp =0;
     OUT::mt_res_UnclusteredEnDown =0;
     OUT::mt_lep_ph = 0;
@@ -2924,10 +2957,18 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::met_PhotonEnUpByHand_phi = 0;
     OUT::met_PhotonEnDownByHand_pt = 0;
     OUT::met_PhotonEnDownByHand_phi = 0;
+    OUT::met_PhotonResUpByHand_pt = 0;
+    OUT::met_PhotonResUpByHand_phi = 0;
+    OUT::met_PhotonResDownByHand_pt = 0;
+    OUT::met_PhotonResDownByHand_phi = 0;
     OUT::met_ElectronEnUpByHand_pt = 0;
     OUT::met_ElectronEnUpByHand_phi = 0;
     OUT::met_ElectronEnDownByHand_pt = 0;
     OUT::met_ElectronEnDownByHand_phi = 0;
+    OUT::met_ElectronResUpByHand_pt = 0;
+    OUT::met_ElectronResUpByHand_phi = 0;
+    OUT::met_ElectronResDownByHand_pt = 0;
+    OUT::met_ElectronResDownByHand_phi = 0;
     OUT::met_MuonEnUpByHand_pt = 0;
     OUT::met_MuonEnUpByHand_phi = 0;
     OUT::met_MuonEnDownByHand_pt = 0;
@@ -2939,6 +2980,35 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::leaddijet_pt = 0;
     OUT::massdijet_m = 0;
     OUT::massdijet_pt = 0;
+
+    // MET XY corrections
+    // https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections#xy_Shift_Correction_MET_phi_modu
+    std::tie(OUT::met_pt,                   OUT::met_phi                  )
+        = METXYCorr_Met_MetPhi(OUT::met_pt,                   OUT::met_phi,                   OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_JetEnUp_pt,           OUT::met_JetEnUp_phi          )
+        = METXYCorr_Met_MetPhi(OUT::met_JetEnUp_pt,           OUT::met_JetEnUp_phi,           OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_JetEnDown_pt,         OUT::met_JetEnDown_phi        )
+        = METXYCorr_Met_MetPhi(OUT::met_JetEnDown_pt,         OUT::met_JetEnDown_phi,         OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_JetResUp_pt,          OUT::met_JetResUp_phi         )
+        = METXYCorr_Met_MetPhi(OUT::met_JetResUp_pt,          OUT::met_JetResUp_phi,          OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_JetResDown_pt,        OUT::met_JetResDown_phi       )
+        = METXYCorr_Met_MetPhi(OUT::met_JetResDown_pt,        OUT::met_JetResDown_phi,        OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_UnclusteredEnUp_pt,   OUT::met_UnclusteredEnUp_phi  )
+        = METXYCorr_Met_MetPhi(OUT::met_UnclusteredEnUp_pt,   OUT::met_UnclusteredEnUp_phi,   OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_UnclusteredEnDown_pt, OUT::met_UnclusteredEnDown_phi)
+        = METXYCorr_Met_MetPhi(OUT::met_UnclusteredEnDown_pt, OUT::met_UnclusteredEnDown_phi, OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_MuonEnUp_pt,          OUT::met_MuonEnUp_phi         )
+        = METXYCorr_Met_MetPhi(OUT::met_MuonEnUp_pt,          OUT::met_MuonEnUp_phi,          OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_MuonEnDown_pt,        OUT::met_MuonEnDown_phi       )
+        = METXYCorr_Met_MetPhi(OUT::met_MuonEnDown_pt,        OUT::met_MuonEnDown_phi,        OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_ElectronEnUp_pt,      OUT::met_ElectronEnUp_phi     )
+        = METXYCorr_Met_MetPhi(OUT::met_ElectronEnUp_pt,      OUT::met_ElectronEnUp_phi,      OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_ElectronEnDown_pt,    OUT::met_ElectronEnDown_phi   )
+        = METXYCorr_Met_MetPhi(OUT::met_ElectronEnDown_pt,    OUT::met_ElectronEnDown_phi,    OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_PhotonEnUp_pt,        OUT::met_PhotonEnUp_phi       )
+        = METXYCorr_Met_MetPhi(OUT::met_PhotonEnUp_pt,        OUT::met_PhotonEnUp_phi,        OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
+    std::tie(OUT::met_PhotonEnDown_pt,      OUT::met_PhotonEnDown_phi     )
+        = METXYCorr_Met_MetPhi(OUT::met_PhotonEnDown_pt,      OUT::met_PhotonEnDown_phi,      OUT::runNumber, _year, !OUT::isData, OUT::vtx_n);
 
     TLorentzVector metlv;
     metlv.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
@@ -2954,8 +3024,12 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     TLorentzVector metlv_MuonEnDown;
     TLorentzVector metlv_ElectronEnUp;
     TLorentzVector metlv_ElectronEnDown;
+    TLorentzVector metlv_ElectronResUp;
+    TLorentzVector metlv_ElectronResDown;
     TLorentzVector metlv_PhotonEnUp;
     TLorentzVector metlv_PhotonEnDown;
+    TLorentzVector metlv_PhotonResUp;
+    TLorentzVector metlv_PhotonResDown;
     // Take MET uncertainties from jets and unclustered energy from MiniAod
     metlv_JetResUp.SetPtEtaPhiM( OUT::met_JetResUp_pt,    0.0, 
                                   OUT::met_JetResUp_phi,   0.0 );
@@ -2975,17 +3049,25 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     metlv_MuonEnDown.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     metlv_ElectronEnUp.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     metlv_ElectronEnDown.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
+    metlv_ElectronResUp.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
+    metlv_ElectronResDown.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     metlv_PhotonEnUp.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     metlv_PhotonEnDown.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
+    metlv_PhotonResUp.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
+    metlv_PhotonResDown.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
 
     std::vector<TLorentzVector> leptons;
     std::vector<TLorentzVector> leptons_MuEn_up;
     std::vector<TLorentzVector> leptons_MuEn_down;
     std::vector<TLorentzVector> leptons_ElEn_up;
     std::vector<TLorentzVector> leptons_ElEn_down;
+    std::vector<TLorentzVector> leptons_ElRes_up;
+    std::vector<TLorentzVector> leptons_ElRes_down;
     std::vector<TLorentzVector> photons;
     std::vector<TLorentzVector> photons_PhEn_up;
     std::vector<TLorentzVector> photons_PhEn_down;
+    std::vector<TLorentzVector> photons_PhRes_up;
+    std::vector<TLorentzVector> photons_PhRes_down;
 
     for( int idx = 0; idx < OUT::mu_n; ++idx ) {
         TLorentzVector tlv;
@@ -3010,6 +3092,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
         leptons_MuEn_down.push_back(tlv_down);
         leptons_ElEn_up.push_back(tlv);
         leptons_ElEn_down.push_back(tlv);
+        leptons_ElRes_up.push_back(tlv);
+        leptons_ElRes_down.push_back(tlv);
 
         metlv_MuonEnUp   = metlv_MuonEnUp   + tlv - tlv_up;
         metlv_MuonEnDown = metlv_MuonEnDown + tlv - tlv_down;
@@ -3025,6 +3109,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
         TLorentzVector tlv;
         TLorentzVector tlv_up;
         TLorentzVector tlv_down;
+        TLorentzVector tlv_res_up;
+        TLorentzVector tlv_res_down;
         tlv.SetPtEtaPhiE( OUT::el_pt->at(idx), 
                           OUT::el_eta->at(idx), 
                           OUT::el_phi->at(idx), 
@@ -3037,15 +3123,27 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
                           OUT::el_eta->at(idx), 
                           OUT::el_phi->at(idx), 
                           OUT::el_e_ScaleDown->at(idx) );
+        tlv_res_up.SetPtEtaPhiE( OUT::el_pt_SigmaUp->at(idx), 
+                          OUT::el_eta->at(idx), 
+                          OUT::el_phi->at(idx), 
+                          OUT::el_e_SigmaUp->at(idx) );
+        tlv_res_down.SetPtEtaPhiE( OUT::el_pt_SigmaDown->at(idx), 
+                          OUT::el_eta->at(idx), 
+                          OUT::el_phi->at(idx), 
+                          OUT::el_e_SigmaDown->at(idx) );
 
         leptons.push_back(tlv);
         leptons_MuEn_up.push_back(tlv);
         leptons_MuEn_down.push_back(tlv);
         leptons_ElEn_up.push_back(tlv_up);
         leptons_ElEn_down.push_back(tlv_down);
+        leptons_ElRes_up.push_back(tlv_res_up);
+        leptons_ElRes_down.push_back(tlv_res_down);
 
         metlv_ElectronEnUp   = metlv_ElectronEnUp   + tlv - tlv_up;
         metlv_ElectronEnDown = metlv_ElectronEnDown + tlv - tlv_down;
+        metlv_ElectronResUp   = metlv_ElectronResUp   + tlv - tlv_res_up;
+        metlv_ElectronResDown = metlv_ElectronResDown + tlv - tlv_res_down;
     }
     metlv_ElectronEnUp.SetPtEtaPhiM(   metlv_ElectronEnUp.Pt(),   0.0, metlv_ElectronEnUp.Phi(),   0.0 );
     metlv_ElectronEnDown.SetPtEtaPhiM( metlv_ElectronEnDown.Pt(), 0.0, metlv_ElectronEnDown.Phi(), 0.0 );
@@ -3053,12 +3151,20 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::met_ElectronEnUpByHand_phi = metlv_ElectronEnUp.Phi();
     OUT::met_ElectronEnDownByHand_pt = metlv_ElectronEnDown.Pt();
     OUT::met_ElectronEnDownByHand_phi = metlv_ElectronEnDown.Phi();
+    metlv_ElectronResUp.SetPtEtaPhiM(   metlv_ElectronResUp.Pt(),   0.0, metlv_ElectronResUp.Phi(),   0.0 );
+    metlv_ElectronResDown.SetPtEtaPhiM( metlv_ElectronResDown.Pt(), 0.0, metlv_ElectronResDown.Phi(), 0.0 );
+    OUT::met_ElectronResUpByHand_pt    = metlv_ElectronResUp.Pt();
+    OUT::met_ElectronResUpByHand_phi   = metlv_ElectronResUp.Phi();
+    OUT::met_ElectronResDownByHand_pt  = metlv_ElectronResDown.Pt();
+    OUT::met_ElectronResDownByHand_phi = metlv_ElectronResDown.Phi();
 
 
     for( int idx = 0; idx < OUT::ph_n; ++idx ) {
         TLorentzVector tlv;
         TLorentzVector tlv_up;
         TLorentzVector tlv_down;
+        TLorentzVector tlv_res_up;
+        TLorentzVector tlv_res_down;
         tlv.SetPtEtaPhiE( OUT::ph_pt->at(idx), 
                           OUT::ph_eta->at(idx), 
                           OUT::ph_phi->at(idx), 
@@ -3071,13 +3177,25 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
                           OUT::ph_eta->at(idx), 
                           OUT::ph_phi->at(idx), 
                           OUT::ph_e_ScaleDown->at(idx) );
+        tlv_res_up.SetPtEtaPhiE( OUT::ph_pt_SigmaUp->at(idx), 
+                          OUT::ph_eta->at(idx), 
+                          OUT::ph_phi->at(idx), 
+                          OUT::ph_e_SigmaUp->at(idx) );
+        tlv_res_down.SetPtEtaPhiE( OUT::ph_pt_SigmaDown->at(idx), 
+                          OUT::ph_eta->at(idx), 
+                          OUT::ph_phi->at(idx), 
+                          OUT::ph_e_SigmaDown->at(idx) );
 
         photons.push_back(tlv);
         photons_PhEn_up.push_back(tlv_up);
         photons_PhEn_down.push_back(tlv_down);
+        photons_PhRes_up.push_back(tlv_res_up);
+        photons_PhRes_down.push_back(tlv_res_down);
 
         metlv_PhotonEnUp   = metlv_PhotonEnUp   + tlv - tlv_up;
         metlv_PhotonEnDown = metlv_PhotonEnDown + tlv - tlv_down;
+        metlv_PhotonResUp   = metlv_PhotonResUp   + tlv - tlv_res_up;
+        metlv_PhotonResDown = metlv_PhotonResDown + tlv - tlv_res_down;
     }
     metlv_PhotonEnUp.SetPtEtaPhiM(   metlv_PhotonEnUp.Pt(),   0.0, metlv_PhotonEnUp.Phi(),   0.0 );
     metlv_PhotonEnDown.SetPtEtaPhiM( metlv_PhotonEnDown.Pt(), 0.0, metlv_PhotonEnDown.Phi(), 0.0 );
@@ -3085,6 +3203,12 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::met_PhotonEnUpByHand_phi = metlv_PhotonEnUp.Phi();
     OUT::met_PhotonEnDownByHand_pt = metlv_PhotonEnDown.Pt();
     OUT::met_PhotonEnDownByHand_phi = metlv_PhotonEnDown.Phi();
+    metlv_PhotonResUp.SetPtEtaPhiM(   metlv_PhotonResUp.Pt(),   0.0, metlv_PhotonResUp.Phi(),   0.0 );
+    metlv_PhotonResDown.SetPtEtaPhiM( metlv_PhotonResDown.Pt(), 0.0, metlv_PhotonResDown.Phi(), 0.0 );
+    OUT::met_PhotonResUpByHand_pt    = metlv_PhotonResUp.Pt();
+    OUT::met_PhotonResUpByHand_phi   = metlv_PhotonResUp.Phi();
+    OUT::met_PhotonResDownByHand_pt  = metlv_PhotonResDown.Pt();
+    OUT::met_PhotonResDownByHand_phi = metlv_PhotonResDown.Phi();
 
     if( leptons.size() > 0 ) {
         OUT::mt_lep_met = Utils::calc_mt( leptons[0], metlvOrig );
@@ -3145,19 +3269,27 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             TLorentzVector lep_trans_MuEn_down; 
             TLorentzVector lep_trans_ElEn_up; 
             TLorentzVector lep_trans_ElEn_down; 
+            TLorentzVector lep_trans_ElRes_up;
+            TLorentzVector lep_trans_ElRes_down;
             TLorentzVector ph_trans; 
             TLorentzVector ph_trans_PhEn_up; 
             TLorentzVector ph_trans_PhEn_down; 
+            TLorentzVector ph_trans_PhRes_up;
+            TLorentzVector ph_trans_PhRes_down;
 
             lep_trans.SetPtEtaPhiM( leptons[0].Pt(), 0.0, leptons[0].Phi(), leptons[0].M() );
             lep_trans_MuEn_up  .SetPtEtaPhiM( leptons_MuEn_up[0].Pt(),   0.0, leptons_MuEn_up[0].Phi(),   leptons_MuEn_up[0].M() );
             lep_trans_MuEn_down.SetPtEtaPhiM( leptons_MuEn_down[0].Pt(), 0.0, leptons_MuEn_down[0].Phi(), leptons_MuEn_down[0].M() );
             lep_trans_ElEn_up  .SetPtEtaPhiM( leptons_ElEn_up[0].Pt(),   0.0, leptons_ElEn_up[0].Phi(),   leptons_ElEn_up[0].M() );
             lep_trans_ElEn_down.SetPtEtaPhiM( leptons_ElEn_down[0].Pt(), 0.0, leptons_ElEn_down[0].Phi(), leptons_ElEn_down[0].M() );
+            lep_trans_ElRes_up  .SetPtEtaPhiM( leptons_ElRes_up[0].Pt(),   0.0, leptons_ElRes_up[0].Phi(),   leptons_ElRes_up[0].M() );
+            lep_trans_ElRes_down.SetPtEtaPhiM( leptons_ElRes_down[0].Pt(), 0.0, leptons_ElRes_down[0].Phi(), leptons_ElRes_down[0].M() );
 
             ph_trans.SetPtEtaPhiM( photons[0].Pt(), 0.0, photons[0].Phi(), photons[0].M() );
             ph_trans_PhEn_up.SetPtEtaPhiM( photons_PhEn_up[0].Pt(), 0.0, photons_PhEn_up[0].Phi(), photons_PhEn_up[0].M() );
             ph_trans_PhEn_down.SetPtEtaPhiM( photons_PhEn_down[0].Pt(), 0.0, photons_PhEn_down[0].Phi(), photons_PhEn_down[0].M() );
+            ph_trans_PhRes_up.SetPtEtaPhiM  ( photons_PhRes_up[0].Pt(),   0.0, photons_PhRes_up[0].Phi(),   photons_PhRes_up[0].M() );
+            ph_trans_PhRes_down.SetPtEtaPhiM( photons_PhRes_down[0].Pt(), 0.0, photons_PhRes_down[0].Phi(), photons_PhRes_down[0].M() );
 
             // Transverse resonance mass
             OUT::mt_res = ( lep_trans + ph_trans + metlvOrig ).M();
@@ -3169,10 +3301,14 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             OUT::mt_res_JetEnDown  = ( lep_trans + ph_trans + metlv_JetEnDown ).M();
             OUT::mt_res_ElectronEnUp   = ( lep_trans_ElEn_up   + ph_trans + metlv_ElectronEnUp   ).M();
             OUT::mt_res_ElectronEnDown = ( lep_trans_ElEn_down + ph_trans + metlv_ElectronEnDown ).M();
+            OUT::mt_res_ElectronResUp   = ( lep_trans_ElRes_up   + ph_trans + metlv_ElectronResUp   ).M();
+            OUT::mt_res_ElectronResDown = ( lep_trans_ElRes_down + ph_trans + metlv_ElectronResDown ).M();
             OUT::mt_res_MuonEnUp     = ( lep_trans_MuEn_up + ph_trans + metlv_MuonEnUp   ).M();
             OUT::mt_res_MuonEnDown   = ( lep_trans_MuEn_down + ph_trans + metlv_MuonEnDown ).M();
             OUT::mt_res_PhotonEnUp   = ( lep_trans + ph_trans_PhEn_up + metlv_PhotonEnUp   ).M();
             OUT::mt_res_PhotonEnDown = ( lep_trans + ph_trans_PhEn_down + metlv_PhotonEnDown ).M();
+            OUT::mt_res_PhotonResUp   = ( lep_trans + ph_trans_PhRes_up   + metlv_PhotonResUp   ).M();
+            OUT::mt_res_PhotonResDown = ( lep_trans + ph_trans_PhRes_down + metlv_PhotonResDown ).M();
             OUT::mt_res_UnclusteredEnUp   = ( lep_trans + ph_trans + metlv_UnclusteredEnUp   ).M();
             OUT::mt_res_UnclusteredEnDown = ( lep_trans + ph_trans + metlv_UnclusteredEnDown ).M();
 
@@ -4942,6 +5078,7 @@ bool RunModule::HasTruthMatch( const TLorentzVector & objlv, const std::vector<i
 RunModule::RunModule() {
     _m_w = 80.385;
     _m_z = 91.2;
+    _year = 0;
     _isData = false;
     _filterevent_cutflow = false;
     passtrigger = true;

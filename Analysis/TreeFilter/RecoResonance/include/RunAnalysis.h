@@ -72,6 +72,7 @@ class RunModule : public virtual RunModuleBase {
 
         float _m_w;
         float _m_z;
+        int _year;
         bool _isData;
         bool printevent;
         bool passtrigger;
@@ -214,8 +215,12 @@ namespace OUT {
     float mt_res_MuonEnDown;
     float mt_res_ElectronEnUp;
     float mt_res_ElectronEnDown;
+    float mt_res_ElectronResUp;
+    float mt_res_ElectronResDown;
     float mt_res_PhotonEnUp;
     float mt_res_PhotonEnDown;
+    float mt_res_PhotonResUp;
+    float mt_res_PhotonResDown;
     float mt_res_UnclusteredEnUp;
     float mt_res_UnclusteredEnDown;
     float mt_lep_ph;
@@ -242,10 +247,18 @@ namespace OUT {
     float met_PhotonEnUpByHand_phi;
     float met_PhotonEnDownByHand_pt;
     float met_PhotonEnDownByHand_phi;
+    float met_PhotonResUpByHand_pt;
+    float met_PhotonResUpByHand_phi;
+    float met_PhotonResDownByHand_pt;
+    float met_PhotonResDownByHand_phi;
     float met_ElectronEnUpByHand_pt;
     float met_ElectronEnUpByHand_phi;
     float met_ElectronEnDownByHand_pt;
     float met_ElectronEnDownByHand_phi;
+    float met_ElectronResUpByHand_pt;
+    float met_ElectronResUpByHand_phi;
+    float met_ElectronResDownByHand_pt;
+    float met_ElectronResDownByHand_phi;
     float met_MuonEnUpByHand_pt;
     float met_MuonEnUpByHand_phi;
     float met_MuonEnDownByHand_pt;

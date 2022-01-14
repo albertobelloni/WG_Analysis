@@ -3,6 +3,8 @@ import inspect
 import sys
 import os
 
+theyear = 2017
+
 def get_remove_filter() :
     """ Define list of regex strings to filter input branches to remove from the output.
         Defining a non-empty list does not apply the filter,
@@ -107,7 +109,9 @@ def make_final_mumu( alg_list, args) :
     alg_list.append( filter_event )
 
     alg_list.append( Filter( 'MakePhotonCountVars' ) )
-    alg_list.append( Filter( 'BuildEventVars' ) )
+    event_vars = Filter( 'BuildEventVars' )
+    event_vars.add_var( 'year', theyear)
+    alg_list.append( event_vars )
     alg_list.append( build_truth(args) )
 
 def make_final_elel( alg_list, args) :
@@ -138,7 +142,9 @@ def make_final_elel( alg_list, args) :
     alg_list.append( filter_event )
 
     alg_list.append( Filter( 'MakePhotonCountVars' ) )
-    alg_list.append( Filter( 'BuildEventVars' ) )
+    event_vars = Filter( 'BuildEventVars' )
+    event_vars.add_var( 'year', theyear)
+    alg_list.append( event_vars )
     alg_list.append( build_truth(args) )
 
 def make_final_muel( alg_list, args) :
@@ -160,7 +166,9 @@ def make_final_muel( alg_list, args) :
     alg_list.append( filter_event )
 
     #alg_list.append( Filter( 'MakePhotonCountVars' ) )
-    alg_list.append( Filter( 'BuildEventVars' ) )
+    event_vars = Filter( 'BuildEventVars' )
+    event_vars.add_var( 'year', theyear)
+    alg_list.append( event_vars )
     alg_list.append( build_truth(args) )
 
 def make_final_mu( alg_list, args) :
@@ -193,7 +201,9 @@ def make_final_mu( alg_list, args) :
     alg_list.append( filter_event )
 
     alg_list.append( Filter( 'MakePhotonCountVars' ) )
-    alg_list.append( Filter( 'BuildEventVars' ) )
+    event_vars = Filter( 'BuildEventVars' )
+    event_vars.add_var( 'year', theyear)
+    alg_list.append( event_vars )
     alg_list.append( build_truth(args) )
 
 def make_final_el( alg_list, args) :
@@ -227,7 +237,9 @@ def make_final_el( alg_list, args) :
     alg_list.append( filter_event )
 
     alg_list.append( Filter( 'MakePhotonCountVars' ) )
-    alg_list.append( Filter( 'BuildEventVars' ) )
+    event_vars = Filter( 'BuildEventVars' )
+    event_vars.add_var( 'year', theyear)
+    alg_list.append( event_vars )
     alg_list.append( build_truth(args) )
 
 def make_final_elg( alg_list, args) :
@@ -276,7 +288,9 @@ def make_final_elg( alg_list, args) :
     if phot_vars == 'True' :
         alg_list.append( Filter( 'MakePhotonCountVars' ) )
 
-    alg_list.append( Filter( 'BuildEventVars' ) )
+    event_vars = Filter( 'BuildEventVars' )
+    event_vars.add_var( 'year', theyear)
+    alg_list.append( event_vars )
     alg_list.append( build_truth(args) )
 
     if unblind is not 'True' :
@@ -328,7 +342,9 @@ def make_final_mug( alg_list, args) :
 
     if phot_vars == 'True' :
         alg_list.append( Filter( 'MakePhotonCountVars' ) )
-    alg_list.append( Filter( 'BuildEventVars' ) )
+    event_vars = Filter( 'BuildEventVars' )
+    event_vars.add_var( 'year', theyear)
+    alg_list.append( event_vars )
     alg_list.append( build_truth(args) )
 
     if unblind is not 'True' :
@@ -408,7 +424,9 @@ def make_nofilt( alg_list, args ) :
     alg_list.append( filter_trigger() )
     alg_list.append( filter_met() )
 
-    alg_list.append( Filter( 'BuildEventVars' ) )
+    event_vars = Filter( 'BuildEventVars' )
+    event_vars.add_var( 'year', theyear)
+    alg_list.append( event_vars )
     alg_list.append( Filter( 'BuildTruth' ) )
 
 
