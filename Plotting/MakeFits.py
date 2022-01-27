@@ -44,7 +44,8 @@ parser.add_argument( '--BiasStudy',        action='store_true', help='Add other 
 options = parser.parse_args()
 
 _WLEPBR = (1.-0.6741)
-_XSFILE   = 'cross_sections/photon16_smallsig.py'
+#_XSFILE   = 'cross_sections/photon16_smallsig.py'
+_XSFILE   = 'cross_sections/photon_expect.py'
 _LUMI16   = 36000
 _LUMI17   = 41000
 _LUMI18   = 59740
@@ -70,7 +71,7 @@ def f_Dumpfname(func):
 
 recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
 
-targetfunc = '_vvdijet'
+targetfunc = 'MultiPdf'
 #targetfunc = '_atlas'
 #targetfunc = '_dijet' 
 
@@ -78,29 +79,28 @@ testfunc = "_atlas"
 #testfunc = "_dijet"
 #testfunc = '_vvdijet'
 
-injectsignal='5'
+sourceOfBKG = 'bkgfit_data'
+injectsignal='0.1'
 
-options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data_1015_afterbias_study/higgs"
-#options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data_1015_afterbias_study/higgs"+targetfunc
-#options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data_djetorder3/higgs"+targetfunc+'_test'
-#options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data_1015_afterbias_study/higgs_narrow"+testfunc+"2"+targetfunc+"_r"+injectsignal
-#options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data/higgs"
-ntoy = '500'
-rseed = '23621'
-rname = '_test41'
+genindex='0'
+fitindex='-1'
+
+ntoy = '120'
+rseed = '9024'
+rname = '_test7'
+
+options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data/higgs"
 
 def main() :
 
     pdf_prefix, bkgparams ="dijet", ["dijet_order1", "dijet_order2"]
     if 'expow' in targetfunc:
-        pdf_prefix, bkgparams ="expow", ["expow_order0", "expow_order1"]
         pdf_prefix, bkgparams ="expow", ["expow_order1", "expow_order2"]
     if 'atlas' in targetfunc:
-        pdf_prefix, bkgparams ="atlas", ["atlas_order0", "atlas_order1", "atlas_order2"]
         pdf_prefix, bkgparams ="atlas", ["atlas_order1", "atlas_order2", "atlas_order3"]
     if 'vvdijet' in targetfunc:
-        pdf_prefix, bkgparams ="vvdijet", ["vvdijet_order1", "vvdijet_order2", "vvdijet_order3"]
-    #pdf_prefix = 'MultiPdf'
+        pdf_prefix, bkgparams ="vvdijet", ["vvdijet_order1", "vvdijet_order2"]
+    pdf_prefix, bkgparams ="MultiPdf", []
 
     ws_keys = {
               # this can be made to a class
@@ -516,6 +516,155 @@ class MakeLimits( ) :
         #---------------------------------------
         self.add_systematics()
 
+        # Make Signal uncertainty plots --Yihui
+        makesysplots=False
+        if makesysplots:
+            for ch in ['el','mu']:
+                for wid in ['5','0p01']:
+                    for year in ['2016','2017','2018']:
+                       for index in ['A','B']:
+                           c=ROOT.TCanvas("c","c",1200,600)
+                           c.SetFillColor(0)
+                           c.SetBorderMode(0)
+                           c.SetBorderSize(2)
+                           c.SetFrameBorderMode(0)
+                           ROOT.gStyle.SetOptStat(0)
+                           c.SetLogy()
+                           leg = ROOT.TLegend(0.75,0.3,0.88,0.8)
+                           leg.SetBorderSize(0)
+                           leg.SetLineStyle(1)
+                           leg.SetLineWidth(1)
+                           i=0
+                           labelStyle = ch+'_'+wid+'_'+year+'_'+index
+                           signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
+                           if ch == 'el':
+                               sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_el_eff','CMS_el_scale','CMS_el_trig','pdf', 'qcd_scale',]
+                           else:
+                               sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_mu_eff','CMS_mu_scale','CMS_mu_trig','pdf', 'qcd_scale',]
+                           if index=='B':
+                               sys_error = ['pdf', 'qcd_scale', 'CMS_jer','CMS_jec','CMS_pile','CMS_bjetsf','CMS_psv']
+                               if year != '2018': sys_error.append('CMS_pref')
+
+                           nickName = {'CMS_psv':'PSV', 'CMS_jer':'JER', 'qcd_scale':'qcd scale', 'CMS_jec':'JEC','CMS_pile':'PileUp', 'CMS_el_eff':'Electron ID', 'CMS_bjetsf':'BJet', 'CMS_ph_eff':'Photon ID', 'CMS_pref':'Prefire', 'CMS_el_trig':'Electron Trigger', 'pdf':'PDF', 'CMS_el_scale':'Electron Energy', 'CMS_ph_scale':'Photon Energy','CMS_mu_eff':'Muon ID','CMS_mu_trig':'Muon Trigger','CMS_mu_scale':'Muon Energy'}
+                           from array import array
+                           n = len(signal_masses)
+                           xs={}
+                           ys={}
+                           xes={}
+                           y_eus={}
+                           y_eds={}
+                           Graphs={}
+                           graphColors = [ROOT.kBlack, ROOT.kGray+1, ROOT.kRed +1, ROOT.kAzure+1, ROOT.kAzure-2,
+                              ROOT.kSpring-1, ROOT.kYellow -2 , ROOT.kYellow+1,
+                              ROOT.kBlack, ROOT.kBlack, ROOT.kBlack, ROOT.kBlack, ROOT.kBlack, ROOT.kBlack, ROOT.kBlack ]
+                           gm = ROOT.TMultiGraph()
+                           for isys in sys_error:
+                               xs[isys] = array( 'd' )
+                               xes[isys] = array( 'd' )
+                               ys[isys] = array( 'd' )
+                               y_eus[isys] = array( 'd' )
+                               y_eds[isys] = array( 'd' )
+                               for isigm in signal_masses:
+
+                                   sigkey = "M%i_W%s_%s%s" %(isigm,wid,ch,year)
+                                   if float(self.signals[sigkey]["sys"][isys][0]) > float(self.signals[sigkey]["sys"][isys][1]):
+                                       syseUp = float(self.signals[sigkey]["sys"][isys][0])
+                                       syseDown = float(self.signals[sigkey]["sys"][isys][1])
+                                   else:
+                                       syseUp = float(self.signals[sigkey]["sys"][isys][1])
+                                       syseDown = float(self.signals[sigkey]["sys"][isys][0])
+                                   xs[isys].append( isigm )
+                                   xes[isys].append( 0 )
+                                   #print(syseUp, syseDown)
+                                   ys[isys].append( 100*(abs(syseUp-1)+abs(syseDown-1))/2.0 )
+                                   y_eus[isys].append(100*abs( abs(syseUp-1) - (abs(syseUp-1)+abs(syseDown-1))/2.0))
+                                   y_eds[isys].append(100*abs(abs(syseDown-1)-(abs(syseUp-1)+abs(syseDown-1))/2.0))
+                               Graphs[isys] = ROOT.TGraphAsymmErrors( n, xs[isys],ys[isys], xes[isys],xes[isys] ,y_eds[isys],y_eus[isys] )
+                               Graphs[isys].SetMarkerStyle(20)
+                               Graphs[isys].SetMarkerColor(graphColors[i])
+                               Graphs[isys].SetLineColor(graphColors[i])
+                               Graphs[isys].SetLineWidth(2)
+                               gm.Add(Graphs[isys])
+                               entry=leg.AddEntry(Graphs[isys],nickName[isys] ,"lp")
+                               entry.SetFillStyle(1001)
+                               entry.SetMarkerStyle(9)
+                               entry.SetMarkerSize(1.5)
+                               entry.SetLineStyle(1)
+                               entry.SetLineWidth(3)
+                               entry.SetTextFont(42)
+                               entry.SetTextSize(0.03)
+                               i+=1
+                           gm.Draw("ALP same")
+                           gm.GetXaxis().SetTitle("m_{X} [GeV]")
+                           gm.GetXaxis().SetTitleSize(0.05)
+                           gm.GetXaxis().SetTitleOffset(0.8)
+                           gm.GetXaxis().SetTitleFont(42)
+                           gm.GetYaxis().SetTitle("Relative uncertainty (%)")
+                           gm.GetYaxis().SetLabelFont(42)
+                           gm.GetYaxis().SetLabelSize(0.05)
+                           gm.GetYaxis().SetTitleSize(0.05)
+                           gm.GetYaxis().SetTitleFont(42)
+                           gm.GetYaxis().SetTitleOffset(0.8)
+                           gm.GetXaxis().SetLimits(200,2500)  # #
+                           gm.GetXaxis().SetRangeUser(200,2500)  # #
+                           gm.GetYaxis().SetRangeUser(0.01,100)  # #
+                           leg.Draw()
+                           tex = ROOT.TLatex(0.14,0.95,"CMS")
+                           tex.SetNDC()
+                           tex.SetTextAlign(13)
+                           tex.SetTextSize(0.048)
+                           tex.SetLineWidth(2)
+                           tex.Draw()
+                           labeltext1 = '2016 '
+                           labeltext2 = '#Gamma_{X}/m_{X} = 0.01%'
+                           if labelStyle:
+                               if labelStyle.count('2017') :
+                                   labeltext1 = '2017 '
+                               if labelStyle.count('2018') :
+                                   labeltext1 = '2018 '
+                               if labelStyle.count('el') :
+                                   labeltext1 += 'Electron Channel'
+                               if labelStyle.count('mu') :
+                                   labeltext1 += 'Muon Channel'
+                               if labelStyle.count('5') :
+                                   labeltext2 = '#Gamma_{X}/m_{X} = 5%'
+                           tex1 = ROOT.TLatex(0.14,0.85,labeltext1)
+                           tex1.SetNDC()
+                           tex1.SetTextAlign(13)
+                           tex1.SetTextSize(0.048)
+                           tex1.SetLineWidth(2)
+                           tex1.Draw()
+                           tex11 = ROOT.TLatex(0.14,0.78,labeltext2)
+                           tex11.SetNDC()
+                           tex11.SetTextAlign(13)
+                           tex11.SetTextSize(0.048)
+                           tex11.SetLineWidth(2)
+                           tex11.Draw()
+                           labeltext = '36 fb^{-1} (13 TeV)'
+                           if labelStyle:
+                               if labelStyle.count('2016') :
+                                   labeltext = '35.9 fb^{-1} (13 TeV)'
+                               if labelStyle.count('2017') :
+                                   labeltext = '41.5 fb^{-1} (13 TeV)'
+                               if labelStyle.count('2018') :
+                                   labeltext = '59.7 fb^{-1} (13 TeV)'
+                           tex2 = ROOT.TLatex(0.75,0.95,labeltext)
+                           tex2.SetNDC()
+                           tex2.SetTextAlign(13)
+                           tex2.SetTextFont(42)
+                           tex2.SetTextSize(0.03648)
+                           tex2.SetLineWidth(2)
+                           tex2.Draw()
+                           line = ROOT.TLine(200,1,2000,1);
+                           line.SetLineStyle(2)
+                           line.SetLineWidth(2)
+                           line.Draw()
+                           line2 = ROOT.TLine(200,10,2000,10);
+                           line2.SetLineStyle(2)
+                           line2.SetLineWidth(2)
+                           line2.Draw()
+                           c.SaveAs('sys_'+labelStyle+'.pdf')
+                           exit()
         #---------------------------------------
         # Prepare the data cards for limits
         #---------------------------------------
@@ -545,15 +694,13 @@ class MakeLimits( ) :
             systematic_dict = json.load(fo)
 
             #Add More systematics from pdf -- Yihui
-            morefiles = ['_pdf_0_20','_pdf_21_40','_pdf_41_60','_pdf_61_80','_pdf_81_100']           
+            morefiles = ['0_4', '5_9', '10_14', '15_19', '20_24', '25_29', '30_34', '35_39', '40_44', '45_49', '50_54', '55_59', '60_64', '65_69', '70_74', '75_79', '80_84', '85_89', '90_94', '95_99','100_100']
             for ifil in morefiles:
-                f = open('data/%sgsys%i%s.json'%(ch,year,ifil))
+                f = open('data/%sgsys%i_pdf_%s.json'%(ch,year,ifil))
                 dd = json.load(f)
                 for sys in dd['A'].keys():
                     systematic_dict['A'][sys] = dd['A'][sys]
-            #print(systematic_dict['A'].keys())
             ### process background systematics
-
             sysdict = recdd()
             for cuttag in self.cutsetlist:
                 for sys in  systematic_dict[cuttag].keys():
@@ -718,11 +865,14 @@ class MakeLimits( ) :
             # SetDesc: "Hessian conversion of NNPDF31_nnlo_as_0118_1000, mem=0 central value => Alphas(MZ)=0.118; mem=1-100 => PDF eig.; mem=101 => central value Alphas(MZ)=0.116; mem=102 => central value Alphas(MZ)=0.120"
             pdfsyst2 = 0.
             pdfcentral = pdfvars[0]
+#            for i in range(101):
+#                shift = abs(pdfvars[i]/pdfcentral - 1.)
+#                pdfsyst2 += shift**2
+#            newsysdict["pdf"] = ( 1.+np.sqrt(pdfsyst2), 1.-np.sqrt(pdfsyst2) )
             for i in range(101):
                 shift = abs(pdfvars[i]/pdfcentral - 1.)
                 pdfsyst2 += shift**2
-            newsysdict["pdf"] = ( 1.+np.sqrt(pdfsyst2), 1.-np.sqrt(pdfsyst2) )
-            
+            newsysdict["pdf"] = ( 1.+np.sqrt(pdfsyst2), 1.-np.sqrt(pdfsyst2) )            
 
         return newsysdict
 
@@ -890,17 +1040,9 @@ class MakeLimits( ) :
                 ### BKG X CH
                 if options.useHistTemp :
                     bkg_entry = bkg_entry.replace('dijet', 'datahist' )
-                #use a single function -- Yihui
                 card_entries.append( 'shapes %s %s %s %s:%s' %( bkgname.ljust( max_name_len ),
                     bin_id, bkg.GetOutputName(options.outputDir,**ibin).ljust( max_path_len ), bkg.GetWSName(),
-                    #'MultiPdf_'+str(ibin['channel']) + cuttag+str(ibin['year'])+'_all_MultiPdf' ) )
-                    'vvdijet_'+str(ibin['channel']) + cuttag+str(ibin['year'])+'_all_vvdijet' ) )
-                    #'dijet_'+str(ibin['channel']) + cuttag+str(ibin['year'])+'_all_dijet' ) )
-
-#                    bkg.GetPDFName( self.var , ibin['channel'] + cuttag, ibin['year']) ) )
-                #Use MultiPdf -- Yihui
-                #card_entries.append('shapes %s %s %s %s:%s' %(bkgname.ljust( max_name_len ),bin_id, options.baseDir+'/bkgfit_data/'+str(ibin['year'])+'/workspace_all.root', bkg.GetWSName(), 'MultiPdf_'+bin_id+'_all_MultiPdf'))
-                #card_entries.append('shapes %s %s %s %s:%s' %(bkgname.ljust( max_name_len ),bin_id, options.baseDir+'/bkgfit_data/'+str(ibin['year'])+'/workspace_all.root', bkg.GetWSName(), bkg.GetPDFName( self.var , ibin['channel'] + cuttag, ibin['year'])))
+                    bkg.GetPDFName( self.var , ibin['channel'] + cuttag, ibin['year']) ) )
 
         for ibin in viablebins:
             bin_id = binid(ibin)
@@ -909,7 +1051,7 @@ class MakeLimits( ) :
             #data = self.datas[self.dataname+binid(ibin)]
             #Yihui -- use real data instead of toy
             if options.usedata:
-                card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, options.baseDir+'/bkgfit_data/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) )
+                card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, options.baseDir+'/'+sourceOfBKG+'/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) )
             else:
                 card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, data['file'], data['workspace'], data['data'][cuttag] ) )
 
@@ -956,9 +1098,9 @@ class MakeLimits( ) :
                 #rate_entries.append( str(bkgdic['norm'][bin_id]) )
                 jbin = ibin['channel']+cuttag+str(ibin["year"])
                 #print jbin
-                rate_entries.append( bkg.norm[jbin][0] )
-                #bkg rate
-                #rate_entries.append( str(1.0) )
+                #rate_entries.append( bkg.norm[jbin][0] )
+                #bkg rate set to 1 --Yihui
+                rate_entries.append( str(1.0) )
 
         bin_entries = []
         for b in all_binids :
@@ -1005,10 +1147,8 @@ class MakeLimits( ) :
                         sys_line.append('-')
                     else:
                         sys_line.append(bkgsysstr)
-            #FIXME Yihui -- no syst when do GoF
-            #if not options.GoF:
-            #    card_entries.append( listformat(sys_line, "%-15s"))
-
+            #FIXME Yihui -- comment out for no syst
+            card_entries.append( listformat(sys_line, "%-15s"))
 
         ## hard coded shape uncertainty
         sys_line = ["cms_e", "shape"]
@@ -1049,22 +1189,24 @@ class MakeLimits( ) :
             #    else:
             #        card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
         #Yihui -- use MultiPdf
-        #varnames=['atlas_order1__all_atlas','atlas_order2__all_atlas','atlas_order3__all_atlas','dijet_order1__all_dijet','dijet_order2__all_dijet','vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','vvdijet_order3__all_vvdijet']
-        #varnames=['dijet_order1__all_dijet','dijet_order2__all_dijet']
-        varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','vvdijet_order3__all_vvdijet']
-        #for ich in ['elA2016','elA2017','elA2018','muA2016','muA2017','muA2018']:
-        #for ich in ['A2016','A2017','A2018']:
-        for ich in ['A']:
+        if 'vvdijet' in targetfunc:
+            varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet']
+        elif 'dijet' in targetfunc:
+            varnames=['dijet_order1__all_dijet','dijet_order2__all_dijet']
+        for ich in ['elA2016','elA2017','elA2018','muA2016','muA2017','muA2018']:
+            if ich =='elA2016' or ich =='elA2018' :
+                varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow']
+            else:
+                varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow','expow_order3__all_expow','vvdijet_order3__all_vvdijet']
+            varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow']
             for ivar in varnames:
                 card_entries.append( ivar.replace('__all','_'+ich+'_all') +'  flatParam')
-            #card_entries.append('pdf_index_'+ich+'                             discrete')
-
-        #card_entries.append('pdf_index_elA2016                             discrete')
-        #card_entries.append('pdf_index_elA2017                             discrete')
-        #card_entries.append('pdf_index_elA2018                             discrete')
-        #card_entries.append('pdf_index_muA2016                             discrete')
-        #card_entries.append('pdf_index_muA2017                             discrete')
-        #card_entries.append('pdf_index_muA2018                             discrete')
+        card_entries.append('pdf_index_el2016                             discrete')
+        card_entries.append('pdf_index_el2017                             discrete')
+        card_entries.append('pdf_index_el2018                             discrete')
+        card_entries.append('pdf_index_mu2016                             discrete')
+        card_entries.append('pdf_index_mu2017                             discrete')
+        card_entries.append('pdf_index_mu2018                             discrete')
 
         #Yihui -- add shape uncertainty into signal mean mass uncertainty
         maxshift = 0
@@ -1085,21 +1227,11 @@ class MakeLimits( ) :
                 if iparval[1] != 0:
                    #Yihui --- use smooth signal model
                    if 'cb_mass_MG' in iparname and self.addShapeUnc2Mass:
-                       card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], max(ROOT.TMath.Sqrt(maxshift**2+ iparval[1]**2), ROOT.TMath.Sqrt(minshift**2+ iparval[1]**2))))
-                       #card_entries.append('%s param %.5f %.5f/%.5f'%(iparname, iparval[0], ROOT.TMath.Sqrt(maxshift**2+ iparval[1]**2), ROOT.TMath.Sqrt(minshift**2+ iparval[1]**2)))
+                       card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], (ROOT.TMath.Sqrt(maxshift**2+ iparval[1]**2)+ ROOT.TMath.Sqrt(minshift**2+ iparval[1]**2))/2.0))
                    else:
                        card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], iparval[1]))
-                   #elif 'cb_cut1_MG' in iparname:
-                   #    card_entries.append('%s param %.5f %.5f'%(iparname, 1.4756823440075475-0.0023051161425137827*imass+1.60096e-06*imass**2-3.71669e-10*imass**3, (1.4756823440075475-0.0023051161425137827*imass+1.60096e-06*imass**2-3.71669e-10*imass**3)*0.01))
-                   #elif 'cb_sigma_MG' in iparname:
-                   #    card_entries.append('%s param %.5f %.5f'%(iparname, 24.7695+imass*0.0197778+1.21337e-05*imass**2-3.19634e-09*imass**3, (24.7695+imass*0.0197778+1.21337e-05*imass**2-3.19634e-09*imass**3)*0.01))
-                   #else:
-                   #    card_entries.append('%s param %.5f %.5f'%(iparname, iparval[0], iparval[1]))
         
         card_entries.append( section_divider )
-        #for ibin in bins :
-        #    card_entries.append( 'logcoef_dijet_Wgamma_%s flatParam' %( ibin ) )
-        #    card_entries.append( 'power_dijet_Wgamma_%s flatParam' %( ibin ) )
 
         if outputCard is not None :
             print 'Write file ', outputCard
@@ -1182,8 +1314,8 @@ class MakeLimits( ) :
 
            if xvar is None :
                xvar = ws.var( self.xvarname )
-           #xvar.setRange( 220 ,2000)
-           xvar.setRange( defs.bkgfitlowbin(cutset) ,2000)
+           #xvar.setRange( 220 ,2200)
+           xvar.setRange( defs.bkgfitlowbin(cutset) ,2200)
            xvar.setBins(500)
            xvar.Print()
 
@@ -1224,7 +1356,6 @@ class MakeLimits( ) :
                        norm = int(norms[0])
                    else :
                        norm = data_norm
-                   #norm=norm*2
                    print "toy data #: ",norm
                    dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
                              ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
@@ -1305,7 +1436,7 @@ class MakeLimits( ) :
                                      self.wskeys[bkgn].GetRootFileName() )
         #Use data as bkg template ---Yihui
         if options.usedata:
-            fname = '%s/bkgfit_data/%i/%s' %( self.baseDir, ibin['year'],
+            fname = self.baseDir+'/'+sourceOfBKG+'/%i/%s' %( ibin['year'],
                                          self.wskeys[bkgn].GetRootFileName() )
         ofile = ROOT.TFile.Open( fname , 'READ' )
 
@@ -1328,24 +1459,6 @@ class MakeLimits( ) :
             jbin['channel'] += cutset ## add cutset tag
 
             ws_entry = self.wskeys[bkgn].GetPDFName( self.var, **jbin)
-            #copy all functions -- Yihui
-            #pdfnames=['dijet']
-            #varnames=['dijet_order1__all_dijet','dijet_order2__all_dijet']
-            pdfnames=['vvdijet']
-            varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','vvdijet_order3__all_vvdijet']
-            #pdfnames=['MultiPdf','atlas','dijet','vvdijet']
-            #varnames=['atlas_order1__all_atlas','atlas_order2__all_atlas','atlas_order3__all_atlas','dijet_order1__all_dijet','dijet_order2__all_dijet','vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','vvdijet_order3__all_vvdijet']
-            for ivar in varnames:
-                var1 = ws_in.var( ivar.replace('__all','_A_all') )
-                #var1 = ws_in.var( ivar.replace('__all','_A'+str(jbin['year'])+'_all') )
-                #var1 = ws_in.var( ivar.replace('__all','_'+str(jbin['channel'])+str(jbin['year'])+'_all') )
-                import_workspace( ws_out, var1)
-            for ipdf in pdfnames:
-                pdf1 = ws_in.pdf( ipdf+'_'+str(jbin['channel'])+str(jbin['year'])+'_all_'+ipdf )
-                import_workspace( ws_out, pdf1)
-            catIndexe = ROOT.RooCategory('pdf_index_A'+str(jbin['year']),'c')
-            #catIndexe = ROOT.RooCategory('pdf_index_'+str(jbin['channel'])+str(jbin['year']),'c')
-            import_workspace( ws_out, catIndexe )
 
             if DEBUG:
                print ws_entry
@@ -1355,58 +1468,54 @@ class MakeLimits( ) :
                 import_workspace( ws_out, datahist)
             else :
                 pdf = ws_in.pdf( ws_entry )
-                #power_var = ws_in.var( 'power_%s' %ws_entry )
-                #logcoef_var = ws_in.var( 'logcoef_%s' %ws_entry )
-
-                #power_var.setConstant()
-                #logcoef_var.setConstant()
-                # pars
-
-                #for ipar in self.wskeys[bkgn].params_prefix:
                 for ipar in self.wskeys[bkgn].GetParNames( **jbin):
                     #Yihui --- create WS for para of bkg
                     #correlated channels
-                    ipar=ipar.replace("mu",'')
-                    ipar=ipar.replace("el",'')
-                    ipar=ipar.replace("2016",'')
-                    ipar=ipar.replace("2017",'')
-                    ipar=ipar.replace("2018",'')
+                    #ipar=ipar.replace("mu",'')
+                    #ipar=ipar.replace("el",'')
+                    #ipar=ipar.replace("2016",'')
+                    #ipar=ipar.replace("2017",'')
+                    #ipar=ipar.replace("2018",'')
                     if DEBUG:
                        print ipar
                     oldvar = ws_in.var( ipar )
+                    varrange = (-50, -0.01)
+                    varsetvalue = -3.4
+                    if 'vvdijet_order1' in ipar:
+                        varrange = (-50, -0.01)
+                        varsetvalue = -3.4
+                    elif 'vvdijet_order2' in ipar:
+                        varrange = (0.01, 50)
+                        varsetvalue = 9.8
+                    elif 'vvdijet_order3' in ipar:
+                        varrange = (0.01, 50)
+                        varsetvalue = 1.9
+                    elif 'vvdijet_order4' in ipar:
+                        varrange = (-20, 20.0)
+                        varsetvalue = -0.000531
                     if 'dijet' in ipar and 'vvdijet' not in ipar:
                         if 'order1' in ipar:
-                            varrange = (-50.0, 0.0)
+                            varrange = (-50.0, -0.01)
+                            varsetvalue = -7.5
                         elif 'order2' in ipar:
-                            varrange = (-10.0, 0.0)
+                            varrange = (-10.0, -0.01)
+                            varsetvalue = -0.58
                         elif 'order3' in ipar:
-                            print "order 3............................"
-                            varrange = (-5.0, 0.0)
-                    if 'vvdijet' in ipar:
-                        if 'order1' in ipar:
-                            varrange = (-100, 100.0)
-                        elif 'order2' in ipar:
-                            varrange = (-100, 100.0)
-                        elif 'order3' in ipar:
-                            varrange = (-100, 100.0)
-                    else:
-                        varrange = (-100,100)
-                    #var =  ROOT.RooRealVar( ipar, ipar, oldvar.getVal(), oldvar.getRange()[0] , oldvar.getRange()[1])
-                    var =  ROOT.RooRealVar( ipar, ipar, oldvar.getVal(), varrange[0], varrange[1] )
-                    print oldvar
+                            varrange = (0.01, 10)
+                            varsetvalue = 0.27
+                        elif 'order4' in ipar:
+                            varrange = (-10.0, 50)
+                            varsetvalue = -0.01
+                    var =  ROOT.RooRealVar( ipar, ipar, varsetvalue, varrange[0], varrange[1] )
+                    #print oldvar
                     # save the value and errors of the fit parameters, to be used for card generation
                     self.params.update( {ipar: (oldvar.getVal(), oldvar.getError())} )
                     #var.setError(0.0)
                     if not self.noShapeUnc: var.setError(oldvar.getError())
                     #var.setConstant()
-                    #if 'order1' in ipar: var.setRange(-50.0, 0.0 )
-                    #else: var.setRange(-10.0, 0.0 )
-
-                    #import_workspace( ws_out, var)
-
-
+                    import_workspace( ws_out, var)
                 print "%s_norm" %ws_entry
-                norm_var = ws_in.var( '%s_norm' %ws_entry )
+                norm_var = ws_in.var( '%s_norm'% ws_entry.replace(self.wskeys[bkgn].pdf_prefix,'MultiPdf') )
                 print "norm ", norm_var.getVal()
                 self.wskeys[bkgn].SetNorm( norm_var.getVal(), norm_var.getError() , cuttag = binid(jbin))
                 print "SampleInfo.norm: ", self.wskeys[bkgn].norm
@@ -1414,52 +1523,8 @@ class MakeLimits( ) :
                 #norm_var.setVal( norm_var.getValV() )
                 #norm_var.setError( 0.0 )
                 #norm_var.setConstant()
-                #getattr( ws_out, 'import' ) ( norm_var )
-                #import_workspace( ws_out, pdf)
-
-        #if options.BiasStudy:
-        #    #expow
-        #    #print(ws_entry.replace('dijet','expow'))
-        #    #print(ws_in.var(self.var))
-        #    ws_entryex = ws_entry.replace('dijet','expow')
-        #    expow_order0 = ROOT.RooRealVar( ws_entryex.replace('expow_','expow_order0_'), "power0", -5,       -10,   0)
-        #    expow_order1 = ROOT.RooRealVar(ws_entryex.replace('expow_','expow_order1_'), "power1", -10,    -200,   -1)
-        #    expow_order2 = ROOT.RooRealVar(ws_entryex.replace('expow_','expow_order2_'), "power2", 5,        0,    10)
-        #    #expow_norm   = ROOT.RooRealVar(ws_entry.replace('dijet','expow')+"_norm","Number of background events",1000,0,1000000)
-        #    order_entries = []
-        #    function =  'TMath::Power( @0 / 13000., @1 ) * TMath::Exp(%s)'
-        #    for i in range( 0, 2 ) :
-        #        order_entries.append( ('@%d' %(i+2)) + "*@0/13000."*(i+1) )
-        #    function = function %("+".join(order_entries))
-        #    func_pdf = ROOT.RooGenericPdf( ws_entry.replace('dijet','expow'), ws_entry.replace('dijet','expow'), function, ROOT.RooArgList(ws_in.var(self.var), expow_order0, expow_order1, expow_order2))
-        #    import_workspace( ws_out, expow_order0)
-        #    import_workspace( ws_out, expow_order1)
-        #    import_workspace( ws_out, expow_order2)
-        #    import_workspace( ws_out, func_pdf)
-        #    #import_workspace( ws_out, expow_norm)
-        #    #atlas 
-        #    ws_entryex = ws_entry.replace('dijet','atlas')
-        #    atlas_order0 = ROOT.RooRealVar(ws_entryex.replace('atlas_','atlas_order0_'), "power0", 7 ,      0,  1000)
-        #    atlas_order1 = ROOT.RooRealVar(ws_entryex.replace('atlas_','atlas_order1_'), "power1", 6 ,     -10,   100)
-        #    atlas_order2 = ROOT.RooRealVar(ws_entryex.replace('atlas_','atlas_order2_'), "power2", 1 ,     -10,    10)
-        #    #atlas_norm   = ROOT.RooRealVar(ws_entry.replace('dijet','atlas')+"_norm","Number of background events",1000,0,1000000)
-
-        #    order_entries = []
-
-        #    function = 'TMath::Power( (1-TMath::Power(@0/13000., 1./3)), @1 ) /'+\
-        #                ' ( TMath::Power( @0/13000. , @2+ %s ))'
-        #    order_entries = []
-        #    for i in range( 0, 1 ) :
-        #        order_entries.append( '@%d*TMath::Power' %(i+3)+
-        #                              '(TMath::Log10( @0/13000.),%d)'  %(i+1 ) )
-        #    function = function % (' + '.join( order_entries ))
-        #    func_pdf = ROOT.RooGenericPdf( ws_entry.replace('dijet','atlas'), ws_entry.replace('dijet','atlas'), function, ROOT.RooArgList(ws_in.var(self.var), atlas_order0, atlas_order1, atlas_order2))
-        #    import_workspace( ws_out, atlas_order0)
-        #    import_workspace( ws_out, atlas_order1)
-        #    import_workspace( ws_out, atlas_order2)
-        #    import_workspace( ws_out, func_pdf)
-        #    #import_workspace( ws_out, atlas_norm)
-        #ofile.Close()
+                getattr( ws_out, 'import' ) ( norm_var )
+                import_workspace( ws_out, pdf)
 
         #outputfile = '%s/%s/%s.root' %( self.outputDir, bkgn, ws_out.GetName() )
         #ws_out.writeToFile( outputfile )
@@ -1752,7 +1817,7 @@ class MakeLimits( ) :
             flagstr = ""
             if self.numberOfToys is not None: flagstr+=" -t %d"  %self.numberOfToys
             if options.usedata:
-                flagstr+=" -t -1"
+                flagstr+=" --run blind "
             if self.rmin is not None: flagstr+= " --rMin %.2g" %self.rmin
             if self.rmax is not None: flagstr+= " --rMax %.2g" %self.rmax
             if self.seed is not None: flagstr+= " -s %i" %self.seed
@@ -1773,36 +1838,37 @@ class MakeLimits( ) :
 
 
             flagstr+= mtrange
-
-            command+= 'combine -M AsymptoticLimits -m %d %s %s >& %s'\
+            command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2016=0,pdf_index_el2017=0,pdf_index_el2018=0,pdf_index_mu2016=0,pdf_index_mu2017=0,pdf_index_mu2018=0 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 --run blind -m %d %s %s >& %s'\
                         %( mass, flagstr, card, log_file )
             #do goodness of fit -- Yihui
             if options.GoF:
                 command = '\n combineTool.py -M GoodnessOfFit --algo=KS %s -n .KS -v 3 >& %s \n' %(card, 'goodnessdata'+log_file)
                 command += 'combineTool.py -M GoodnessOfFit --algo=KS %s -n .KS -v 3 -t 500 -s 1234  >& %s \n' %(card, 'goodnesstoy'+log_file)
-
                 #command = '\n combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 >& %s \n' %(card, 'goodnessdata'+log_file)
                 #command += 'combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 -t 500 -s 1234 --toysFreq  >& %s \n' %(card, 'goodnesstoy'+log_file)
-            #wgamma_test_mt_res_M1600_W5_dijet.txt
             if options.BiasStudy:
-                command = '\n cp /data/users/yihuilai/test_code/WG_Analysis/Plotting/data_1015_afterbias_study/higgs%s/Width0p01/all/Mass*/wgamma_tes*.txt . \n'%(testfunc)
-                #command = '\n cp /data/users/yihuilai/test_code/WG_Analysis/Plotting/data/higgs%s/Width5/all/Mass*/wgamma_tes*.txt . \n'%(testfunc)
-                command += '\n combineTool.py -M MultiDimFit -m 125 -d '+ card.replace(targetfunc,testfunc) + ' --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --freezeParameters r --setParameters r=0 \n'
-                command += '\n combineTool.py higgsCombine.Test.MultiDimFit.mH125.root -M GenerateOnly --saveToys -m 125  --toysFreq -t %s --bypassFrequentistFit --snapshotName "MultiDimFit" --setParameters r=%s --freezeParameters r --rMin -5 --rMax 1000 -s %s \n'%(ntoy, injectsignal, rseed)
-                command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -5 --rMax 1000 -n %s \n'%(ntoy, rseed, rname)
-                #if 'dijet' in targetfunc and 'vvdijet' not in targetfunc:
-                #    command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -5 --rMax 1000 --trackParameters dijet_order1_muA2016_all_dijet,dijet_order2_muA2016_all_dijet,dijet_order1_elA2016_all_dijet,dijet_order2_elA2016_all_dijet,dijet_order1_muA2017_all_dijet,dijet_order2_muA2017_all_dijet,dijet_order1_elA2017_all_dijet,dijet_order2_elA2017_all_dijet,dijet_order1_muA2018_all_dijet,dijet_order2_muA2018_all_dijet,dijet_order1_elA2018_all_dijet,dijet_order2_elA2018_all_dijet -n %s \n'%(ntoy, rseed, rname)
-                #elif 'atlas' in targetfunc:
-                #    command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -5 --rMax 1000 --trackParameters atlas_order3_muA2017_all_atlas,atlas_order1_muA2017_all_atlas,atlas_order2_muA2017_all_atlas,atlas_order3_elA2017_all_atlas,atlas_order1_elA2017_all_atlas,atlas_order2_elA2017_all_atlas,atlas_order3_muA2016_all_atlas,atlas_order1_muA2016_all_atlas,atlas_order2_muA2016_all_atlas,atlas_order3_elA2016_all_atlas,atlas_order1_elA2016_all_atlas,atlas_order2_elA2016_all_atlas,atlas_order3_muA2018_all_atlas,atlas_order1_muA2018_all_atlas,atlas_order2_muA2018_all_atlas,atlas_order3_elA2018_all_atlas,atlas_order1_elA2018_all_atlas,atlas_order2_elA2018_all_atlas  -n %s \n'%(ntoy, rseed, rname)
-                #    #command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -5 --rMax 1000 --trackParameters atlas_order0_muA2017_all_atlas,atlas_order1_muA2017_all_atlas,atlas_order2_muA2017_all_atlas,atlas_order0_elA2017_all_atlas,atlas_order1_elA2017_all_atlas,atlas_order2_elA2017_all_atlas,atlas_order0_muA2016_all_atlas,atlas_order1_muA2016_all_atlas,atlas_order2_muA2016_all_atlas,atlas_order0_elA2016_all_atlas,atlas_order1_elA2016_all_atlas,atlas_order2_elA2016_all_atlas,atlas_order0_muA2018_all_atlas,atlas_order1_muA2018_all_atlas,atlas_order2_muA2018_all_atlas,atlas_order0_elA2018_all_atlas,atlas_order1_elA2018_all_atlas,atlas_order2_elA2018_all_atlas  -n %s \n'%(ntoy, rseed, rname)
-                #elif 'vvdijet' in targetfunc:
-                #    command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -5 --rMax 1000 --trackParameters vvdijet_order2_muA2017_all_vvdijet,vvdijet_order1_muA2017_all_vvdijet,vvdijet_order2_elA2017_all_vvdijet,vvdijet_order1_elA2017_all_vvdijet,vvdijet_order2_muA2018_all_vvdijet,vvdijet_order1_muA2018_all_vvdijet,vvdijet_order2_elA2018_all_vvdijet,vvdijet_order1_elA2018_all_vvdijet,vvdijet_order2_muA2016_all_vvdijet,vvdijet_order1_muA2016_all_vvdijet,vvdijet_order2_elA2016_all_vvdijet,vvdijet_order1_elA2016_all_vvdijet,vvdijet_order3_elA2016_all_vvdijet,vvdijet_order3_muA2016_all_vvdijet,vvdijet_order3_elA2017_all_vvdijet,vvdijet_order3_muA2017_all_vvdijet,vvdijet_order3_elA2018_all_vvdijet,vvdijet_order3_muA2018_all_vvdijet -n %s\n' %(ntoy, rseed, rname)
-                #elif 'expow' in targetfunc:
-                #    command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -5 --rMax 1000 --trackParameters expow_order2_muA2017_all_expow,expow_order1_muA2017_all_expow,expow_order2_elA2017_all_expow,expow_order1_elA2017_all_expow,expow_order2_muA2018_all_expow,expow_order1_muA2018_all_expow,expow_order2_elA2018_all_expow,expow_order1_elA2018_all_expow,expow_order2_muA2016_all_expow,expow_order1_muA2016_all_expow,expow_order2_elA2016_all_expow,expow_order1_elA2016_all_expow -n %s\n' %(ntoy, rseed, rname)
-                    #command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -5 --rMax 1000 --trackParameters expow_order0_muA2017_all_expow,expow_order1_muA2017_all_expow,expow_order0_elA2017_all_expow,expow_order1_elA2017_all_expow,expow_order0_muA2018_all_expow,expow_order1_muA2018_all_expow,expow_order0_elA2018_all_expow,expow_order1_elA2018_all_expow,expow_order0_muA2016_all_expow,expow_order1_muA2016_all_expow,expow_order0_elA2016_all_expow,expow_order1_elA2016_all_expow -n %s\n' %(ntoy, rseed, rname)
-
-                #command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t 300 --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.123456.root --robustFit 1 --rMin -5 --rMax 1000  \n'
-                #command += '\n combineTool.py -M MultiDimFit -m 125 --datacard ' + card  +' -t 300 --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.123456.root --robustFit 1 --rMin -5 --rMax 1000  \n'
+                #directly generate and fit
+                command = '\n combine -d '+ card + ' -M GenerateOnly --setParameters  pdf_index_el2016='+genindex+',pdf_index_el2017='+genindex+',pdf_index_el2018='+genindex+',pdf_index_mu2016='+genindex+',pdf_index_mu2017='+genindex+',pdf_index_mu2018='+genindex+' --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 --toysFrequentist -t '+str(ntoy)+' --expectSignal '+str(injectsignal)+' --saveToys -m '+str(mass) +' -s '+str(rseed) + ' -n ' + rname
+                if fitindex!='-1':
+                    command += '\n combine -d '+ card + ' -M FitDiagnostics  --setParameters pdf_index_el2016='+fitindex+',pdf_index_el2017='+fitindex+',pdf_index_el2018='+fitindex+',pdf_index_mu2016='+fitindex+',pdf_index_mu2017='+fitindex+',pdf_index_mu2018='+fitindex+'  --toysFile higgsCombine'+rname+'.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  -t '+str(ntoy)+' --rMin -20 --rMax 20 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018  --cminDefaultMinimizerStrategy=0' + ' -s '+str(rseed) + ' -n ' + rname
+                else:
+                    command += '\n combine -d '+ card + ' -M FitDiagnostics  --toysFile higgsCombine'+rname+'.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  -t '+str(ntoy)+' --rMin -20 --rMax 20 --cminDefaultMinimizerStrategy=0' + ' -s '+str(rseed) + ' -n ' + rname
+                #Fit with enve, and generate with envelope
+                #command = '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card + ' --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --freezeParameters r --setParameters r=0  -n Envelope \n'
+                #command += '\n combineTool.py '+ 'higgsCombineEnvelope.MultiDimFit.mH'+str(mass)+'.root ' + ' -M GenerateOnly --saveToys -m '+str(mass)+' --toysFrequentist -t %s --snapshotName "MultiDimFit" --expectSignal %s  --rMin -1 --rMax 5 -s %s \n'%(ntoy, injectsignal, rseed)
+                #command += '\n combine -M FitDiagnostics -m '+str(mass)+' -d '+ card +' --toysFile higgsCombine.Test.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  --cminDefaultMinimizerStrategy 0  --rMin -1 --rMax 5 -n '+rname+' -t '+str(ntoy)+' \n'
+                #Fit with other functions, generate with other function
+                #command = '\n cp /data/users/yihuilai/test_code/WG_Analysis/Plotting/data_env/higgs_1112_forenveBiastest_%s/Width*/all/Mass*/%s . \n'%(testfunc,card.replace(targetfunc,testfunc))
+                #command += '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card.replace(targetfunc,testfunc) + ' --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --freezeParameters r --setParameters r=0 \n'
+                #command += '\n combineTool.py higgsCombine.Test.MultiDimFit.mH'+str(mass)+'.root -M GenerateOnly --saveToys -m '+str(mass)+'  --toysFreq -t %s --bypassFrequentistFit --snapshotName "MultiDimFit" --setParameters r=%s --freezeParameters r --rMin -5 --rMax 10 -s %s \n'%(ntoy, injectsignal, rseed)
+                #always test the bias of envelope
+                #command += '\n combine -M FitDiagnostics -m '+str(mass)+' -d '+ card +' --toysFile higgsCombine.Test.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  --cminDefaultMinimizerStrategy 0  --rMin -1 --rMax 5 -n '+rname+' -t '+str(ntoy)+' --robustFit=1 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --X-rtd MINIMIZER_multiMin_hideConstants --X-rtd MINIMIZER_multiMin_maskConstraints  \n'
+                #command += '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card +' --toysFile higgsCombine.Test.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --rMin -1 --rMax 5 -n '+rname+' -t '+str(ntoy)+' \n'
+                #command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -2 --rMax 10 --freezeParameters pdf_index --setParameters pdf_index=0 -n %s \n'%(ntoy, rseed, rname)
+                #===============> Check Likelihood scan
+                #Fit and generate toy
+                #command = '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card + ' --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --freezeParameters r --setParameters r=0  -n EnvelopeFit \n'
+                #command += '\n combineTool.py '+ 'higgsCombineEnvelopeFit.MultiDimFit.mH'+str(mass)+'.root ' + ' -M GenerateOnly --saveToys -m '+str(mass)+' --toysFrequentist -t %s --snapshotName "MultiDimFit" --expectSignal 0  --rMin -1 --rMax 5 -s %s \n'%(ntoy, rseed)
 
 
         if self.method == 'AsymptoticLimitsManual' :
@@ -1988,14 +2054,14 @@ class MakeLimits( ) :
 
                     xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section']
                     Wlepbr = (10.71 + 10.63 + 11.38)/100.
-                    xsfactor = xsec * 1000 / Wlepbr
+                    xsfactor = xsec * 1000 / Wlepbr  # unit in cross_sections is pb, so now we convert it to fb
                     #Scale factor for the limit plot -- Yihui
 
                     result = self.process_combine_file( f, xsfactor )
                     
                     if self.method == 'AsymptoticLimits' or self.method == 'AsymptoticLimitsManual':
 
-                        if len(result)!=6:
+                        if len(result)!=6 and len(result)!=5:
                            print "missing some limits. Skip this point Mass %d Width %s"%(mass, width)
 
                         else:
@@ -2057,9 +2123,11 @@ class MakeLimits( ) :
                     rvalue = float(rvstr.rstrip('\n').split('<')[1])
                     results[cllabeldict[clname]] = rvalue * xsfactor
                      
-        if results.get("obs") == None or results.get("exp-2") == None:
+        if results.get("exp-2") == None:
+        #if results.get("obs") == None or results.get("exp-2") == None:
             print tRed %"No observed or expected value"
-
+        if results.get("obs") == None and results.get("exp0") != None:
+            results["obs"] = results["exp0"]
 
         if self.method == 'HybridNew' :
             get_data = False

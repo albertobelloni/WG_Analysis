@@ -27,7 +27,7 @@ pads = OnePad()
 
 # Create an empty TH1 from the first TGraph to serve as the pad axis and frame
 axis = CreateAxisHist(graphs.values()[0])
-axis.GetXaxis().SetTitle('m_{res} (GeV)')
+axis.GetXaxis().SetTitle('m_{X} (GeV)')
 axis.GetYaxis().SetTitle('95% CL limit #sigma (fb)')
 pads[0].cd()
 pads[0].SetLogy()
@@ -67,6 +67,12 @@ l.SetTextFont(72)
 l.DrawLatex(0.38,.78, "W#gamma#rightarrow l#gamma#nu")
 l.DrawLatex(0.38,.73, text)
 if text2: l.DrawLatex(0.5,.55, text2)
+
+ll = ROOT.TLatex()
+ll.SetNDC()
+ll.SetTextSize(0.04)
+ll.SetTextFont(42)
+ll.DrawLatex(0.7,.95, "13TeV, 137 fb^{-1}")
 
 hmax = axis.GetMaximum()
 hmin = axis.GetMinimum()
@@ -142,3 +148,4 @@ DrawCMSLogo(pads[0], 'CMS', 'Simulation Preliminary', 11, 0.200, 0.035, 1.2, '',
 
 canv.Print('.pdf')
 canv.Print('.png')
+canv.Print('.C')

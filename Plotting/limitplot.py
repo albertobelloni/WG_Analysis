@@ -18,7 +18,7 @@ pads = OnePad()
 
 # Create an empty TH1 from the first TGraph to serve as the pad axis and frame
 axis = CreateAxisHist(graphs.values()[0])
-axis.GetXaxis().SetTitle('m_{res} (GeV)')
+axis.GetXaxis().SetTitle('m_{X} (GeV)')
 axis.GetYaxis().SetTitle('95% CL limit #sigma (fb)')
 pads[0].cd()
 pads[0].SetLogy()
@@ -58,6 +58,12 @@ l.SetTextFont(72)
 l.DrawLatex(0.6,.65, "W#gamma#rightarrow l#gamma#nu")
 l.DrawLatex(0.6,.6, text)
 if text2: l.DrawLatex(0.6,.55, text2)
+
+ll = ROOT.TLatex()
+ll.SetNDC()
+ll.SetTextSize(0.04)
+ll.SetTextFont(42)
+ll.DrawLatex(0.7,.95, "13TeV, 137 fb^{-1}")
 
 hmax = axis.GetMaximum()
 hmin = axis.GetMinimum()

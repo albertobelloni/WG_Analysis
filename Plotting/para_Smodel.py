@@ -10,7 +10,7 @@ import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
-gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
+#gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
 from ROOT import gPad, RooFit, kRed, kBlue, kViolet, kRainBow
 import analysis_utils
 import json
@@ -19,9 +19,13 @@ def addparser(parser):
     parser.add_argument( '--fitSignal',        action='store_true', help='Fit signal samples, generate files for fully para model' )
     parser.add_argument( '--makeWS',        action='store_true', help='makeWS' )
     parser.add_argument( '--makeplots',        action='store_true', help='makeplots' )
+    parser.add_argument( '--mass',        type=int, help='' )
+    parser.add_argument( '--width',        type=str, help='' )
+    parser.add_argument( '--iyear',        type=int, help='' )
+    parser.add_argument( '--ich',        type=str, help='' )
 execfile("MakeBase.py")
 
-inputDir = "/data/users/yihuilai/WG_Analysis/Plotting/WG_Analysis/Plotting/data_1015_afterbias_study/sigfit/2018/"
+inputDir = "/data/users/yihuilai/WG_Analysis/Plotting/WG_Analysis/Plotting/data/sigfit/2018/"
 outputDir = "./"
 _XSFILE   = 'cross_sections/photon16_smallsig.py'
 
@@ -31,10 +35,10 @@ _LUMI18   = 59740
 
 # make parametrized signal model
 
-_JSONLOC = "data_1015_afterbias_study/para.txt"
-_JSONLOC_Fit = "data_1015_afterbias_study/para_fit.txt"
+_JSONLOC = "data_env/para.txt"
+_JSONLOC_Fit = "data_env/para_fit.txt"
 plot_outDir = "plots/MakeSignalWS_para"
-data_outDir = "data_1015_afterbias_study/sigfit_para"
+data_outDir = "data_env/sigfit_para"
 if plot_outDir is not None :
     if not os.path.isdir( plot_outDir ) :
         os.makedirs( plot_outDir )
@@ -52,7 +56,24 @@ def lumi(ibin):
     if year == 2017: return _LUMI17
     if year == 2018: return _LUMI18
     raise RuntimeError
+ 
 
+### sets up the margins of the canvas ###
+def canvas_margin(c1, c1_up, c1_down):
+  c1_up.SetTopMargin( 0.07 )
+  c1_up.SetBottomMargin( 0.02 )
+  c1_up.SetLeftMargin( 0.15 )
+  c1_up.SetRightMargin( 0.03 )
+
+  c1_down.SetTopMargin( 0.03 )
+  c1_down.SetBottomMargin( 0.4 )
+  c1_down.SetLeftMargin( 0.15 )
+  c1_down.SetRightMargin( 0.03 )
+
+  c1.SetTopMargin( 0.05 )
+  c1.SetBottomMargin( 0.13 )
+  c1.SetRightMargin( 0.05 )
+  c1.SetLeftMargin( 0.16 )
 
 
 # ---------------------------------------------------
@@ -97,7 +118,8 @@ def make_parametrized_signal_model( ):
     leg2 = ROOT.TLegend(0.65,0.73,0.86,0.87)
     leg2.SetFillColor(ROOT.kWhite)
     leg2.SetLineColor(ROOT.kWhite)
-    inputdir = "data"
+    #inputdir = "."
+    inputdir = "data_env"
     from array import array
     xx={}
     yy={}
@@ -110,12 +132,14 @@ def make_parametrized_signal_model( ):
                     grname = ipar.replace("YEAR",str(iyear))
                     grname = grname.replace("Width",'W'+str(wid))
                     grname = grname.replace("CH",ich)
-                    parlist[grname],parlist[grname+'mass'] = array( 'd' ),array( 'd' )
+                    parlist[grname+'_err'],parlist[grname+'_errx'] = array( 'd' ),array( 'd' )
+                    parlist[grname],parlist[grname+'mass'], = array( 'd' ),array( 'd' )
                     for mass in signal_masses:
                         wsname = 'wssignal_M%s_W%s_%s' %(str(mass),wid,ich)
                         pdfname = 'cb_MG_M%s_W%s_%s%s' %(str(mass),wid,ich,iyear)
                         dataname = 'MG_M%s_W%s_%s%sdatahist' %(str(mass),wid,ich,iyear)
                         inputDir = inputdir+"/sigfit/%s/" % (iyear)
+                        print('open ', inputDir+wsname+'.root')
                         ifile = ROOT.TFile.Open( inputDir+wsname+'.root', 'READ' )
                         ws_in = ifile.Get( wsname )
                         #Do fitting, ignore poor fitting points
@@ -127,14 +151,19 @@ def make_parametrized_signal_model( ):
                         ##frame.Draw()
                         model.fitTo(data)
                         print('----------frame.chiSquare ',frame.chiSquare())
-                        if(frame.chiSquare()>10): continue
+                        if(frame.chiSquare()>90): continue
                         if('norm' in ipar):
                             (parlist[grname]).append( ws_in.var(grname.replace("Mass",'M'+str(mass))).getVal())
                             parlists[grname][mass] = ws_in.var(grname.replace("Mass",'M'+str(mass))).getVal()
+                            (parlist[grname+'_err']).append( (ws_in.var(grname.replace("Mass",'M'+str(mass))).getAsymErrorHi()+ws_in.var(grname.replace("Mass",'M'+str(mass))).getAsymErrorLo())/2.0 )
+                            parlists[grname][str(mass)+'_err'] = ((ws_in.var(grname.replace("Mass",'M'+str(mass))).getAsymErrorHi()+ws_in.var(grname.replace("Mass",'M'+str(mass))).getAsymErrorLo())/2.0 )
                         else:
                             (parlist[grname]).append( ws_in.var(grname.replace("Mass",'M'+str(mass))).getVal() )
                             parlists[grname][mass] = ws_in.var(grname.replace("Mass",'M'+str(mass))).getVal()
+                            (parlist[grname+'_err']).append( (ws_in.var(grname.replace("Mass",'M'+str(mass))).getAsymErrorHi()+ws_in.var(grname.replace("Mass",'M'+str(mass))).getAsymErrorLo())/2.0 )
+                            parlists[grname][str(mass)+'_err'] = ((ws_in.var(grname.replace("Mass",'M'+str(mass))).getAsymErrorHi()+ws_in.var(grname.replace("Mass",'M'+str(mass))).getAsymErrorLo())/2.0 )
                         parlist[grname+'mass'].append(mass)
+                        parlist[grname+'_errx'].append(0)
     #Finish reading
     #store param
     multidict_tojson(_JSONLOC, parlists )
@@ -142,7 +171,7 @@ def make_parametrized_signal_model( ):
     #Decide to do fitting 
     parlists_fit = recdd()
     paramname = ['cb_cut1_MG_Mass_Width_CHYEAR']
-    paramname = ['cb_sigma_MG_Mass_Width_CHYEAR','cb_mass_MG_Mass_Width_CHYEAR','cb_cut1_MG_Mass_Width_CHYEAR','cb_MG_Mass_Width_CHYEAR_norm']
+    paramname = ['cb_power1_MG_Mass_Width_CHYEAR','cb_cut2_MG_Mass_Width_CHYEAR','cb_power2_MG_Mass_Width_CHYEAR','cb_sigma_MG_Mass_Width_CHYEAR','cb_mass_MG_Mass_Width_CHYEAR','cb_cut1_MG_Mass_Width_CHYEAR','cb_MG_Mass_Width_CHYEAR_norm']
     for ipar in paramname:
         cpara=ROOT.TCanvas()
         gr= {}
@@ -159,7 +188,7 @@ def make_parametrized_signal_model( ):
                         grname = ipar.replace("YEAR",str(iyear))
                         grname = grname.replace("Width",'W'+str(wid))
                         grname = grname.replace("CH",ich)
-                        gr[grname] = ROOT.TGraph( len(parlist[grname+'mass']), parlist[grname+'mass'], parlist[grname] )
+                        gr[grname] = ROOT.TGraphErrors( len(parlist[grname+'mass']), parlist[grname+'mass'], parlist[grname],parlist[grname+'_errx'],parlist[grname+'_err'] )
                         (gr[grname]).SetLineColor( kRainBow + ct*3 )
                         (gr[grname]).SetLineWidth( 3 )
                         (gr[grname]).SetMarkerColor( kRainBow + ct*3 )
@@ -254,7 +283,7 @@ def prepare_signal_functions_helper( mass, width,  iyear, ich , Use_scaleError=F
     sigpar = "_".join(['M'+str(mass), 'W'+str(width), '%s_%s' %( ich,str(iyear) )])
     inpar = "_".join(['M'+str(mass), 'W'+str(width), ich])
 
-    fname= 'data_1015_afterbias_study/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
+    fname= 'data_env/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
     wsname = "wssignal" + '_' + inpar
     print fname, " : ", wsname
     ifile = ROOT.TFile.Open( fname, 'READ' )
@@ -286,6 +315,7 @@ def prepare_signal_functions_helper( mass, width,  iyear, ich , Use_scaleError=F
             import_workspace( ws_out, var)
         else:
             var = ws_in.var( iipar.replace("Mass",'M'+str(mass)) )
+            print('function is ',sigfitparams[iipar] )
             if sigfitparams[iipar]['func'] == 'expnorm':
                 func = ROOT.TF1('func', '[0] - [1]*TMath::Exp(-x/[2])', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
@@ -322,11 +352,10 @@ def prepare_signal_functions_helper( mass, width,  iyear, ich , Use_scaleError=F
                     func.SetParameters(sigfitparams[iipar]['0']-sigfitparams[iipar+'err']['0'],sigfitparams[iipar]['1']-sigfitparams[iipar+'err']['1'],sigfitparams[iipar]['2']-sigfitparams[iipar+'err']['2'])
                     vardown = func.Eval(int(mass))
                 print('varup,',varup, 'vardown,',vardown,' new error',max(abs(varmean-varup),abs(varmean-vardown)) )
-                var.setError( varmean*0.0001 )
-                #var.setError( max(abs(varmean-varup),abs(varmean-vardown)) )
+                #var.setError( varmean*0.0001 )
+                var.setError( max(abs(varmean-varup),abs(varmean-vardown)) )
                 var.setVal( varmean )
             import_workspace( ws_out, var)
-
     var = ws_in.var( "mt_res" )
     import_workspace( ws_out, var)
     pdffit = ws_in.pdf( pdfname )
@@ -438,7 +467,6 @@ def prepare_signal_functions_helper_extra( mass, width,  iyear, ich) :
     import_workspace( ws_out, cb_power2)
     mt_res = ROOT.RooRealVar("mt_res","mt_res", mass,  0.5*mass,  1.1*mass+40) 
     import_workspace( ws_out, mt_res)
-
     #create pdf
     pdfname = 'cb_MG_M%s_W%s_%s%s' %(str(mass),width,ich,iyear)
     sigModel = ROOT.RooDoubleCB( pdfname, 'Double Sided Crystal Ball Lineshape', mt_res, cb_m0, cb_sigma, cb_cut1, cb_power1, cb_cut2, cb_power2)
@@ -451,7 +479,7 @@ def make_comparison_plots( mass, width,  iyear, ich ) :
     sigpar = "_".join(['M'+str(mass), 'W'+str(width), '%s_%s' %( ich,str(iyear) )])
     inpar = "_".join(['M'+str(mass), 'W'+str(width), ich])
 
-    inputfile0 = 'data_1015_afterbias_study/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
+    inputfile0 = 'data_env/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
     wsname = "wssignal" + '_' + inpar
     print inputfile0, " : ", wsname
     ifile0 = ROOT.TFile.Open( inputfile0, 'READ' )
@@ -472,44 +500,211 @@ def make_comparison_plots( mass, width,  iyear, ich ) :
     sighists0 = ws_in0.data(dataname)
     sigModel0 = ws_in0.pdf(pdfname)
     sigModel = ws_in.pdf(pdfname)
-
+    print(sighists0.sumEntries())
     #make plots
-    c=ROOT.TCanvas()
-    leg1 = ROOT.TLegend(0.15,0.73,0.4,0.87)
-    leg1.SetFillColor(ROOT.kWhite)
-    leg1.SetLineColor(ROOT.kWhite)
-    va = ws_in0.var("mt_res")
-    frame = va.frame()
+    mt_res = ws_in0.var("mt_res")
+
+    MIN_=mt_res.getMin()
+    MAX_=mt_res.getMax()
+    NBIN_=mt_res.getBins()
+
+    frame = mt_res.frame()
     sighists0.plotOn(frame, RooFit.MarkerColor(ROOT.kBlack),  RooFit.MarkerStyle(2), RooFit.LineColor(ROOT.kBlack))
     sigModel0.plotOn(frame, RooFit.LineColor(ROOT.kRed), RooFit.LineStyle(2))
+    chi0_=frame.chiSquare()
+    print('sigModel0-> ', frame.chiSquare())
+    hpull = frame.pullHist()
+    hpull.SetLineColor(ROOT.kRed)
+    hpull.SetMarkerColor(ROOT.kRed)
+    frame0_ = mt_res.frame(ROOT.RooFit.Title("Pull Distribution"))
+    frame0_.addPlotable(hpull, "P")
     sigModel.plotOn(frame, RooFit.LineColor(ROOT.kGreen), RooFit.LineStyle(2))
-    entry = leg1.AddEntry(sigModel0,"%sGeV_width%s_%s_%s" %(str(mass),width,ich,iyear),"L")
-    entry.SetFillStyle(1001)
-    entry.SetLineStyle(1)
-    entry.SetLineWidth(1)
-    entry.SetTextFont(42)
-    entry.SetTextSize(0.04)
-    entry.SetLineColor(ROOT.kRed)
-    entry = leg1.AddEntry(sigModel,"%sGeV_width%s_%s_%s_fit" %(str(mass),width,ich,iyear),"L")
-    entry.SetFillStyle(1001)
-    entry.SetLineStyle(1)
-    entry.SetLineWidth(1)
-    entry.SetTextFont(42)
-    entry.SetTextSize(0.04)
-    entry.SetLineColor(ROOT.kGreen)
-    frame.Draw()
-    leg1.Draw()
+    chi_=frame.chiSquare()
+    print('sigModel-> ', frame.chiSquare())
+    hpull_ = frame.pullHist()
+    hpull_.SetLineColor(ROOT.kGreen)
+    hpull_.SetMarkerColor(ROOT.kGreen)
+    frame_ = mt_res.frame(ROOT.RooFit.Title("Pull Distribution"))
+    frame_.addPlotable(hpull_, "P")
+
+    if frame !=0:
+        c = ROOT.TCanvas("c","c",0,53,800,740)
+        ROOT.gStyle.SetOptStat(0)
+        c.SetHighLightColor(2);
+        c.Range(0,0,1,1);
+        c.SetFillColor(0);
+        c.SetBorderMode(0);
+        c.SetBorderSize(2);
+        c.SetTickx(1);
+        c.SetTicky(1);
+        c.SetLeftMargin(0.12);
+        c.SetRightMargin(0.02);
+        c.SetTopMargin(0.055);
+        c.SetFrameFillStyle(0);
+        c.SetFrameBorderMode(0);
+        #------------>Primitives in pad: toppad
+        toppad = ROOT.TPad('toppad','toppad',0,0.3 ,1.0,1.0)
+        toppad.SetTickx(1);
+        toppad.SetTicky(1);
+        bottompad = ROOT.TPad('bottompad','bottompad',0,0.0,1.0,0.32)
+        bottompad.SetTickx(1);
+        bottompad.SetTicky(1);
+        canvas_margin(c,toppad,bottompad)
+        toppad.SetFillStyle(4000)
+        toppad.SetFrameFillStyle(1000)
+        toppad.SetFrameFillColor(0)
+        toppad.SetFillColor(0)
+        toppad.SetBorderMode(0)
+        toppad.SetBorderSize(2)
+        #toppad.SetLogy()
+
+        toppad.SetFrameBorderMode(0)
+        toppad.SetFrameBorderMode(0)
+        toppad.SetLeftMargin(0.15)
+        bottompad.SetFillStyle(4000)
+        bottompad.SetFrameFillStyle(1000)
+        bottompad.SetFrameFillColor(0)
+        bottompad.SetFillColor(0)
+        bottompad.SetBorderMode(0)
+        bottompad.SetBorderSize(2)
+        bottompad.SetFrameBorderMode(0)
+        bottompad.SetFrameBorderMode(0)
+        toppad.Draw()
+        bottompad.Draw()
+
+        c.cd()
+        c.Update()
+        c.RedrawAxis()
+        cframe = c.GetFrame()
+        cframe.Draw()
+        toppad.cd()
+        frame_4fa51a0__1 = ROOT.TH1D("frame_4fa51a0__1","Unbinned ML fit, %s %s"%(ich,iyear),NBIN_,MIN_,MAX_)
+        frame_4fa51a0__1.GetXaxis().SetTitle("m_{T}^{l#nu#gamma} [GeV]");
+        frame_4fa51a0__1.GetXaxis().SetLabelFont(42);
+        frame_4fa51a0__1.GetXaxis().SetLabelSize(0.05);
+        frame_4fa51a0__1.GetXaxis().SetTitleSize(0.05);
+        frame_4fa51a0__1.GetXaxis().SetTitleOffset(1);
+        frame_4fa51a0__1.GetXaxis().SetTitleFont(42);
+        frame_4fa51a0__1.GetYaxis().SetTitle("Event / %0.1f GeV"%((MAX_-MIN_)/NBIN_));
+        frame_4fa51a0__1.GetYaxis().SetLabelFont(42);
+        frame_4fa51a0__1.GetYaxis().SetLabelSize(0.05);
+        frame_4fa51a0__1.GetYaxis().SetTitleSize(0.05);
+        frame_4fa51a0__1.GetYaxis().SetTitleFont(42);
+        frame_4fa51a0__1.GetYaxis().SetRangeUser(0,sighists0.sumEntries()*10/1.3/(NBIN_))
+        frame_4fa51a0__1.GetXaxis().SetLabelOffset(999)
+        frame_4fa51a0__1.GetXaxis().SetLabelSize(0)
+        frame_4fa51a0__1.Draw("AXISSAME");
+        frame.Draw("same E")
+
+        leg2 = ROOT.TLegend(0.6,0.7,0.9,0.9);
+        leg2.SetBorderSize(0);
+        leg2.SetLineStyle(1);
+        leg2.SetLineWidth(1);
+        entry=leg2.AddEntry("","original","l");
+        entry.SetFillStyle(1001);
+        entry.SetLineStyle(9)
+        entry.SetLineWidth(2)
+        entry.SetLineColor(ROOT.kRed);
+        entry.SetTextFont(61)
+        entry.SetTextSize(0.04)
+        entry=leg2.AddEntry("","parameterized","l");
+        entry.SetFillStyle(1001);
+        entry.SetLineStyle(9)
+        entry.SetLineWidth(2)
+        entry.SetLineColor(ROOT.kGreen);
+        entry.SetTextFont(61)
+        entry.SetTextSize(0.04)
+        leg2.Draw()
+
+        tex2 = ROOT.TLatex(0.18,0.9,"CMS");
+        tex2.SetNDC();
+        tex2.SetTextAlign(13);
+        tex2.SetTextFont(61);
+        tex2.SetTextSize(0.06);
+        tex2.SetLineWidth(2);
+        tex2.Draw();
+        tex1 = ROOT.TLatex(0.3,0.9,"Simulation")
+        tex1.SetNDC()
+        tex1.SetTextAlign(13)
+        tex1.SetTextFont(52)
+        tex1.SetTextSize(0.06)
+        tex1.SetLineWidth(2)
+        tex1.Draw()
+        if width=='0p01': width='0.01'
+        if ich=='el':
+            ich='Electron'
+        if ich=='mu':
+            ich='Muon'
+        tex3 = ROOT.TLatex(0.18,0.82, str(iyear)+' '+ich+' channel')
+        tex3.SetNDC()
+        tex3.SetTextAlign(13)
+        tex3.SetTextFont(61)
+        tex3.SetTextSize(0.06)
+        tex3.SetLineWidth(2)
+        tex3.Draw()
+        T1=ROOT.TLatex();
+        T1.SetTextSize(0.06);
+        T1.DrawLatexNDC(0.18,0.7, "#Gamma_{x}/m_{x}="+width+"%");
+        T1.SetTextAlign(13)
+        T1.SetTextFont(61)
+        T1.SetLineWidth(2)
+        T1=ROOT.TLatex();
+        T1.DrawLatexNDC(0.77,0.825, ", #chi^{2}=%0.1f"%(chi0_));
+        T1.SetLineStyle(9)
+        T1.SetLineWidth(2)
+        T1.SetLineColor(ROOT.kRed);
+        T1.SetTextFont(61)
+        T1.SetTextSize(0.03)
+        T1=ROOT.TLatex();
+        T1.DrawLatexNDC(0.85,0.73, ", #chi^{2}=%0.1f"%(chi_));
+        T1.SetLineStyle(9)
+        T1.SetLineWidth(2)
+        T1.SetLineColor(ROOT.kRed);
+        T1.SetTextFont(61)
+        T1.SetTextSize(0.03)
+
+        bottompad.cd()
+        frame_4fa51a0__2 = ROOT.TH1D("frame_4fa51a0__2","",NBIN_,MIN_,MAX_)
+        frame_4fa51a0__2.GetXaxis().SetTitle("m_{T}^{l#nu#gamma} [GeV]");
+        frame_4fa51a0__2.GetXaxis().SetLabelFont(42);
+        frame_4fa51a0__2.GetXaxis().SetLabelSize(0.1);
+        frame_4fa51a0__2.GetXaxis().SetTitleSize(0.1);
+        frame_4fa51a0__2.GetXaxis().SetTitleOffset(1);
+        frame_4fa51a0__2.GetXaxis().SetTitleFont(42);
+        frame_4fa51a0__2.GetYaxis().SetTitle("#frac{Data-Fit}{#sigma_{Stat.}}");
+        frame_4fa51a0__2.GetYaxis().CenterTitle()
+        frame_4fa51a0__2.GetYaxis().SetLabelFont(42);
+        frame_4fa51a0__2.GetYaxis().SetLabelSize(0.1);
+        frame_4fa51a0__2.GetYaxis().SetTitleSize(0.1);
+        frame_4fa51a0__2.GetYaxis().SetTitleFont(42);
+        frame_4fa51a0__2.GetYaxis().SetRangeUser(-5,5)
+        frame_4fa51a0__2.GetYaxis().SetNdivisions(5, 2, 0, ROOT.kTRUE)
+        frame_4fa51a0__2.GetYaxis().SetTitleOffset(0.4)
+        frame_4fa51a0__2.Draw("AXISSAME")
+        frame0_.Draw("same")
+        frame_.Draw("same E")
+        line = ROOT.TLine(MIN_,0,MAX_,0);
+        line.SetLineStyle(2)
+        line.SetLineWidth(2)
+        line.Draw()
+    #input('wait ... ')
+    if width=='0.01': width='0p01'
     c.SaveAs(plot_outDir+'/new_signal_M%s_W%s_%s_%s.png'%(str(mass),width,ich,iyear))
     ifile.Close()
 
 
 if options.fitSignal:
     make_parametrized_signal_model()
+#make_parametrized_signal_model()
+#prepare_signal_functions_helper( options.mass, options.width, options.iyear, options.ich )
+make_comparison_plots( options.mass, options.width, options.iyear, options.ich )
+
+exit()
 
 
 #Prepare Parameterized signal model
 widthpoints    = ['5','0p01']
-yearpoints = [2016,2017,2018]
+yearpoints = [2016]#,2017,2018]
 chpoints = ['el','mu']
 masspoints = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
 for mass in masspoints:

@@ -12,11 +12,11 @@ def addparser(parser):
 execfile("MakeBase.py")
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
-ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
+#ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
 ROOT.gROOT.SetBatch()
 
 _XMIN_M = 0
-_XMAX_M = 4000
+_XMAX_M = 3000
 _DEFAULTDATADIR = 'data/sigfit/'
 
 if options.dataDir is None :
@@ -32,10 +32,12 @@ fitted_masses = OrderedDict()
 _JSONLOC = "%s/fitted_mass%i.txt"%(options.dataDir,options.year)
 
 def hist_binning(mass):
-    return (50, mass * 0.5, mass * 1.1 + 40)
+    #return (50, mass * 0.5, mass * 1.1 + 40)
+    return (150, max( (mass * 0.97-10)*0.6, 100), min( (mass *0.97-10)*1.3,2500))
 
 def fit_range(mass):
-    return ( mass * 0.5, mass * 1.1 + 40)
+    #return ( mass * 0.5, mass * 1.1 + 40)
+    return ( max( (mass * 0.97-10)*0.6,100), min( (mass * 0.97-10)*1.3,2500) )
 
 def main() :
     sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, lumi=-1)

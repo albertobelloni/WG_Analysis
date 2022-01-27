@@ -255,7 +255,7 @@ def makeselstringlist(ch="el", phpt = -1, leppt = 35, met = 40):
     #ph_pt  = 'ph_pt[0] < 0.50*mt_res+40'
     #ph_pt  = 'ph_pt[0] < 0.65*mt_res-20'
     if phpt < 0:
-        ph_pt  = 'ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res'
+        ph_pt  = '(ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res) && (ph_pt[0] > 80)'
     else:
         ph_pt  = 'ph_pt[0] > ' + str(phpt)
     ph_passpix = '!ph_hasPixSeed[0]'
@@ -284,7 +284,7 @@ def selectcuttag( mass ):
 def bkgfitlowbin( cuttag ):
     """ low range of bin content (the upper range is set to 2000 by default) """
     if cuttag == "A":
-        return 200
+        return 220
 
 def kinedictgen( ch, addition = "" ):
     """ define here cut-sets and tag as function of mass """
