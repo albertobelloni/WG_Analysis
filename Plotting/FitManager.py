@@ -1039,12 +1039,13 @@ class FitManager :
         mass =  self.sample_params['mass']
         width = self.sample_params['width']
         # TODO: this can be updated and merged to setuparray
-        cut1_vals   = (  0.3,       0.1,      2.0  )
+        # pow1, 2, cut 2 are fixed to different value for narrow and wide resonance
+        cut1_vals   = (  0.3,       0.1,      3.0  )
         sigma_vals  = ( 28. ,       1. ,      200. ) if width==0.01 else ( 58. ,       1. ,      200.)
-        power1_vals = (  2.0,       1.4,      6.  )
+        power1_vals = (  2.2,       0.4,      20.  ) if width==0.01 else (  2.2,       0.4,      20.  ) 
         mass_vals   = ( mass,  0.5*mass,  1.1*mass )
-        cut2_vals   = (  1.5,       1.,       2.5  )
-        power2_vals = (  4.0,       0.,       10.0  )
+        cut2_vals   = (  1.5,       1.,       2.5  ) if width==0.01 else (  1.5,       1.,       2.5  )
+        power2_vals = (  4.0,       0.,       10.0  ) if width==0.01 else (  4.0,       0.,       10.0  )
         # use a function 
         f = open ('data/para_fit.txt', "r")
         sigfitparams = json.loads(f.read())

@@ -22,8 +22,6 @@ else :
 
 options.batch = ( not options.local )
 ### ATTENTION! Here you specify the directory containing the processed ntuples, on which you want to run FilterOverlap.
-#base = '/data/users/fengyb/WGammaNtuple'
-#base = '/data2/users/kakw/Resonances%i/' %options.year
 base='/data/users/yihuilai/Resonances%i/' %options.year
 
 #if options.year == 2016:
@@ -32,19 +30,10 @@ base='/data/users/yihuilai/Resonances%i/' %options.year
 ### ATTENTION! Here you list the ntuple types (from RecoResonance) that you want to process, which is also the name of the subdirectory containing them.
 input_dirs = [
                'LepGamma_elg',
-#               'LepLep_elel',
                'LepGamma_mug',
-#               'LepLep_mumu',
-#               'SingleLep_el',
-#               'SingleLep_mu',
-#               'SingleLepInvIso_el',
-#               'SingleLepInvIso_mu',
 
 ]
-#jobtag = '_2020_02_11'
-#jobtag = '_2019_12_12'
-#jobtag = '_2021_08_27'
-jobtag = '_2021_09_17'
+jobtag = '_2022_01_27'
 
 jobs2016 = [
     # WJets HT bins, remove photon overlap with WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 (ISR+FSR),
