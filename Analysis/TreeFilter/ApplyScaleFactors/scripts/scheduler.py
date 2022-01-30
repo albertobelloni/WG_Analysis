@@ -36,15 +36,8 @@ base='/data/users/yihuilai/Resonances%i/' %options.year
 
 ### ATTENTION! Here you specify the type of ntuple you want to run over.
 input_dirs = [
-#              'LepLep_elel_2019_04_11','LepLep_mumu_2019_04_11',
-#              'LepGammaNoPhId_elg_2019_03_17','LepGammaNoPhId_mug_2019_03_17',
-#              'LepGamma_elg_2019_04_11','LepGamma_mug_2019_04_11',
-#              'LepLep_mumu_2019_07_12',
-              #'LepLep_mumu_2019_11_13',
-              #'LepLep_elel_2019_11_13',
-              'LepGamma_elg_2021_09_17', 
-              'LepGamma_mug_2021_09_17',
-
+              'LepGamma_mug_2022_01_27', 
+              'LepGamma_elg_2022_01_27',
 ]
 
 ### ATTENTION! consider using --all to apply SFs to all samples of the input directory
@@ -188,7 +181,8 @@ jobs2016 = [
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width0p01' ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width0p01' ),
 ]
-jobs2017 = []
+jobs2017 = [
+]
 jobs2018 = []
 if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017

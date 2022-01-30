@@ -221,7 +221,7 @@ def makeselstringwweight(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""
     selstr = " && ".join(selstrlist)
     return weight+'* ( %s )'% selstr
 
-def makeselstringlist(ch="el", phpt = -1, leppt = 35, met = 40):
+def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     """ assemble selection strings
         return
             array of selections
@@ -254,10 +254,7 @@ def makeselstringlist(ch="el", phpt = -1, leppt = 35, met = 40):
     #ph_pt  = 'ph_pt[0] < 0.50*mt_res+30'
     #ph_pt  = 'ph_pt[0] < 0.50*mt_res+40'
     #ph_pt  = 'ph_pt[0] < 0.65*mt_res-20'
-    if phpt < 0:
-        ph_pt  = '(ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res) && (ph_pt[0] > 80)'
-    else:
-        ph_pt  = 'ph_pt[0] > ' + str(phpt)
+    ph_pt  = '(ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res) && (ph_pt[0] > %i)' %phpt
     ph_passpix = '!ph_hasPixSeed[0]'
     ph_tight = 'ph_passTight[0]' # already in base selection
     sel_ph =  [ph_base, ph_tight, ph_pt, ph_passpix]

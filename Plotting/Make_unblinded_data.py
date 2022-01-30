@@ -10,7 +10,7 @@ MIN_ = 220
 MAX_ = 2200
 treeIn      = "UMDNTuple/EventTree"
 import os
-data_outDir = "data_env/bkgfit_data"
+data_outDir = "data/bkgfit_data"
 if data_outDir is not None :
     if not os.path.isdir( data_outDir ) :
         os.makedirs( data_outDir )
@@ -19,12 +19,11 @@ if data_outDir is not None :
         os.makedirs( data_outDir+'/2018' )
 import glob
 FileMap = {}
-Date = '2021_09_17'
-#Date = '2021_08_27'
+Date = '2022_01_27'
 for year in ['2016','2017','2018']:
     for ch in ['el','mu']:
         if ch == 'el':
-            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/SingleElectron/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/Single*/Job*/tree.root')
             if(year=='2018'): FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/EGamma/Job*/tree.root')
         if ch == 'mu':
             FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF/SingleMuon/Job*/tree.root')
@@ -954,22 +953,6 @@ def makeRooMultiPdfWorkspace(year,baseDir,skimtree,skimfile):
     ne = dse.sumEntries("mt_res>"+str(MIN_))
     nm = dsm.sumEntries("mt_res>"+str(MIN_))
 
-    #roo = ROOT.TFile("test_sara.root","Read")
-    #h1 = roo.Get("bsvj/SVJ_mZprime250_mDark10_rinv03_alphapeak")
-    #h1.Draw() 
-    #rootfile = ROOT.TFile("test.root","recreate")
-    #tdir = rootfile.mkdir('test')
-    #tdir.cd()
-    #Bkg = ROOT.TH1F("Bkg","Bkg",40,200,2000)
-    #data_obs = ROOT.TH1F("data_obs","data_obs",40,200,2000)
-    #tree.Draw("mt_res>>Bkg")
-    #tree.Draw("mt_res>>data_obs")
-    #Bkg.Write()
-    #data_obs.Write()
-    #h1.Write()
-    #rootfile.Close()
-    #exit()
-
     #Work space
     ws_out  = ROOT.RooWorkspace( "workspace_all" )
     rootfilename = '%s/%s/%s.root' %( data_outDir,year,ws_out.GetName() )
@@ -1133,10 +1116,10 @@ def makeRooMultiPdfWorkspace(year,baseDir,skimtree,skimfile):
         catIndexm.setIndex(np.argmin(np.abs(chi2score_m)))
         toydatae.SetName ('data_elA'+year+'_mt_res_base')
         toydatam.SetName ('data_muA'+year+'_mt_res_base')
-        #import_workspace( ws_out, toydatae)
-        #import_workspace( ws_out, toydatam)
-        import_workspace( ws_out, dse)
-        import_workspace( ws_out, dsm)
+        import_workspace( ws_out, toydatae)
+        import_workspace( ws_out, toydatam)
+        #import_workspace( ws_out, dse)
+        #import_workspace( ws_out, dsm)
 
     import_workspace( ws_out, norm_MultiPdf_e )
     import_workspace( ws_out, norm_MultiPdf_m )
@@ -2361,19 +2344,19 @@ def checkenv():
         #input('wait...')
 
 skimtree   =  "outputTree"
-#skimfile     =  "skim_1in5.root"
-skimfile     =  "skim.root"
+skimfile     =  "skim_1in5.root"
+#skimfile     =  "skim.root"
 
 #testBias()
 
-ShowSignalInjection()
+#ShowSignalInjection()
 #makeFinalplots(data_outDir,skimtree)
+#exit()
 
-exit()
-
-for year in ['2016','2017','2018']:
+#for year in ['2016','2017','2018']:
+for year in ['2017']:
     #goodnessOfFit(year,data_outDir,skimtree,skimfile)
-    #prepareWS(year,data_outDir,skimtree,skimfile)
+    #prepareWS(year,data_outDir,skimtree,skimfile) # Old, do not use
     makeRooMultiPdfWorkspace(year,data_outDir,skimtree,skimfile)
     #for ch in ['el','mu']:
     #    CombineGoF(ch, year)

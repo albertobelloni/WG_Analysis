@@ -89,7 +89,7 @@ ntoy = '120'
 rseed = '9024'
 rname = '_test7'
 
-options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data/higgs"
+options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean/Plotting/data/wg/"
 
 def main() :
 
@@ -137,12 +137,12 @@ def main() :
 
     bins = [
         # mu/el channel, photons in th barrel/endcap
-        {'channel' : 'mu', 'year': 2016},
-        {'channel' : 'el', 'year': 2016},
+    #    {'channel' : 'mu', 'year': 2016},
+    #    {'channel' : 'el', 'year': 2016},
         {'channel' : 'mu', 'year': 2017},
         {'channel' : 'el', 'year': 2017},
-        {'channel' : 'mu', 'year': 2018},
-        {'channel' : 'el', 'year': 2018},
+    #    {'channel' : 'mu', 'year': 2018},
+    #    {'channel' : 'el', 'year': 2018},
     ]
 
     global binid
@@ -157,13 +157,13 @@ def main() :
         raise RuntimeError
 
     if options.outputDir is None :
-        options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data/higgs"
+        options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean/Plotting/data/wg"
     if options.outputDir is not None :
         if not os.path.isdir( options.outputDir ) :
             os.makedirs( options.outputDir )
 
     if options.baseDir is None :
-        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis/Plotting/data_1015_afterbias_study"
+        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis_clean/Plotting/data/"
 
     if options.combineDir == None:
         options.combineDir = "/data/users/yihuilai/combine/CMSSW_11_0_0/src/"
@@ -1100,7 +1100,7 @@ class MakeLimits( ) :
                 #print jbin
                 #rate_entries.append( bkg.norm[jbin][0] )
                 #bkg rate set to 1 --Yihui
-                rate_entries.append( str(1.0) )
+                rate_entries.append( 1.0 )
 
         bin_entries = []
         for b in all_binids :
@@ -1111,7 +1111,6 @@ class MakeLimits( ) :
         card_entries.append( 'process     ' + listformat( range(len(self.backgrounds) +1)*len(viablebins), form = "%-14d" ) )
         #card_entries.append( 'rate     ' + '    '.join( [str(signal_norm), str(backgrounds[0]['norm']) ]*len(bins) ) )
         card_entries.append( 'rate        ' + listformat( rate_entries,"%-13g " )  )
-
         card_entries.append( section_divider )
         ############################################
         ##  systematics declaration
@@ -1189,11 +1188,16 @@ class MakeLimits( ) :
             #    else:
             #        card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
         #Yihui -- use MultiPdf
-        if 'vvdijet' in targetfunc:
-            varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet']
-        elif 'dijet' in targetfunc:
-            varnames=['dijet_order1__all_dijet','dijet_order2__all_dijet']
-        for ich in ['elA2016','elA2017','elA2018','muA2016','muA2017','muA2018']:
+        looplist=[]
+        if 'mu2016' in outputCard: looplist.append('muA2016')
+        elif 'mu2017' in outputCard: looplist.append('muA2017')
+        elif 'mu2018' in outputCard: looplist.append('muA2018')
+        elif 'el2016' in outputCard: looplist.append('elA2016')
+        elif 'el2017' in outputCard: looplist.append('elA2017')
+        elif 'el2018' in outputCard: looplist.append('elA2018')
+        elif 'all' in outputCard: looplist = ['elA2016','elA2017','elA2018','muA2016','muA2017','muA2018']
+        else: exit()
+        for ich in looplist:
             if ich =='elA2016' or ich =='elA2018' :
                 varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow']
             else:
@@ -1201,12 +1205,7 @@ class MakeLimits( ) :
             varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow']
             for ivar in varnames:
                 card_entries.append( ivar.replace('__all','_'+ich+'_all') +'  flatParam')
-        card_entries.append('pdf_index_el2016                             discrete')
-        card_entries.append('pdf_index_el2017                             discrete')
-        card_entries.append('pdf_index_el2018                             discrete')
-        card_entries.append('pdf_index_mu2016                             discrete')
-        card_entries.append('pdf_index_mu2017                             discrete')
-        card_entries.append('pdf_index_mu2018                             discrete')
+            card_entries.append('pdf_index_%s                             discrete'%(ich.replace('A','')))
 
         #Yihui -- add shape uncertainty into signal mean mass uncertainty
         maxshift = 0
@@ -1314,8 +1313,8 @@ class MakeLimits( ) :
 
            if xvar is None :
                xvar = ws.var( self.xvarname )
-           #xvar.setRange( 220 ,2200)
-           xvar.setRange( defs.bkgfitlowbin(cutset) ,2200)
+           xvar.setRange( 220 ,2200)
+           #xvar.setRange( defs.bkgfitlowbin(cutset) ,2200)
            xvar.setBins(500)
            xvar.Print()
 
@@ -1838,7 +1837,8 @@ class MakeLimits( ) :
 
 
             flagstr+= mtrange
-            command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2016=0,pdf_index_el2017=0,pdf_index_el2018=0,pdf_index_mu2016=0,pdf_index_mu2017=0,pdf_index_mu2018=0 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 --run blind -m %d %s %s >& %s'\
+            #command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2016=0,pdf_index_el2017=0,pdf_index_el2018=0,pdf_index_mu2016=0,pdf_index_mu2017=0,pdf_index_mu2018=0 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 -m %d %s %s >& %s'\
+            command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2017=0,pdf_index_mu2017=0 --freezeParameters pdf_index_el2017,pdf_index_mu2017 -m %d %s %s >& %s'\
                         %( mass, flagstr, card, log_file )
             #do goodness of fit -- Yihui
             if options.GoF:
@@ -1975,7 +1975,8 @@ class MakeLimits( ) :
                 mass = int(sigpar.split('_')[0].lstrip("M"))
                 ch = sigpar.split('_')[2]
                 ##only run all -- Yihui
-                if ch!='all':
+                #if ch!='all':
+                if '2017' not in ch:
                     continue
                 #print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 

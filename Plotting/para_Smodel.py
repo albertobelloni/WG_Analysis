@@ -25,7 +25,7 @@ def addparser(parser):
     parser.add_argument( '--ich',        type=str, help='' )
 execfile("MakeBase.py")
 
-inputDir = "/data/users/yihuilai/WG_Analysis/Plotting/WG_Analysis/Plotting/data/sigfit/2018/"
+inputDir = "./data/sigfit/2017/"
 outputDir = "./"
 _XSFILE   = 'cross_sections/photon16_smallsig.py'
 
@@ -35,10 +35,11 @@ _LUMI18   = 59740
 
 # make parametrized signal model
 
-_JSONLOC = "data_env/para.txt"
-_JSONLOC_Fit = "data_env/para_fit.txt"
+_JSONLOC = "data/para.txt"
+_JSONLOC_Fit = "data/para_fit.txt"
 plot_outDir = "plots/MakeSignalWS_para"
-data_outDir = "data_env/sigfit_para"
+data_outDir = "data/sigfit_para"
+
 if plot_outDir is not None :
     if not os.path.isdir( plot_outDir ) :
         os.makedirs( plot_outDir )
@@ -97,10 +98,11 @@ def import_workspace( ws , objects):
 # ---------------------------------------------------
 
 def make_parametrized_signal_model( ):
-
+    # Fit the signal work space and extrat the parameetrs 
     signal_widths    = ['5', '0p01']
     signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
     Years= ['2016','2017','2018']
+    Years= ['2017']
     CH = ['el','mu']
 
     weightMap,_ = analysis_utils.read_xsfile( _XSFILE, 1, print_values=True )
@@ -119,7 +121,7 @@ def make_parametrized_signal_model( ):
     leg2.SetFillColor(ROOT.kWhite)
     leg2.SetLineColor(ROOT.kWhite)
     #inputdir = "."
-    inputdir = "data_env"
+    inputdir = "data"
     from array import array
     xx={}
     yy={}
@@ -151,7 +153,7 @@ def make_parametrized_signal_model( ):
                         ##frame.Draw()
                         model.fitTo(data)
                         print('----------frame.chiSquare ',frame.chiSquare())
-                        if(frame.chiSquare()>90): continue
+                        #if(frame.chiSquare()>90): continue
                         if('norm' in ipar):
                             (parlist[grname]).append( ws_in.var(grname.replace("Mass",'M'+str(mass))).getVal())
                             parlists[grname][mass] = ws_in.var(grname.replace("Mass",'M'+str(mass))).getVal()
@@ -174,12 +176,14 @@ def make_parametrized_signal_model( ):
     paramname = ['cb_power1_MG_Mass_Width_CHYEAR','cb_cut2_MG_Mass_Width_CHYEAR','cb_power2_MG_Mass_Width_CHYEAR','cb_sigma_MG_Mass_Width_CHYEAR','cb_mass_MG_Mass_Width_CHYEAR','cb_cut1_MG_Mass_Width_CHYEAR','cb_MG_Mass_Width_CHYEAR_norm']
     for ipar in paramname:
         cpara=ROOT.TCanvas()
+        ROOT.gStyle.SetPalette(55)
         gr= {}
         leg1 = ROOT.TLegend(0.25,0.33,0.8,0.87)
         leg1.SetFillColor(ROOT.kWhite)
         leg1.SetLineColor(ROOT.kWhite)
         ct=-1
         grsum=ROOT.TMultiGraph()
+        ctmulti=6
         if(True):
             for wid in signal_widths:
                 for iyear in Years:
@@ -189,9 +193,9 @@ def make_parametrized_signal_model( ):
                         grname = grname.replace("Width",'W'+str(wid))
                         grname = grname.replace("CH",ich)
                         gr[grname] = ROOT.TGraphErrors( len(parlist[grname+'mass']), parlist[grname+'mass'], parlist[grname],parlist[grname+'_errx'],parlist[grname+'_err'] )
-                        (gr[grname]).SetLineColor( kRainBow + ct*3 )
+                        (gr[grname]).SetLineColor( kRainBow + ct*ctmulti )
                         (gr[grname]).SetLineWidth( 3 )
-                        (gr[grname]).SetMarkerColor( kRainBow + ct*3 )
+                        (gr[grname]).SetMarkerColor( kRainBow + ct*ctmulti )
                         (gr[grname]).SetMarkerStyle( 21 )
                         (gr[grname]).GetXaxis().SetTitle( 'X title' )
                         (gr[grname]).GetYaxis().SetTitle( 'Y title' )
@@ -200,6 +204,17 @@ def make_parametrized_signal_model( ):
                             a.SetParameters(0.1, 0.05, 1000)
                             gr[grname].Fit("a")
                             parlists_fit[grname]['func'] = 'expnorm'
+                            parlists_fit[grname][0] = a.GetParameter(0)
+                            parlists_fit[grname][1] = a.GetParameter(1)
+                            parlists_fit[grname][2] = a.GetParameter(2)
+                            parlists_fit[grname+'err'][0] = a.GetParError(0)
+                            parlists_fit[grname+'err'][1] = a.GetParError(1)
+                            parlists_fit[grname+'err'][2] = a.GetParError(2)
+                        elif 'power1' in ipar:
+                            a= ROOT.TF1("a","[0] + [1]*TMath::Exp(-x/[2])",0,2500);
+                            a.SetParameters(2.9, 60, 257)
+                            gr[grname].Fit("a")
+                            parlists_fit[grname]['func'] = 'exp'
                             parlists_fit[grname][0] = a.GetParameter(0)
                             parlists_fit[grname][1] = a.GetParameter(1)
                             parlists_fit[grname][2] = a.GetParameter(2)
@@ -233,8 +248,16 @@ def make_parametrized_signal_model( ):
                             parlists_fit[grname+'err'][0] = a.GetParError(0)
                             parlists_fit[grname+'err'][1] = a.GetParError(1)
                             parlists_fit[grname+'err'][2] = a.GetParError(2)
-
-                        elif 'sigma' in ipar or 'cb_mass_MG' in ipar:
+                        elif 'power2' in ipar:
+                            gr[grname].Fit("pol0")
+                            print(wid, iyear, ich)
+                            a=gr[grname].GetFunction("pol0")
+                            print(a.GetNumberFreeParameters(), " free parameters")
+                            print(a.GetParameter(0))
+                            parlists_fit[grname]['func'] = 'pol0'
+                            parlists_fit[grname][0] = a.GetParameter(0)
+                            parlists_fit[grname+'err'][0] = a.GetParError(0)
+                        elif 'sigma' in ipar or 'cb_mass_MG' in ipar or 'cut2' in ipar:
                             gr[grname].Fit("pol1")
                             print(wid, iyear, ich)
                             a=gr[grname].GetFunction("pol1")
@@ -259,7 +282,7 @@ def make_parametrized_signal_model( ):
                             parlists_fit[grname+'err'][1] = a.GetParError(1)
                             parlists_fit[grname+'err'][2] = a.GetParError(2)
                         gr[grname].Draw( 'ACP' )
-                        a.SetLineColor( kRainBow + ct*3 )
+                        a.SetLineColor( kRainBow + ct*ctmulti )
                         grsum.Add(gr[grname])
                         entry = leg1.AddEntry(gr[grname],grname,"L")
                         entry.SetFillStyle(1001)
@@ -267,9 +290,9 @@ def make_parametrized_signal_model( ):
                         entry.SetLineWidth(1)
                         entry.SetTextFont(42)
                         entry.SetTextSize(0.04)
-                        entry.SetLineColor(kRainBow+ct*3)
+                        entry.SetLineColor(kRainBow+ct*ctmulti)
             grsum.Draw("ACP")
-            grsum.GetXaxis().SetTitle( 'm_{reso} (GeV)' )
+            grsum.GetXaxis().SetTitle( 'm_{X} (GeV)' )
             grsum.GetYaxis().SetTitle( ipar )
             leg1.Draw()
             cpara.SaveAs("gr"+ipar+".C")
@@ -279,11 +302,11 @@ def make_parametrized_signal_model( ):
 #-------------------------------------------------
 
 def prepare_signal_functions_helper( mass, width,  iyear, ich , Use_scaleError=False) :
-
+    # produce parameterized signal models according to the fit results 
     sigpar = "_".join(['M'+str(mass), 'W'+str(width), '%s_%s' %( ich,str(iyear) )])
     inpar = "_".join(['M'+str(mass), 'W'+str(width), ich])
 
-    fname= 'data_env/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
+    fname= 'data/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
     wsname = "wssignal" + '_' + inpar
     print fname, " : ", wsname
     ifile = ROOT.TFile.Open( fname, 'READ' )
@@ -319,12 +342,18 @@ def prepare_signal_functions_helper( mass, width,  iyear, ich , Use_scaleError=F
             if sigfitparams[iipar]['func'] == 'expnorm':
                 func = ROOT.TF1('func', '[0] - [1]*TMath::Exp(-x/[2])', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
+            elif sigfitparams[iipar]['func'] == 'expnorm':
+                func = ROOT.TF1('func', '[0] + [1]*TMath::Exp(-x/[2])', 0, 3000)
+                func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
             elif sigfitparams[iipar]['func'] == 'expcut1':
                 func = ROOT.TF1('func', '[0] + [1]*TMath::Exp(-x/[2])', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
             elif sigfitparams[iipar]['func'] == 'inv':
                 func = ROOT.TF1('func', "[0] + [1]/(x-[2])", 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
+            elif sigfitparams[iipar]['func'] == 'pol0':
+                func = ROOT.TF1('func', 'pol0', 0, 3000)
+                func.SetParameters(sigfitparams[iipar]['0'])
             elif sigfitparams[iipar]['func'] == 'pol1':
                 func = ROOT.TF1('func', 'pol1', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'])
@@ -479,7 +508,7 @@ def make_comparison_plots( mass, width,  iyear, ich ) :
     sigpar = "_".join(['M'+str(mass), 'W'+str(width), '%s_%s' %( ich,str(iyear) )])
     inpar = "_".join(['M'+str(mass), 'W'+str(width), ich])
 
-    inputfile0 = 'data_env/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
+    inputfile0 = 'data/sigfit/%i/ws%s_%s.root' %( iyear, 'signal', inpar )
     wsname = "wssignal" + '_' + inpar
     print inputfile0, " : ", wsname
     ifile0 = ROOT.TFile.Open( inputfile0, 'READ' )
@@ -600,14 +629,14 @@ def make_comparison_plots( mass, width,  iyear, ich ) :
         leg2.SetBorderSize(0);
         leg2.SetLineStyle(1);
         leg2.SetLineWidth(1);
-        entry=leg2.AddEntry("","original","l");
+        entry=leg2.AddEntry("","DSCB Fit","l");
         entry.SetFillStyle(1001);
         entry.SetLineStyle(9)
         entry.SetLineWidth(2)
         entry.SetLineColor(ROOT.kRed);
         entry.SetTextFont(61)
         entry.SetTextSize(0.04)
-        entry=leg2.AddEntry("","parameterized","l");
+        entry=leg2.AddEntry("","Parameterized","l");
         entry.SetFillStyle(1001);
         entry.SetLineStyle(9)
         entry.SetLineWidth(2)
@@ -649,14 +678,14 @@ def make_comparison_plots( mass, width,  iyear, ich ) :
         T1.SetTextFont(61)
         T1.SetLineWidth(2)
         T1=ROOT.TLatex();
-        T1.DrawLatexNDC(0.77,0.825, ", #chi^{2}=%0.1f"%(chi0_));
+        T1.DrawLatexNDC(0.77,0.825, " #chi^{2}=%0.1f"%(chi0_));
         T1.SetLineStyle(9)
         T1.SetLineWidth(2)
         T1.SetLineColor(ROOT.kRed);
         T1.SetTextFont(61)
         T1.SetTextSize(0.03)
         T1=ROOT.TLatex();
-        T1.DrawLatexNDC(0.85,0.73, ", #chi^{2}=%0.1f"%(chi_));
+        T1.DrawLatexNDC(0.85,0.73, " #chi^{2}=%0.1f"%(chi_));
         T1.SetLineStyle(9)
         T1.SetLineWidth(2)
         T1.SetLineColor(ROOT.kRed);
@@ -693,8 +722,7 @@ def make_comparison_plots( mass, width,  iyear, ich ) :
     ifile.Close()
 
 
-if options.fitSignal:
-    make_parametrized_signal_model()
+#if options.fitSignal:
 #make_parametrized_signal_model()
 #prepare_signal_functions_helper( options.mass, options.width, options.iyear, options.ich )
 make_comparison_plots( options.mass, options.width, options.iyear, options.ich )
@@ -704,7 +732,7 @@ exit()
 
 #Prepare Parameterized signal model
 widthpoints    = ['5','0p01']
-yearpoints = [2016]#,2017,2018]
+yearpoints = [2017]#,2017,2018]
 chpoints = ['el','mu']
 masspoints = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
 for mass in masspoints:

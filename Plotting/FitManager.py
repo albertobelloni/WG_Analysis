@@ -1049,11 +1049,24 @@ class FitManager :
         # use a function 
         f = open ('data/para_fit.txt', "r")
         sigfitparams = json.loads(f.read())
-        paramname = ['cb_sigma_MG_Mass_Width_CHYEAR','cb_cut1_MG_Mass_Width_CHYEAR']#'cb_mass_MG_Mass_Width_CHYEAR','cb_MG_Mass_Width_CHYEAR_norm']
+
+        paramname = ['cb_sigma_MG_Mass_Width_CHYEAR','cb_cut1_MG_Mass_Width_CHYEAR',
+                     'cb_mass_MG_Mass_Width_CHYEAR','cb_cut2_MG_Mass_Width_CHYEAR',
+                     'cb_power1_MG_Mass_Width_CHYEAR','cb_power2_MG_Mass_Width_CHYEAR']
+
         for ipar in paramname:
             print(ipar)
-            iipar = ipar.replace("YEAR",str(2016))
-            iipar = iipar.replace("CH",str('el'))
+            if '2016' in self.label:
+                iipar = ipar.replace("YEAR",str(2016))
+            elif '2017' in self.label:
+                iipar = ipar.replace("YEAR",str(2017))
+            else:
+                iipar = ipar.replace("YEAR",str(2018))
+            if 'mu' in self.label:
+                iipar = iipar.replace("CH",str('mu'))
+            else:
+                iipar = iipar.replace("CH",str('el'))
+
             if str(width)=='5':
                 iipar = iipar.replace("idth",str(5)) 
             else:
@@ -1061,12 +1074,15 @@ class FitManager :
             if sigfitparams[iipar]['func'] == 'expnorm':
                 func = ROOT.TF1('func', '[0] - [1]*TMath::Exp(-x/[2])', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
-            elif sigfitparams[iipar]['func'] == 'expcut1':
+            elif sigfitparams[iipar]['func'] == 'exp':
                 func = ROOT.TF1('func', '[0] + [1]*TMath::Exp(-x/[2])', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
             elif sigfitparams[iipar]['func'] == 'inv':
                 func = ROOT.TF1('func', "[0] + [1]/(x-[2])", 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
+            elif sigfitparams[iipar]['func'] == 'pol0':
+                func = ROOT.TF1('func', 'pol0', 0, 3000)
+                func.SetParameter(0,sigfitparams[iipar]['0'])
             elif sigfitparams[iipar]['func'] == 'pol1':
                 func = ROOT.TF1('func', 'pol1', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'])
@@ -1074,9 +1090,17 @@ class FitManager :
                 func = ROOT.TF1('func', 'pol2', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
             if 'cb_cut1' in ipar:
-                cut1_vals   = (  func.Eval(int(mass)),       0.1,      2.0  )
+                cut1_vals   = (  func.Eval(int(mass)),       0.1,      3.0  )
+            if 'cb_cut2' in ipar:
+                cut2_vals   = (  func.Eval(int(mass)),       0.1,      2.0  )
             if 'cb_sigma' in ipar:
-                sigma_vals  = ( func.Eval(int(mass)) ,       1. ,      200. ) 
+                sigma_vals  = ( func.Eval(int(mass)) ,       1. ,      200. )
+            if 'cb_power1' in ipar:
+                power1_vals   = (  func.Eval(int(mass)),       0.,      20.0  ) 
+            if 'cb_power2' in ipar:
+                power2_vals   = (  func.Eval(int(mass)),       0.,      10.0  )
+            if 'cb_mass' in ipar:
+                mass_vals  = ( func.Eval(int(mass)) ,       0 ,      3000. )
 
         cb_cut1   = ROOT.RooRealVar('cb_cut1_%s'   %self.label,   'Cut1'  ,
                                    cut1_vals[0],   cut1_vals[1],   cut1_vals[2],   '')
