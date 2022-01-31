@@ -336,8 +336,8 @@ class Sample :
                       "imported XS file: %.8g ratio: %g"  \
                        %(totevt, self.total_events, totevt/self.total_events)
                 ## Yihui -- not correct number
-                if('ChargedResonance' in str(files[0]) and totevt!= 50000):
-                     print('-----------',files[0])
+                #if('ChargedResonance' in str(files[0]) and totevt!= 50000):
+                #     print('-----------',files[0])
 
         if readHists:
             for f in files :
@@ -754,7 +754,7 @@ class SampleManager(SampleFrame) :
         # this is used to indicate
         # to which SampleManger
         # a DrawConfig was associated to
-        self.id = str(uuid.uuid4())
+        self.id = str(uuid.uuid4()) # important to change - to _ -- Yihui
 
         # keep track if a sample group has been added
         self.added_sample_group=False
@@ -2843,7 +2843,7 @@ class SampleManager(SampleFrame) :
                             ybin_max = sample.main_hist.GetYaxis().FindBin( ymax )
 
                         print 'xmin = %d, xmax = %s, ymin = %f, ymax = %f, xbinmin = %d, xbinmax = %d, ybinmin = %d, yminmax = %d' %( xmin, xmax, ymin, ymax, xbin_min, xbin_max, ybin_min, ybin_max)
-                        sample.hist = sample.main_hist.ProjectionZ( str( uuid.uuid4()), xbin_min, xbin_max, ybin_min, ybin_max )
+                        sample.hist = sample.main_hist.ProjectionZ( 'h_'+str( uuid.uuid4()).replace('-','_'), xbin_min, xbin_max, ybin_min, ybin_max )  # important to change - to _ -- Yihui
                     else :
                         sample.hist = None
 
@@ -2924,7 +2924,7 @@ class SampleManager(SampleFrame) :
                 ratio_samp.isSignal = True
 
         #make the stack and fill
-        self.curr_stack = (ROOT.THStack('stack' + str(uuid.uuid4()), ''))
+        self.curr_stack = (ROOT.THStack('stack' + str(uuid.uuid4()).replace('-','_'), '')) # important to change - to _ -- Yihui
 
         # reverse so that the stack is in the correct order
         orderd_samples = []
@@ -3262,8 +3262,7 @@ class SampleManager(SampleFrame) :
 
         """
 
-        if histname==None: histname = str(uuid.uuid4())
-
+        if histname==None: histname = 'h_'+str(uuid.uuid4()).replace('-','_') # important to change - to _ -- Yihui
         if type( histpars ) is tuple :
             if varexp.count(':') == 1 :
                 if len(histpars) == 2 and type( histpars[0] ) is list and \
@@ -3347,9 +3346,8 @@ class SampleManager(SampleFrame) :
         sample.enable_parsed_branches( varexp+selection )
 
         sample.hist = None
-        histname = sampname + str(uuid.uuid4())
+        histname = sampname + str(uuid.uuid4()).replace('-','_') # important to change - to _ -- Yihui
         sample.hist = self.parsehist(histpars, varexp, histname)
-
         if sample.hist is not None :
             sample.hist.SetTitle( sampname )
             sample.hist.Sumw2()
@@ -3452,7 +3450,7 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     def create_hist_new( self, draw_config, sample=None, isModel=False ) :
-        """ Used by Draw(). Use draw_config instead of the old version """
+        """ Used by Draw(). Use draw_config instead of the old version . BookMarker -- Yihui"""
 
         if sample is None :
             sample = draw_config.samples[0]
@@ -3480,12 +3478,13 @@ class SampleManager(SampleFrame) :
         if usedataframe:
             sample.hist = None
 
-        else:
-            sample.hist = self.parsehist(draw_config.histpars, varexp)
+        else: 
+            # Here is where the hist binning initialized  -- Yihui
+            sample.hist = self.parsehist(draw_config.histpars, varexp)  
             if sample.hist is not None :
                 sample.hist.SetTitle( sample.name )
+                #sample.hist.SetName( sample.name.replace('-','') )
                 sample.hist.Sumw2()
-
             if sample.isData and isinstance(sblind,str):
                     selection = "(%s)&&(%s)" %(selection,sblind)
 
@@ -3494,8 +3493,7 @@ class SampleManager(SampleFrame) :
 
             # enable branches for variables matched in the varexp and selection
             sample.enable_parsed_branches( varexp+selection )
-
-
+        print(self.curr_stack)
         if sample.IsGroupedSample() :
 
             for subsampname in sample.groupedSampleNames :
@@ -3563,7 +3561,7 @@ class SampleManager(SampleFrame) :
 
                 if not self.dataFrame or dataframefailed:
                     drawstr = varexp + ' >> ' + sample.hist.GetName()
-                    print('drawstr, selection', drawstr, selection)
+                    #print('drawstr, selection', drawstr, selection)
                     #Yihui --- unblind error
                     res = sample.chain.Draw( drawstr, selection , '' )
                     #res = sample.chain.Draw( drawstr, selection , 'goff' )
@@ -3610,7 +3608,6 @@ class SampleManager(SampleFrame) :
 
         ht = self.parsehist( histpars, varexp, 'rdf_hist',
                              returnmodel = True )
-
         rdf_hist_resultptr = rdf.Histo1D( ht , 'varexp', 'selection')
 
         return rdf_hist_resultptr
@@ -4341,6 +4338,8 @@ class SampleManager(SampleFrame) :
             h1.SetMarkerColor(1)
             h1.SetMarkerSize(.75)
             h1.SetLineWidth(2)
+            h1.SetTitle('curr_stack')
+            h1.SetName('curr_stack')
             xtitle = self.curr_stack.GetXaxis().GetTitle()
             ytitle = self.curr_stack.GetYaxis().GetTitle()
             h1.GetXaxis().SetTitle(xtitle)

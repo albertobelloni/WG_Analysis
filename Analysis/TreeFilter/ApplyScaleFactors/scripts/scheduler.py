@@ -199,6 +199,8 @@ if options.all:
     for sample in sampleset:
         if sample == 'WithSF':
             continue
+        if sample != 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8PhOlap':
+            continue
         thisIsData = True if sample in ['SingleMuon', 'SingleElectron', 'EGamma'] else False
         jobs.append(JobConf(base, sample, isData=thisIsData, year=options.year))
 

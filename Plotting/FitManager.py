@@ -1037,40 +1037,37 @@ class FitManager :
 
     def init_dscb(self):
         mass =  self.sample_params['mass']
-        width = self.sample_params['width']
         # TODO: this can be updated and merged to setuparray
         # pow1, 2, cut 2 are fixed to different value for narrow and wide resonance
-        cut1_vals   = (  0.3,       0.1,      3.0  )
-        sigma_vals  = ( 28. ,       1. ,      200. ) if width==0.01 else ( 58. ,       1. ,      200.)
-        power1_vals = (  2.2,       0.4,      20.  ) if width==0.01 else (  2.2,       0.4,      20.  ) 
-        mass_vals   = ( mass,  0.5*mass,  1.1*mass )
-        cut2_vals   = (  1.5,       1.,       2.5  ) if width==0.01 else (  1.5,       1.,       2.5  )
-        power2_vals = (  4.0,       0.,       10.0  ) if width==0.01 else (  4.0,       0.,       10.0  )
-        # use a function 
-        f = open ('data/para_fit.txt', "r")
-        sigfitparams = json.loads(f.read())
+        if '2016' in self.label: iyear = '2016'
+        elif '2017' in self.label: iyear = '2017'
+        else: iyear = '2018'
+        if 'W0p01' in self.label: width = '0p01'
+        else: width = '5'
 
+        cut1_vals   = (  0.3,       0.1,      3.0  )
+        sigma_vals  = ( 28. ,       1. ,      200. ) if width=='0p01' else ( 58. ,       1. ,      200.)
+        power1_vals = (  2.2,       0.4,      20.  ) if width=='0p01' else (  2.2,       0.4,      20.  )
+        mass_vals   = ( mass,  0.5*mass,  1.1*mass )
+        cut2_vals   = (  1.5,       1.,       3.5  ) if width=='0.01' else (  1.5,       1.,       3.5  )
+        power2_vals = (  4.0,       0.,       20.0  ) if width=='0.01' else (  4.0,       0.,       20.0  )
+        # use a function
         paramname = ['cb_sigma_MG_Mass_Width_CHYEAR','cb_cut1_MG_Mass_Width_CHYEAR',
                      'cb_mass_MG_Mass_Width_CHYEAR','cb_cut2_MG_Mass_Width_CHYEAR',
                      'cb_power1_MG_Mass_Width_CHYEAR','cb_power2_MG_Mass_Width_CHYEAR']
 
+
+        f = open ('data/para_fit_%s.txt'%(iyear), "r")
+        sigfitparams = json.loads(f.read())
         for ipar in paramname:
             print(ipar)
-            if '2016' in self.label:
-                iipar = ipar.replace("YEAR",str(2016))
-            elif '2017' in self.label:
-                iipar = ipar.replace("YEAR",str(2017))
-            else:
-                iipar = ipar.replace("YEAR",str(2018))
+            iipar = ipar.replace("YEAR",iyear)
+            iipar = iipar.replace("idth",width)
             if 'mu' in self.label:
-                iipar = iipar.replace("CH",str('mu'))
+                iipar = iipar.replace("CH",'mu')
             else:
-                iipar = iipar.replace("CH",str('el'))
+                iipar = iipar.replace("CH",'el')
 
-            if str(width)=='5':
-                iipar = iipar.replace("idth",str(5)) 
-            else:
-                iipar = iipar.replace("idth",str('0p01'))
             if sigfitparams[iipar]['func'] == 'expnorm':
                 func = ROOT.TF1('func', '[0] - [1]*TMath::Exp(-x/[2])', 0, 3000)
                 func.SetParameters(sigfitparams[iipar]['0'],sigfitparams[iipar]['1'],sigfitparams[iipar]['2'])
@@ -1092,13 +1089,13 @@ class FitManager :
             if 'cb_cut1' in ipar:
                 cut1_vals   = (  func.Eval(int(mass)),       0.1,      3.0  )
             if 'cb_cut2' in ipar:
-                cut2_vals   = (  func.Eval(int(mass)),       0.1,      2.0  )
+                cut2_vals   = (  func.Eval(int(mass)),       0.1,      3.0  )
             if 'cb_sigma' in ipar:
                 sigma_vals  = ( func.Eval(int(mass)) ,       1. ,      200. )
             if 'cb_power1' in ipar:
-                power1_vals   = (  func.Eval(int(mass)),       0.,      20.0  ) 
+                power1_vals   = (  func.Eval(int(mass)),        func.Eval(int(mass))*0.5,      func.Eval(int(mass))*1.5  ) 
             if 'cb_power2' in ipar:
-                power2_vals   = (  func.Eval(int(mass)),       0.,      10.0  )
+                power2_vals   = (  func.Eval(int(mass)),       func.Eval(int(mass))*0.5,      func.Eval(int(mass))*1.5  )
             if 'cb_mass' in ipar:
                 mass_vals  = ( func.Eval(int(mass)) ,       0 ,      3000. )
 
@@ -1116,16 +1113,13 @@ class FitManager :
                                    power2_vals[0], power2_vals[1], power2_vals[2], '')
 
         # fix a few params in the signal fit
-        cb_cut2.setConstant()
-        cb_cut2.setError(0.0)
-
+        #cb_cut2.setConstant()
+        #cb_cut2.setError(0.0)
         cb_power2.setConstant()
         cb_power2.setError(0.0)
-
         cb_power1.setConstant()
         cb_power1.setError(0.0)
-
-        self.dof = 3
+        self.dof = 4
 
         self.func_pdf = ROOT.RooDoubleCB( 'cb_%s'%self.label, 'Double Sided Crystal Ball Lineshape', self.xvardata, cb_m0, cb_sigma, cb_cut1, cb_power1, cb_cut2, cb_power2)
 

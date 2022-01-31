@@ -32,12 +32,14 @@ fitted_masses = OrderedDict()
 _JSONLOC = "%s/fitted_mass%i.txt"%(options.dataDir,options.year)
 
 def hist_binning(mass):
-    #return (50, mass * 0.5, mass * 1.1 + 40)
-    return (150, max( (mass * 0.97-10)*0.6, 100), min( (mass *0.97-10)*1.3,2500))
+    return (150, max( mass * 0.97*0.3, 100), min( mass *0.97*1.6,2500))
+    #return (150, max( (mass * 0.97-10)*0.3, 100), min( (mass *0.97-10)*1.6,2500))
+    #return (150, max( (mass * 0.97-10)*0.2, 100), min( (mass *0.97-10)*1.6,2500))
 
 def fit_range(mass):
-    #return ( mass * 0.5, mass * 1.1 + 40)
-    return ( max( (mass * 0.97-10)*0.6,100), min( (mass * 0.97-10)*1.3,2500) )
+    return (max( mass * 0.97*0.6, 100), min( mass *0.97*1.4,2500))
+    #return ( max( (mass * 0.97-10)*0.6,100), min( (mass * 0.97-10)*1.6,2500) )
+    #return ( max( (mass * 0.97-10)*0.2,100), min( (mass * 0.97-10)*1.6,2500) )
 
 def main() :
     sampManMuG = SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, lumi=-1)
@@ -95,7 +97,6 @@ def numtostr(num=0):
 
 
 def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",  signal_binning=[]):
-
     sampMan.clear_hists()
 
     ## decide which channel it is
@@ -164,46 +165,44 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         normval = (fitvals["cb_mass"], fitvals["cb_sigma"])
         fitted_masses[(ch,mass,width,"norm")] = normval
 
+        #if not options.doSpecialFits:
+        #    sel_odict = make_syssellist(var, full_sel_sr, weight, ch= ch)
+        #   
+        #    for tag, (v, s, w) in sel_odict.iteritems():
 
-        if not options.doSpecialFits:
-            sel_odict = make_syssellist(var, full_sel_sr, weight, ch= ch)
+        #        sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning(mass) )
 
-            for tag, (v, s, w) in sel_odict.iteritems():
+        #        ### fit with only mean floating
 
-                sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning(mass) )
+        #        fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_mean_"+tag,
+        #                             sample_params, lconf, fitvals, "mean", scale_norm = scale_norm)
+        #        fitvalsnew = fitman.get_parameter_vals()
 
-                ### fit with only mean floating
+        #        fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
 
-                fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_mean_"+tag,
-                                     sample_params, lconf, fitvals, "mean", scale_norm = scale_norm)
-                fitvalsnew = fitman.get_parameter_vals()
+        #        #### fit with mean and sigma floating
 
-                fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
+        #        #fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_sigma_"+tag,
+        #        #                     sample_params, lconf, fitvals, "meansigma")
+        #        #fitvalsnew = fitman.get_parameter_vals()
 
-                #### fit with mean and sigma floating
+        #        #fitted_masses[(ch, mass, width, "sigma_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
+        #else:
 
-                #fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_sigma_"+tag,
-                #                     sample_params, lconf, fitvals, "meansigma")
-                #fitvalsnew = fitman.get_parameter_vals()
+        #    ## use a reduced list specified in make_syssel()
 
-                #fitted_masses[(ch, mass, width, "sigma_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
-        else:
+        #    sel_odict = make_syssel(var, full_sel_sr, weight, ch= ch)
+        #    for tag, (v, s, w) in sel_odict.iteritems():
 
-            ## use a reduced list specified in make_syssel()
+        #        sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning(mass) )
 
-            sel_odict = make_syssel(var, full_sel_sr, weight, ch= ch)
+        #        ### fit with only mean floating
 
-            for tag, (v, s, w) in sel_odict.iteritems():
+        #        fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_"+tag,
+        #                             sample_params, lconf, fitvals, "mean", scale_norm = scale_norm )
+        #        fitvalsnew = fitman.get_parameter_vals()
 
-                sampMan.create_hist( samp, v, "(%s)*%s" %(s,w), signal_binning(mass) )
-
-                ### fit with only mean floating
-
-                fitman = fit_sample( samp.hist, xvar, workspace, full_suffix+"_"+tag,
-                                     sample_params, lconf, fitvals, "mean", scale_norm = scale_norm )
-                fitvalsnew = fitman.get_parameter_vals()
-
-                fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
+        #        fitted_masses[(ch, mass, width, "mean_%s" %tag)] = (fitvalsnew["cb_mass"], fitvalsnew["cb_sigma"])
 
 
         ## save result
@@ -500,7 +499,7 @@ def makeplots():
                 "MuonEn",
                 "UnclusteredEn",
                 ]
-
+    syslist = [] # I don't need syst plot -- Yihui
     masses = fm["el"].keys()
     masses.sort(lambda x,y:int(float(x)-float(y)))
 

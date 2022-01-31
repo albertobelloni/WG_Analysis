@@ -100,7 +100,8 @@ jobs2017 = [
     JobConf(base, 'WGToLNuG_PtG-500_TuneCP5_13TeV-amcatnloFXFX-pythia8'        , tags=['PtMin500'], suffix = 'PhCutMin',year=2017),
 ]
 jobs2017 = [
-    JobConf(base, 'TTTo2L2Nu_TuneCP5_PSweights_13TeV-powheg-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2017),
+    JobConf(base, 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2017),
+
 ]
 jobs2018 = [
 #    # WJets HT bins, remove photon overlap with WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8 (ISR+FSR),
