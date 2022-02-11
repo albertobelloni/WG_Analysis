@@ -26,6 +26,8 @@ _NTUPLE_DIR = '/store/group/WGAMMA/'
 _QUICKNMAX = 1000000
 if not options.version:
     options.version = 'UMDNTuple_0902'
+    if options.year == 2017:
+        options.version = 'UMDNTuple_211210'
 if options.outputDir is None:
     options.outputDir = '/data2/users/kakw/Resonances%i/pileup/' %options.year
 
@@ -198,7 +200,7 @@ def makecondorjob(samp,desc_entries):
         "output = logs/stdout$(cluster)_$(process)_%s.txt" %tag,
         "error = logs/stderr$(cluster)_$(process)_%s.txt" %tag,
         "log = logs/condor$(cluster)_$(process)_%s.txt" %tag,
-        "arguments = --sample %s --year %i %s" %(samp, options.year, addtl),
+        "arguments = --sample %s --year %i --outputDir %s %s" %(samp, options.year, options.outputDir, addtl),
         "queue",
         ]
 
