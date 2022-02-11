@@ -41,7 +41,7 @@ def main() :
     sampManEl.ReadSamples( _SAMPCONF )
 
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1 && ph_n==1'
-    sel_base_el = 'el_pt30_n==1 && el_n==1 && ph_n==1'
+    sel_base_el = 'el_pt35_n==1 && el_n==1 && ph_n==1'
     plot_var = 'mt_res'
 
     configs = [

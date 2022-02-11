@@ -47,7 +47,7 @@ execfile("MakeBase.py")
 #
 #base = 'ph_n==1 && el_n==1'
 #baseeta = base + ' && ph_IsEB[0]'# + "&& ph_pt[0]>80"
-#baseel = 'ph_n==1 && el_n==1 && el_pt30_n==1 && mu_n==0 && ph_IsEB[0]'
+#baseel = 'ph_n==1 && el_n==1 && el_pt35_n==1 && mu_n==0 && ph_IsEB[0]'
 #passpix = '&& ph_hasPixSeed[0]==0'  #Pixel seed
 #failpix = '&& ph_hasPixSeed[0]==1'
 #ltmet = '&&met_pt<40'

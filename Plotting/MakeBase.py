@@ -118,7 +118,7 @@ if options.baseDirMuMu is None: options.baseDirMuMu = "/data2/users/kakw/Resonan
 if options.baseDirElEl is None: options.baseDirElEl = "/data2/users/kakw/Resonances%i/LepLep_elel_%s/"%(options.year,datestree or datestr)
 #options.baseDirElG = "/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/"
 
-baseel = 'ph_n==1 && el_n==1 && el_pt30_n==1 && mu_n==0'
+baseel = 'ph_n==1 && el_n==1 && el_pt35_n==1 && mu_n==0'
 basemu = 'ph_n==1 && mu_n==1 && mu_pt30_n==1 && el_n==0'
 
 passpix = '&& ph_hasPixSeed[0]==0'  #Pixel seed
