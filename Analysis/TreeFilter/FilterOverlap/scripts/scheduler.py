@@ -58,9 +58,10 @@ jobs2016 = [
     JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap'] , suffix = 'PhOlap'  ,year=2016),
     # TTJets, remove photon overlap with TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8 (ISR-only)
-    JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2016),
-    JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2016),
-    JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2016),
+    # WARNING: cannot be done correctly with the information in the ntuples (ambiguity between initial- and intermediate-state quark mothers). Propose to just use the standard ttbar samples, and remove tt+gamma
+    # JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2016),
+    # JobConf(base, 'TTJets_SingleLeptFromTbar_TuneCUETP8M1_13TeV-madgraphMLM-pythia8', tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2016),
+    # JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2016),
     # WGamma photon pt bins
     JobConf(base, 'WGToLNuG_01J_5f_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'         , tags=['PtMaxInc'], suffix = 'PhCutMax',year=2016),
     JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'                , tags=['PtMaxInc'], suffix = 'PhCutMax',year=2016),

@@ -12,6 +12,8 @@
 ( 'TTJets_DiLept'                 , { 'n_evt' : 6068369, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
 ( 'TTJets_SingleLeptFromT'        , { 'n_evt' : 11957043, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
 ( 'TTJets_SingleLeptFromTbar'     , { 'n_evt' : 11955887, 'cross_section' : 815.96*0.438*0.5, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction divided by 2 for charge
+( 'TTTo2L2Nu'                 , { 'n_evt' : 1, 'cross_section'  :  815.96*0.105, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times dilepton branching fraction
+( 'TTToSemiLeptonic'        , { 'n_evt' : 1, 'cross_section' : 815.96*0.438, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # TTbar cross section times semileptonic branching fraction
 ( 'TTGJets'                       , { 'n_evt' : 1577833, 'cross_section' : 3.697, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM
 ( 'WWTo2L2Nu'                     , { 'n_evt' : 1, 'cross_section' : (118.7-3.974)*0.1086*0.1086*9, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from WW AN
 ( 'WGToLNuG-amcatnloFXFX'         , { 'n_evt' : 3242575, 'cross_section' : 510, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM (489.0) from gridpack, 8.217e+02 .  #total events = 5048470

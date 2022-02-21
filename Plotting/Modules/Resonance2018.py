@@ -21,16 +21,12 @@ def config_samples(samples) :
                       path='ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('TTJets_DiLept',
-                      path='TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
+    samples.AddSample('TTTo2L2Nu',
+                      path='TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8',
                       isActive=False, useXSFile=True )
 
-    samples.AddSample('TTJets_SingleLeptFromTbar',
-                      path='TTJets_SingleLeptFromTbar_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
-                      isActive=False, useXSFile=True )
-
-    samples.AddSample('TTJets_SingleLeptFromT',
-                      path='TTJets_SingleLeptFromT_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',
+    samples.AddSample('TTToSemiLeptonic',
+                      path='TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',
                       isActive=False, useXSFile=True )
 
     samples.AddSample('TTGJets',
@@ -377,7 +373,7 @@ def config_samples(samples) :
     samples.AddSampleGroup( 'TTG', legend_name='t#bar{t}#gamma',
                            input_samples = ['TTGJets'],
                            plotColor = ROOT.kAzure+1,
-                           #isActive=False,
+                           isActive=True,
                           )
 
     samples.AddSampleGroup( 'WJetsSMPIncl', legend_name='W+Jets',
@@ -419,20 +415,8 @@ def config_samples(samples) :
                            #isActive=False,
                           )
 
-    samples.AddSampleGroup( 'TTbar_DiLep', legend_name='t#bar{t} dileptonic',
-                           input_samples = ['TTJets_DiLept'],
-                           plotColor = ROOT.kMagenta+2,
-                           isActive=False,
-                          )
-
-    samples.AddSampleGroup( 'TTbar_SingleLep', legend_name='t#bar{t} semileptonic',
-                           input_samples = ['TTJets_SingleLeptFromTbar', 'TTJets_SingleLeptFromT'],
-                           plotColor = ROOT.kGreen+2,
-                           isActive=False,
-                          )
-
     samples.AddSampleGroup( 'AllTop', legend_name='t#bar{t}',
-                           input_samples = ['TTbar_DiLep', 'TTbar_SingleLep'],
+                           input_samples = ['TTTo2L2Nu', 'TTToSemiLeptonic'],
                            plotColor = ROOT.kGreen+3,
                            isActive=True,
                           )
