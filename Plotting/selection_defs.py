@@ -4,20 +4,17 @@ from math import pi
 def get_base_selection( channel, year=2016 ) :
 
     if channel == 'mu' :
-        return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && mu_passTight[0] '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
+        return 'mu_pt30_n==1 && mu_n==1 && el_n==0 && mu_passTight[0] && mu_hasTrigMatch[0] '  # require 1 muon with pt > 30 and 1 muon with pt > 10 (second lepton veto) and 0 electrons with pt > 10 (second lepton veto)
     if channel == 'mug' :
         return 'mu_n==1 && el_n==0 && ph_n==1'
     if channel == 'elg' :
         return 'el_n==1 && mu_n==0 && ph_n==1'
     if channel == 'el' :
-        if year == 2016:
-            return 'el_pt35_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && el_hasTrigMatch[0] && (HLT_Ele27_WPTight_Gsf || HLT_Photon175)  ' # require 1 electron with pt > 30 and 1 electron with pt > 10 (second lepton veto) and 0 muonswith pt > 10 (second lepton veto)
-        else:
-            return 'el_pt35_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && el_hasTrigMatch[0] && (HLT_Ele32_WPTight_Gsf_L1DoubleEG || HLT_Photon200) '
+        return 'el_pt35_n==1 && el_n==1 && mu_n==0 && el_passTight[0] && el_hasTrigMatch[0] '
     if channel == 'mumu' :
-        return 'mu_pt30_n>=1 && mu_n==2 && mu_passTight[0] && mu_passTight[1] '  # require 1 muon with pt > 30 and 2 muons with pt > 10
+        return 'mu_pt30_n>=1 && mu_n==2 && mu_passTight[0] && mu_passTight[1] && (mu_hasTrigMatch[0] || mu_hasTrigMatch[1])'  # require 1 muon with pt > 30 and 2 muons with pt > 10
     if channel == 'elel' :
-        return 'el_pt35_n>=1 && el_n==2 && el_pt[0]>35 && el_passTight[0] && el_hasTrigMatch[0] ' # require 1 electron with pt > 30 and 2 electrons with pt > 10
+        return 'el_pt35_n>=1 && el_n==2 && el_pt[0]>35 && el_passTight[0] && el_passTight[1] && (el_hasTrigMatch[0] || el_hasTrigMatch[1])' # require 1 electron with pt > 30 and 2 electrons with pt > 10
     if channel == 'muel' :
         return 'mu_pt30_n>=1 && el_n==1  '  # require 1 muon with pt > 30 and 2 muons with pt > 10
 

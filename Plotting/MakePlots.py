@@ -6,6 +6,8 @@ import math
 import selection_defs as defs
 from SampleManager import SampleManager
 from argparse import ArgumentParser
+import getpass
+username = getpass.getuser()
 
 parser = ArgumentParser()
 
@@ -35,8 +37,8 @@ parser.add_argument( '--makeEleBkg'  ,  dest='makeEleBkg'  , default=False, acti
 parser.add_argument( '--makeSigTruth'  ,  dest='makeSigTruth'  , default=False, action='store_true', help='Make signal truth plots')
 parser.add_argument( '--makeBkgTruth'  ,  dest='makeBkgTruth'  , default=False, action='store_true', help='Make background truth plots')
 parser.add_argument( '--year', dest='year', default=2016, help='Specify the year', type=int)
-parser.add_argument( '--baseDir'  ,  dest='baseDir'  , default=None, help='Path to ntuples')
-parser.add_argument( '--tag'  ,  dest='tag'  , default=None, help='Ntuple tag (can contain SF dir, example: 2019_11_13/WithSF)')
+parser.add_argument( '--baseDir'  ,  dest='baseDir'  , default='/data/users/%s' % username, help='Path to ntuples')
+parser.add_argument( '--tag'  ,  dest='tag'  , default='2022_01_27/WithSF', help='Ntuple tag (can contain SF dir, example: 2019_11_13/WithSF)')
 
 
 options = parser.parse_args()
@@ -409,7 +411,6 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         sampMan.Draw( '%s_eta[0]' % channel[0:2], full_sel_str, EG_eta_bins, 
                     hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Lepton #eta', 'xunit': ''}),
                     label_config={'labelStyle' : 'fancy2016'},
-                    legend_config={'fillalpha': 0.7},
                     )
         if options.outputDir is not None :
             sampMan.SaveStack( 'lep_eta_egbins_%s.pdf' % channel, outdir, 'base' ) 
@@ -420,7 +421,6 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         sampMan.Draw( '%s_phi[0]' % channel[0:2], full_sel_str, (60, -math.pi, math.pi), 
                     hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Lepton #phi', 'xunit': ''}),
                     label_config={'labelStyle' : 'fancy2016'},
-                    legend_config={'fillalpha': 0.7},
                     )
         if options.outputDir is not None :
             sampMan.SaveStack( 'lep_phi_%s.pdf' % channel, outdir, 'base' ) 

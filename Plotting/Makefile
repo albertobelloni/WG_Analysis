@@ -21,6 +21,20 @@ all : plots workspaces limits
 plots :
 	python MakePlots.py --baseDirMu ${DIR_MU} --baseDirEl ${DIR_EL} --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG}  --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --baseDirNoFilt ${DIR_SIGTruth} --makeSR --outputDir ${OUTPUTMAIN}/Plots
 
+zcr:
+	python MakePlots.py --makeZCR --year 2016
+	python MakePlots.py --makeZCR --year 2017
+	python MakePlots.py --makeZCR --year 2018
+
+wcr:
+	python MakePlots.py --makeWCR --year 2016
+	python MakePlots.py --makeWCR --year 2017
+	python MakePlots.py --makeWCR --year 2018
+
+control:
+	make zcr
+	make wcr
+
 wjets : 
 
 	python MakeWJetsWS.py --baseDirMuNoG ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doClosure  --outputDir ${OUTPUTMAIN}/WJetsWS
