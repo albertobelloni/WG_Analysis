@@ -232,7 +232,7 @@ def make_final_el( alg_list, args) :
 
     filter_event = Filter('FilterEvent')
     filter_event.cut_el_n = ' == 1 '
-    filter_event.cut_el_pt30_n = ' == 1 '
+    filter_event.cut_el_pt35_n = ' == 1 '
 
     alg_list.append( filter_event )
 
@@ -274,10 +274,10 @@ def make_final_elg( alg_list, args) :
     filter_event.do_cutflow = True
     filter_event.add_var('evalCutflow', "true")
     if eleOlap == 'False' :
-        filter_event.cut_el_pt30_n = ' > 0 '
+        filter_event.cut_el_pt35_n = ' > 0 '
         filter_event.cut_ph_n = ' > 0 '
     else :
-        filter_event.cut_el_pt30_n = ' == 1 '
+        filter_event.cut_el_pt35_n = ' == 1 '
         filter_event.cut_ph_n = ' > 0 '
         if sec_lep_veto != 'False' :
             filter_event.cut_el_n = ' == 1 '

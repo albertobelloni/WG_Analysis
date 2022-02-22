@@ -2781,10 +2781,10 @@ bool RunModule::FilterEvent( ModuleConfig & config ) const {
         keep_event=false; 
         //if( printevent ) std::cout << " fail cut_el_n "      << OUT::el_n      << std::endl;
     } 
-    if( !config.PassInt( "cut_el_pt30_n", OUT::el_pt30_n   ) ) {
+    if( !config.PassInt( "cut_el_pt35_n", OUT::el_pt35_n   ) ) {
         if (_filterevent_cutflow) return false;
         keep_event=false;
-        //if( printevent ) std::cout << " fail cut_el_pt30_n " << OUT::el_pt30_n << std::endl;
+        //if( printevent ) std::cout << " fail cut_el_pt35_n " << OUT::el_pt35_n << std::endl;
     } 
     if( !config.PassInt( "cut_mu_n"     , OUT::mu_n        ) ) {
         if (_filterevent_cutflow) return false;
@@ -2824,7 +2824,7 @@ bool RunModule::FilterEvent( ModuleConfig & config ) const {
       if (pass_event && OUT::met_pt>25)                                   config.PassCounter("met");   else pass_event=false;
       if (pass_event) config.PassCounter("event_pass");
     }
-    if (OUT::ph_n==1 && OUT::el_n==1 && OUT::el_pt30_n==1 && OUT::mu_n==0){ // electron channel
+    if (OUT::ph_n==1 && OUT::el_n==1 && OUT::el_pt35_n==1 && OUT::mu_n==0){ // electron channel
        config.PassCounter("el_basicsel");
       if (pass_event && OUT::ph_passMedium->at(0))                        config.PassCounter("phID");  else pass_event=false;
       if (pass_event && OUT::ph_pt->at(0)>80)                             config.PassCounter("phpt");  else pass_event=false;

@@ -5143,7 +5143,7 @@ class SampleManager(SampleFrame) :
         entryWidth       = legend_config.get('entryWidth', self.entryWidth )
 
         siglegPos        = legend_config.get('siglegPos',  self.siglegPos)
-        fillalpha        = legend_config.get('fillalpha',  False)
+        fillalpha        = legend_config.get('fillalpha',  True)
 
 
         if legendLoc == 'TopLeft' :

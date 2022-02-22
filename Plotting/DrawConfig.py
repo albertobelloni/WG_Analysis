@@ -290,7 +290,7 @@ class DrawConfig :
             rootslabel .SetTextSize(0.045)
             cmslabel  .SetTextSize(0.055)
 
-            extlabel.SetText( 0.25, 0.93, extText )
+            extlabel.SetText( 0.27, 0.93, extText )
             #rootslabel.SetText(0.65, 0.93, '#font[132]{#sqrt{s} = 8 TeV, L = 19.4 fb^{-1} }' )
             cmslabel.SetText(0.17, 0.93, 'CMS')
             rootslabel.SetText(0.73, 0.93, labeltext  )

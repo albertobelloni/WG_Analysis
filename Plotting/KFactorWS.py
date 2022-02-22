@@ -57,7 +57,7 @@ def main() :
     sampManElNoG.outputs = {}
 
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
-    sel_base_el = 'el_pt30_n==1 && el_n==1'
+    sel_base_el = 'el_pt35_n==1 && el_n==1'
 
     #eta_cuts = ['EB', 'EE']
     eta_cuts = ['EB']

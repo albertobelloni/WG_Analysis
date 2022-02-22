@@ -59,11 +59,11 @@ def main() :
 
     #Analysis signal region
     #val_sel_mu = 'mu_pt30_n==1 && mu_n==1 && el_n==0  && ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passHOverEMedium[0] && ph_passNeuIsoCorrMedium[0] && ph_passPhoIsoCorrMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0] && met_pt > 25 &&  (mt_res > 200 && mt_res < 2000 )'
-    #val_sel_el = 'el_pt30_n==1 && el_n==1 && mu_n==0  && ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passHOverEMedium[0] && ph_passNeuIsoCorrMedium[0] && ph_passPhoIsoCorrMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0] && met_pt > 25 &&  (mt_res > 200 && mt_res < 2000 )'
+    #val_sel_el = 'el_pt35_n==1 && el_n==1 && mu_n==0  && ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passHOverEMedium[0] && ph_passNeuIsoCorrMedium[0] && ph_passPhoIsoCorrMedium[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0] && met_pt > 25 &&  (mt_res > 200 && mt_res < 2000 )'
 
     #Wgamma enriched
     val_sel_mu = 'mu_pt30_n==1 && mu_n==1 && el_n==0 && ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passHOverETight[0] && ph_passNeuIsoCorrTight[0] && ph_passPhoIsoCorrTight[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0] && met_pt > 40 && (m_lep_ph < 75 || m_lep_ph > 105)'
-    val_sel_el = 'el_pt30_n==1 && el_n==1 && mu_n==0 && ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passHOverETight[0] && ph_passNeuIsoCorrTight[0] && ph_passPhoIsoCorrTight[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0] && met_pt > 40 && (m_lep_ph < 75 || m_lep_ph > 105)'
+    val_sel_el = 'el_pt35_n==1 && el_n==1 && mu_n==0 && ph_n==1 && ph_IsEB[0] && ph_pt[0] > 80 && ph_passHOverETight[0] && ph_passNeuIsoCorrTight[0] && ph_passPhoIsoCorrTight[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0] && met_pt > 40 && (m_lep_ph < 75 || m_lep_ph > 105)'
 
     #Zgamma enriched
     #val_sel_mu = 'mu_n==2 && m_ll < 130. && m_ll > 50. && mu_pt_rc[0] > 52. && mu_pt_rc[1] > 30. && mu_hasTrigMatch[0] && mu_passTight[0] && mu_hasTrigMatch[1] && mu_passTight[1] && ph_n==1 && ph_IsEB[0] && ph_pt[0] > 40 && ph_passHOverETight[0] && ph_passNeuIsoCorrTight[0] && ph_passPhoIsoCorrTight[0] && !ph_hasPixSeed[0] && ph_passEleVeto[0] && (ph_pt[0] > 40.*m_llph/150.)'

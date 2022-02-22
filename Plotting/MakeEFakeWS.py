@@ -73,7 +73,7 @@ def main() :
     sampManElG.outputs = {}
 
     sel_base_mu = 'mu_pt30_n==1 && mu_n==1'
-    sel_base_el = 'el_pt30_n==1 && el_n==1'
+    sel_base_el = 'el_pt35_n==1 && el_n==1'
 
     sel_jetveto_mu = sel_base_mu + ' && jet_n == 0 '
     sel_jetveto_el = sel_base_el + ' && jet_n == 0 '
