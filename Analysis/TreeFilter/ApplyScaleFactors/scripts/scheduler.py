@@ -11,6 +11,7 @@ p.add_argument( '--clean'   , dest='clean'   , default=False, action='store_true
 p.add_argument( '--resubmit', dest='resubmit', default=False, action='store_true', help='Only submit missing output' )
 p.add_argument( '--local'   , dest='local'   , default=False , action='store_true', help='Run locally'                )
 p.add_argument( '--all'     , dest='all'     , default=False , action='store_true', help='Run on all available samples')
+p.add_argument( '--onlyMissing', dest='onlyMissing', default=False , action='store_true', help='Run on missing samples only')
 p.add_argument( '--test', dest='test', default=False, action='store_true', help='Run a test job' )
 p.add_argument( '--year', dest='year', help='Specify the year', type=int )
 options = p.parse_args()
@@ -31,14 +32,22 @@ if options.test :
     options.local = True
 
 ### ATTENTION! Here you specify the directory containing the ntuples that you want to run over.
-#base = '/data/users/mseidel/Resonances%i/' % options.year
-base='/data/users/yihuilai/Resonances%i/' %options.year
+import getpass
+username = getpass.getuser()
+base='/data/users/%s/Resonances%i/' % (username, options.year)
 
 ### ATTENTION! Here you specify the type of ntuple you want to run over.
 input_dirs = [
-              'LepGamma_mug_2022_01_27', 
-              'LepGamma_elg_2022_01_27',
+               'LepGamma_elg',
+               'LepGamma_mug',
+               'LepLep_elel',
+               'LepLep_mumu',
+               'SingleLep_el',
+               'SingleLep_mu',
+            #    #'SingleLepInvIso_el',
+            #    #'SingleLepInvIso_mu',
 ]
+jobtag = '_2022_01_27'
 
 ### ATTENTION! consider using --all to apply SFs to all samples of the input directory
 jobs2016 = [
@@ -181,8 +190,7 @@ jobs2016 = [
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M800_width0p01' ),
         #JobConf(base,'PythiaChargedResonance_WGToLNu_M900_width0p01' ),
 ]
-jobs2017 = [
-]
+jobs2017 = []
 jobs2018 = []
 if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
@@ -192,15 +200,16 @@ if options.all:
     # grab all samples in directory
     samplelist = []
     for input_dir in input_dirs:
-        samplelist += os.listdir(base+'/'+input_dir)
+        samplelist += os.listdir(base+'/'+input_dir+jobtag)
     sampleset = set(samplelist)
 
     jobs = []
     for sample in sampleset:
         if sample == 'WithSF':
             continue
-        if sample != 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8PhOlap':
+        if options.onlyMissing and os.path.isdir(base+'/'+input_dir+jobtag+'/WithSF/'+sample):
             continue
+        print(sample)
         thisIsData = True if sample in ['SingleMuon', 'SingleElectron', 'EGamma'] else False
         jobs.append(JobConf(base, sample, isData=thisIsData, year=options.year))
 
@@ -222,8 +231,8 @@ for input_dir in input_dirs:
                      'module'      : 'Conf%i.py' %options.year,
                      #'args'        : {'functions' : 'get_muon_sf,get_electron_sf,get_photon_sf,get_pileup_sf' },
                      'args'        : {'functions' : 'get_muon_sf,get_photon_sf,get_electron_sf,get_bjet_sf'},
-                     'input'       : input_dir,
-                     'output'      : base + input_dir + '/WithSF',
+                     'input'       : input_dir+jobtag,
+                     'output'      : base + input_dir+jobtag + '/WithSF',
                      'tag'         : 'FinalSF'
                     },
 
