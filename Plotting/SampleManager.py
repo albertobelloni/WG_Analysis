@@ -93,12 +93,12 @@ def normalize_hist_by_width( hist , norm = 1. ):
         raise TypeError
 
     hist.Scale( norm, "width")
-   # for i in range(1,hist.GetNbinsX()+1):
-   #     y  = hist.GetBinContent(i)
-   #     ye = hist.GetBinError(i)
-   #     wd = hist.GetBinWidth(i)
-   #     hist.SetBinContent(i, y /wd)
-   #     hist.SetBinError  (i, ye/wd)
+    for i in range(1,hist.GetNbinsX()+1):
+        y  = hist.GetBinContent(i)
+        ye = hist.GetBinError(i)
+        wd = hist.GetBinWidth(i)
+        hist.SetBinContent(i, y /wd)
+        hist.SetBinError  (i, ye/wd)
     return
 
     #--------------------------------
@@ -2898,6 +2898,7 @@ class SampleManager(SampleFrame) :
                 stack_sum = sum_hist.Integral()
             if normalize:
                 sum_hist.Scale(1./stack_sum)
+            # TODO: divide by bin width here? Or below? Add some printout...
             self.create_sample( _STACKNAME, isActive=False, hist=sum_hist,
                                 temporary=True )
 
