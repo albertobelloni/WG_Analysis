@@ -2898,7 +2898,7 @@ class SampleManager(SampleFrame) :
                 stack_sum = sum_hist.Integral()
             if normalize:
                 sum_hist.Scale(1./stack_sum)
-            # TODO: divide by bin width here? Or below? Add some printout...
+
             self.create_sample( _STACKNAME, isActive=False, hist=sum_hist,
                                 temporary=True )
 

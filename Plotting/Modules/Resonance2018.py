@@ -370,11 +370,6 @@ def config_samples(samples) :
                            #isActive=False,
                           )
 ##>>
-    samples.AddSampleGroup( 'TTG', legend_name='t#bar{t}#gamma',
-                           input_samples = ['TTGJets'],
-                           plotColor = ROOT.kAzure+1,
-                           isActive=True,
-                          )
 
     samples.AddSampleGroup( 'WJetsSMPIncl', legend_name='W+Jets',
                             input_samples = ['WJetsToLNu-amcatnloFXFX'],
@@ -413,6 +408,12 @@ def config_samples(samples) :
                            ],
                            plotColor = ROOT.kOrange,
                            #isActive=False,
+                          )
+
+    samples.AddSampleGroup( 'TTG', legend_name='t#bar{t}#gamma',
+                           input_samples = ['TTGJets'],
+                           plotColor = ROOT.kAzure+1,
+                           isActive=True,
                           )
 
     samples.AddSampleGroup( 'AllTop', legend_name='t#bar{t}',

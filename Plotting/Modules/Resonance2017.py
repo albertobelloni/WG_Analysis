@@ -329,15 +329,19 @@ def config_samples(samples) :
                            plotColor = ROOT.kRed-2,
                            isActive=True,
                           )
-    samples.AddSampleGroup(  'Zgamma', legend_name='Z#gamma',
-                           input_samples = ['ZGTo2LG'],
-                           plotColor = ROOT.kRed-8,
-                          )
     samples.AddSampleGroup( 'GammaGamma', legend_name='#gamma#gamma',
                            input_samples = [
                                            'DiPhoton',
                            ],
                            plotColor = ROOT.kYellow,
+                          )
+    samples.AddSampleGroup(  'ZJets', legend_name='Z+Jets',
+                             input_samples = ['DYJetsToLL_M-50-amcatnloFXFXPhOlap'],
+                             plotColor = ROOT.kCyan-5,
+                          )
+    samples.AddSampleGroup(  'Zgamma', legend_name='Z#gamma',
+                           input_samples = ['ZGTo2LG'],
+                           plotColor = ROOT.kRed-8,
                           )
     samples.AddSampleGroup(  'WJets', legend_name='W+Jets',
                            input_samples = [
@@ -351,10 +355,6 @@ def config_samples(samples) :
                                             'WJetsToLNu_HT-2500ToInf',
                            ],
                            plotColor = ROOT.kBlue-2,
-                          )
-    samples.AddSampleGroup(  'ZJets', legend_name='Z+Jets',
-                             input_samples = ['DYJetsToLL_M-50-amcatnloFXFXPhOlap'],
-                             plotColor = ROOT.kCyan-5,
                           )
     samples.AddSampleGroup( 'GJets', legend_name='#gamma+Jets',
                            input_samples = [
