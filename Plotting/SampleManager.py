@@ -93,12 +93,12 @@ def normalize_hist_by_width( hist , norm = 1. ):
         raise TypeError
 
     hist.Scale( norm, "width")
-   # for i in range(1,hist.GetNbinsX()+1):
-   #     y  = hist.GetBinContent(i)
-   #     ye = hist.GetBinError(i)
-   #     wd = hist.GetBinWidth(i)
-   #     hist.SetBinContent(i, y /wd)
-   #     hist.SetBinError  (i, ye/wd)
+    for i in range(1,hist.GetNbinsX()+1):
+        y  = hist.GetBinContent(i)
+        ye = hist.GetBinError(i)
+        wd = hist.GetBinWidth(i)
+        hist.SetBinContent(i, y /wd)
+        hist.SetBinError  (i, ye/wd)
     return
 
     #--------------------------------
