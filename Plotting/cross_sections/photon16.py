@@ -23,6 +23,8 @@
 ( 'WGToLNuG_PtG-500-amcatnloFXFX' , { 'n_evt' : 827560, 'cross_section' : 0.009237, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM (0.007945) from gridpack, 2.948e-02 # total events = 1609694
 ( 'WGToLNuG_PtG-500-madgraphMLM'  , { 'n_evt' : 1393505, 'cross_section' : 0.0117887*0.72, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from gridpack
 ( 'WWG'                           , { 'n_evt' : 827630, 'cross_section' : 0.2147, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from McM.  # total events = 999400
+( 'WZG'                           , { 'n_evt' : 1, 'cross_section' : 0.04123, 'gen_eff' : 1.0, 'k_factor' : 1.0 }), # cross section taken from xsdb
+
 ( 'WJetsToLNu-madgraphMLM'        , { 'n_evt' : 29514020, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }),# NNLO cross section # 61526.7 in SummaryTable1G25ns
 ( 'WJetsToLNu-amcatnloFXFX'       , { 'n_evt' : 16410910, 'cross_section' : 20508.9*3, 'gen_eff' : 1.0 , 'k_factor' : 1.0 }), 
 ( 'WJetsToLNu_Pt-100To250'        , { 'n_evt' : 1, 'cross_section' : 689.749632 , 'gen_eff' : 1.0 , 'k_factor' : 1. }),
