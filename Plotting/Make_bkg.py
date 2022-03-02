@@ -46,7 +46,7 @@ def main() :
         print(selection ,weight)
         ## prepare config
         #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":.02,"weight":weight, "ymax_scale":1.5, "unblind":False} 
-        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":.02,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0"} ## "unblind":False
+        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-8,"ymax":10,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":True} ## "unblind":False
         label_config  = {"extra_label":labelname, "extra_label_loc":(.17,.82), "labelStyle":str(options.year)}
         legend_config = {'legendLoc':"Double","legendTranslateX":0.3, "legendCompress":1, "fillalpha":.5, "legendWiden":.9}
 
