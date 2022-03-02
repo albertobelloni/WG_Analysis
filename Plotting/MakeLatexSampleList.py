@@ -134,7 +134,6 @@ latexs = []
 for sample in all_samples:
     if sample.weightHist:
         path = sample.path[0]
-        path = path.split('-pythia8')[0] + '-pythia8'
         # if sample.legendName != sample.name:
         #     continue
         if sample.cross_section == 1.:
