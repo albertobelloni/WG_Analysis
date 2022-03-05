@@ -5,6 +5,8 @@ parser.add_argument('--baseDirMuG',      default=None,          help='Path to mu
 parser.add_argument('--baseDirElG',      default=None,          help='Path to electron base directory')
 parser.add_argument('--baseDirMuMu',     default=None,          help='Path to muon base directory')
 parser.add_argument('--baseDirElEl',     default=None,          help='Path to electron base directory')
+parser.add_argument('--baseDirMu',       default=None,          help='Path to muon base directory')
+parser.add_argument('--baseDirEl',       default=None,          help='Path to electron base directory')
 parser.add_argument('--outputDir',       default=None,          help='Output directory to write histograms')
 parser.add_argument('--dataDir',         default=None,          help='IO directory to data')
 parser.add_argument('--data',            action="store_true",   help='Use data or MC')
@@ -30,6 +32,8 @@ import selection_defs as defs
 from SampleManager import SampleManager, f_Obsolete
 from FitManager import FitManager
 #ROOT.PyConfig.IgnoreCommandLineOptions = True
+import getpass
+username = getpass.getuser()
 
 recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
 
@@ -111,11 +115,13 @@ tPurple="\033[0;35m%s"+tColor_Off       # Purple
 
 # if no option is given, here are the default directories to read
 #if options.baseDirMuG is None: options.baseDirMuG = "/data2/users/kakw/Resonances%i/LepGamma_mug_%s/WithSF/"%(options.year,datestrmg or datestr)
-if options.baseDirMuG is None: options.baseDirMuG = "/data/users/yihuilai/Resonances%i/LepGamma_mug_%s/WithSF/"%(options.year,datestrmg or datestr)
+if options.baseDirMuG is None: options.baseDirMuG = "/data/users/%s/Resonances%i/LepGamma_mug_%s/WithSF/"%(username, options.year,datestrmg or datestr)
 #if options.baseDirElG is None: options.baseDirElG = "/data2/users/kakw/Resonances%i/LepGamma_elg_%s/WithSF/"%(options.year,datestreg or datestr)
-if options.baseDirElG is None: options.baseDirElG = "/data/users/yihuilai/Resonances%i/LepGamma_elg_%s/WithSF/"%(options.year,datestreg or datestr)
-if options.baseDirMuMu is None: options.baseDirMuMu = "/data2/users/kakw/Resonances%i/LepLep_mumu_%s/"%(options.year,datestrmm or datestr)
-if options.baseDirElEl is None: options.baseDirElEl = "/data2/users/kakw/Resonances%i/LepLep_elel_%s/"%(options.year,datestree or datestr)
+if options.baseDirElG is None: options.baseDirElG = "/data/users/%s/Resonances%i/LepGamma_elg_%s/WithSF/"%(username, options.year,datestreg or datestr)
+if options.baseDirMuMu is None: options.baseDirMuMu = "/data/users/%s/Resonances%i/LepLep_mumu_%s/WithSF/"%(username, options.year,datestrmm or datestr)
+if options.baseDirElEl is None: options.baseDirElEl = "/data/users/%s/Resonances%i/LepLep_elel_%s/WithSF/"%(username, options.year,datestree or datestr)
+if options.baseDirMu is None: options.baseDirMu = "/data/users/%s/Resonances%i/SingleLep_mu_%s/WithSF/"%(username, options.year,datestrmm or datestr)
+if options.baseDirEl is None: options.baseDirEl = "/data/users/%s/Resonances%i/SingleLep_el_%s/WithSF/"%(username, options.year,datestree or datestr)
 #options.baseDirElG = "/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/"
 
 baseel = 'ph_n==1 && el_n==1 && el_pt35_n==1 && mu_n==0'
@@ -180,3 +186,10 @@ sampManMuMu= SampleManager( options.baseDirMuMu, _TREENAME, filename=_FILENAME, 
 sampManElEl= SampleManager( options.baseDirElEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,
                             readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame, quiet = options.quiet)
 
+## read Mu samples
+sampManMu= SampleManager( options.baseDirMu, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio,
+                            readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame, quiet = options.quiet)
+
+## read El samples
+sampManEl= SampleManager( options.baseDirEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI*lumiratio ,
+                            readHists=False , weightHistName = "weighthist", dataFrame = options.dataFrame, quiet = options.quiet)
