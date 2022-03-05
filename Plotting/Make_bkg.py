@@ -30,9 +30,9 @@ def main() :
                  ("#phi(#mu)","mu_phi[0]"  , ''   ,(20,-3.14,3.14)),
                  #("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),
                ]
-    plotvarsel=[]
-    #plotvarsbase=[]
-    plotvarsmu=[]
+    #plotvarsel=[]
+    plotvarsbase=[]
+    #plotvarsmu=[]
     #plotvarsel=[("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),]
     #plotvarsmu=[("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),]
     for ch, samples in zip(["el","mu"],[sampManElG,sampManMuG]):
@@ -51,9 +51,8 @@ def main() :
         #weight =weight.replace("PUWeight","PUWeight")
         print(selection ,weight)
         ## prepare config
-        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":.02,"weight":weight, "ymax_scale":2.0, "unblind":False} 
-        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-7,"ymax":100,"weight":weight, "ymax_scale":2.0, "unblind":"Entry$%5==2", "bywidth":True}
-        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":0.02,"weight":weight, "ymax_scale":2.0, "unblind":"Entry$%5==1","bywidth":False} ## "unblind":False
+        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e8,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False
+        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-8,"ymax":10,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False
         label_config  = {"extra_label":labelname, "extra_label_loc":(.17,.82), "labelStyle":str(options.year)}
         legend_config = {'legendLoc':"Double","legendTranslateX":0.3, "legendCompress":1, "fillalpha":.5, "legendWiden":.9}
 

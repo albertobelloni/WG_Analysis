@@ -111,7 +111,7 @@ tPurple="\033[0;35m%s"+tColor_Off       # Purple
 
 # if no option is given, here are the default directories to read
 if options.year ==2017:
-     username = 'yihuilai'
+    username = 'yihuilai'
 if options.baseDirMuG is None: options.baseDirMuG = "/data/users/%s/Resonances%i/LepGamma_mug_%s/WithSF/"%(username, options.year,datestrmg or datestr)
 # if options.baseDirElG is None: options.baseDirElG = "/data2/users/kakw/Resonances%i/LepGamma_elg_%s/WithSF/"%(options.year,datestreg or datestr)
 #options.baseDirElG = "/data/users/friccita/WGammaNtuple/LepGamma_elg_2019_04_11/"
@@ -122,30 +122,29 @@ sampManMuG= SampleManager( options.baseDirMuG, _TREENAME, filename=_FILENAME, xs
 sampManMuG.ReadSamples(_SAMPCONF)
 samples = sampManMuG.get_samples()
 all_samples = []
- for sample in samples :
-     if sample.isActive :
-         if sample.IsGroupedSample() :
-             for subsamp in sampManMuG.GetLowestGroupedSamples(sample) :
-                 all_samples.append(subsamp)
-         else :
-             all_samples.append(sample)
+for sample in samples :
+    if sample.isActive :
+        if sample.IsGroupedSample() :
+            for subsamp in sampManMuG.GetLowestGroupedSamples(sample) :
+                all_samples.append(subsamp)
+        else :
+            all_samples.append(sample)
 
 latexs = []
- for sample in all_samples:
+for sample in all_samples:
     if sample.weightHist:
         path = sample.path[0]
         path = path.split('-pythia8')[0] + '-pythia8'
-        #if sample.legendName != sample.name:
-        #    continue
+        # if sample.legendName != sample.name:
+        #     continue
         if sample.cross_section == 1.:
             continue
         wh = sample.weightHist
         nevents = wh.GetBinContent(1) + wh.GetBinContent(2)
         latex = '%s & %i & %i & %g \\\\' % (path.replace('_', '\_'), nevents, sample.total_events_onthefly, sample.cross_section)
-        #print(latex)
         latexs.append(latex)
+# latexs.sort()
 
 print('LaTeX output for AN')
 for latex in latexs:
-    print(latex) 
-
+    print(latex)

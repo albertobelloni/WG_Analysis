@@ -2898,6 +2898,7 @@ class SampleManager(SampleFrame) :
                 stack_sum = sum_hist.Integral()
             if normalize:
                 sum_hist.Scale(1./stack_sum)
+
             self.create_sample( _STACKNAME, isActive=False, hist=sum_hist,
                                 temporary=True )
 
