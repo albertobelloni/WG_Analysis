@@ -64,6 +64,7 @@ jobs2016 = [
     # DYJets, remove photon overlap with ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8 (ISR+FSR)
     JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap'  ,year=2016),
     JobConf(base, 'DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap'] , suffix = 'PhOlap'  ,year=2016),
+    JobConf(base, 'ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'         , tags=['PtMin20'], suffix = 'PhCutMin',year=2016),
     # TTJets, remove photon overlap with TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8 (ISR-only)
     # WARNING: cannot be done correctly with the information in the ntuples (ambiguity between initial- and intermediate-state quark mothers). Propose to just use the standard ttbar samples, and remove tt+gamma
     # JobConf(base, 'TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2016),
@@ -71,7 +72,6 @@ jobs2016 = [
     # JobConf(base, 'TTJets_SingleLeptFromT_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'   , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2016),
     # WGamma photon pt bins
     JobConf(base, 'WGToLNuG_01J_5f_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'         , tags=['PtMaxInc'], suffix = 'PhCutMax',year=2016),
-    JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'                , tags=['PtMaxInc'], suffix = 'PhCutMax',year=2016),
     JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'                 , tags=['PtMaxInc'], suffix = 'PhCutMax',year=2016),
     JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'        , tags=['PtRange130'], suffix = 'PhCutRange',year=2016),
     JobConf(base, 'WGToLNuG_PtG-130_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'         , tags=['PtRange130'], suffix = 'PhCutRange',year=2016),
@@ -81,21 +81,22 @@ jobs2016 = [
 
 jobs2017 = [
     # WJets HT bins, remove photon overlap with WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8 (ISR+FSR),
-    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8', tags=['HT_pholap15'], suffix='TrueHTOlapPhOlap', year =2017),
-    JobConf(base, 'WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
-    JobConf(base, 'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
-    JobConf(base, 'WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
-    JobConf(base, 'WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
-    JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
-    JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8' , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
-    JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
-    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8'               , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
-    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-pythia8'              , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8', tags=['HT_pholap'], suffix='TrueHTOlapPhOlap', year =2017),
+    JobConf(base, 'WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8' , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8'               , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-pythia8'              , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
     # missing ?
     # DYJets, remove photon overlap with ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8 (ISR+FSR)
-    #JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8'          , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
+    #JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
     # missing ?
-    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap15']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap']  , suffix = 'PhOlap' ,year=2017),
+    JobConf(base, 'ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8'         , tags=['PtMin20'], suffix = 'PhCutMin',year=2017),
     # TTJets, remove photon overlap with TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8 (ISR-only, 10 GeV!)
     # WARNING: see 2016
     # JobConf(base, 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2017),
@@ -111,19 +112,20 @@ jobs2017 = [
 
 jobs2018 = [
 #    # WJets HT bins, remove photon overlap with WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8 (ISR+FSR),
-    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8', tags=['HT_pholap15'], suffix='TrueHTOlapPhOlap', year =2018),
-    JobConf(base, 'WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8' , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8'               , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-pythia8'              , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8', tags=['HT_pholap'], suffix='TrueHTOlapPhOlap', year =2018),
+    JobConf(base, 'WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8'   , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8' , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8'  , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8'               , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'WJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-pythia8'              , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
     # DYJets, remove photon overlap with ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8 (ISR+FSR)
-    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8'          , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
-    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap15']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8'          , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8'         , tags=['pholap']  , suffix = 'PhOlap' ,year=2018),
+    JobConf(base, 'ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8'         , tags=['PtMin20'], suffix = 'PhCutMin',year=2017),
     # TTJets overlapping with TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8 (ISR-only, 10 GeV!)
     # WARNING: see 2016
     # JobConf(base, 'TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8'            , tags=['pholapISR']  , suffix = 'PhOlap'  ,year=2018),
@@ -135,6 +137,20 @@ jobs2018 = [
     JobConf(base, 'WGToLNuG_PtG-130_TuneCP5_13TeV-amcatnloFXFX-pythia8'        , tags=['PtRange130'], suffix = 'PhCutRange',year=2018),
     JobConf(base, 'WGToLNuG_PtG-500_TuneCP5_13TeV-amcatnloFXFX-pythia8'        , tags=['PtMin500'], suffix = 'PhCutMin',year=2018),
 ]
+
+if options.step == 2:
+    jobs2016 = [
+        JobConf(base, 'WGToLNuG_01J_5f_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8PhCutMax'         , tags=['PtMin20'], suffix = 'PhCutMin',year=2016),
+        JobConf(base, 'WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8PhCutMax'                 , tags=['PtMin20'], suffix = 'PhCutMin',year=2016),
+    ]
+
+    jobs2017 = [
+        JobConf(base, 'WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax'                , tags=['PtMin20'], suffix = 'PhCutMin',year=2017),
+    ]
+
+    jobs2018 = [
+        JobConf(base, 'WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax'                , tags=['PtMin20'], suffix = 'PhCutMin',year=2018),
+    ]
 
 if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
@@ -167,13 +183,14 @@ for input_dir in input_dirs :
                      'input' : input_dir+jobtag,
                      'output' : base + '/' + input_dir+jobtag,
                      'tag' : 'olap_'+input_dir,
-                     'args_tag_pholap'           : { 'function' : 'filter_photon', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ',
+                     'args_tag_pholap'           : { 'function' : 'filter_photon', 'pt_cut' : ' > 20 ', 'nph_cut' : ' == 0 ',
                                                       'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ' },
                      'args_tag_pholapISR'         : { 'function' : 'filter_photon', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'aeta_cut' : ' < 2.6 ',
                                                       'dr_cut' : ' > 0.0 ', 'isr_cut' : ' == True ', 'isPromptFS_cut': ' == True' },
-                     'args_tag_PtMaxInc'         : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' < 180 ', 'nph_cut' : ' > 0' ,  },
-                     'args_tag_PtRange130'       : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' > 180 && < 550 ', 'nph_cut' : ' > 0' },
-                     'args_tag_PtMin500'         : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' > 550 ', 'nph_cut' : ' > 0 ' },
+                     'args_tag_PtMaxInc'         : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' < 180 ', 'nph_cut' : ' > 0', 'dr_cut' : ' > 0.05 '  },
+                     'args_tag_PtRange130'       : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' > 180 && < 550 ', 'nph_cut' : ' > 0', 'dr_cut' : ' > 0.05 ' },
+                     'args_tag_PtMin500'         : { 'function' : 'filter_photon', 'wg_cut' : ' == True ', 'leadpt_cut' : ' > 550 ', 'nph_cut' : ' > 0 ', 'dr_cut' : ' > 0.05 ' },
+                     'args_tag_PtMin20'          : { 'function' : 'filter_photon', 'isPromptFS_cut' : ' == True ', 'leadpt_cut' : ' > 20 ', 'nph_cut' : ' > 0 ', 'dr_cut' : ' > 0.05 ' },
                      'args_tag_HT'               : { 'function' : 'filter_genht' , 'trueht_cut' :  ' < 100 ' },
                      'args_tag_mtMax600'         : { 'function' : 'filter_mtres' , 'mtres_cut' : ' < 600 ' },
                      'args_tag_mtMax1300'        : { 'function' : 'filter_mtres' , 'mtres_cut' : ' < 1300 ' },
@@ -181,7 +198,7 @@ for input_dir in input_dirs :
                      'args_tag_mtMax400'         : { 'function' : 'filter_mtres' , 'mtres_cut' : ' < 400 ' },
                      'args_tag_mtMin400Max1200'  : { 'function' : 'filter_mtres' , 'mtres_cut' : ' >= 400 && < 1200 ' },
                      'args_tag_mtMin1200'        : { 'function' : 'filter_mtres' , 'mtres_cut' : ' >= 1200 ' },
-                     'args_tag_HT_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'trueht_cut' :  ' < 100 ' },
+                     'args_tag_HT_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 20 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'trueht_cut' :  ' < 100 ' },
                      # 2016 W pt-binned
                      'args_tag_wpt_lt115_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'truewpt_cut' :  ' < 115 ' },
                      'args_tag_wpt_gt115_k250_pholap'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 10 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'truewpt_cut' :  ' > 115 ', 'truewpt_bound_hi' : 250., 'truewpt_kneg_hi' : 0.763 },
