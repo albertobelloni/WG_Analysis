@@ -14,7 +14,7 @@ lconf = {"labelStyle":str(year),"extra_label":"%i Electron Channel" %year, "extr
 #lgconf = {'legendLoc':"Double","legendTranslateX":0.35, "legendCompress":.9, "fillalpha":.5}
 lgconf={"legendWiden":1.5,"fillapha":.5}
 #hconf = {"logy":True,"colors":[2,4,6], "weight":"PUWeight*NLOWeight"}
-hconf = {"colors":[2,4,6],"logy":True,"doratio":True,"rlabel":"ratio to inclusive","reverseratio":True, "xlabel ":"gen photon p_{T}", "weight":weight}
+hconf = {"colors":[2,4,6],"logy":True,"doratio":True,"rlabel":"ratio to inclusive","reverseratio":True, "xlabel":"gen photon p_{T}", "weight":weight}
 
 ## the selection needs Max$ so that event is filled on an event basis, otherwise duplicate values of MaxIf will be filled.
 ## form for conditional max is: MaxIf$(var, particle_selection):Max/Min$(particle_selection)==0/1
