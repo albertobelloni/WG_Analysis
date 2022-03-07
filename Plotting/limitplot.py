@@ -66,9 +66,9 @@ ll.SetTextSize(0.04)
 ll.SetTextFont(42)
 if "2016" in sys.argv[1]:
     ll.DrawLatex(0.7,.95, "13TeV, 35.9 fb^{-1}")
-elif "2016" in sys.argv[1]:
+elif "2017" in sys.argv[1]:
     ll.DrawLatex(0.7,.95, "13TeV, 41.5 fb^{-1}")
-elif "2016" in sys.argv[1]:
+elif "2018" in sys.argv[1]:
     ll.DrawLatex(0.7,.95, "13TeV, 59.7 fb^{-1}")
 else:
     ll.DrawLatex(0.7,.95, "13TeV, 137 fb^{-1}")

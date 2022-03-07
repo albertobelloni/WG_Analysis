@@ -1059,6 +1059,10 @@ class FitManager :
 
         f = open ('data/para_fit_%s.txt'%(iyear), "r")
         sigfitparams = json.loads(f.read())
+        g = open ('data/para_%s.txt'%(iyear), "r")
+        sigfitpar = json.loads(g.read())
+        print(sigfitpar.keys())
+
         for ipar in paramname:
             print(ipar)
             iipar = ipar.replace("YEAR",iyear)
@@ -1089,12 +1093,35 @@ class FitManager :
             if 'cb_cut1' in ipar:
                 cut1_vals   = (  func.Eval(int(mass)),       0.1,      3.0  )
             if 'cb_cut2' in ipar:
-                cut2_vals   = (  func.Eval(int(mass)),       0.1,      3.0  )
+                cut2_vals   = (  func.Eval(int(mass)),       0.1,      5.0  )
+                #cut2_vals   = (  sigfitpar[iipar][str(int(mass))],       0.1,      5.0  )
             if 'cb_sigma' in ipar:
                 sigma_vals  = ( func.Eval(int(mass)) ,       1. ,      200. )
             if 'cb_power1' in ipar:
-                power1_vals   = (  func.Eval(int(mass)),        func.Eval(int(mass))*0.5,      func.Eval(int(mass))*1.5  ) 
+                #if sigfitpar[iipar][str(int(mass))]<20:
+                #    power1_vals   = (  sigfitpar[iipar][str(int(mass))],        0.1,      60  )
+                #else:
+                #    average = 0
+                #    naverage = 0
+                #    for im in sigfitpar[iipar].keys():
+                #        if 'err' in im: continue
+                #        if sigfitpar[iipar][str(int(im))]<20:
+                #            average+=sigfitpar[iipar][str(im)]
+                #            naverage+=1
+                #    power1_vals   = ( average/naverage,       0.1,      60  )
+                power1_vals   = (  func.Eval(int(mass)),        func.Eval(int(mass))*0.5,      func.Eval(int(mass))*1.5  )
             if 'cb_power2' in ipar:
+                #if sigfitpar[iipar][str(int(mass))]<15:
+                #    power2_vals   = (  sigfitpar[iipar][str(int(mass))],        0.2,      30  )
+                #else:
+                #    average = 0 
+                #    naverage = 0
+                #    for im in sigfitpar[iipar].keys():
+                #        if 'err' in im: continue
+                #        if sigfitpar[iipar][str(int(im))]<15:
+                #            average+=sigfitpar[iipar][str(im)]
+                #            naverage+=1
+                #    power2_vals   = ( average/naverage,       0.2,      30  )
                 power2_vals   = (  func.Eval(int(mass)),       func.Eval(int(mass))*0.5,      func.Eval(int(mass))*1.5  )
             if 'cb_mass' in ipar:
                 mass_vals  = ( func.Eval(int(mass)) ,       0 ,      3000. )
@@ -1113,13 +1140,14 @@ class FitManager :
                                    power2_vals[0], power2_vals[1], power2_vals[2], '')
 
         # fix a few params in the signal fit
-        #cb_cut2.setConstant()
-        #cb_cut2.setError(0.0)
-        cb_power2.setConstant()
-        cb_power2.setError(0.0)
-        cb_power1.setConstant()
-        cb_power1.setError(0.0)
-        self.dof = 4
+        self.dof = 3
+        if self.dof == 3:
+            cb_cut2.setConstant()
+            cb_cut2.setError(0.0)
+            cb_power2.setConstant()
+            cb_power2.setError(0.0)
+            cb_power1.setConstant()
+            cb_power1.setError(0.0)
 
         self.func_pdf = ROOT.RooDoubleCB( 'cb_%s'%self.label, 'Double Sided Crystal Ball Lineshape', self.xvardata, cb_m0, cb_sigma, cb_cut1, cb_power1, cb_cut2, cb_power2)
 
