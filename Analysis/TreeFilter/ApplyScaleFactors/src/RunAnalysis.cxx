@@ -401,7 +401,7 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
             if (itr != mod_conf.GetInitData().end()) {
               calib =  new BTagCalibration("csvv1", (itr->second).c_str());
 
-              BTagEntry::OperatingPoint cutpoint = BTagEntry::OP_LOOSE;
+              BTagEntry::OperatingPoint cutpoint = BTagEntry::OP_MEDIUM;
               itr = mod_conf.GetInitData().find("CutPoint");
               if (itr != mod_conf.GetInitData().end()) {
                 if (itr->second == "tight")  cutpoint = BTagEntry::OP_TIGHT;
@@ -983,7 +983,7 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
       // calculate event scale factor
       if (OUT::jet_btagged->at(idx)) {
           OUT::jet_btagSF   = OUT::jet_btagSF*jet_scalefactor;
-          OUT::jet_btagSFUP = OUT::jet_btagSFDN*jet_scalefactor_up;
+          OUT::jet_btagSFUP = OUT::jet_btagSFUP*jet_scalefactor_up;
           OUT::jet_btagSFDN = OUT::jet_btagSFDN*jet_scalefactor_do;
           std::cout<< "accepted: "<< jet_scalefactor << " " <<OUT::jet_btagSF <<std::endl; 
       } else {

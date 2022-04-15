@@ -53,7 +53,7 @@ def get_keep_filter(tag=None) :
                  'met_MuonEnDown_phi', 'met_MuonEnUp_phi', 'met_MuonEnUp_pt', 'met_MuonEnDown_pt', ]
 
     jet_basic = ['jet_n', 'jet_pt', 'jet_eta', 'jet_phi', 'jet_e',]
-    jet_addtl = ['jet_CSVLoose_n', 'jet_CSVMedium_n', 'jet_CSVTight_n',"jet_bTagCisvV2", "jet.*"]
+    jet_addtl = ['jet_CSVLoose_n', 'jet_CSVMedium_n', 'jet_CSVTight_n', 'jet_DeepJetLoose_n', 'jet_DeepJetMedium_n', 'jet_DeepJetTight_n',"jet_bTagCisvV2", "jet.*"]
 
     event_basic = ['rho', 'pu_n', 'truepu_n', 'vtx_n', 'pdf_id1', 'pdf_id2', 'pdf_scale', 'pdf_x2', 'pdf_x1',
                    'lumiSection', 'eventNumber', 'runNumber', 'bxNumber', 'isData','prefweight.*']
@@ -934,6 +934,10 @@ def filter_jet( jet_pt = ' > 30 ', jet_eta = '< 2.4', do_hists=False ) :
     filt.cut_jet_CSV_Loose = ' > 0.5426 '
     filt.cut_jet_CSV_Medium = ' > 0.8484 '
     filt.cut_jet_CSV_Tight = ' > 0.9535 '
+    filt.cut_jet_DeepJet_Loose = ' > 0.0494 '
+    filt.cut_jet_DeepJet_Medium = ' > 0.2770 '
+    filt.cut_jet_DeepJet_Tight = ' > 0.7264 '
+    filt.add_var('evalBTagID', "medium" )
 
     if do_hists :
         filt.add_hist( 'cut_pt', 100, 0, 500 )
