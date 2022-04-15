@@ -259,11 +259,11 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     met_str = 'met_pt > %i' %met
 
     Zveto_str = 'fabs(m_lep_ph-91)>20.0'
-    csvmedveto = "jet_CSVMedium_n==0"
+    deepjetmedveto = "jet_DeepJetMedium_n==0"
 
-    sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, csvmedveto ] +  sel_ph
+    sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetmedveto ] +  sel_ph
     sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str,
-                                        Zveto_str, csvmedveto] + sel_ph
+                                        Zveto_str, deepjetmedveto] + sel_ph
 
     if ch=="mu":
         return sel_mu_nominal, weight
