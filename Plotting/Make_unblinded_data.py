@@ -6,8 +6,8 @@ gSystem.Load('../../../combine/CMSSW_11_0_0/lib/slc7_amd64_gcc820/libHiggsAnalys
 import numpy as np
 from ROOT import RooMultiPdf
 
-MIN_ = 220
-MAX_ = 2200
+MIN_ = 230
+MAX_ = 2500
 treeIn      = "UMDNTuple/EventTree"
 import os
 data_outDir = "data/bkgfit_data"
@@ -60,23 +60,788 @@ def canvas_margin(c1, c1_up, c1_down):
   c1.SetLeftMargin( 0.16 )
 
 # ---------------------------------------------------
+import selection_defs as defs
 
 def prepare_data(frac, year, ch, skimtree, skimfile):
     #Prepare skimed data
     names = ROOT.std.vector('string')()
     for n in FileMap[year+ch]: names.push_back(n)
     d = ROOT.RDataFrame(treeIn, names)
-    #hardcoded selections
-    print('hardcoded selections')
-    if ch=='el':
-        myfilter = d.Filter("el_n==1&& mu_n==0 && ph_n==1&&  fabs( el_eta[0] ) < 2.1&& el_pt[0] > 35  &&  el_passTight[0] == 1 && met_pt > 40 && fabs(m_lep_ph-91)>20.0 && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res && !ph_hasPixSeed[0]").Range(1,0,frac)
-        #myfilter = d.Filter("el_n==1&& mu_n==0 && ph_n==1&&  fabs( el_eta[0] ) < 2.1&& el_pt[0] > 35  &&  el_passTight[0] == 1 && met_pt > 40 && fabs(m_lep_ph-91)>20.0 && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res && !ph_hasPixSeed[0]")
-    elif ch=='mu':
-        myfilter = d.Filter("mu_n==1 && el_n==0 && ph_n==1 && met_pt > 40 && mu_pt_rc[0] > 35  && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res && !ph_hasPixSeed[0]").Range(1,0,frac)
-        #myfilter = d.Filter("mu_n==1 && el_n==0 && ph_n==1 && met_pt > 40 && mu_pt_rc[0] > 35  && jet_CSVMedium_n==0 && ph_IsEB[0] && ph_passTight[0] && ph_pt[0] > 0.4*mt_res && ph_pt[0] < 0.55*mt_res && !ph_hasPixSeed[0]")
+    selection , weight = defs.makeselstring('el',  80, 35,  40)
+    if ch=='mu':
+        selection , weight = defs.makeselstring('mu',  80, 30,  40)
+    #myfilter = d.Filter(selection).Range(1,0,frac)
+    myfilter = d.Filter(selection)
+    #print(selection)
+    #print('make histo')
+    Hmt = myfilter.Histo1D("mt_res")
+    Hmt.Draw()
+    myfilter.Snapshot(skimtree, skimfile)
+
+
+def ShowSignalInjection():
+    toyfile = '/data/users/yihuilai/test_code/WG_Analysis/Plotting/data_env/test_Dec20_testsignal_inject/Width5/all/Mass600/higgsCombine_test7.GenerateOnly.mH600.9024.root'
+    fitpara = '/data/users/yihuilai/test_code/WG_Analysis/Plotting/data_env/test_Dec20_testsignal_inject/Width5/all/Mass600/fitDiagnostics_test7.root'
+    # 1000 5%
+    signalyield={'el2016':55.7951, 'mu2016':61.6212, 'el2017':61.4791, 'mu2017':67.3945, 'el2018':92.9473, 'mu2018':102.755}
+    # 600 5%
+    signalyield={'el2016':150.106, 'mu2016':177.152, 'el2017':170.551, 'mu2017':199.071, 'el2018':254.791, 'mu2018':302.308}
+    injects = 1
+    mass = '600'
+    width = '5'
+
+    year ='ALL'
+    MIN_=220
+    MAX_=2200
+    NBIN_=100
+    mt_res = ROOT.RooRealVar("mt_res", "mt_res", MIN_, MAX_)
+    mt_res.setBins(NBIN_)
+
+    # Get toy data
+    F=ROOT.TFile(toyfile)
+    toydata=F.Get("toys/toy_1")
+    ne = toydata.sumEntries()
+    print(ne)
+
+    # Fit function
+    fit_para={}
+    year='2016'
+    fit_para['vvdijet_order1_elA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order1_elA'+year+'_all_vvdijet', "power1", -9, -1000, 1000)
+    fit_para['vvdijet_order2_elA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order2_elA'+year+'_all_vvdijet', "power2", -2, -1000, 1000)
+    fit_para['vvdijet_order1_muA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order1_muA'+year+'_all_vvdijet', "power1", -9, -1000, 1000)
+    fit_para['vvdijet_order2_muA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order2_muA'+year+'_all_vvdijet', "power2", -2, -1000, 1000)
+    year='2017'
+    fit_para['vvdijet_order1_elA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order1_elA'+year+'_all_vvdijet', "power1", -9, -1000, 1000)
+    fit_para['vvdijet_order2_elA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order2_elA'+year+'_all_vvdijet', "power2", -2, -1000, 1000)
+    fit_para['vvdijet_order1_muA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order1_muA'+year+'_all_vvdijet', "power1", -9, -1000, 1000)
+    fit_para['vvdijet_order2_muA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order2_muA'+year+'_all_vvdijet', "power2", -2, -1000, 1000)
+    year='2018'
+    fit_para['vvdijet_order1_elA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order1_elA'+year+'_all_vvdijet', "power1", -9, -1000, 1000)
+    fit_para['vvdijet_order2_elA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order2_elA'+year+'_all_vvdijet', "power2", -2, -1000, 1000)
+    fit_para['vvdijet_order1_muA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order1_muA'+year+'_all_vvdijet', "power1", -9, -1000, 1000)
+    fit_para['vvdijet_order2_muA'+year+'_all_vvdijet'] = ROOT.RooRealVar('vvdijet_order2_muA'+year+'_all_vvdijet', "power2", -2, -1000, 1000)
+
+    # generate function
+    gen_para={}
+    year='2016'
+    gen_para['dijet_order1_elA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order1_elA'+year+'_all_dijet', "power1", -9, -1000, 1000)
+    gen_para['dijet_order2_elA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order2_elA'+year+'_all_dijet', "power2", -2, -1000, 1000)
+    gen_para['dijet_order1_muA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order1_muA'+year+'_all_dijet', "power1", -9, -1000, 1000)
+    gen_para['dijet_order2_muA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order2_muA'+year+'_all_dijet', "power2", -2, -1000, 1000)
+    year='2017'
+    gen_para['dijet_order1_elA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order1_elA'+year+'_all_dijet', "power1", -9, -1000, 1000)
+    gen_para['dijet_order2_elA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order2_elA'+year+'_all_dijet', "power2", -2, -1000, 1000)
+    gen_para['dijet_order1_muA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order1_muA'+year+'_all_dijet', "power1", -9, -1000, 1000)
+    gen_para['dijet_order2_muA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order2_muA'+year+'_all_dijet', "power2", -2, -1000, 1000)
+    year='2018'
+    gen_para['dijet_order1_elA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order1_elA'+year+'_all_dijet', "power1", -9, -1000, 1000)
+    gen_para['dijet_order2_elA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order2_elA'+year+'_all_dijet', "power2", -2, -1000, 1000)
+    gen_para['dijet_order1_muA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order1_muA'+year+'_all_dijet', "power1", -9, -1000, 1000)
+    gen_para['dijet_order2_muA'+year+'_all_dijet'] = ROOT.RooRealVar('dijet_order2_muA'+year+'_all_dijet', "power2", -2, -1000, 1000)
+
+    bkg_norm = {}
+    bkg_norm['r_gen'] = ROOT.RooRealVar('r_gen','r_gen',0,100000)
+    bkg_norm['r_gen'].setVal(injects)
+    bkg_norm['r_gen'].setConstant()
+    bkg_norm['r_gen'].setError(0)
+    bkgyield={'el2016':1479, 'mu2016':1777, 'el2017':2248, 'mu2017':2237, 'el2018':3433, 'mu2018':3302}
+    for ich in ['el2016', 'el2017', 'el2018', 'mu2016', 'mu2017', 'mu2018']:
+        bkg_norm['shapeBkg_genAll_'+ich+'__norm'] = ROOT.RooRealVar('shapeBkg_genAll_'+ich+'__norm','N_'+ich,0,100000)
+        bkg_norm['shapeBkg_genAll_'+ich+'__norm'].setVal(bkgyield[ich])
+        bkg_norm['shapeBkg_genAll_'+ich+'__norm'].setConstant()
+        bkg_norm['shapeBkg_All_'+ich+'__norm'] = ROOT.RooRealVar('shapeBkg_genAll_'+ich+'__norm','N_'+ich,0,100000)
+
+    bkg_norm['r'] = ROOT.RooRealVar('r','r',0,100000)
+
+    # Signal
+    signal_para = {}
+    signal_para['cb_cut2_MG'] = ROOT.RooRealVar('cb_cut2_MG','cb_cut2_MG',-100,100)
+    signal_para['cb_cut2_MG'].setVal(1.6)
+    signal_para['cb_cut2_MG'].setConstant()
+    signal_para['cb_pow1_MG'] = ROOT.RooRealVar('cb_powe1_MG','cb_power1_MG',-100,100)
+    signal_para['cb_pow1_MG'].setVal(2.2)
+    signal_para['cb_pow1_MG'].setConstant()
+    signal_para['cb_pow2_MG'] = ROOT.RooRealVar('cb_powe2_MG','cb_power2_MG',-100,100)
+    signal_para['cb_pow2_MG'].setVal(1.4)
+    signal_para['cb_pow2_MG'].setConstant()
+    for ich in ['el2016', 'el2017', 'el2018', 'mu2016', 'mu2017', 'mu2018']:
+        signal_para['cb_cut1_MG_M'+mass+'_W'+width+'_'+ich] = ROOT.RooRealVar('cb_cut1_MG_M'+mass+'_W'+width+'_'+ich,'cb_cut1_MG_M'+mass+'_W'+width+'_'+ich,-100,10000)
+        signal_para['cb_mass_MG_M'+mass+'_W'+width+'_'+ich] = ROOT.RooRealVar('cb_mass_MG_M'+mass+'_W'+width+'_'+ich,'cb_mass_MG_M'+mass+'_W'+width+'_'+ich,-100,10000)
+        signal_para['cb_sigma_MG_M'+mass+'_W'+width+'_'+ich] = ROOT.RooRealVar('cb_sigma_MG_M'+mass+'_W'+width+'_'+ich,'cb_sigma_MG_M'+mass+'_W'+width+'_'+ich,-100,10000)
+        signal_para['cb_MG_M'+mass+'_W'+width+'_'+ich] = ROOT.RooDoubleCB('cb_MG_M'+mass+'_W'+width+'_'+ich, 'Double Sided Crystal Ball Lineshape', mt_res, signal_para['cb_mass_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_sigma_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_cut1_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_pow1_MG'], signal_para['cb_cut2_MG'],  signal_para['cb_pow2_MG'])
+
+    print(fit_para.keys())
+    print(gen_para.keys())
+    # Get fit function
+    f=ROOT.TFile(fitpara)
+    res = f.Get("fit_s")
+    fitargs=res.floatParsFinal()
+    iter = fitargs.createIterator()
+    a=iter.Next()
+    while not a == 0:
+        print(a.GetName())
+        print(a.getVal())
+        #print(a.getError())
+        for ipa in fit_para.keys():
+            if a.GetName()== ipa:
+                fit_para[ipa].setVal(a.getVal())
+                fit_para[ipa].setConstant()
+                fit_para[ipa].setError(a.getError())
+        for ipa in gen_para.keys():
+            if a.GetName()== ipa:
+                gen_para[ipa].setVal(a.getVal())
+                gen_para[ipa].setConstant()
+                gen_para[ipa].setError(a.getError())
+        for ipa in bkg_norm.keys():
+            if a.GetName()== ipa:
+                bkg_norm[ipa].setVal(a.getVal())
+                bkg_norm[ipa].setConstant()
+                bkg_norm[ipa].setError(a.getError())
+        for ipa in signal_para.keys():
+            if a.GetName()== ipa:
+                print('get ', ipa, a.getVal())
+                signal_para[ipa].setVal(a.getVal())
+                signal_para[ipa].setConstant()
+                signal_para[ipa].setError(a.getError())
+        if a.GetName()=='r':
+            print('========> get r ', a.getVal())
+            bkg_norm['r'].setVal(a.getVal())
+            bkg_norm['r'].setConstant()
+        if a.GetName()=='vvdijet_order2_muA2018_all_vvdijet':
+            break
+        else:
+            a=iter.Next()
+
+    # vvdijet
+    frame = mt_res.frame(ROOT.RooFit.Title("Unbinned ML fit"))
+    toydata.plotOn(frame)
+    func_name = 'vvdijet'
+    function = str(bkg_norm['shapeBkg_genAll_el2016__norm'].getVal()) + '*TMath::Power( (1-@0/13000.), '+ str(fit_para['vvdijet_order1_elA2016_all_vvdijet'].getVal())  +' ) / ( TMath::Power( @0/13000. , '+ str(fit_para['vvdijet_order2_elA2016_all_vvdijet'].getVal())  +'))'
+    function += '+'+str(bkg_norm['shapeBkg_genAll_el2017__norm'].getVal()) + '*TMath::Power( (1-@0/13000.), '+ str(fit_para['vvdijet_order1_elA2017_all_vvdijet'].getVal())  +' ) / ( TMath::Power( @0/13000. , '+ str(fit_para['vvdijet_order2_elA2017_all_vvdijet'].getVal())  +'))'
+    function += '+'+str(bkg_norm['shapeBkg_genAll_el2018__norm'].getVal()) + '*TMath::Power( (1-@0/13000.), '+ str(fit_para['vvdijet_order1_elA2018_all_vvdijet'].getVal())  +' ) / ( TMath::Power( @0/13000. , '+ str(fit_para['vvdijet_order2_elA2018_all_vvdijet'].getVal())  +'))'
+    function += '+'+str(bkg_norm['shapeBkg_genAll_mu2016__norm'].getVal()) + '*TMath::Power( (1-@0/13000.), '+ str(fit_para['vvdijet_order1_muA2016_all_vvdijet'].getVal())  +' ) / ( TMath::Power( @0/13000. , '+ str(fit_para['vvdijet_order2_muA2016_all_vvdijet'].getVal())  +'))'
+    function += '+'+str(bkg_norm['shapeBkg_genAll_mu2017__norm'].getVal()) + '*TMath::Power( (1-@0/13000.), '+ str(fit_para['vvdijet_order1_muA2017_all_vvdijet'].getVal())  +' ) / ( TMath::Power( @0/13000. , '+ str(fit_para['vvdijet_order2_muA2017_all_vvdijet'].getVal())  +'))'
+    function += '+'+str(bkg_norm['shapeBkg_genAll_mu2018__norm'].getVal()) + '*TMath::Power( (1-@0/13000.), '+ str(fit_para['vvdijet_order1_muA2018_all_vvdijet'].getVal())  +' ) / ( TMath::Power( @0/13000. , '+ str(fit_para['vvdijet_order2_muA2018_all_vvdijet'].getVal())  +'))'
+    print(function)
+    func_vvdijet = ROOT.RooGenericPdf( '%s_%s'%(func_name, '_all_vvdijet'), func_name, function, ROOT.RooArgList(mt_res))
+    func_vvdijet.plotOn(frame,ROOT.RooFit.LineColor(ROOT.kBlue),ROOT.RooFit.LineStyle(2))
+    hpull_vvdijet2 = frame.pullHist()
+    hpull_vvdijet2.SetLineColor(ROOT.kBlue)
+    hpull_vvdijet2.SetMarkerColor(ROOT.kBlue)
+
+    norm_totb = ROOT.RooRealVar("norm_vvdijetb","norm_vvdijetb",0,100000);
+    norm_totb.setVal(bkg_norm['shapeBkg_All_el2016__norm'].getVal()+bkg_norm['shapeBkg_All_mu2016__norm'].getVal()+bkg_norm['shapeBkg_All_el2017__norm'].getVal()+bkg_norm['shapeBkg_All_mu2017__norm'].getVal()+bkg_norm['shapeBkg_All_el2018__norm'].getVal()+bkg_norm['shapeBkg_All_mu2018__norm'].getVal())
+    norm_totb.setConstant()
+
+    signal_norm={}
+
+    for ich in ['el2016', 'el2017', 'el2018', 'mu2016', 'mu2017', 'mu2018']:
+        signal_norm[ich] = ROOT.RooRealVar("signal_norm_"+ich,"signal_norm_"+ich,0,100000)
+        signal_norm[ich].setVal(bkg_norm['r_gen'].getVal()*signalyield[ich])
+        signal_norm[ich].setConstant()
+
+    components_vvdijet = ROOT.RooArgList(func_vvdijet, signal_para['cb_MG_M'+mass+'_W'+width+'_el2016'], signal_para['cb_MG_M'+mass+'_W'+width+'_el2017'], signal_para['cb_MG_M'+mass+'_W'+width+'_el2018'], signal_para['cb_MG_M'+mass+'_W'+width+'_mu2016'], signal_para['cb_MG_M'+mass+'_W'+width+'_mu2017'], signal_para['cb_MG_M'+mass+'_W'+width+'_mu2018'])
+    coeffs_vvdijet = ROOT.RooArgList(norm_totb,signal_norm['el2016'],signal_norm['el2017'],signal_norm['el2018'],signal_norm['mu2016'],signal_norm['mu2017'],signal_norm['mu2018'] )
+    model_vvdijet = ROOT.RooAddPdf("model_vvdijet","f_all",components_vvdijet,coeffs_vvdijet)
+    model_vvdijet.plotOn(frame,ROOT.RooFit.LineColor(ROOT.kBlue),ROOT.RooFit.LineStyle(1))
+    hpull_vvdijet = frame.pullHist()
+    hpull_vvdijet.SetLineColor(ROOT.kBlue)
+    hpull_vvdijet.SetMarkerColor(ROOT.kBlue)
+
+    # dijet
+    func_name = 'dijet'
+    function = str(bkg_norm['shapeBkg_All_el2016__norm'].getVal()) + ' *TMath::Power( @0/13000., '+ str(gen_para['dijet_order1_elA2016_all_dijet'].getVal())  +' + '+ str(gen_para['dijet_order2_elA2016_all_dijet'].getVal())  +'*TMath::Log10(@0/13000) ) '
+    function += ' +'+str(bkg_norm['shapeBkg_All_el2017__norm'].getVal()) +'*TMath::Power( @0/13000., '+ str(gen_para['dijet_order1_elA2017_all_dijet'].getVal())  +' + '+ str(gen_para['dijet_order2_elA2017_all_dijet'].getVal())  +'*TMath::Log10(@0/13000) ) '
+    function += ' +'+str(bkg_norm['shapeBkg_All_el2018__norm'].getVal()) +'*TMath::Power( @0/13000., '+ str(gen_para['dijet_order1_elA2018_all_dijet'].getVal())  +' + '+ str(gen_para['dijet_order2_elA2018_all_dijet'].getVal())  +'*TMath::Log10(@0/13000) ) '
+    function += '+'+str(bkg_norm['shapeBkg_All_mu2016__norm'].getVal()) + ' *TMath::Power( @0/13000., '+ str(gen_para['dijet_order1_muA2016_all_dijet'].getVal())  +' + '+ str(gen_para['dijet_order2_muA2016_all_dijet'].getVal())  +'*TMath::Log10(@0/13000) ) '
+    function += ' +'+str(bkg_norm['shapeBkg_All_mu2017__norm'].getVal()) +'*TMath::Power( @0/13000., '+ str(gen_para['dijet_order1_muA2017_all_dijet'].getVal())  +' + '+ str(gen_para['dijet_order2_muA2017_all_dijet'].getVal())  +'*TMath::Log10(@0/13000) ) '
+    function += ' +'+str(bkg_norm['shapeBkg_All_mu2018__norm'].getVal()) +'*TMath::Power( @0/13000., '+ str(gen_para['dijet_order1_muA2018_all_dijet'].getVal())  +' + '+ str(gen_para['dijet_order2_muA2018_all_dijet'].getVal())  +'*TMath::Log10(@0/13000) ) '
+    print(function)
+    func_dijet = ROOT.RooGenericPdf( '%s_%s'%(func_name, '_all_dijet'), func_name, function, ROOT.RooArgList(mt_res))
+    func_dijet.plotOn(frame,ROOT.RooFit.LineColor(ROOT.kRed),ROOT.RooFit.LineStyle(2))
+    hpull_dijet2 = frame.pullHist()
+    hpull_dijet2.SetLineColor(ROOT.kRed)
+    hpull_dijet2.SetMarkerColor(ROOT.kRed)
+    signal_norm2={}
+    for ich in ['el2016', 'el2017', 'el2018', 'mu2016', 'mu2017', 'mu2018']:
+        signal_norm2[ich] = ROOT.RooRealVar("signal_norm2_"+ich,"signal_norm_"+ich,0,100000)
+        signal_norm2[ich].setVal(bkg_norm['r'].getVal()*signalyield[ich])
+        signal_norm2[ich].setConstant()
+
+    components_dijet = ROOT.RooArgList(func_dijet, signal_para['cb_MG_M'+mass+'_W'+width+'_el2016'], signal_para['cb_MG_M'+mass+'_W'+width+'_el2017'], signal_para['cb_MG_M'+mass+'_W'+width+'_el2018'], signal_para['cb_MG_M'+mass+'_W'+width+'_mu2016'], signal_para['cb_MG_M'+mass+'_W'+width+'_mu2017'], signal_para['cb_MG_M'+mass+'_W'+width+'_mu2018'])
+    coeffs_dijet = ROOT.RooArgList(norm_totb,signal_norm2['el2016'],signal_norm2['el2017'],signal_norm2['el2018'],signal_norm2['mu2016'],signal_norm2['mu2017'],signal_norm2['mu2018'] )
+    model_dijet = ROOT.RooAddPdf("model_dijet","f_all",components_dijet,coeffs_dijet)
+    model_dijet.plotOn(frame,ROOT.RooFit.LineColor(ROOT.kRed),ROOT.RooFit.LineStyle(1))
+    hpull_dijet = frame.pullHist()
+    hpull_dijet.SetLineColor(ROOT.kRed)
+    hpull_dijet.SetMarkerColor(ROOT.kRed)
+
+    #add signals to the plot
+    c = ROOT.TCanvas("c","c",0,53,800,740)
+    ROOT.gStyle.SetOptStat(0)
+    c.SetHighLightColor(2);
+    c.Range(0,0,1,1);
+    c.SetFillColor(0);
+    c.SetBorderMode(0);
+    c.SetBorderSize(2);
+    c.SetTickx(1);
+    c.SetTicky(1);
+    c.SetLeftMargin(0.12);
+    c.SetRightMargin(0.02);
+    c.SetTopMargin(0.055);
+    c.SetFrameFillStyle(0);
+    c.SetFrameBorderMode(0);
+    #------------>Primitives in pad: toppad
+    toppad = ROOT.TPad('toppad','toppad',0,0.5 ,1.0,1.0)
+    toppad.SetTickx(1);
+    toppad.SetTicky(1);
+    bottompad = ROOT.TPad('bottompad','bottompad',0,0.0,1.0,0.32)
+    bottompad.SetTickx(1);
+    bottompad.SetTicky(1);
+    canvas_margin(c,toppad,bottompad)
+    middlepad = ROOT.TPad('middlepad','middlepad',0,0.18,1.0,0.5)
+    middlepad.SetTickx(1);
+    middlepad.SetTicky(1);
+    middlepad.SetTopMargin( 0.03 )
+    middlepad.SetBottomMargin( 0.4 )
+    middlepad.SetLeftMargin( 0.15 )
+    middlepad.SetRightMargin( 0.03 )
+
+    toppad.SetFillStyle(4000)
+    toppad.SetFrameFillStyle(1000)
+    toppad.SetFrameFillColor(0)
+    toppad.SetFillColor(0)
+    toppad.SetBorderMode(0)
+    toppad.SetBorderSize(2)
+    toppad.SetLogy()
+    toppad.SetFrameBorderMode(0)
+    toppad.SetFrameBorderMode(0)
+    toppad.SetLeftMargin(0.15)
+    bottompad.SetFillStyle(4000)
+    bottompad.SetFrameFillStyle(1000)
+    bottompad.SetFrameFillColor(0)
+    bottompad.SetFillColor(0)
+    bottompad.SetBorderMode(0)
+    bottompad.SetBorderSize(2)
+    bottompad.SetFrameBorderMode(0)
+    bottompad.SetFrameBorderMode(0)
+    middlepad.SetFillStyle(4000)
+    middlepad.SetFrameFillStyle(1000)
+    middlepad.SetFrameFillColor(0)
+    middlepad.SetFillColor(0)
+    middlepad.SetBorderMode(0)
+    middlepad.SetBorderSize(2)
+    middlepad.SetFrameBorderMode(0)
+    middlepad.SetFrameBorderMode(0)
+    toppad.Draw()
+    middlepad.Draw()
+    bottompad.Draw()
+
+    c.cd()
+    c.Update()
+    c.RedrawAxis()
+    cframe = c.GetFrame()
+    cframe.Draw()
+    toppad.cd()
+    frame_4fa51a0__1 = ROOT.TH1D("frame_4fa51a0__1","Unbinned ML fit, %s %s"%(ch,year),NBIN_,MIN_,MAX_)
+    frame_4fa51a0__1.GetXaxis().SetTitle("m_{T}^{l#nu#gamma} [GeV]");
+    frame_4fa51a0__1.GetXaxis().SetLabelFont(42);
+    frame_4fa51a0__1.GetXaxis().SetLabelSize(0.05);
+    frame_4fa51a0__1.GetXaxis().SetTitleSize(0.05);
+    frame_4fa51a0__1.GetXaxis().SetTitleOffset(1);
+    frame_4fa51a0__1.GetXaxis().SetTitleFont(42);
+    frame_4fa51a0__1.GetYaxis().SetTitle("Events / "+str((MAX_-MIN_)/NBIN_)+" GeV");
+    frame_4fa51a0__1.GetYaxis().SetLabelFont(42);
+    frame_4fa51a0__1.GetYaxis().SetLabelSize(0.05);
+    frame_4fa51a0__1.GetYaxis().SetTitleSize(0.05);
+    frame_4fa51a0__1.GetYaxis().SetTitleFont(42);
+    frame_4fa51a0__1.GetYaxis().SetRangeUser(0.8e-2,1e4)
+    frame_4fa51a0__1.GetXaxis().SetLabelOffset(999)
+    frame_4fa51a0__1.GetXaxis().SetLabelSize(0)
+    frame_4fa51a0__1.Draw("AXISSAME");
+    frame.Draw("same E")
+    frame_4fa51a0__1.Draw("AXISSAME");
+
+    frame3 = mt_res.frame(ROOT.RooFit.Title("Pull Distribution"))
+    frame3.addPlotable(hpull_dijet, "P")
+    frame4 = mt_res.frame(ROOT.RooFit.Title("Pull Distribution"))
+    frame4.addPlotable(hpull_vvdijet, "P")
+
+    frame5 = mt_res.frame(ROOT.RooFit.Title("Pull Distribution"))
+    frame5.addPlotable(hpull_dijet2, "P")
+    frame6 = mt_res.frame(ROOT.RooFit.Title("Pull Distribution"))
+    frame6.addPlotable(hpull_vvdijet2, "P")
+
+    leg = ROOT.TLegend(0.25,0.73,0.6,0.85);
+    leg.SetBorderSize(0);
+    leg.SetLineStyle(1);
+    leg.SetLineWidth(1);
+    entry=leg.AddEntry(frame,"ToyData from Vvdijet-2","pe");
+    entry.SetFillStyle(1001);
+    entry.SetMarkerStyle(8);
+    entry.SetMarkerSize(1.5);
+    entry.SetLineStyle(1);
+    entry.SetLineWidth(2);
+    entry.SetTextFont(42);
+    entry.SetTextSize(0.04);
+    leg.Draw()
+
+
+    leg2 = ROOT.TLegend(0.55,0.6,0.9,0.9);
+    leg2.SetBorderSize(0);
+    leg2.SetLineStyle(1);
+    leg2.SetLineWidth(1);
+    entry=leg2.AddEntry("","Dijet-2 + signal@600GeV (#Gamma_{X}/m_{X}=5%)","l");
+    entry.SetFillStyle(1001);
+    entry.SetLineStyle(1)
+    entry.SetLineWidth(2)
+    entry.SetLineColor(ROOT.kRed);
+    entry.SetTextFont(42)
+    entry.SetTextSize(0.04)
+    entry=leg2.AddEntry("","Dijet-2","l");
+    entry.SetFillStyle(1001);
+    entry.SetLineStyle(9)
+    entry.SetLineWidth(2)
+    entry.SetLineColor(ROOT.kRed);
+    entry.SetTextFont(42)
+    entry.SetTextSize(0.04)
+    entry=leg2.AddEntry("","Vvdijet-2 + signal@600GeV (#Gamma_{X}/m_{X}=5%)","l");
+    entry.SetFillStyle(1001);
+    entry.SetLineStyle(1)
+    entry.SetLineWidth(2)
+    entry.SetLineColor(ROOT.kAzure);
+    entry.SetTextFont(42)
+    entry.SetTextSize(0.04)
+    entry=leg2.AddEntry("","Vvdijet-2","l");
+    entry.SetFillStyle(1001);
+    entry.SetLineStyle(9)
+    entry.SetLineWidth(2)
+    entry.SetLineColor(ROOT.kAzure);
+    entry.SetTextFont(42)
+    entry.SetTextSize(0.04)
+    leg2.Draw()
+    tex = ROOT.TLatex(0.98,0.94,"137 fb^{-1} (13 TeV)");
+    tex.SetNDC();
+    tex.SetTextAlign(31);
+    tex.SetTextFont(42);
+    tex.SetTextSize(0.05);
+    tex.SetLineWidth(2);
+    tex.Draw();
+    tex2 = ROOT.TLatex(0.18,0.9,"CMS");
+    tex2.SetNDC();
+    tex2.SetTextAlign(13);
+    tex2.SetTextFont(61);
+    tex2.SetTextSize(0.06);
+    tex2.SetLineWidth(2);
+    tex2.Draw();
+    bottompad.cd()
+    frame_4fa51a0__2 = ROOT.TH1D("frame_4fa51a0__2","",NBIN_,MIN_,MAX_)
+    frame_4fa51a0__2.GetXaxis().SetTitle("m_{T}^{l#nu#gamma} [GeV]");
+    frame_4fa51a0__2.GetXaxis().SetLabelFont(42);
+    frame_4fa51a0__2.GetXaxis().SetLabelSize(0.1);
+    frame_4fa51a0__2.GetXaxis().SetTitleSize(0.1);
+    frame_4fa51a0__2.GetXaxis().SetTitleOffset(1);
+    frame_4fa51a0__2.GetXaxis().SetTitleFont(42);
+    frame_4fa51a0__2.GetYaxis().SetTitle("#frac{Data-Fit}{#sigma_{Stat.}}");
+    frame_4fa51a0__2.GetYaxis().CenterTitle()
+    frame_4fa51a0__2.GetYaxis().SetLabelFont(42);
+    frame_4fa51a0__2.GetYaxis().SetLabelSize(0.1);
+    frame_4fa51a0__2.GetYaxis().SetTitleSize(0.1);
+    frame_4fa51a0__2.GetYaxis().SetTitleFont(42);
+    frame_4fa51a0__2.GetYaxis().SetRangeUser(-10,10)
+    frame_4fa51a0__2.GetYaxis().SetNdivisions(5, 2, 0, ROOT.kTRUE)
+    frame_4fa51a0__2.GetYaxis().SetTitleOffset(0.4)
+    frame_4fa51a0__2.Draw("AXISSAME")
+    frame3.Draw("same")
+    frame4.Draw("same")
+    frame_4fa51a0__2.Draw("AXISSAME")
+    line = ROOT.TLine(200,0,2000,0);
+    line.SetLineStyle(2)
+    line.SetLineWidth(2)
+    line.Draw()
+    middlepad.cd()
+    frame_4fa51a0__3 = ROOT.TH1D("frame_4fa51a0__3","",NBIN_,MIN_,MAX_)
+    frame_4fa51a0__3.GetXaxis().SetTitle("m_{T}^{l#nu#gamma} [GeV]");
+    frame_4fa51a0__3.GetXaxis().SetLabelFont(42);
+    frame_4fa51a0__3.GetXaxis().SetLabelSize(0.01);
+    frame_4fa51a0__3.GetXaxis().SetTitleSize(0.1);
+    frame_4fa51a0__3.GetXaxis().SetTitleOffset(1);
+    frame_4fa51a0__3.GetXaxis().SetTitleFont(42);
+    frame_4fa51a0__3.GetYaxis().SetTitle("#frac{Data-BkgFit}{#sigma_{Stat.}}");
+    frame_4fa51a0__3.GetYaxis().CenterTitle()
+    frame_4fa51a0__3.GetYaxis().SetLabelFont(42);
+    frame_4fa51a0__3.GetYaxis().SetLabelSize(0.1);
+    frame_4fa51a0__3.GetYaxis().SetTitleSize(0.1);
+    frame_4fa51a0__3.GetYaxis().SetTitleFont(42);
+    frame_4fa51a0__3.GetYaxis().SetRangeUser(-10,10)
+    frame_4fa51a0__3.GetYaxis().SetNdivisions(5, 2, 0, ROOT.kTRUE)
+    frame_4fa51a0__3.GetYaxis().SetTitleOffset(0.4)
+    frame_4fa51a0__3.Draw("AXISSAME")
+    frame5.Draw("same")
+    frame6.Draw("same")
+    frame_4fa51a0__3.Draw("AXISSAME")
+    line2 = ROOT.TLine(200,0,2000,0);
+    line2.SetLineStyle(2)
+    line2.SetLineWidth(2)
+    line2.Draw()
+
+    input('wait..')
+    #c.SaveAs('fit_ALL%s.C' %(ch))
+
+
+
+def makeFinalplots(baseDir,skimtree):
+
+    #Reading Data, merge 3 years
+    year ='ALL'
+    MIN_=200
+    MAX_=400
+    NBIN_=100
+    mt_res = ROOT.RooRealVar("mt_res", "mt_res", 200, 2200)
+    mt_res.setBins(400)
+    #mt_res.setRange( MIN_ ,MAX_)
+    F=ROOT.TFile(baseDir+'/elALL_skim.root')
+    tree=F.Get(skimtree)
+    netot = tree.GetEntries()
+    dse = ROOT.RooDataSet('data_elA'+year+'_mt_res_base', "dse", ROOT.RooArgSet(mt_res), ROOT.RooFit.Import(tree))
+    F=ROOT.TFile(baseDir+'/muALL_skim.root')
+    tree=F.Get(skimtree)
+    nmtot = tree.GetEntries()
+    dsm = ROOT.RooDataSet('data_muA'+year+'_mt_res_base', "dsm", ROOT.RooArgSet(mt_res), ROOT.RooFit.Import(tree))
+    ne = dse.sumEntries("mt_res>"+str(MIN_))
+    nm = dsm.sumEntries("mt_res>"+str(MIN_))
+
+    #prepare Working Space with Roofit
+    #ws_out  = ROOT.RooWorkspace( "workspace_all" )
+    #rootfilename = '%s/%s/%s.root' %( data_outDir,year,ws_out.GetName() )
+
+
+    #create 3 background pdfs
+    func_name = 'dijet'
+    function = 'TMath::Power( @0/13000., @1 + @2*TMath::Log10(@0/13000) )'
+    dijet_order1_e = ROOT.RooRealVar('dijet_order1_elA'+year+'_all_dijet', "power1", -9, -100.0, -0.001)
+    dijet_order2_e = ROOT.RooRealVar('dijet_order2_elA'+year+'_all_dijet', "power2", -2, -5.0, -0.01)
+    dijet_order1_m = ROOT.RooRealVar('dijet_order1_muA'+year+'_all_dijet', "power1", -9, -100.0, -0.001)
+    dijet_order2_m = ROOT.RooRealVar('dijet_order2_muA'+year+'_all_dijet', "power2", -2, -5.0, -0.01)
+#    dijet_order1_e = ROOT.RooRealVar('dijet_order1_elA'+year+'_all_dijet', "power1", -9, -100.0, -0.001)
+#    dijet_order2_e = ROOT.RooRealVar('dijet_order2_elA'+year+'_all_dijet', "power2", -2, -5.0, 10)
+#    dijet_order1_m = ROOT.RooRealVar('dijet_order1_muA'+year+'_all_dijet', "power1", -9, -100.0, -0.001)
+#    dijet_order2_m = ROOT.RooRealVar('dijet_order2_muA'+year+'_all_dijet', "power2", -2, -5.0, 10)
+
+    func_dijet_e = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'elA'+year+'_all_dijet'), func_name, function, ROOT.RooArgList(mt_res,dijet_order1_e,dijet_order2_e))
+    func_dijet_m = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'muA'+year+'_all_dijet'), func_name, function, ROOT.RooArgList(mt_res,dijet_order1_m,dijet_order2_m))
+
+    func_name = 'vvdijet'
+    function = 'TMath::Power( (1-@0/13000.), @1 ) / ( TMath::Power( @0/13000. , @2))'
+    vvdijet_order1_e = ROOT.RooRealVar( 'vvdijet_order1_elA'+year+'_all_vvdijet', "power1", 40 ,      -50,  200)
+    vvdijet_order2_e = ROOT.RooRealVar( 'vvdijet_order2_elA'+year+'_all_vvdijet', "power2", 2 ,     -10,   30)
+    vvdijet_order1_m = ROOT.RooRealVar( 'vvdijet_order1_muA'+year+'_all_vvdijet', "power1", 40 ,      -50,  200)
+    vvdijet_order2_m = ROOT.RooRealVar( 'vvdijet_order2_muA'+year+'_all_vvdijet', "power2", 2 ,     -10,   30)
+    #vvdijet_order3_e = ROOT.RooRealVar( 'vvdijet_order3_elA'+year+'_all_vvdijet', "power3", 2 ,     -10,   30)
+    #vvdijet_order3_m = ROOT.RooRealVar( 'vvdijet_order3_muA'+year+'_all_vvdijet', "power3", 2 ,     -10,   30)
+    func_vvdijet_m = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'muA'+year+'_all_vvdijet'), '%s_%s'%(func_name, 'muA'+year+'_all_vvdijet'), function, ROOT.RooArgList(mt_res, vvdijet_order1_m, vvdijet_order2_m))
+    func_vvdijet_e = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'elA'+year+'_all_vvdijet'), '%s_%s'%(func_name, 'elA'+year+'_all_vvdijet'), function, ROOT.RooArgList(mt_res, vvdijet_order1_e, vvdijet_order2_e))
+ 
+    func_name = 'expow'
+    function = 'TMath::Power( @0/13000., @2 ) * TMath::Exp( @1*@0/13000.)'
+
+    expow_order2_e = ROOT.RooRealVar( 'expow_order2_elA'+year+'_all_expow', "power2", -2 ,      -100,  20)
+    expow_order1_e = ROOT.RooRealVar( 'expow_order1_elA'+year+'_all_expow', "power1", -50 ,     -200,   50)
+    expow_order2_m = ROOT.RooRealVar( 'expow_order2_muA'+year+'_all_expow', "power2", -2 ,      -100,  20)
+    expow_order1_m = ROOT.RooRealVar( 'expow_order1_muA'+year+'_all_expow', "power1", -50 ,     -200,   50)
+    func_expow_m = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'muA'+year+'_all_expow'), '%s_%s'%(func_name, 'muA'+year+'_all_expow'), function, ROOT.RooArgList(mt_res, expow_order1_m, expow_order2_m))
+    func_expow_e = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'elA'+year+'_all_expow'), '%s_%s'%(func_name, 'elA'+year+'_all_expow'), function, ROOT.RooArgList(mt_res, expow_order1_e, expow_order2_e))
+
+    # First we fit the pdfs to the data
+    resu_dijet_e = func_dijet_e.fitTo(dse,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
+    resu_dijet_m = func_dijet_m.fitTo(dsm,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
+    resu_vvdijet_e = func_vvdijet_e.fitTo(dse,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
+    resu_vvdijet_m = func_vvdijet_m.fitTo(dsm,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
+    resu_expow_e = func_expow_e.fitTo(dse,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
+    resu_expow_m = func_expow_m.fitTo(dsm,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
+    print("===> fit result")
+    resu_dijet_e.Print()
+    print("===> fit result")
+    resu_dijet_m.Print()
+    print("===> fit result")
+    resu_vvdijet_e.Print()
+    print("===> fit result")
+    resu_vvdijet_m.Print()
+    print("===> fit result")
+    resu_expow_e.Print()
+    print("===> fit result")
+    resu_expow_m.Print()
+
+
+    catIndexe = ROOT.RooCategory('pdf_index_el'+year,'Index of Pdf which is active')
+    mypdfse = ROOT.RooArgList("store")
+    mypdfse.add(func_dijet_e)
+    mypdfse.add(func_vvdijet_e)
+    mypdfse.add(func_expow_e)
+    catIndexm = ROOT.RooCategory('pdf_index_mu'+year,'Index of Pdf which is active')
+    mypdfsm = ROOT.RooArgList("store")
+    mypdfsm.add(func_dijet_m)
+    mypdfsm.add(func_vvdijet_m)
+    mypdfsm.add(func_expow_m)
+
+    multipdfe = RooMultiPdf('MultiPdf_elA'+year+'_all_MultiPdf',"All Pdfs e",catIndexe, mypdfse)
+    norm_MultiPdf_e = ROOT.RooRealVar('%s_norm' %( 'MultiPdf_elA'+year+'_all_MultiPdf' ),'normalization_e', ne,0,1000000 )
+    multipdfm = RooMultiPdf('MultiPdf_muA'+year+'_all_MultiPdf',"All Pdfs m",catIndexm, mypdfsm)
+    norm_MultiPdf_m = ROOT.RooRealVar('%s_norm' %( 'MultiPdf_muA'+year+'_all_MultiPdf' ),'normalization_m', nm,0,1000000 )
+
+    #Generate toy with a specific function 
+    singlefunc=False
+    if singlefunc:
+        func_name = 'toy'
+        function = 'TMath::Power( (1-@0/13000.), @1 ) / ( TMath::Power( @0/13000. , @2+ @3*TMath::Log10(@0/13000)))'
+        toy_vvdijet_order1_e = ROOT.RooRealVar( 'toy_vvdijet_order1_elA'+year+'_all_vvdijet', "power1", 40 ,      -100,  100)
+        toy_vvdijet_order2_e = ROOT.RooRealVar( 'toy_vvdijet_order2_elA'+year+'_all_vvdijet', "power2", 2 ,     -50,   50)
+        toy_vvdijet_order3_e = ROOT.RooRealVar( 'toy_vvdijet_order3_elA'+year+'_all_vvdijet', "power3", 2 ,     -50,   50)
+        func_toy_vvdijet = ROOT.RooGenericPdf( 'toy_%s_%s'%(func_name, 'muA'+year+'_all_vvdijet'), '%s_%s'%(func_name, 'muA'+year+'_all_vvdijet'), function, ROOT.RooArgList(mt_res, toy_vvdijet_order1_e, toy_vvdijet_order2_e,toy_vvdijet_order3_e))
+        func_toy_vvdijet.fitTo(dse,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE)) 
+        toydatae = func_toy_vvdijet.generate(ROOT.RooArgSet(mt_res),ne)
+        func_toy_vvdijet.fitTo(dsm,ROOT.RooFit.Save(),ROOT.RooFit.SumW2Error(ROOT.kTRUE))
+        toydatam = func_toy_vvdijet.generate(ROOT.RooArgSet(mt_res),nm)
+        toydatae.SetName ('data_elA'+year+'_mt_res_base')
+        toydatam.SetName ('data_muA'+year+'_mt_res_base')
+        #import_workspace( ws_out, dse)
+        #import_workspace( ws_out, dsm)
     else:
-        print("use el or mu")
-        exit()
+        frame_toy = mt_res.frame(ROOT.RooFit.Title("Unbinned ML fit, el"))
+        dse.plotOn(frame_toy,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+        chi2score_e=[]
+        multipdfse=[func_dijet_e,func_vvdijet_e,func_expow_e]
+        multiresultse=[resu_dijet_e,resu_vvdijet_e,resu_expow_e]
+        for toypdf in multipdfse:
+            toypdf.plotOn(frame_toy)
+            chi2score_e.append((frame_toy.chiSquare()))
+
+        framm_toy = mt_res.frame(ROOT.RooFit.Title("Unbinned ML fit, el"))
+        dsm.plotOn(framm_toy,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+        chi2score_m=[]
+        multipdfsm=[func_dijet_m,func_vvdijet_m,func_expow_m]
+        multiresultsm=[resu_dijet_m,resu_vvdijet_m,resu_expow_m]
+        for toypdf in multipdfsm:
+            toypdf.plotOn(framm_toy)
+            chi2score_m.append((framm_toy.chiSquare()))
+        rseed = ROOT.RooRandom.randomGenerator()
+        rseed.SetSeed(123)
+        toydatae = multipdfse[np.argmin(np.abs(chi2score_e))].generate(ROOT.RooArgSet(mt_res),ne)
+        toydatam = multipdfsm[np.argmin(np.abs(chi2score_m))].generate(ROOT.RooArgSet(mt_res),nm)
+        print('------> score: ', chi2score_e, chi2score_m)
+        print('------------> set index to e: ', np.argmin(np.abs(chi2score_e)), ' m: ', np.argmin(np.abs(chi2score_m)))
+        catIndexe.setIndex(np.argmin(np.abs(chi2score_e)))
+        catIndexm.setIndex(np.argmin(np.abs(chi2score_m)))
+        toydatae.SetName ('data_elA'+year+'_mt_res_base')
+        toydatam.SetName ('data_muA'+year+'_mt_res_base')
+        #import_workspace( ws_out, toydatae)
+        #import_workspace( ws_out, toydatam)
+        #import_workspace( ws_out, dse)
+        #import_workspace( ws_out, dsm)
+
+    frame_e = mt_res.frame(ROOT.RooFit.Title("Unbinned ML fit, el"))
+    frame_m = mt_res.frame(ROOT.RooFit.Title("Unbinned ML fit, mu"))
+
+    #add signals to the plot
+    widthlist=['5','0p01']
+    masslist=['600', '1000', '1600']
+    normalizationlist = {
+        "el":{
+            "5":{
+                "600":{"norm":100,"linecolor":ROOT.kRed,"linestyle":9,
+                },
+                "1000":{"norm":100,"linecolor":ROOT.kViolet,"linestyle":9,
+                },
+                "1600":{"norm":100,"linecolor":ROOT.kAzure,"linestyle":9,
+                },
+            },
+            "0p01":{
+                "600":{"norm":100,"linecolor":ROOT.kRed,"linestyle":1,
+                },
+                "1000":{"norm":100,"linecolor":ROOT.kViolet,"linestyle":1,
+                },
+                "1600":{"norm":100,"linecolor":ROOT.kAzure,"linestyle":1,
+                },
+            }
+        },
+        "mu":{
+            "5":{
+                "600":{"norm":100,"linecolor":ROOT.kRed,"linestyle":9,
+                },
+                "1000":{"norm":100,"linecolor":ROOT.kViolet,"linestyle":9,
+                },
+                "1600":{"norm":100,"linecolor":ROOT.kAzure,"linestyle":9,
+                },
+            },
+            "0p01":{
+                "600":{"norm":100,"linecolor":ROOT.kRed,"linestyle":1,
+                },
+                "1000":{"norm":100,"linecolor":ROOT.kViolet,"linestyle":1,
+                },
+                "1600":{"norm":100,"linecolor":ROOT.kAzure,"linestyle":1,
+                },
+            }
+        }
+    }
+    for ch in ["el","mu"]:
+        for iwid in widthlist:
+            for imass in masslist:
+                year='2018'
+                inputfile0 = 'data_env/sigfit/'+year+'/wssignal_M'+imass+'_W'+iwid+'_'+ch+'.root'
+                wsname = "wssignal_M"+imass+"_W"+iwid+"_"+ch
+                print(inputfile0, " : ", wsname)
+                ifile0 = ROOT.TFile.Open( inputfile0, 'READ' )
+                if not ifile0:
+                    return
+                ws_in0 = ifile0.Get( wsname )
+                pdfname = 'cb_MG_M%s_W%s_%s%s' %(imass,iwid,ch,year)
+                sigModel0 = ws_in0.pdf(pdfname)
+                print(normalizationlist[ch][iwid][imass])
+                if 'el' in ch:
+                    sigModel0.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linecolor']),ROOT.RooFit.LineStyle(normalizationlist[ch][iwid][imass]['linestyle']), ROOT.RooFit.Normalization(normalizationlist[ch][iwid][imass]['norm'],ROOT.RooAbsReal.NumEvent))#,ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linecolor']),ROOT.RooFit.LineStyle(ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linestyle']) ))
+                if 'mu' in ch:
+                    sigModel0.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linecolor']),ROOT.RooFit.LineStyle(normalizationlist[ch][iwid][imass]['linestyle']), ROOT.RooFit.Normalization(normalizationlist[ch][iwid][imass]['norm'],ROOT.RooAbsReal.NumEvent))
+
+    dse.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+    dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+#    toydatae.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson))
+#    toydatam.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson))
+    multipdfse[np.argmin(np.abs(chi2score_e))].plotOn(frame_e, ROOT.RooFit.VisualizeError(multiresultse[np.argmin(np.abs(chi2score_e))], 2), ROOT.RooFit.FillColor(ROOT.kYellow))
+    multipdfsm[np.argmin(np.abs(chi2score_m))].plotOn(frame_m, ROOT.RooFit.VisualizeError(multiresultsm[np.argmin(np.abs(chi2score_m))], 2), ROOT.RooFit.FillColor(ROOT.kYellow))
+    multipdfse[np.argmin(np.abs(chi2score_e))].plotOn(frame_e, ROOT.RooFit.VisualizeError(multiresultse[np.argmin(np.abs(chi2score_e))], 1), ROOT.RooFit.FillColor(ROOT.kGreen))
+    multipdfsm[np.argmin(np.abs(chi2score_m))].plotOn(frame_m, ROOT.RooFit.VisualizeError(multiresultsm[np.argmin(np.abs(chi2score_m))], 1), ROOT.RooFit.FillColor(ROOT.kGreen))
+    multipdfse[np.argmin(np.abs(chi2score_e))].plotOn(frame_e)
+    multipdfsm[np.argmin(np.abs(chi2score_m))].plotOn(frame_m)
+    dse.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+    dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
+#    toydatae.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson))
+#    toydatam.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson))
+
+    print("sum Entries: ", toydatae.sumEntries(), toydatam.sumEntries())
+
+    for ch, frame in zip(["el","mu"],[frame_e, frame_m]):
+        c = ROOT.TCanvas("c","c",0,53,800,740)
+        ROOT.gStyle.SetOptStat(0)
+        c.SetHighLightColor(2);
+        c.Range(0,0,1,1);
+        c.SetFillColor(0);
+        c.SetBorderMode(0);
+        c.SetBorderSize(2);
+        c.SetTickx(1);
+        c.SetTicky(1);
+        c.SetLeftMargin(0.12);
+        c.SetRightMargin(0.02);
+        c.SetTopMargin(0.055);
+        c.SetFrameFillStyle(0);
+        c.SetFrameBorderMode(0);
+        #------------>Primitives in pad: toppad
+        toppad = ROOT.TPad('toppad','toppad',0,0.3 ,1.0,1.0)
+        toppad.SetTickx(1);
+        toppad.SetTicky(1);
+        bottompad = ROOT.TPad('bottompad','bottompad',0,0.0,1.0,0.32)
+        bottompad.SetTickx(1);
+        bottompad.SetTicky(1);
+        canvas_margin(c,toppad,bottompad)
+        toppad.SetFillStyle(4000)
+        toppad.SetFrameFillStyle(1000)
+        toppad.SetFrameFillColor(0)
+        toppad.SetFillColor(0)
+        toppad.SetBorderMode(0)
+        toppad.SetBorderSize(2)
+        #toppad.SetLogy()
+        toppad.SetFrameBorderMode(0)
+        toppad.SetFrameBorderMode(0)
+        toppad.SetLeftMargin(0.15)
+        bottompad.SetFillStyle(4000)
+        bottompad.SetFrameFillStyle(1000)
+        bottompad.SetFrameFillColor(0)
+        bottompad.SetFillColor(0)
+        bottompad.SetBorderMode(0)
+        bottompad.SetBorderSize(2)
+        bottompad.SetFrameBorderMode(0)
+        bottompad.SetFrameBorderMode(0)
+        toppad.Draw()
+        bottompad.Draw()
+
+        c.cd()
+        c.Update()
+        c.RedrawAxis()
+        cframe = c.GetFrame()
+        cframe.Draw()
+        toppad.cd()
+        frame_4fa51a0__1 = ROOT.TH1D("frame_4fa51a0__1","Unbinned ML fit, %s %s"%(ch,year),NBIN_,MIN_,MAX_)
+        frame_4fa51a0__1.GetXaxis().SetTitle("m_{T}^{l#nu#gamma} [GeV]");
+        frame_4fa51a0__1.GetXaxis().SetLabelFont(42);
+        frame_4fa51a0__1.GetXaxis().SetLabelSize(0.05);
+        frame_4fa51a0__1.GetXaxis().SetTitleSize(0.05);
+        frame_4fa51a0__1.GetXaxis().SetTitleOffset(1);
+        frame_4fa51a0__1.GetXaxis().SetTitleFont(42);
+        frame_4fa51a0__1.GetYaxis().SetTitle("Events / 20 GeV");
+        frame_4fa51a0__1.GetYaxis().SetLabelFont(42);
+        frame_4fa51a0__1.GetYaxis().SetLabelSize(0.05);
+        frame_4fa51a0__1.GetYaxis().SetTitleSize(0.05);
+        frame_4fa51a0__1.GetYaxis().SetTitleFont(42);
+        frame_4fa51a0__1.GetYaxis().SetRangeUser(0.8e-2,1e4)
+        frame_4fa51a0__1.GetXaxis().SetLabelOffset(999)
+        frame_4fa51a0__1.GetXaxis().SetLabelSize(0)
+        frame_4fa51a0__1.Draw("AXISSAME");
+        frame.Draw("same E")
+
+        hpull = frame.pullHist()
+        frame3 = mt_res.frame(ROOT.RooFit.Title("Pull Distribution"))
+        frame3.addPlotable(hpull, "P")
+
+        leg = ROOT.TLegend(0.25,0.7,0.65,0.9);
+        leg.SetBorderSize(0);
+        leg.SetLineStyle(1);
+        leg.SetLineWidth(1);
+        entry=leg.AddEntry(frame,"ToyData","pe");
+        entry.SetFillStyle(1001);
+        entry.SetMarkerStyle(8);
+        entry.SetMarkerSize(1.5);
+        entry.SetLineStyle(1);
+        entry.SetLineWidth(2);
+        entry.SetTextFont(42);
+        entry.SetTextSize(0.03);
+        entry=leg.AddEntry("","Data fit","l");
+        entry.SetFillStyle(1001);
+        entry.SetLineStyle(1)
+        entry.SetLineWidth(2)
+        entry.SetLineColor(ROOT.kBlue);
+        entry.SetMarkerStyle(20)
+        entry.SetTextFont(42)
+        entry.SetTextSize(0.03)
+        htmp=ROOT.TH1F("htmp","htmp",10,0,1)
+        htmp.SetFillColor(ROOT.kGreen)
+        entry=leg.AddEntry(htmp,"Fit uncert. 68% CL","f");
+        entry.SetFillStyle(1001)
+        entry.SetLineStyle(1)
+        entry.SetLineWidth(2)
+        entry.SetMarkerStyle(20)
+        entry.SetTextFont(42)
+        entry.SetTextSize(0.03)
+        htmp2=ROOT.TH1F("htmp2","htmp2",10,0,1)
+        htmp2.SetFillColor(ROOT.kYellow)
+        entry=leg.AddEntry(htmp2,"Fit uncert. 95% CL","f");
+        entry.SetFillStyle(1001)
+        entry.SetLineStyle(1)
+        entry.SetLineWidth(2)
+        entry.SetMarkerStyle(20)
+        entry.SetTextFont(42)
+        entry.SetTextSize(0.03)
+        leg.Draw()
+
+
+        leg2 = ROOT.TLegend(0.55,0.5,0.9,0.9);
+        leg2.SetBorderSize(0);
+        leg2.SetLineStyle(1);
+        leg2.SetLineWidth(1);
+        entry=leg2.AddEntry("","Signal 600GeV, narrow","l");
+        entry.SetFillStyle(1001);
+        entry.SetLineStyle(1)
+        entry.SetLineWidth(2)
+    print(selection)
+    exit()
     print('make histo')
     Hmt = myfilter.Histo1D("mt_res")
     Hmt.Draw()
@@ -938,7 +1703,7 @@ def makeRooMultiPdfWorkspace(year,baseDir,skimtree,skimfile):
 
     #prepare Working Space with Roofit
     #Reading Data
-    mt_res = ROOT.RooRealVar("mt_res", "mt_res", 200, 2000)
+    mt_res = ROOT.RooRealVar("mt_res", "mt_res", 230, 2200)
     mt_res.setRange( MIN_ ,MAX_)
     F=ROOT.TFile(baseDir+'/el'+year+'_'+skimfile)
     tree=F.Get(skimtree)
@@ -1116,10 +1881,10 @@ def makeRooMultiPdfWorkspace(year,baseDir,skimtree,skimfile):
         catIndexm.setIndex(np.argmin(np.abs(chi2score_m)))
         toydatae.SetName ('data_elA'+year+'_mt_res_base')
         toydatam.SetName ('data_muA'+year+'_mt_res_base')
-        import_workspace( ws_out, toydatae)
-        import_workspace( ws_out, toydatam)
-        #import_workspace( ws_out, dse)
-        #import_workspace( ws_out, dsm)
+        #import_workspace( ws_out, toydatae)
+        #import_workspace( ws_out, toydatam)
+        import_workspace( ws_out, dse)
+        import_workspace( ws_out, dsm)
 
     import_workspace( ws_out, norm_MultiPdf_e )
     import_workspace( ws_out, norm_MultiPdf_m )
@@ -1259,7 +2024,7 @@ def prepareWS(year,baseDir,skimtree,skimfile):
 
     #prepare Working Space with Roofit
     #Reading Data
-    mt_res = ROOT.RooRealVar("mt_res", "mt_res", 0, 2000);
+    mt_res = ROOT.RooRealVar("mt_res", "mt_res", 0, 3000);
     mt_res.setRange( MIN_ ,MAX_)
     F=ROOT.TFile(baseDir+'/el'+year+'_'+skimfile)
     tree=F.Get(skimtree)
@@ -2345,7 +3110,7 @@ def checkenv():
 
 skimtree   =  "outputTree"
 skimfile     =  "skim_1in5.root"
-#skimfile     =  "skim.root"
+skimfile     =  "skim.root"
 
 #testBias()
 
@@ -2353,14 +3118,14 @@ skimfile     =  "skim_1in5.root"
 #makeFinalplots(data_outDir,skimtree)
 #exit()
 
-#for year in ['2016','2017','2018']:
-for year in ['2017']:
+for year in ['2016','2017','2018']:
+#for year in ['2018']:
     #goodnessOfFit(year,data_outDir,skimtree,skimfile)
     #prepareWS(year,data_outDir,skimtree,skimfile) # Old, do not use
     makeRooMultiPdfWorkspace(year,data_outDir,skimtree,skimfile)
     #for ch in ['el','mu']:
     #    CombineGoF(ch, year)
-    #    prepare_data(5, year, ch, skimtree, data_outDir+'/'+ch+year+'_'+skimfile)
+        #prepare_data(5, year, ch, skimtree, data_outDir+'/'+ch+year+'_'+skimfile)
 
 #testBias()
 #pltToyFit()
