@@ -142,6 +142,10 @@ class RunModule : public virtual RunModuleBase {
         TH2F *_effhist_jet_c;
         TH2F *_effhist_jet_b;
         TH2F *_effhist_jet_l;
+        double deepjet_wp_loose;
+        double deepjet_wp_medium;
+        double deepjet_wp_tight;
+        double deepjet_wp;
 
 };
 
@@ -197,6 +201,7 @@ namespace OUT {
     float jet_btagSF;
     float jet_btagSFUP;
     float jet_btagSFDN;
+    int jet_DeepJetSF_n;
 #endif
 
 

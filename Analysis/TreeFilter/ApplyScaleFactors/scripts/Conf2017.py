@@ -106,11 +106,16 @@ def get_bjet_sf(options) :
     base_path = '%s/TreeFilter/ApplyScaleFactors/data/' %_workarea
 
     bjet_sf = Filter( 'AddBJetSF' )
-    bjet_sf.add_var( 'FilePath', '%s/DeepJet_102XSF_WP_V1.csv' %base_path )
+    bjet_sf.add_var( 'FilePath', '%s/DeepFlavour_94XSF_WP_V3_B_F.csv' %base_path )
     bjet_sf.add_var( 'HistPath', '%s/2017/btageff2017mu.root' %base_path )
     bjet_sf.add_var( 'HistLJetEff', "heffl" )
     bjet_sf.add_var( 'HistBJetEff', "heffb" )
     bjet_sf.add_var( 'HistCJetEff', "heffc" )
+
+    bjet_sf.add_var( 'DeepJet_Loose',  0.0521 )
+    bjet_sf.add_var( 'DeepJet_Medium', 0.3033 )
+    bjet_sf.add_var( 'DeepJet_Tight',  0.7489 )
+    bjet_sf.add_var( 'CutPoint', "medium" )
 
     return bjet_sf
 

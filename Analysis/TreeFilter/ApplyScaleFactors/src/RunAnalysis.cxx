@@ -147,6 +147,7 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
     outtree->Branch("jet_btagSF",   &OUT::jet_btagSF,   "jet_btagSF/F");
     outtree->Branch("jet_btagSFUP", &OUT::jet_btagSFUP, "jet_btagSFUP/F");
     outtree->Branch("jet_btagSFDN", &OUT::jet_btagSFDN, "jet_btagSFDN/F");
+    outtree->Branch("jet_DeepJetSF_n", &OUT::jet_DeepJetSF_n, "jet_DeepJetSF_n/I");
 #endif
     // store the lumis for averaging
     /*float int_lumi_b = 5933692351.209;
@@ -399,14 +400,31 @@ void RunModule::initialize(TChain *chain, TTree *outtree, TFile *outfile,
 
             itr = mod_conf.GetInitData().find("FilePath");
             if (itr != mod_conf.GetInitData().end()) {
-              calib =  new BTagCalibration("csvv1", (itr->second).c_str());
+              calib =  new BTagCalibration("deepjet", (itr->second).c_str());
+              
+              itr = mod_conf.GetInitData().find("DeepJet_Loose");
+              if (itr != mod_conf.GetInitData().end()) deepjet_wp_loose = std::stod(itr->second);
+              itr = mod_conf.GetInitData().find("DeepJet_Medium");
+              if (itr != mod_conf.GetInitData().end()) deepjet_wp_medium = std::stod(itr->second);
+              itr = mod_conf.GetInitData().find("DeepJet_Tight");
+              if (itr != mod_conf.GetInitData().end()) deepjet_wp_tight = std::stod(itr->second);
 
               BTagEntry::OperatingPoint cutpoint = BTagEntry::OP_MEDIUM;
+              deepjet_wp = deepjet_wp_medium;
               itr = mod_conf.GetInitData().find("CutPoint");
               if (itr != mod_conf.GetInitData().end()) {
-                if (itr->second == "tight")  cutpoint = BTagEntry::OP_TIGHT;
-                if (itr->second == "medium") cutpoint = BTagEntry::OP_MEDIUM;
-                if (itr->second == "loose")  cutpoint = BTagEntry::OP_LOOSE;
+                if (itr->second == "tight")  {
+                    cutpoint = BTagEntry::OP_TIGHT;
+                    deepjet_wp = deepjet_wp_tight;
+                }
+                if (itr->second == "medium") {
+                    cutpoint = BTagEntry::OP_MEDIUM;
+                    deepjet_wp = deepjet_wp_medium;
+                }
+                if (itr->second == "loose") {
+                    cutpoint = BTagEntry::OP_LOOSE;
+                    deepjet_wp = deepjet_wp_loose;
+                }
               }
               reader = new BTagCalibrationReader(cutpoint,  // operating poin
                                            "central",             // central sys type
@@ -902,6 +920,7 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
     OUT::jet_btagSF = 1.0;
     OUT::jet_btagSFUP = 1.0;
     OUT::jet_btagSFDN = 1.0;
+    OUT::jet_DeepJetSF_n = 0;
     if (OUT::isData) {
         return;
     }
@@ -916,7 +935,7 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
       std::cout<< "pt  "<< OUT::jet_pt->at(idx)
                << "eta "<< OUT::jet_eta->at(idx)
                << "flav"<< OUT::jet_flav->at(idx)
-               << "tag "<< OUT::jet_btagged->at(idx)
+               << "tag "<< (OUT::jet_bTagDeepb->at(idx) > deepjet_wp)
                <<std::endl; 
 
       if (abs(OUT::jet_flav->at(idx))==5) {
@@ -981,10 +1000,11 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
       }
 
       // calculate event scale factor
-      if (OUT::jet_btagged->at(idx)) {
+      if (OUT::jet_bTagDeepb->at(idx) > deepjet_wp) {
           OUT::jet_btagSF   = OUT::jet_btagSF*jet_scalefactor;
           OUT::jet_btagSFUP = OUT::jet_btagSFUP*jet_scalefactor_up;
           OUT::jet_btagSFDN = OUT::jet_btagSFDN*jet_scalefactor_do;
+          OUT::jet_DeepJetSF_n++;
           std::cout<< "accepted: "<< jet_scalefactor << " " <<OUT::jet_btagSF <<std::endl; 
       } else {
           // FIXME: uncertainty from SF and eff are independent
