@@ -922,6 +922,11 @@ void RunModule::AddBJetSF(ModuleConfig & /*config*/) const {
     OUT::jet_btagSFDN = 1.0;
     OUT::jet_DeepJetSF_n = 0;
     if (OUT::isData) {
+        for (int idx; idx<OUT::jet_n; idx++) {
+            if (OUT::jet_bTagDeepb->at(idx) > deepjet_wp) {
+                OUT::jet_DeepJetSF_n++;
+            }
+        }
         return;
     }
     
