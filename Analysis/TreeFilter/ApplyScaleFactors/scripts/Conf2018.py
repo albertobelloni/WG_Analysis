@@ -117,6 +117,11 @@ def get_bjet_sf(options) :
     bjet_sf.add_var( 'HistBJetEff', "heffb" )
     bjet_sf.add_var( 'HistCJetEff', "heffc" )
 
+    bjet_sf.add_var( 'DeepJet_Loose',  0.0494 )
+    bjet_sf.add_var( 'DeepJet_Medium', 0.2770 )
+    bjet_sf.add_var( 'DeepJet_Tight',  0.7264 )
+    bjet_sf.add_var( 'CutPoint', "medium" )
+
     return bjet_sf
 
 def get_photon_sf(options) :
