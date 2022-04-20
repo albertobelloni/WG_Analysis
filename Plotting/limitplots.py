@@ -92,7 +92,7 @@ ll = ROOT.TLatex()
 ll.SetNDC()
 ll.SetTextSize(0.04)
 ll.SetTextFont(42)
-ll.DrawLatex(0.7,.95, "13TeV, 137 fb^{-1}")
+ll.DrawLatex(0.65,.95, "13TeV, 138*0.2 fb^{-1}")
 
 hmax = axis.GetMaximum()
 hmin = axis.GetMinimum()

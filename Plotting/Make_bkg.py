@@ -10,33 +10,30 @@ def main() :
     sampManElG.ReadSamples( _SAMPCONF )
 
     plotvarsbase = [ 
-                 #("m_{T}^{l#nu#gamma}","mt_res", 'GeV',(100,0,2500)),
-                 #("m_{T}^{l#nu#gamma}_pT(#gamma)","ph_pt[0]:mt_res", 'GeV',(50,0,2500,50,0,2500)),
-                 ("p_{T}(#gamma)","ph_pt[0]"    , 'GeV' ,(20,0,500)),
-                 ("#eta(#gamma)","ph_eta[0]"    , '' ,(20,-2,2)),
-                 ("#phi(#gamma)","ph_phi[0]"    , '' ,(20,-3.14,3.14)),
-                 ("MET"         ,"met_pt"     , 'GeV'  ,(20,0,500)),
-                 ("#phi(MET)"         ,"met_phi"    , ''   ,(20,-3.14,3.14)),
+                 ("m_{T}^{l#nu#gamma}","mt_res", 'GeV',(50,0,2500)),
+                 #("p_{T}(#gamma)","ph_pt[0]"    , 'GeV' ,(20,50,800)),
+                 #("#eta(#gamma)","ph_eta[0]"    , '' ,(20,-2,2)),
+                 #("#phi(#gamma)","ph_phi[0]"    , '' ,(20,-3.14,3.14)),
+                 #("MET"         ,"met_pt"     , 'GeV'  ,(20,0,500)),
+                 #("#phi(MET)"         ,"met_phi"    , ''   ,(20,-3.14,3.14)),
                 ]
     plotvarsel=[ 
-                 ("p_{T}(e)","el_pt[0]"  , 'GeV'   ,(20,0,500)),
-                 ("#eta(e)","el_eta[0]"     , '', (20,-3,3)),
+                 ("p_{T}(e)","el_pt[0]"  , 'GeV'   ,(20,0,800)),
+                 ("#eta(e)","el_eta[0]"  , '', (20,-3,3)),
                  ("#phi(e)","el_phi[0]"  , ''   ,(20,-3.14,3.14)),
-                 #("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),
                ]
     plotvarsmu=[ 
-                 ("p_{T}(#mu)","mu_pt[0]"   ,'GeV'  ,(20,0,500)),
+                 ("p_{T}(#mu)","mu_pt[0]"   ,'GeV'  ,(20,0,800)),
                  ("#eta(#mu)","mu_eta[0]"   , ''  ,(20,-3,3)),
                  ("#phi(#mu)","mu_phi[0]"  , ''   ,(20,-3.14,3.14)),
-                 #("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),
                ]
-    #plotvarsel=[]
-    plotvarsbase=[]
-    #plotvarsmu=[]
+    plotvarsel=[]
+    plotvarsmu=[]
+    #plotvarsbase=[]
     #plotvarsel=[("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),]
     #plotvarsmu=[("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),]
-    for ch, samples in zip(["el","mu"],[sampManElG,sampManMuG]):
     #for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
+    for ch, samples in zip(["el","mu"],[sampManElG,sampManMuG]):
         labelname = "%i Muon Channel" %options.year if ch == "mu" else "%i Electron Channel" %options.year
         lepname = "e" if ch == "el" else "#mu"
         #labelname+=" scaled to 2016 luminosity"
@@ -47,12 +44,13 @@ def main() :
         if options.year == 2018:
             weight = weight.replace("prefweight","1")
         print(ch, samples)
-        weight =weight.replace("PUWeight","PUWeight*0.2")
-        #weight =weight.replace("PUWeight","PUWeight")
+        #weight =weight.replace("PUWeight","PUWeight*0.2")
         print(selection ,weight)
         ## prepare config
-        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e8,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False
-        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-8,"ymax":10,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False
+        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e12,"weight":weight, "ymax_scale":1.5,"unblind":False, "bywidth":False}# "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False 
+        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-7,"ymax":1e3,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":True} 
+        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e8,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} 
+
         label_config  = {"extra_label":labelname, "extra_label_loc":(.17,.82), "labelStyle":str(options.year)}
         legend_config = {'legendLoc':"Double","legendTranslateX":0.3, "legendCompress":1, "fillalpha":.5, "legendWiden":.9}
 
@@ -65,8 +63,8 @@ def main() :
         for xlabel, var, unit, vrange in plotvars:
             print('xlabel, var, vrange', xlabel, var, vrange)
             hist_config["xlabel"] = xlabel
-            hist_config["doratio"] = True
-            hist_config["drawsignal"] = False
+            hist_config["doratio"] = False
+            hist_config["drawsignal"] = True
             hist_config["xunit"] = unit
             samples.Draw(var, selection,vrange , hist_config,legend_config,label_config)
             ## save histogram

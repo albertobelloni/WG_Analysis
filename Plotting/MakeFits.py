@@ -14,7 +14,7 @@ from collections import OrderedDict,defaultdict
 import selection_defs as defs
 from pprint import pprint
 import json
-
+from ROOT import gSystem
 from SampleInfo import SampleInfo
 from SampleManager import f_Obsolete
 
@@ -46,9 +46,9 @@ options = parser.parse_args()
 _WLEPBR = (1.-0.6741)
 #_XSFILE   = 'cross_sections/photon16_smallsig.py'
 _XSFILE   = 'cross_sections/photon_expect.py'
-_LUMI16   = 36000
-_LUMI17   = 41000
-_LUMI18   = 59740
+_LUMI16   = 36330*0.2
+_LUMI17   = 41530*0.2
+_LUMI18   = 59740*0.2
 
 DEBUG = 0
 
@@ -80,16 +80,20 @@ testfunc = "_atlas"
 #testfunc = '_vvdijet'
 
 sourceOfBKG = 'bkgfit_data'
-injectsignal='0.1'
+injectsignal='1'
 
-genindex='0'
+# dijet 1,2,3,4: 0,1,2,3
+# vvdijet 1,2,3,4: 4,5,6,7
+# expow 1,2,3,4: 8,9,10,11
+
+genindex='2'
 fitindex='-1'
 
-ntoy = '120'
-rseed = '9024'
-rname = '_test7'
+ntoy = '150'
+rseed = '160'
+rname = '_expow2enve_160'
 
-options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean/Plotting/data/wg/"
+options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg/"
 
 def main() :
 
@@ -137,12 +141,12 @@ def main() :
 
     bins = [
         # mu/el channel, photons in th barrel/endcap
-    #    {'channel' : 'mu', 'year': 2016},
-    #    {'channel' : 'el', 'year': 2016},
+        {'channel' : 'mu', 'year': 2016},
+        {'channel' : 'el', 'year': 2016},
         {'channel' : 'mu', 'year': 2017},
         {'channel' : 'el', 'year': 2017},
-    #    {'channel' : 'mu', 'year': 2018},
-    #    {'channel' : 'el', 'year': 2018},
+        {'channel' : 'mu', 'year': 2018},
+        {'channel' : 'el', 'year': 2018},
     ]
 
     global binid
@@ -157,13 +161,13 @@ def main() :
         raise RuntimeError
 
     if options.outputDir is None :
-        options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean/Plotting/data/wg"
+        options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg"
     if options.outputDir is not None :
         if not os.path.isdir( options.outputDir ) :
             os.makedirs( options.outputDir )
 
     if options.baseDir is None :
-        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis_clean/Plotting/data/"
+        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/"
 
     if options.combineDir == None:
         options.combineDir = "/data/users/yihuilai/combine/CMSSW_11_0_0/src/"
@@ -172,7 +176,7 @@ def main() :
     #signal_masses   = [900]
     #signal_masses   = [200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1200, 1400,
     #                   1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3500, 4000]
-    signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
+    signal_masses    = [300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
     signal_widths    = ['5', '0p01']
     if options.GoF:
         signal_masses    = [600]
@@ -519,6 +523,112 @@ class MakeLimits( ) :
         # Make Signal uncertainty plots --Yihui
         makesysplots=False
         if makesysplots:
+            c=ROOT.TCanvas("c","c",1200,600)
+            c.SetFillColor(0)
+            c.SetBorderMode(0)
+            c.SetBorderSize(2)
+            c.SetFrameBorderMode(0)
+            ROOT.gStyle.SetOptStat(0)
+            c.SetLogy()
+            leg = ROOT.TLegend(0.72,0.3,0.85,0.8)
+            leg.SetBorderSize(0)
+            leg.SetLineStyle(1)
+            leg.SetLineWidth(1)
+            i=0
+            xs={}
+            ys={}
+            Graphs={}
+            gm = ROOT.TMultiGraph()
+            signal_masses    = [300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
+            from array import array
+            n = len(signal_masses)
+            graphColors = [ROOT.kBlack, ROOT.kGray+1, ROOT.kRed +1, ROOT.kAzure+1, ROOT.kAzure-2,
+               ROOT.kSpring-1, ROOT.kYellow -2 , ROOT.kYellow+1,
+               ROOT.kRed, ROOT.kOrange, ROOT.kGreen, ROOT.kBlue, ROOT.kBlack, ROOT.kBlack, ROOT.kBlack ]
+            for ch in ['el','mu']:
+                for wid in ['5']:#,'0p01']:
+                    for year in ['2016','2017','2018']:
+                           labelStyle = ch+'_'+year+wid
+                           labelStyle = labelStyle.replace("5",",#Gamma_{x}/m_{x}=5%")
+                           labelStyle = labelStyle.replace("0p01",",#Gamma_{x}/m_{x}=0.01%")
+                           if ch == 'el':
+                               sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_el_eff','CMS_el_scale','CMS_el_trig','pdf','qcd_scale', 'CMS_jer','CMS_jec','CMS_pile','CMS_bjetsf','CMS_psv']
+                           else:
+                               sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_mu_eff','CMS_mu_scale','CMS_mu_trig','pdf','qcd_scale', 'CMS_jer','CMS_jec','CMS_pile','CMS_bjetsf','CMS_psv']
+                           xs[labelStyle] = array( 'd' )
+                           ys[labelStyle] = array( 'd' )
+                           totunc=0
+                           for isigm in signal_masses:
+                               xs[labelStyle].append( isigm )
+                               for isys in sys_error:
+                                   sigkey = "M%i_W%s_%s%s" %(isigm,wid,ch,year)
+                                   if float(self.signals[sigkey]["sys"][isys][0]) > float(self.signals[sigkey]["sys"][isys][1]):
+                                       syseUp = float(self.signals[sigkey]["sys"][isys][0])
+                                       syseDown = float(self.signals[sigkey]["sys"][isys][1])
+                                   else:
+                                       syseUp = float(self.signals[sigkey]["sys"][isys][1])
+                                       syseDown = float(self.signals[sigkey]["sys"][isys][0]) 
+                                   totunc+=( 100*(abs(syseUp-1)+abs(syseDown-1))/2.0 )**2
+                               ys[labelStyle].append( ROOT.TMath.Sqrt(totunc) )
+
+                           Graphs[labelStyle] = ROOT.TGraph( n, xs[labelStyle],ys[labelStyle])
+                           Graphs[labelStyle].SetMarkerStyle(20)
+                           Graphs[labelStyle].SetMarkerColor(graphColors[i])
+                           Graphs[labelStyle].SetLineColor(graphColors[i])
+                           Graphs[labelStyle].SetLineWidth(2)
+                           gm.Add(Graphs[labelStyle])
+                           entry=leg.AddEntry(Graphs[labelStyle],labelStyle ,"lp")
+                           entry.SetFillStyle(1001)
+                           entry.SetMarkerStyle(9)
+                           entry.SetMarkerSize(1.5)
+                           entry.SetLineStyle(1)
+                           entry.SetLineWidth(3)
+                           entry.SetTextFont(42)
+                           entry.SetTextSize(0.03)
+                           i+=1
+            gm.Draw("ALP same")
+            gm.GetXaxis().SetTitle("m_{X} [GeV]")
+            gm.GetXaxis().SetTitleSize(0.05)
+            gm.GetXaxis().SetTitleOffset(0.8)
+            gm.GetXaxis().SetTitleFont(42)
+            gm.GetYaxis().SetTitle("Relative uncertainty (%)")
+            gm.GetYaxis().SetLabelFont(42)
+            gm.GetYaxis().SetLabelSize(0.05)
+            gm.GetYaxis().SetTitleSize(0.05)
+            gm.GetYaxis().SetTitleFont(42)
+            gm.GetYaxis().SetTitleOffset(0.8)
+            gm.GetXaxis().SetLimits(200,2600)  # #
+            gm.GetXaxis().SetRangeUser(200,2600)  # #
+            gm.GetYaxis().SetRangeUser(1,100)  # #
+            leg.Draw()
+            tex = ROOT.TLatex(0.14,0.95,"CMS")
+            tex.SetNDC()
+            tex.SetTextAlign(13)
+            tex.SetTextSize(0.048)
+            tex.SetLineWidth(2)
+            tex.Draw()
+            labeltext = ' (13 TeV)'
+            tex2 = ROOT.TLatex(0.75,0.95,labeltext)
+            tex2.SetNDC()
+            tex2.SetTextAlign(13)
+            tex2.SetTextFont(42)
+            tex2.SetTextSize(0.03648)
+            tex2.SetLineWidth(2)
+            tex2.Draw()
+            line = ROOT.TLine(200,1,2000,1);
+            line.SetLineStyle(2)
+            line.SetLineWidth(2)
+            line.Draw()
+            line2 = ROOT.TLine(200,10,2000,10);
+            line2.SetLineStyle(2)
+            line2.SetLineWidth(2)
+            line2.Draw()
+            c.SaveAs('sys_all.pdf')
+            c.SaveAs('sys_all.C')
+            input("")
+            exit()
+
+
             for ch in ['el','mu']:
                 for wid in ['5','0p01']:
                     for year in ['2016','2017','2018']:
@@ -538,11 +648,11 @@ class MakeLimits( ) :
                            labelStyle = ch+'_'+wid+'_'+year+'_'+index
                            signal_masses    = [300, 350, 400, 450, 600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000]
                            if ch == 'el':
-                               sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_el_eff','CMS_el_scale','CMS_el_trig','pdf', 'qcd_scale',]
+                               sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_el_eff','CMS_el_scale','CMS_el_trig','pdf',]
                            else:
-                               sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_mu_eff','CMS_mu_scale','CMS_mu_trig','pdf', 'qcd_scale',]
+                               sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_mu_eff','CMS_mu_scale','CMS_mu_trig','pdf',]
                            if index=='B':
-                               sys_error = ['pdf', 'qcd_scale', 'CMS_jer','CMS_jec','CMS_pile','CMS_bjetsf','CMS_psv']
+                               sys_error = ['qcd_scale', 'CMS_jer','CMS_jec','CMS_pile','CMS_bjetsf','CMS_psv']
                                if year != '2018': sys_error.append('CMS_pref')
 
                            nickName = {'CMS_psv':'PSV', 'CMS_jer':'JER', 'qcd_scale':'qcd scale', 'CMS_jec':'JEC','CMS_pile':'PileUp', 'CMS_el_eff':'Electron ID', 'CMS_bjetsf':'BJet', 'CMS_ph_eff':'Photon ID', 'CMS_pref':'Prefire', 'CMS_el_trig':'Electron Trigger', 'pdf':'PDF', 'CMS_el_scale':'Electron Energy', 'CMS_ph_scale':'Photon Energy','CMS_mu_eff':'Muon ID','CMS_mu_trig':'Muon Trigger','CMS_mu_scale':'Muon Energy'}
@@ -565,7 +675,6 @@ class MakeLimits( ) :
                                y_eus[isys] = array( 'd' )
                                y_eds[isys] = array( 'd' )
                                for isigm in signal_masses:
-
                                    sigkey = "M%i_W%s_%s%s" %(isigm,wid,ch,year)
                                    if float(self.signals[sigkey]["sys"][isys][0]) > float(self.signals[sigkey]["sys"][isys][1]):
                                        syseUp = float(self.signals[sigkey]["sys"][isys][0])
@@ -577,8 +686,8 @@ class MakeLimits( ) :
                                    xes[isys].append( 0 )
                                    #print(syseUp, syseDown)
                                    ys[isys].append( 100*(abs(syseUp-1)+abs(syseDown-1))/2.0 )
-                                   y_eus[isys].append(100*abs( abs(syseUp-1) - (abs(syseUp-1)+abs(syseDown-1))/2.0))
-                                   y_eds[isys].append(100*abs(abs(syseDown-1)-(abs(syseUp-1)+abs(syseDown-1))/2.0))
+                                   y_eus[isys].append( 100*abs(abs(syseUp-1)-abs(syseDown-1))/2.0 )
+                                   y_eds[isys].append( 100*abs(abs(syseUp-1)-abs(syseDown-1))/2.0 )
                                Graphs[isys] = ROOT.TGraphAsymmErrors( n, xs[isys],ys[isys], xes[isys],xes[isys] ,y_eds[isys],y_eus[isys] )
                                Graphs[isys].SetMarkerStyle(20)
                                Graphs[isys].SetMarkerColor(graphColors[i])
@@ -643,7 +752,7 @@ class MakeLimits( ) :
                            labeltext = '36 fb^{-1} (13 TeV)'
                            if labelStyle:
                                if labelStyle.count('2016') :
-                                   labeltext = '35.9 fb^{-1} (13 TeV)'
+                                   labeltext = '36.3 fb^{-1} (13 TeV)'
                                if labelStyle.count('2017') :
                                    labeltext = '41.5 fb^{-1} (13 TeV)'
                                if labelStyle.count('2018') :
@@ -664,7 +773,8 @@ class MakeLimits( ) :
                            line2.SetLineWidth(2)
                            line2.Draw()
                            c.SaveAs('sys_'+labelStyle+'.pdf')
-                           exit()
+                           c.SaveAs('sys_'+labelStyle+'.C')
+            exit()
         #---------------------------------------
         # Prepare the data cards for limits
         #---------------------------------------
@@ -1029,7 +1139,8 @@ class MakeLimits( ) :
             all_binids.append(bin_id)
             if self.noShapeUnc:
                 card_entries.append( 'shapes Resonance %s %s %s:%s'\
-                  %( bin_id, sig['file'], sig['workspace'], sig['pdf'] ) )
+                  #%( bin_id, sig['file'], sig['workspace'], sig['pdf'] ) ) 
+                  %( bin_id, sig['file'].replace('/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg/','.'), sig['workspace'], sig['pdf'] ) ) # For exo-datacards -- Yihui
             else:
                 card_entries.append( 'shapes Resonance %s %s %s:%s %s:%s'\
                   %( bin_id, sig['file'], sig['workspace'], sig['pdf'], sig['workspace'], sig['pdf_sys'] ) )
@@ -1041,7 +1152,9 @@ class MakeLimits( ) :
                 if options.useHistTemp :
                     bkg_entry = bkg_entry.replace('dijet', 'datahist' )
                 card_entries.append( 'shapes %s %s %s %s:%s' %( bkgname.ljust( max_name_len ),
-                    bin_id, bkg.GetOutputName(options.outputDir,**ibin).ljust( max_path_len ), bkg.GetWSName(),
+                    bin_id, 'data/'+str(ibin['year'])+'/workspace_all.root',bkg.GetWSName(),
+                    #bin_id, bkg.GetOutputName(options.outputDir,**ibin).ljust( max_path_len ).replace('/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg/','.'), bkg.GetWSName(), # For exo-datacards -- Yihui
+                    #bin_id, bkg.GetOutputName(options.outputDir,**ibin).ljust( max_path_len ), bkg.GetWSName(),
                     bkg.GetPDFName( self.var , ibin['channel'] + cuttag, ibin['year']) ) )
 
         for ibin in viablebins:
@@ -1049,9 +1162,9 @@ class MakeLimits( ) :
             ###  DATA (=1) X CH
             #temp no toydata -- Yihui
             #data = self.datas[self.dataname+binid(ibin)]
-            #Yihui -- use real data instead of toy
             if options.usedata:
-                card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, options.baseDir+'/'+sourceOfBKG+'/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) )
+                card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, 'data/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) ) # For exo-datacards -- Yihui
+                #card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, options.baseDir+'/'+sourceOfBKG+'/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) )
             else:
                 card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, data['file'], data['workspace'], data['data'][cuttag] ) )
 
@@ -1177,16 +1290,6 @@ class MakeLimits( ) :
         #       bkg_norms = ['-'] + ['1.30' if namebkg == bkgname else '-' for namebkg in self.backgrounds]
         #       card_entries.append('%s_norm lnN    '%bkgname + '    '.join( bkg_norms ))
 
-        #parameter errors
-        ##for iparname, iparval in self.params.iteritems():
-        ##    ## FIXME stopgap measure 
-        ##    #add flatParam regardless name, help relate paras --Yihui
-        ##    card_entries.append('%s flatParam'%iparname)
-            #if any([ ibin['channel']+cuttag+str(ibin["year"]) in iparname for ibin in viablebins]):
-            #    if self.floatBkg:
-            #        card_entries.append('%s flatParam'%iparname)
-            #    else:
-            #        card_entries.append('%s param %.2f %.2f'%(iparname, iparval[0], iparval[1]))
         #Yihui -- use MultiPdf
         looplist=[]
         if 'mu2016' in outputCard: looplist.append('muA2016')
@@ -1196,13 +1299,19 @@ class MakeLimits( ) :
         elif 'el2017' in outputCard: looplist.append('elA2017')
         elif 'el2018' in outputCard: looplist.append('elA2018')
         elif 'all' in outputCard: looplist = ['elA2016','elA2017','elA2018','muA2016','muA2017','muA2018']
+        #elif 'all' in outputCard: looplist = ['elA2018','muA2018','elA2017','muA2017']
         else: exit()
         for ich in looplist:
             if ich =='elA2016' or ich =='elA2018' :
                 varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow']
             else:
                 varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow','expow_order3__all_expow','vvdijet_order3__all_vvdijet']
-            varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow']
+            varnames=['vvdijet_order1__all_vvdijet','vvdijet_order2__all_vvdijet','dijet_order1__all_dijet','dijet_order2__all_dijet','expow_order1__all_expow','expow_order2__all_expow'] # All order 2
+            varnames=['vvdijet2_order1__all_vvdijet','vvdijet2_order2__all_vvdijet','dijet2_order1__all_dijet','dijet2_order2__all_dijet','expow2_order1__all_expow','expow2_order2__all_expow',
+            #    'vvdijet3_order1__all_vvdijet','vvdijet3_order2__all_vvdijet','dijet3_order1__all_dijet','dijet3_order2__all_dijet','expow3_order1__all_expow','expow3_order2__all_expow','vvdijet3_order3__all_vvdijet','dijet3_order3__all_dijet','expow3_order3__all_expow',   # order3
+            #    'vvdijet4_order1__all_vvdijet','vvdijet4_order2__all_vvdijet','dijet4_order1__all_dijet','dijet4_order2__all_dijet','expow4_order1__all_expow','expow4_order2__all_expow','vvdijet4_order3__all_vvdijet','dijet4_order3__all_dijet','expow4_order3__all_expow','vvdijet4_order4__all_vvdijet','dijet4_order4__all_dijet','expow4_order4__all_expow',  #order 4
+            #    'vvdijet1_order1__all_vvdijet','dijet1_order1__all_dijet','expow1_order1__all_expow' #order1
+            ] 
             for ivar in varnames:
                 card_entries.append( ivar.replace('__all','_'+ich+'_all') +'  flatParam')
             card_entries.append('pdf_index_%s                             discrete'%(ich.replace('A','')))
@@ -1217,7 +1326,6 @@ class MakeLimits( ) :
             w="5.0" if iwid=="5" else "0.01"
             maxshift = mshifts[ibin["channel"]]["%.1f"%int(imass)][w]["max"][1]
             minshift = mshifts[ibin["channel"]]["%.1f"%int(imass)][w]["min"][1]
-
         for ibin, sig in viablesig:
             #sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
             #if not sig: ## model not exist
@@ -1313,7 +1421,7 @@ class MakeLimits( ) :
 
            if xvar is None :
                xvar = ws.var( self.xvarname )
-           xvar.setRange( 220 ,2200)
+           xvar.setRange( 230 ,2300)
            #xvar.setRange( defs.bkgfitlowbin(cutset) ,2200)
            xvar.setBins(500)
            xvar.Print()
@@ -1681,8 +1789,6 @@ class MakeLimits( ) :
 
 
 
-
-
 # ---------------------------------------------------
 
 
@@ -1835,17 +1941,35 @@ class MakeLimits( ) :
                 else:
                     flagstr+=" --freezeParameters %s" %self.freezeParameter
 
-
+            # Use all dijet2 or use envelope --Yihui
             flagstr+= mtrange
-            #command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2016=0,pdf_index_el2017=0,pdf_index_el2018=0,pdf_index_mu2016=0,pdf_index_mu2017=0,pdf_index_mu2018=0 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 -m %d %s %s >& %s'\
-            command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2017=0,pdf_index_mu2017=0 --freezeParameters pdf_index_el2017,pdf_index_mu2017 -m %d %s %s >& %s'\
-                        %( mass, flagstr, card, log_file )
+            useenve=False
+            if useenve:
+                command+= 'combine -M AsymptoticLimits -m %d %s %s >& %s'%( mass, flagstr, card, log_file )
+            else:
+                if '2016' in log_file:
+                    command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2016=2,pdf_index_mu2016=2 --freezeParameters pdf_index_el2016,pdf_index_mu2016 -m %d %s %s >& %s'%( mass, flagstr, card, log_file )
+                elif '2017' in log_file:
+                    command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2017=2,pdf_index_mu2017=2 --freezeParameters pdf_index_el2017,pdf_index_mu2017 -m %d %s %s >& %s'%( mass, flagstr, card, log_file )
+                elif '2018' in log_file:
+                    command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2018=2,pdf_index_mu2018=2 --freezeParameters pdf_index_el2018,pdf_index_mu2018 -m %d %s %s >& %s'%( mass, flagstr, card, log_file )
+                else:
+                    command+= 'combine -M AsymptoticLimits --setParameters  pdf_index_el2016=2,pdf_index_el2017=2,pdf_index_el2018=2,pdf_index_mu2016=2,pdf_index_mu2017=2,pdf_index_mu2018=2 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 -m %d %s %s >& %s'%( mass, flagstr, card, log_file )
+
+
             #do goodness of fit -- Yihui
             if options.GoF:
-                command = '\n combineTool.py -M GoodnessOfFit --algo=KS %s -n .KS -v 3 >& %s \n' %(card, 'goodnessdata'+log_file)
-                command += 'combineTool.py -M GoodnessOfFit --algo=KS %s -n .KS -v 3 -t 500 -s 1234  >& %s \n' %(card, 'goodnesstoy'+log_file)
+                #command = '\n combineTool.py -M GoodnessOfFit --algo=KS %s -n .KS  >& %s  \n' %(card, 'goodnessdata'+log_file)
+                #command += 'combineTool.py -M GoodnessOfFit --algo=KS %s -n .KS  -t 500 -s 123  >& %s \n' %(card, 'goodnesstoy'+log_file)
                 #command = '\n combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 >& %s \n' %(card, 'goodnessdata'+log_file)
                 #command += 'combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 -t 500 -s 1234 --toysFreq  >& %s \n' %(card, 'goodnesstoy'+log_file)
+                command =''
+                #for i in range(9):
+                for i in [0,4,8]:
+                    command += '\n combineTool.py -M GoodnessOfFit --algo=KS '+card+' -n .KS  --fixedSignalStrength=0 --setParameters  pdf_index_'+log_file[-10:-4]+'='+str(i)+' --freezeParameters pdf_index_'+log_file[-10:-4]+' -n pdf'+str(i)
+                    command += '\n combineTool.py -M GoodnessOfFit --algo=KS '+card+' -n .KS  --fixedSignalStrength=0 --setParameters  pdf_index_'+log_file[-10:-4]+'='+str(i)+' --freezeParameters pdf_index_'+log_file[-10:-4]+' -n t0pdf'+str(i)+' -t 100 -s 130 '
+
+
             if options.BiasStudy:
                 #directly generate and fit
                 command = '\n combine -d '+ card + ' -M GenerateOnly --setParameters  pdf_index_el2016='+genindex+',pdf_index_el2017='+genindex+',pdf_index_el2018='+genindex+',pdf_index_mu2016='+genindex+',pdf_index_mu2017='+genindex+',pdf_index_mu2018='+genindex+' --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 --toysFrequentist -t '+str(ntoy)+' --expectSignal '+str(injectsignal)+' --saveToys -m '+str(mass) +' -s '+str(rseed) + ' -n ' + rname
@@ -1857,18 +1981,6 @@ class MakeLimits( ) :
                 #command = '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card + ' --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --freezeParameters r --setParameters r=0  -n Envelope \n'
                 #command += '\n combineTool.py '+ 'higgsCombineEnvelope.MultiDimFit.mH'+str(mass)+'.root ' + ' -M GenerateOnly --saveToys -m '+str(mass)+' --toysFrequentist -t %s --snapshotName "MultiDimFit" --expectSignal %s  --rMin -1 --rMax 5 -s %s \n'%(ntoy, injectsignal, rseed)
                 #command += '\n combine -M FitDiagnostics -m '+str(mass)+' -d '+ card +' --toysFile higgsCombine.Test.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  --cminDefaultMinimizerStrategy 0  --rMin -1 --rMax 5 -n '+rname+' -t '+str(ntoy)+' \n'
-                #Fit with other functions, generate with other function
-                #command = '\n cp /data/users/yihuilai/test_code/WG_Analysis/Plotting/data_env/higgs_1112_forenveBiastest_%s/Width*/all/Mass*/%s . \n'%(testfunc,card.replace(targetfunc,testfunc))
-                #command += '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card.replace(targetfunc,testfunc) + ' --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --freezeParameters r --setParameters r=0 \n'
-                #command += '\n combineTool.py higgsCombine.Test.MultiDimFit.mH'+str(mass)+'.root -M GenerateOnly --saveToys -m '+str(mass)+'  --toysFreq -t %s --bypassFrequentistFit --snapshotName "MultiDimFit" --setParameters r=%s --freezeParameters r --rMin -5 --rMax 10 -s %s \n'%(ntoy, injectsignal, rseed)
-                #always test the bias of envelope
-                #command += '\n combine -M FitDiagnostics -m '+str(mass)+' -d '+ card +' --toysFile higgsCombine.Test.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  --cminDefaultMinimizerStrategy 0  --rMin -1 --rMax 5 -n '+rname+' -t '+str(ntoy)+' --robustFit=1 --X-rtd REMOVE_CONSTANT_ZERO_POINT=1 --X-rtd MINIMIZER_multiMin_hideConstants --X-rtd MINIMIZER_multiMin_maskConstraints  \n'
-                #command += '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card +' --toysFile higgsCombine.Test.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --rMin -1 --rMax 5 -n '+rname+' -t '+str(ntoy)+' \n'
-                #command += '\n combineTool.py -M FitDiagnostics -m 125 --datacard ' + card  +' -t %s --saveToys --saveWorkspace --toysFrequentist --toysFile higgsCombine.Test.GenerateOnly.mH125.%s.root --robustFit 1 --rMin -2 --rMax 10 --freezeParameters pdf_index --setParameters pdf_index=0 -n %s \n'%(ntoy, rseed, rname)
-                #===============> Check Likelihood scan
-                #Fit and generate toy
-                #command = '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card + ' --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --freezeParameters r --setParameters r=0  -n EnvelopeFit \n'
-                #command += '\n combineTool.py '+ 'higgsCombineEnvelopeFit.MultiDimFit.mH'+str(mass)+'.root ' + ' -M GenerateOnly --saveToys -m '+str(mass)+' --toysFrequentist -t %s --snapshotName "MultiDimFit" --expectSignal 0  --rMin -1 --rMax 5 -s %s \n'%(ntoy, rseed)
 
 
         if self.method == 'AsymptoticLimitsManual' :
@@ -1976,8 +2088,8 @@ class MakeLimits( ) :
                 ch = sigpar.split('_')[2]
                 ##only run all -- Yihui
                 #if ch!='all':
-                if '2017' not in ch:
-                    continue
+                #if '2017' not in ch:
+                #    continue
                 #print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 
                 fname = '%s/Width%s/%s/Mass%i/run_combine_%s.sh' %( self.outputDir, wid, ch, mass, sigpar )
