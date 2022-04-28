@@ -320,7 +320,7 @@ def config_samples(samples) :
                             input_samples = [
                                              'SingleMuon',
                                              'SingleElectron',
-                                             'SinglePhotonHltOlap',
+                                             'SinglePhoton',
                                             ],
                            plotColor=ROOT.kBlack,
                            isData=True,
