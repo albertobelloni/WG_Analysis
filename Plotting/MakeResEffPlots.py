@@ -53,11 +53,11 @@ def makeMetPlots( baseDir, sampleConf, outputDir=None ) :
     samp = sampMan.get_samples( name=samp_name )
 
     if not samp :
-        print 'Could not find sample!'
+        print('Could not find sample!')
         return
 
-    binning_x = range( 0, 50, 5) + range( 50, 300, 10 ) + range( 300, 600, 20) + range( 600, 2000, 100 ) + [ 2000, 3000]
-    binning_y = range( -1000, 1000, 10 )
+    binning_x = list(range( 0, 50, 5)) + list(range( 50, 300, 10)) + list(range( 300, 600, 20)) + list(range( 600, 2000, 100)) + [ 2000, 3000]
+    binning_y = list(range( -1000, 1000, 10))
 
     var = 'truemet_pt-recomet_pt:truemet_pt'
 
@@ -74,7 +74,7 @@ def makeMetPlots( baseDir, sampleConf, outputDir=None ) :
     if outputDir :
         can.SaveAs( '%s/MetResolution.pdf' %( outputDir ) )
     else :
-        raw_input('cont')
+        input('cont')
 
 
 
@@ -88,11 +88,11 @@ def makePhPlots(baseDir, sampleConf, outputDir=None, elevetoid=None, trig=False)
     samp = sampMan.get_samples( name=samp_name )
 
     if not samp :
-        print 'Could not find sample!'
+        print('Could not find sample!')
         return
 
     #binning = range( 0, 50, 5) + range( 50, 500, 10 ) + range( 500, 2000, 100 )
-    binning = range( 0, 50, 5) + range( 50, 300, 10 ) + range( 300, 600, 20) + range( 600, 2000, 100 ) + [ 2000, 3000]
+    binning = list(range( 0, 50, 5)) + list(range( 50, 300, 10)) + list(range( 300, 600, 20)) + list(range( 600, 2000, 100)) + [ 2000, 3000]
 
     var = 'truephot_pt'
 
@@ -135,11 +135,11 @@ def makeElPlots(baseDir, sampleConf, outputDir=None, trig=False) :
     samp = sampMan.get_samples( name=samp_name )
 
     if not samp :
-        print 'Could not find sample!'
+        print('Could not find sample!')
         return
 
     #binning = range( 0, 50, 5) + range( 50, 500, 10 ) + range( 500, 2000, 100 )
-    binning = range( 0, 50, 5) + range( 50, 300, 10 ) + range( 300, 600, 20) + range( 600, 2000, 100 ) + [ 2000, 3000]
+    binning = list(range( 0, 50, 5)) + list(range( 50, 300, 10)) + list(range( 300, 600, 20)) + list(range( 600, 2000, 100)) + [ 2000, 3000]
 
     var = 'trueel_pt'
 
@@ -177,11 +177,11 @@ def makeMuPlots(baseDirMu, sampleConf, outputDir=None, trig=False) :
     samp = sampMan.get_samples( name=samp_name )
 
     if not samp :
-        print 'Could not find sample!'
+        print('Could not find sample!')
         return
 
     #binning = range( 0, 50, 5) + range( 50, 500, 10 ) + range( 500, 2000, 100 )
-    binning = range( 0, 50, 5) + range( 50, 300, 10 ) + range( 300, 600, 20) + range( 600, 2000, 100 ) + [ 2000, 3000]
+    binning = list(range( 0, 50, 5)) + list(range( 50, 300, 10)) + list(range( 300, 600, 20)) + list(range( 600, 2000, 100)) + [ 2000, 3000]
 
     var = 'truemu_pt'
 
@@ -207,7 +207,7 @@ def makeMuPlots(baseDirMu, sampleConf, outputDir=None, trig=False) :
 
         hists.append( thissamp[0].hist.Clone( 'hist_%d' %idx ) )
 
-    print hists
+    print(hists)
 
     canvas = ROOT.TCanvas( name, name )
 
@@ -217,7 +217,7 @@ def makeMuPlots(baseDirMu, sampleConf, outputDir=None, trig=False) :
 def DrawHists( canvas, hists, colors, labels, outputDir=None ) :
 
     for idx in range( 1, len(hists)  ) :
-        print idx
+        print(idx)
         hists[idx].Divide(hists[0])
         hists[idx].SetLineColor( colors[idx-1] )
         hists[idx].SetLineWidth( 2 )
@@ -244,7 +244,7 @@ def DrawHists( canvas, hists, colors, labels, outputDir=None ) :
     if outputDir :
         canvas.SaveAs( '%s/%s.pdf' %( outputDir, canvas.GetName() ) )
     else :
-        raw_input("cont")
+        input("cont")
 
 
 

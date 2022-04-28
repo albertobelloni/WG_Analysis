@@ -31,7 +31,7 @@ ROOT.gStyle.SetPalette(1)
 def f_Obsolete(f):
         @wraps(f)
         def f_wrapper(*args, **kws):
-                print "This method is obsolete"
+                print("This method is obsolete")
                 return f(*args,**kws)
         return f_wrapper
 
@@ -325,7 +325,7 @@ class DrawConfig :
         xval = 0.6
         yval = 0.7
         if location is None :
-            print 'Please give a location for the label'
+            print('Please give a location for the label')
         elif isinstance(location, tuple) :
             xval = location[0]
             yval = location[1]
@@ -369,7 +369,7 @@ class DrawConfig :
         return self.compiled_var_str
 
     def get_names( self ) :
-        return self.hist_configs.keys()
+        return list(self.hist_configs.keys())
 
     def get_hist_type( self ) :
 
@@ -426,7 +426,7 @@ class DrawConfig :
 
         hist_decs = []
 
-        for name in self.hist_configs.keys() :
+        for name in list(self.hist_configs.keys()) :
 
             if type( self.histpars ) is tuple :
                 if self.var[0].count(':') == 1 : # 2-D histogram
@@ -437,13 +437,13 @@ class DrawConfig :
                         hist_decs.append(text)
                     else :
                         if len(self.histpars) != 6 :
-                            print 'varable expression requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax'
+                            print('varable expression requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax')
                             return
                         text = r' hist_%s = new TH2F( "%s", "", %d, %f, %f, %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5]  )
                         hist_decs.append(text)
                 elif self.var[0].count(':') == 2 and not self.var[0].count('::') : # make a 3-d histogram
                     if len(self.histpars) != 9 :
-                        print 'varable expression requests a 3-d histogram, please provide 9 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax'
+                        print('varable expression requests a 3-d histogram, please provide 9 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax')
                         return
                     text = r' hist_%s = new TH3F( "%s", "", %d, %f, %f, %d, %f, %f, %d, %f, %f );' %( name, name, self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5], self.histpars[6], self.histpars[7], self.histpars[8]  )
                     hist_decs.append(text)
@@ -457,7 +457,7 @@ class DrawConfig :
                 hist_decs.append(text)
 
             else :
-                print 'No histogram parameters were passed'
+                print('No histogram parameters were passed')
 
         return hist_decs
 
@@ -489,7 +489,7 @@ class DrawConfig :
                     name = self.get_unique_name( self.var[0] )
                     self.hist_configs[name] = {'var' : var, 'selection' : sel, 'sample' : samp, 'color' : color, 'legend_entry' : leg_entry}
 
-                print 'Case when multiple vars is used is not implemented'
+                print('Case when multiple vars is used is not implemented')
         else :
 
             if len( self.var ) == 1 : # make one name for each selection
@@ -510,11 +510,11 @@ class DrawConfig :
                         self.hist_configs[name] = {'var' : self.var[0], 'selection' : sel, 'cppvar':var, 'cppselection':selection}
 
             else : #unclear if this case exists, don't implement for now
-                print 'Case when multiple vars is used is not implemented'
+                print('Case when multiple vars is used is not implemented')
 
 
     def get_cpp_selection_strs( self ) :
-        return [v['cppselection'] for v in self.hist_configs.values()]
+        return [v['cppselection'] for v in list(self.hist_configs.values())]
 
     def get_cpp_selection_str( self, selection, branches ) :
         """ Create selection string in c++
@@ -562,12 +562,12 @@ class DrawConfig :
         # start from the end of the string (max start)
         # so that the found indices don't change
         # when the string is modified
-        all_start = max_ranges.keys()
+        all_start = list(max_ranges.keys())
         all_start.sort()
         for max_range in reversed( all_start ) :
             max_br = max_ranges[max_range]
             if len( max_br ) != 1 :
-                print 'Matched multiple branches with the max range!  This must be fixed!'
+                print('Matched multiple branches with the max range!  This must be fixed!')
                 sys.exit(1)
 
             modified_selection = modified_selection[:max_range[0]] + 'IN::' + max_br[0] + modified_selection[max_range[1]:]
@@ -589,7 +589,7 @@ class DrawConfig :
         return modified_selection
 
     def get_cpp_var_strs(self ) :
-        return [v['cppvar'] for v in self.hist_configs.values()]
+        return [v['cppvar'] for v in list(self.hist_configs.values())]
 
     def get_cpp_var_str(self, var, branches) :
 
@@ -701,12 +701,12 @@ class DrawConfig :
                     hist = ROOT.TH2F( histname, '', len(self.histpars[0])-1, array('f', self.histpars[0]), len(self.histpars[1])-1, array('f', self.histpars[1]) )
                 else :
                     if len(self.histpars) != 6 :
-                        print 'varable expression requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax'
+                        print('varable expression requests a 2-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax')
                         return
                     hist = ROOT.TH2F( histname, '', self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5])
             elif self.var[0].count(':') == 2 and not self.var.count('::') : # make a 3-d histogram
                 if len(self.histpars) != 9 :
-                    print 'varable expression requests a 3-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax'
+                    print('varable expression requests a 3-d histogram, please provide 6 hist parameters, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax')
                     return
                 hist= ROOT.TH3F( histname, '',self.histpars[0], self.histpars[1], self.histpars[2], self.histpars[3], self.histpars[4], self.histpars[5], self.histpars[6], self.histpars[7], self.histpars[8] )
             else : # 1-d histogram
@@ -716,7 +716,7 @@ class DrawConfig :
         elif type( self.histpars ) is list :
             hist = ROOT.TH1D( histname, '', len(self.histpars)-1, array('f', self.histpars))
         else :
-            print 'No histogram parameters were passed'
+            print('No histogram parameters were passed')
 
         if hist is not None :
             hist.SetTitle( name )

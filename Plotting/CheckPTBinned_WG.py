@@ -76,7 +76,7 @@ def create_standard_ratio_canvas() :
     return curr_canvases
 
 def getHist(samplename, color, year):
-    print('Drawing %s' % samplename)
+    print(('Drawing %s' % samplename))
     
     chain = ROOT.TChain('UMDNTuple/EventTree')
     
@@ -88,7 +88,7 @@ def getHist(samplename, color, year):
     for f in files[:None]:
         chain.Add(f)
         nFiles += 1
-    print('Using %i of %i files' % (nFiles, len(files)))
+    print(('Using %i of %i files' % (nFiles, len(files))))
 
     rdf = ROOT.RDataFrame(chain)
     rdf = rdf.Define('leppt',

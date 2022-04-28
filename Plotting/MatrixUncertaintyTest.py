@@ -76,18 +76,18 @@ def binomial_monte_carlo( eff1, eff2, N1, N2, Na, Nb, sigNa, sigNb, Ntries=10000
     ### get result
     mean, std = estarray.mean(), estarray.std()
     #print "sample of Monte Carlo estimates: ",estarray[:10]
-    print "4. Monte Carlo estimate of %i matrices: %g +/- %g" %(Ntries, mean, std)
+    print("4. Monte Carlo estimate of %i matrices: %g +/- %g" %(Ntries, mean, std))
 
     ### standard deviation: how different is it from normal distribution
     est2sigabove = mean+std*2
     est2sigbelow = mean-std*2
     pcabove2sig = np.sum(estarray>est2sigabove)*1./Ntries*100
     pcbelow2sig = np.sum(estarray<est2sigbelow)*1./Ntries*100
-    print "   %g percent above 2 sigma (2.5%% normally), that is, estimates larger than %g" %(pcabove2sig, est2sigabove)
-    print "   %g percent below 2 sigma (2.5%% normally), that is, estimates smaller than %g" %(pcbelow2sig, est2sigbelow)
+    print("   %g percent above 2 sigma (2.5%% normally), that is, estimates larger than %g" %(pcabove2sig, est2sigabove))
+    print("   %g percent below 2 sigma (2.5%% normally), that is, estimates smaller than %g" %(pcbelow2sig, est2sigbelow))
 
 def manualinvert(effmat):
-    print "encounter degenerate matrix, do manual invert"
+    print("encounter degenerate matrix, do manual invert")
     invmat=[]
     errn = 0
     for i in range(effmat.shape[0]):
@@ -97,7 +97,7 @@ def manualinvert(effmat):
             #if errn<3: print effmat[i]
             errn+=1
             invmat.append(np.zeros((2,2))+np.nan)
-    print "number of degenerate matrix: ", errn
+    print("number of degenerate matrix: ", errn)
     return np.stack(invmat)
 
 
@@ -116,24 +116,24 @@ def jet_fake_estimate_with_unumpy( eff1, eff2, Na, Nb):
 
 
 mat=makematrix(eff1.n,eff2.n)
-print "epsilon^T_gamma, epsilon^T_J" ,eff1,eff2
-print "N_T, N_L", Na, Nb
-print
-print "Matrix:"
-print mat
-print "X alpha = ", np.array([Na.n,Nb.n])
-print
-print "Inverted matrix:"
-print np.linalg.inv(mat)
-print
+print("epsilon^T_gamma, epsilon^T_J" ,eff1,eff2)
+print("N_T, N_L", Na, Nb)
+print()
+print("Matrix:")
+print(mat)
+print("X alpha = ", np.array([Na.n,Nb.n]))
+print()
+print("Inverted matrix:")
+print(np.linalg.inv(mat))
+print()
 estimate = jet_fake_estimate_by_hand( eff1, eff2, Na, Nb)
 estimate2 = jet_fake_estimate_by_hand( eff1.n, eff2.n, Na.n, Nb.n)
 variance2 = jet_fake_estimate_uncertainty_by_hand( eff1.n, eff2.n, Na.n, Nb.n, eff1.s, eff2.s, Na.s, Nb.s)
 estimate3 =  jet_fake_estimate_with_unumpy( eff1, eff2, Na, Nb)
-print "1. solved equation with uncertainty package: ",estimate
-print "2. fully by hand error propagation: %g +/- %g" %(estimate2, variance2)
-print "3. numpy+uncertainty array implementation: ", estimate3
+print("1. solved equation with uncertainty package: ",estimate)
+print("2. fully by hand error propagation: %g +/- %g" %(estimate2, variance2))
+print("3. numpy+uncertainty array implementation: ", estimate3)
 N1= equivalentN(eff1)
 N2= equivalentN(eff2)
-print "equivalent sample size: Zgamma %i Z+jets %i" %(N1, N2)
+print("equivalent sample size: Zgamma %i Z+jets %i" %(N1, N2))
 binomial_monte_carlo( eff1.n, eff2.n, N1, N2, Na.n, Nb.n, Na.s, Nb.s, Ntries=10000 )

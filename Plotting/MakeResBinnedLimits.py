@@ -85,7 +85,7 @@ def ReadMuElSamples( baseDirMu=None, baseDirEl=None) :
         sampManMu.ReadSamples( options.samplesConf )
         sampManEl.ReadSamples( options.samplesConf )
     else :
-        print 'Must provide a sample configuration.  Exiting'
+        print('Must provide a sample configuration.  Exiting')
         return
 
     return sampManMu, sampManEl 
@@ -116,7 +116,7 @@ def doPhiCutComparison( ) :
     selection_el = 'el_n == 1 && ph_n==1 '
 
 
-    binning_res = range( 100, 500, 25 ) + range( 500, 800, 50) + range( 800, 2600, 100 ) 
+    binning_res = list(range( 100, 500, 25)) + list(range( 500, 800, 50)) + list(range( 800, 2600, 100)) 
     var = 'mt_res'
 
     configs = [ 
@@ -150,7 +150,7 @@ def doPhiCutComparison( ) :
         bkg_hist_mu = bkg_samp_mu[0].hist
         bkg_hist_el = bkg_samp_el[0].hist
 
-        for sigm, sig in sig_masses.iteritems() :
+        for sigm, sig in sig_masses.items() :
 
             sampManMu.create_hist(sig, var, 'NLOWeight * ( ' + selection_mu + ' && %s ) ' %( config['selection']) , config['binning'] )
             sampManEl.create_hist(sig, var, 'NLOWeight * ( ' + selection_el + ' && %s ) ' %( config['selection']) , config['binning'] )
@@ -169,9 +169,9 @@ def doPhiCutComparison( ) :
 
     results = GetCombineLimits( {'mu' : cards_mu, 'el' : cards_el}, batch=options.batch )
 
-    for conf, confdic in results.iteritems() :
-        for ch, chdic in confdic.iteritems() :
-            for mass, massdic in chdic.iteritems() : 
+    for conf, confdic in results.items() :
+        for ch, chdic in confdic.items() :
+            for mass, massdic in chdic.items() : 
                 scale = massdic['limit_scale']
                 # get the cross section for this sample
                 sig_samp = sig_masses[mass]
@@ -211,7 +211,7 @@ def doSecLepVetoComparison( ) :
     selection_el = 'el_n == 1 && ph_n==1 '
 
 
-    binning_res = range( 100, 500, 25 ) + range( 500, 800, 50) + range( 800, 2600, 100 ) 
+    binning_res = list(range( 100, 500, 25)) + list(range( 500, 800, 50)) + list(range( 800, 2600, 100)) 
     var = 'mt_res'
 
     configs = [ 
@@ -236,7 +236,7 @@ def doSecLepVetoComparison( ) :
         bkg_hist_mu = bkg_samp_mu[0].hist
         bkg_hist_el = bkg_samp_el[0].hist
 
-        for sigm, sig in sig_masses.iteritems() :
+        for sigm, sig in sig_masses.items() :
 
             config['sampManMu'].create_hist(sig, var, 'NLOWeight * ( ' + selection_mu + ' ) '  , config['binning'] )
             config['sampManEl'].create_hist(sig, var, 'NLOWeight * ( ' + selection_el + ' ) '  , config['binning'] )
@@ -257,9 +257,9 @@ def doSecLepVetoComparison( ) :
 
     results = GetCombineLimits( {'mu' : cards_mu, 'el' : cards_el}, batch=options.batch )
 
-    for conf, confdic in results.iteritems() :
-        for ch, chdic in confdic.iteritems() :
-            for mass, massdic in chdic.iteritems() : 
+    for conf, confdic in results.items() :
+        for ch, chdic in confdic.items() :
+            for mass, massdic in chdic.items() : 
                 scale = massdic['limit_scale']
 
                 # get the cross section for this sample
@@ -301,7 +301,7 @@ def doEvetoComparision( ) :
     selection_el = 'el_n == 1 && ph_n==1 '
 
 
-    binning_res = range( 100, 500, 25 ) + range( 500, 800, 50) + range( 800, 2600, 100 ) 
+    binning_res = list(range( 100, 500, 25)) + list(range( 500, 800, 50)) + list(range( 800, 2600, 100)) 
     var = 'mt_res'
 
     configs = [ 
@@ -327,7 +327,7 @@ def doEvetoComparision( ) :
         bkg_hist_mu = bkg_samp_mu[0].hist
         bkg_hist_el = bkg_samp_el[0].hist
 
-        for sigm, sig in sig_masses.iteritems() :
+        for sigm, sig in sig_masses.items() :
 
             sampManMu.create_hist(sig, var, 'NLOWeight * ( ' + selection_mu + ' && %s ) ' %( config['selection']) , config['binning'] )
             sampManEl.create_hist(sig, var, 'NLOWeight * ( ' + selection_el + ' && %s ) ' %( config['selection']) , config['binning'] )
@@ -348,9 +348,9 @@ def doEvetoComparision( ) :
 
     results = GetCombineLimits( {'mu' : cards_mu, 'el' : cards_el}, batch=options.batch )
 
-    for conf, confdic in results.iteritems() :
-        for ch, chdic in confdic.iteritems() :
-            for mass, massdic in chdic.iteritems() : 
+    for conf, confdic in results.items() :
+        for ch, chdic in confdic.items() :
+            for mass, massdic in chdic.items() : 
                 scale = massdic['limit_scale']
 
                 # get the cross section for this sample
@@ -390,7 +390,7 @@ def doPhIdComparision( ) :
     selection_el = 'el_n == 1 '
 
 
-    binning_res = range( 100, 500, 25 ) + range( 500, 800, 50) + range( 800, 2600, 100 ) 
+    binning_res = list(range( 100, 500, 25)) + list(range( 500, 800, 50)) + list(range( 800, 2600, 100)) 
     var = 'mt_res'
 
     configs = [ 
@@ -416,7 +416,7 @@ def doPhIdComparision( ) :
         bkg_hist_mu = bkg_samp_mu[0].hist
         bkg_hist_el = bkg_samp_el[0].hist
 
-        for sigm, sig in sig_masses.iteritems() :
+        for sigm, sig in sig_masses.items() :
 
             sampManMu.create_hist(sig, var, 'NLOWeight * ( ' + selection_mu + ' && %s ) ' %( config['selection']) , config['binning'] )
             sampManEl.create_hist(sig, var, 'NLOWeight * ( ' + selection_el + ' && %s ) ' %( config['selection']) , config['binning'] )
@@ -438,9 +438,9 @@ def doPhIdComparision( ) :
 
     results = GetCombineLimits( {'mu' : cards_mu, 'el' : cards_el}, batch=options.batch )
 
-    for conf, confdic in results.iteritems() :
-        for ch, chdic in confdic.iteritems() :
-            for mass, massdic in chdic.iteritems() : 
+    for conf, confdic in results.items() :
+        for ch, chdic in confdic.items() :
+            for mass, massdic in chdic.items() : 
                 scale = massdic['limit_scale']
 
                 # get the cross section for this sample
@@ -480,8 +480,8 @@ def doJetComparision() :
     selection_el = 'el_n == 1 && ph_n == 1 '
 
 
-    binning_res = range( 100, 500, 25 ) + range( 500, 800, 50) + range( 800, 2600, 100 ) 
-    binning_pt = range(20, 200, 20 ) + range( 200, 500, 50) + range(500, 1600, 100)
+    binning_res = list(range( 100, 500, 25)) + list(range( 500, 800, 50)) + list(range( 800, 2600, 100)) 
+    binning_pt = list(range(20, 200, 20)) + list(range( 200, 500, 50)) + list(range(500, 1600, 100))
     var = 'mt_res'
     #var = 'ph_pt[0]'
 
@@ -515,7 +515,7 @@ def doJetComparision() :
         bkg_hist_mu = bkg_samp_mu[0].hist
         bkg_hist_el = bkg_samp_el[0].hist
 
-        for sigm, sig in sig_masses.iteritems() :
+        for sigm, sig in sig_masses.items() :
 
             sampManMu.create_hist(sig, var, 'NLOWeight * ( ' + selection_mu + ' && %s ) ' %( config['selection']) , config['binning'] )
             sampManEl.create_hist(sig, var, 'NLOWeight * ( ' + selection_el + ' && %s ) ' %( config['selection']) , config['binning'] )
@@ -536,9 +536,9 @@ def doJetComparision() :
 
     results = GetCombineLimits( {'mu' : cards_mu, 'el' : cards_el}, batch=options.batch )
 
-    for conf, confdic in results.iteritems() :
-        for ch, chdic in confdic.iteritems() :
-            for mass, massdic in chdic.iteritems() : 
+    for conf, confdic in results.items() :
+        for ch, chdic in confdic.items() :
+            for mass, massdic in chdic.items() : 
                 scale = massdic['limit_scale']
 
                 # get the cross section for this sample
@@ -579,8 +579,8 @@ def doVarComparision( ) :
 
     theta = math.atan(1./2.0)
 
-    binning_res = range( 100, 500, 25 ) + range( 500, 800, 50) + range( 800, 2600, 100 ) 
-    binning_pt = range(20, 200, 20 ) + range( 200, 500, 50) + range(500, 1600, 100)
+    binning_res = list(range( 100, 500, 25)) + list(range( 500, 800, 50)) + list(range( 800, 2600, 100)) 
+    binning_pt = list(range(20, 200, 20)) + list(range( 200, 500, 50)) + list(range(500, 1600, 100))
 
     configs = [ 
         { 'name' : 'mt_res'         , 'label' : 'Transverse Mass'   , 'color' : ROOT.kBlack, 'var' : 'mt_res', 'binning' : binning_res },
@@ -605,7 +605,7 @@ def doVarComparision( ) :
         bkg_hist_mu = bkg_samp_mu[0].hist
         bkg_hist_el = bkg_samp_el[0].hist
 
-        for sigm, sig in sig_masses.iteritems() :
+        for sigm, sig in sig_masses.items() :
 
             sampManMu.create_hist(sig, config['var'], 'NLOWeight * ( ' + selection_mu + ' && %s > %d ) ' %( config['var'], config['binning'][0] ) , config['binning'] )
             sampManEl.create_hist(sig, config['var'], 'NLOWeight * ( ' + selection_el + ' && %s > %d ) ' %( config['var'], config['binning'][0] ) , config['binning'] )
@@ -625,9 +625,9 @@ def doVarComparision( ) :
             cards_el[config['name']][ sigm] =  card_path_el
 
     results = GetCombineLimits( {'mu' : cards_mu, 'el' : cards_el}, batch=options.batch )
-    for conf, confdic in results.iteritems() :
-        for ch, chdic in confdic.iteritems() :
-            for mass, massdic in chdic.iteritems() : 
+    for conf, confdic in results.items() :
+        for ch, chdic in confdic.items() :
+            for mass, massdic in chdic.items() : 
                 scale = massdic['limit_scale']
 
                 # get the cross section for this sample
@@ -656,7 +656,7 @@ def MakeStandardOutput( configs, limit_results, name ) :
         conf_color = config['color']
         conf_results = limit_results[conf_name]
 
-        mass_order = conf_results['mu'].keys()
+        mass_order = list(conf_results['mu'].keys())
         mass_order.sort()
 
         graphs_mu  [conf_name] = ROOT.TGraph( len(conf_results['mu']) )
@@ -710,7 +710,7 @@ def MakeStandardOutput( configs, limit_results, name ) :
     can_mu = ROOT.TCanvas( 'can_mu', 'can_mu' )
 
     first = True
-    for gr in graphs_mu.values() :
+    for gr in list(graphs_mu.values()) :
         if first :
             gr.Draw('ALP' )
             first = False
@@ -720,13 +720,13 @@ def MakeStandardOutput( configs, limit_results, name ) :
     leg_mu.Draw()
 
     if options.outputDir is None :
-        raw_input('cont')
+        input('cont')
     else :
         can_mu.SaveAs( '%s/%s_mu.pdf' %( options.outputDir, name ) )
 
     can_el = ROOT.TCanvas( 'can_el', 'can_el' )
     first = True
-    for gr in graphs_el.values() :
+    for gr in list(graphs_el.values()) :
         if first :
             gr.Draw('ALP' )
             first = False
@@ -735,13 +735,13 @@ def MakeStandardOutput( configs, limit_results, name ) :
 
     leg_el.Draw()
     if options.outputDir is None :
-        raw_input('cont')
+        input('cont')
     else :
         can_el.SaveAs( '%s/%s_el.pdf' %( options.outputDir, name ) )
 
     can_comb = ROOT.TCanvas( 'can_comb', 'can_comb' )
     first = True
-    for gr in graphs_comb.values() :
+    for gr in list(graphs_comb.values()) :
         if first :
             gr.Draw('ALP' )
             first = False
@@ -750,13 +750,13 @@ def MakeStandardOutput( configs, limit_results, name ) :
 
     leg_comb.Draw()
     if options.outputDir is None :
-        raw_input('cont')
+        input('cont')
     else :
         can_comb.SaveAs( '%s/%s_comb.pdf' %( options.outputDir, name ) )
 
     if options.outputDir is not None :
         fname = '%s/results_%s.pickle' %( options.outputDir, name )
-        print 'write %s' %fname
+        print('write %s' %fname)
         ofile = open( fname, 'w' )
         pickle.dump( limit_results, ofile )
         ofile.close()
@@ -768,13 +768,13 @@ def GetCombineLimits( cards, batch=False ) :
 
     commands = []
 
-    for ch, chcards in cards.iteritems() :
-        for conf, confdic in chcards.iteritems() :
+    for ch, chcards in cards.items() :
+        for conf, confdic in chcards.items() :
 
             results.setdefault( conf, {} )
             results[conf].setdefault( ch, {} )
 
-            for mass, card in confdic.iteritems() :
+            for mass, card in confdic.items() :
 
                 this_command = []
 
@@ -800,10 +800,10 @@ def GetCombineLimits( cards, batch=False ) :
     # add the combined e/mu cards
     if len( cards ) > 1  :
 
-        for conf, confdic in cards.values()[0].iteritems() :
+        for conf, confdic in list(cards.values())[0].iteritems() :
             results.setdefault(conf, {} )
             results[conf]['chcomb'] = {}
-            for mass, card in confdic.iteritems() :
+            for mass, card in confdic.items() :
 
                 this_command = []
                 results[conf]['chcomb'][mass] = {}
@@ -914,7 +914,7 @@ def wait_for_jobs( ) :
         if n_limits == 0 :
             return
         else : 
-            print '%d Jobs still running' %n_limits
+            print('%d Jobs still running' %n_limits)
 
 def readResults( filepath ) :
 
@@ -946,7 +946,7 @@ def MakeCombineResults( sig_hist, bkg_hist, name ) :
     sig_bins = []
     obs_bins = []
     
-    for i in xrange( 0, nbins ) :
+    for i in range( 0, nbins ) :
         bkg_val = bkg_hist.GetBinContent( i+1 )
         sig_val = sig_hist.GetBinContent( i+1 )
 
@@ -1009,7 +1009,7 @@ def MakeCombineResults( sig_hist, bkg_hist, name ) :
 
     for idx, bkg in enumerate( bkg_bins ) :
         bkg_text  = 'bkg_norm_bin%d   lnN   '%idx
-        for sidx in xrange( 0, len(bkg_bins) ) :
+        for sidx in range( 0, len(bkg_bins) ) :
             if sidx == idx :
                 bkg_text  += ' -   1.1 '
             else :
@@ -1019,7 +1019,7 @@ def MakeCombineResults( sig_hist, bkg_hist, name ) :
 
     file_name = base_path + '/' + name + '.txt'
 
-    print 'Write File ', file_name
+    print('Write File ', file_name)
 
     ofile = open( file_name , 'w' )
 

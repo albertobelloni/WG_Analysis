@@ -88,7 +88,7 @@ hists = {}
 i = 0
 for sname in samples:
     samplename = sname %(generator, sfix,width)
-    print('Drawing %s %i' % (samplename, (i%5)*10+2*(i/5)+51 ))
+    print(('Drawing %s %i' % (samplename, (i%5)*10+2*(i/5)+51 )))
     h = getHist(samplename, i%9 +1 )
     if h:
         hists[samplename] = h
@@ -109,7 +109,7 @@ leg.SetBorderSize(0)
 leg.SetNColumns(2)
 
 firstHist = True
-for samplename, hist in hists.iteritems():
+for samplename, hist in hists.items():
     #hist = hists[samplename]
     hist.GetYaxis().SetRangeUser(1e-1, 2e4)
     if firstHist:
@@ -124,7 +124,7 @@ leg.Draw()
 c.SaveAs('~/public_html/CheckSignal.pdf')
 c.SaveAs('~/public_html/CheckSignal.root')
 
-for samplename, hist in hists.iteritems():
+for samplename, hist in hists.items():
     hist.GetYaxis().SetRangeUser(1, 1e10)
 c.SetLogy()
 c.SaveAs('~/public_html/CheckSignal_ln.pdf')

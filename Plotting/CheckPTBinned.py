@@ -34,7 +34,7 @@ sampledetails = {
 lumi = 35900.
 
 def getHist(samplename, color):
-    print('Drawing %s' % samplename)
+    print(('Drawing %s' % samplename))
     
     chain = ROOT.TChain('UMDNTuple/EventTree')
     
@@ -43,7 +43,7 @@ def getHist(samplename, color):
     for file in files[:None]:
         chain.Add(file)
         nFiles += 1
-    print('Using %i of %i files' % (nFiles, len(files)))
+    print(('Using %i of %i files' % (nFiles, len(files))))
 
     rdf = ROOT.RDataFrame(chain)
     rdf = rdf.Define('pt',

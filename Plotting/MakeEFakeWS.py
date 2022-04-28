@@ -121,7 +121,7 @@ def main() :
                        }
 
     signal_binning_pt = {}
-    for mass, binning in signal_binning_m.iteritems() :
+    for mass, binning in signal_binning_m.items() :
         pt_min = binning[1]/2.
         if pt_min < 50 :
             pt_min = 50
@@ -156,19 +156,19 @@ def main() :
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
 
-    for seltag, chdic in selections.iteritems() : 
+    for seltag, chdic in selections.items() : 
 
-        for ch, seldic in chdic.iteritems() : 
+        for ch, seldic in chdic.items() : 
                                     
             if options.doSignal : 
 
-                for name, vardata in kine_vars.iteritems() :
+                for name, vardata in kine_vars.items() :
 
                     make_signal_fits( lepg_samps[ch], seldic['selection'], eta_cuts, vardata['var'], vardata['xvar'], vardata['signal_binning'], workspace_signal, suffix='%s_%s_%s'%(ch,name,seltag ) )
             if options.doWGamma :
 
 
-                for name, vardata in kine_vars.iteritems() :
+                for name, vardata in kine_vars.items() :
 
                     #get_mc_fit( lepg_samps[ch], 'WGToLNuG-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
                     #get_mc_fit( lepg_samps[ch], 'WGToLNuG_PtG-130-madgraphMLM', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_wgamma, suffix='%s_%s_%s' %(ch,name,seltag ) )
@@ -182,14 +182,14 @@ def main() :
             if options.doTop : 
 
 
-                for name, vardata in kine_vars.iteritems() :
+                for name, vardata in kine_vars.items() :
 
                     get_mc_fit( lepg_samps[ch], 'TTG', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_top, suffix='%s_%s_%s' %(ch,name,seltag ) )
 
             if options.doZGamma: 
 
 
-                for name, vardata in kine_vars.iteritems() :
+                for name, vardata in kine_vars.items() :
 
                     get_mc_fit( lepg_samps[ch], 'Zgamma', seldic['selection'], eta_cuts, vardata['xvar'], vardata['var'], vardata['binning'], workspace_top, suffix='%s_%s_%s' %(ch,name,seltag ) )
 
@@ -223,7 +223,7 @@ def main() :
             elefake.writeToFile( '%s/%s.root' %( options.outputDir,elefake.GetName() ) )
 
 
-        for fileid, ws_list in workspaces_to_save.iteritems() :
+        for fileid, ws_list in workspaces_to_save.items() :
             for idx, ws in enumerate(ws_list) :
                 if idx == 0 :
                     recreate = True
@@ -232,13 +232,13 @@ def main() :
 
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
-        for key, can in sampManMuGNoId.outputs.iteritems() :
+        for key, can in sampManMuGNoId.outputs.items() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-        for key, can in sampManElGNoId.outputs.iteritems() :
+        for key, can in sampManElGNoId.outputs.items() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-        for key, can in sampManMuG.outputs.iteritems() :
+        for key, can in sampManMuG.outputs.items() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
-        for key, can in sampManElG.outputs.iteritems() :
+        for key, can in sampManElG.outputs.items() :
             can.SaveAs('%s/%s.pdf' %( options.outputDir, key ) )
 
 #def make_toy_data( out_workspace, in_workspace, in_pdf, suffix='' ) :
@@ -264,12 +264,12 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
 
     for samp in sampMan.get_samples(isSignal=True ) :
 
-        print 'Sample = ', samp.name
+        print('Sample = ', samp.name)
 
 
         res = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_.*', samp.name )
         if res is None :
-            print 'Could not interpret path ', samp.name
+            print('Could not interpret path ', samp.name)
         else :
 
             mass = float(res.group(2))
@@ -285,7 +285,7 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
 
         ph_selection_sr = '%s==1' %defs.get_phid_selection('all')
         ph_idx_sr =  defs.get_phid_idx( 'all' )
-        print binning[mass]
+        print(binning[mass])
         addtl_cuts_sr = 'ph_pt[%s] > 50  && %s > %f && %s < %f ' %(ph_idx_sr, plot_var, binning[mass][1], plot_var, binning[mass][2] )
 
         xvar.setBins(10000,'cache')
@@ -336,11 +336,11 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
             for i in range( 0, 4 ) :
             #for i in [0.5, 0.3, 0.2, 0.1, 0.05] :
 
-                print 'GOTHERE1'
+                print('GOTHERE1')
                 iter_managers.append(FitManager( 'bwxcb', 0, hist_sr, plot_var, ieta, xvar, full_suffix, True, 
                                         sample_params={'mass' : mass, 'width' : width}, ))
 
-                print 'GOTHERE2'
+                print('GOTHERE2')
                 cv_sigma = iter_managers[-2].cb_sigma.getValV()
                 lo_sigma = iter_managers[-2].cb_sigma.getErrorLo()
                 hi_sigma = iter_managers[-2].cb_sigma.getErrorHi()
@@ -370,18 +370,18 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
                 #if cv_mass < 0 :
                 #    new_lim_mass = ( new_lim_mass[0], new_lim_mass[2], new_lim_mass[1] ) 
 
-                print 'NEW DEFAULTS'
-                print new_lim_sigma
-                print new_lim_power
-                print new_lim_mass
+                print('NEW DEFAULTS')
+                print(new_lim_sigma)
+                print(new_lim_power)
+                print(new_lim_mass)
 
                 iter_managers[-1].set_vals('cb_sigma', mass, new_lim_sigma )
                 iter_managers[-1].set_vals('cb_power', mass, new_lim_power )
                 iter_managers[-1].set_vals('cb_mass',  mass, new_lim_mass  )
 
-                print 'GOTHERE3'
+                print('GOTHERE3')
                 fit_distribution( iter_managers[-1] )
-                print 'GOTHERE4'
+                print('GOTHERE4')
 
                 cv_sigma_new = iter_managers[-1].cb_sigma.getValV()
                 lo_sigma_new = iter_managers[-1].cb_sigma.getErrorLo()
@@ -397,25 +397,25 @@ def make_signal_fits( sampMan, sel_base, eta_cuts, plot_var, xvar, binning, work
                 err_power_new = hi_power_new/cv_power_new
                 err_mass_new = hi_mass_new/cv_mass_new
 
-                print 'Sigma : Previous error = %f, new error = %f' %( err_sigma, err_sigma_new )
-                print 'Power : Previous error = %f, new error = %f' %( err_power, err_power_new )
-                print 'Mass : Previous error = %f, new error = %f' %( err_mass, err_mass_new )
+                print('Sigma : Previous error = %f, new error = %f' %( err_sigma, err_sigma_new ))
+                print('Power : Previous error = %f, new error = %f' %( err_power, err_power_new ))
+                print('Mass : Previous error = %f, new error = %f' %( err_mass, err_mass_new ))
 
-                print 'GOTHERE5'
+                print('GOTHERE5')
                 # if we get worse results with the new fit, then use the previous one
                 if math.fabs(err_sigma_new) > math.fabs(err_sigma) or math.fabs(err_power_new) > math.fabs(err_power) or math.fabs(err_mass_new) > math.fabs(err_mass) :
-                    print 'GOTHERE6'
+                    print('GOTHERE6')
                     save_fit( iter_managers[-2], sampMan, workspace, stats_pos='left' )
-                    print 'GOTHERE7'
+                    print('GOTHERE7')
                     saved_result = True
                     break
 
             # if we haven't saved the fit yet, then the best
             # version is the latest
             if not saved_result :
-                print 'GOTHERE8'
+                print('GOTHERE8')
                 save_fit( iter_managers[-1], sampMan, workspace, stats_pos='left' )
-                print 'GOTHERE9'
+                print('GOTHERE9')
 
 
 
@@ -622,17 +622,17 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     norm_den = hist_integral_den / func_integral_den
     norm_shape = hist_integral_shape / func_integral_shape
 
-    print 'func integral Num = ', func_integral_num
-    print 'hist integral Num = ', hist_integral_num
-    print 'normalization Num = ', norm_num
+    print('func integral Num = ', func_integral_num)
+    print('hist integral Num = ', hist_integral_num)
+    print('normalization Num = ', norm_num)
 
-    print 'func integral Den = ', func_integral_den
-    print 'hist integral Den = ', hist_integral_den
-    print 'normalization Den = ', norm_den
+    print('func integral Den = ', func_integral_den)
+    print('hist integral Den = ', hist_integral_den)
+    print('normalization Den = ', norm_den)
 
-    print 'func integral Shape = ', func_integral_shape
-    print 'hist integral Shape = ', hist_integral_shape
-    print 'normalization Shape = ', norm_shape
+    print('func integral Shape = ', func_integral_shape)
+    print('hist integral Shape = ', hist_integral_shape)
+    print('normalization Shape = ', norm_shape)
 
     power_pred_name    = 'power_pred_%s' %suffix
     logcoef_pred_name  = 'logcoef_pred_%s' %suffix
@@ -712,14 +712,14 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
         pred_val = (hist_integral_shape * hist_integral_num) / hist_integral_den 
 
         tot_sr = hist_sr.Integral( hist_sr.FindBin( xmin ), hist_sr.FindBin( xmax ) )
-        print 'SR integral = ', tot_sr
+        print('SR integral = ', tot_sr)
         sr_func = ROOT.TF1( 'sr_func', '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
         sr_func.SetParameter(0, result_num['power'].n + result_shape['power'].n - result_den['power'].n )
         sr_func.SetParameter(1, result_num['logcoef'].n + result_shape['logcoef'].n - result_den['logcoef'].n )
         sr_func.SetParameter(2, 1 )
         sr_int = sr_func.Integral( xmin, xmax )
-        print 'Normalization = ',(norm_shape*norm_num) / norm_den
-        print 'func Integral SR Before = ', sr_func.Integral( xmin, xmax )
+        print('Normalization = ',(norm_shape*norm_num) / norm_den)
+        print('func Integral SR Before = ', sr_func.Integral( xmin, xmax ))
         sr_func.SetParameter(2, pred_val/sr_int )
 
         hist_sr.Draw()

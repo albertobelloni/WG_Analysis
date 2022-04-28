@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import matplotlib.pyplot as plt
 import re
 import json
@@ -9,7 +9,7 @@ import pdb
 def addparser(parser):
    parser.add_argument('--plots',  action='store_true', help='Plot fit parameter shifts' )
    parser.add_argument('--doSpecialFits',  action='store_true', help='Fit only specific systematics' )
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 #ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
@@ -53,11 +53,11 @@ def main() :
 
     lepg_samps = { 'mu' : sampManMuG, 'el' : sampManElG }
 
-    for ch, man in lepg_samps.iteritems() :
+    for ch, man in lepg_samps.items() :
         ## loop channel and sample manager
-        for name, vardata in kine_vars.iteritems() :
+        for name, vardata in kine_vars.items() :
             ## variables to be fitted
-            print "name",name,"vardata", vardata
+            print("name",name,"vardata", vardata)
 
             ## call fit function
             make_signal_fits( man, workspaces_to_save=workspaces_to_save,
@@ -65,7 +65,7 @@ def main() :
 
     multidict_tojson2(_JSONLOC, fitted_masses )
 
-    for fileid, ws in workspaces_to_save.iteritems() :
+    for fileid, ws in workspaces_to_save.items() :
             ws.writeToFile( '%s/%s/%s.root' %( options.dataDir, options.year, fileid ) )
 
 
@@ -75,7 +75,7 @@ def main() :
 def parsesampname(name):
     res = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_.*', name )
     if res is None :
-        print 'Could not interpret path ', name
+        print('Could not interpret path ', name)
     else :
 
         mass = float(res.group(2))
@@ -115,7 +115,7 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
     ### now loop over all samples to fit each of them
     for samp in sampMan.get_samples(isSignal=True ) :
 
-        print 'Sample = ', samp.name
+        print('Sample = ', samp.name)
         mass, width, wid, iwidth = parsesampname(samp.name)
 
         ### exclude certain samples
@@ -131,7 +131,7 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         binning = signal_binning(mass)
         addition = " (%s > %d && %s < %d )" %(var, binning[1], var ,binning[2])
         cuttag, (full_sel_sr, weight) = defs.selectcutstring( mass , ch, addition )
-        print full_sel_sr
+        print(full_sel_sr)
         #weight = "NLOWeight"
         if options.year == 2018:
             weight = weight.replace("*prefweight","") ## no prefiring weight in 2018
@@ -152,7 +152,7 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
 
         ## make histogram
         sampMan.create_hist( samp, var, "(%s)*%s" %(full_sel_sr,weight), signal_binning(mass) )
-        print "Integral: ", samp.hist.Integral()
+        print("Integral: ", samp.hist.Integral())
 
         scale_norm = 1./samp.total_events_onthefly
 
@@ -214,12 +214,12 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
         fitted_mass =  search_multidict(fitted_masses, (ch,mass,width,None))
 
 
-        print "%-30s %10s %10s %6s %10s %6s" %("Systematics Name", "Mean(GeV)", "Shift", "Shift %%", "Sig shift", "Shift %%")
-        for k,v in fitted_mass.iteritems():
-            print "%-30s %10.1f %10.1f %6.1f%% %10.1f %6.0f%%" %(k, v[0][0], (v[0][0]-normval[0][0]), v[0][0]/normval[0][0]*100-100, v[1][0]-normval[1][0], v[1][0]/normval[1][0]*100-100,)
+        print("%-30s %10s %10s %6s %10s %6s" %("Systematics Name", "Mean(GeV)", "Shift", "Shift %%", "Sig shift", "Shift %%"))
+        for k,v in fitted_mass.items():
+            print("%-30s %10.1f %10.1f %6.1f%% %10.1f %6.0f%%" %(k, v[0][0], (v[0][0]-normval[0][0]), v[0][0]/normval[0][0]*100-100, v[1][0]-normval[1][0], v[1][0]/normval[1][0]*100-100,))
 
         ## list of all fitted mean
-        meanlist = [v[0][0]for k,v in fitted_mass.iteritems() if "mean" in k]
+        meanlist = [v[0][0]for k,v in fitted_mass.items() if "mean" in k]
         if len(meanlist):
             maxmean= max(meanlist)
             minmean= min(meanlist)
@@ -227,10 +227,10 @@ def make_signal_fits( sampMan, suffix="", workspaces_to_save=None, var="mt_res",
             # NOTE: different format from other values, ie no sigma or fit uncertainty
             fitted_masses[(ch, mass, width, "max")] = (maxmean, maxmean/normval[0][0])
             fitted_masses[(ch, mass, width, "min")] = (minmean, minmean/normval[0][0])
-            print "%-30s %10.1f %10.1f %6.1f%%" % ("Max", maxmean, maxmean - normval[0][0], maxmean/normval[0][0]*100-100)
-            print "%-30s %10.1f %10.1f %6.1f%%" % ("Min", minmean, minmean - normval[0][0], minmean/normval[0][0]*100-100)
+            print("%-30s %10.1f %10.1f %6.1f%%" % ("Max", maxmean, maxmean - normval[0][0], maxmean/normval[0][0]*100-100))
+            print("%-30s %10.1f %10.1f %6.1f%%" % ("Min", minmean, minmean - normval[0][0], minmean/normval[0][0]*100-100))
 
-    pprint(fitted_masses.keys())
+    pprint(list(fitted_masses.keys()))
 
 
 
@@ -245,30 +245,30 @@ def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, us
         fitManager.set_parameter_vals( usevals )
 
     if fittype=="mean":
-        for k, val in fitManager.fit_params.iteritems():
+        for k, val in fitManager.fit_params.items():
             if k == "cb_mass":
                 val.setConstant(False)
             else:
                 val.setConstant(True)
 
     if fittype=="sigma":
-        for k, val in fitManager.fit_params.iteritems():
+        for k, val in fitManager.fit_params.items():
             if k == "cb_sigma":
                 val.setConstant(False)
             else:
                 val.setConstant(True)
 
     if fittype=="meansigma":
-        for k, val in fitManager.fit_params.iteritems():
+        for k, val in fitManager.fit_params.items():
             if k == "cb_sigma" or k == "cb_mass":
                 val.setConstant(False)
             else:
                 val.setConstant(True)
 
-    print
-    print "Parameter list:"
-    for k, val in fitManager.fit_params.iteritems():
-        print k,
+    print()
+    print("Parameter list:")
+    for k, val in fitManager.fit_params.items():
+        print(k, end=' ')
         val.Print()
 
     fitManager.run_fit( Range="signal", Strategy=2, Save=True, SumW2Error=True)
@@ -284,9 +284,9 @@ def fit_sample( hist, xvar,  workspace , suffix, sample_params, label_config, us
     canv.Print("%s/%s.png" %(options.outputDir, suffix) )
     canv.Print("%s/%s.C"   %(options.outputDir, suffix) )
 
-    print "************"
-    print " RooFitResult Status: %d"%fitManager.fitresult.status()
-    print "************"
+    print("************")
+    print(" RooFitResult Status: %d"%fitManager.fitresult.status())
+    print("************")
 
 
     fitmlist.append(fitManager)
@@ -470,21 +470,21 @@ def search_multidict(in_dict,selkey):
     ### search dictionary with ntuple keys
     ### (None,"hello") selects all entries where the second column is Hello
     ### roughly equivalent to ~~ dict[:,"hello"]
-    return OrderedDict((mask(k,selkey), w) for k,w in in_dict.iteritems() if comp_tuples(k, selkey))
+    return OrderedDict((mask(k,selkey), w) for k,w in in_dict.items() if comp_tuples(k, selkey))
 
 def multidict_tojson(filepath, indict, keymould = "%i_%g_%s"):
-    transformed_dict = {keymould %k: v for k,v in indict.iteritems()}
+    transformed_dict = {keymould %k: v for k,v in indict.items()}
     with open(filepath, "w") as fo:
         json.dump( transformed_dict, fo)
 
 def multidict_tojson2(filepath, indict):
     ## expand into multidimensional dictionary
     transformed_dict = recdd()
-    for (a,b,c,d), v in indict.viewitems():
+    for (a,b,c,d), v in indict.items():
         transformed_dict[a][b][c][d] = v
     with open(filepath, "w") as fo:
         json.dump( transformed_dict, fo)
-        print "save to %s" %filepath
+        print("save to %s" %filepath)
 
 
 def makeplots():
@@ -500,7 +500,7 @@ def makeplots():
                 "UnclusteredEn",
                 ]
     syslist = [] # I don't need syst plot -- Yihui
-    masses = fm["el"].keys()
+    masses = list(fm["el"].keys())
     masses.sort(lambda x,y:int(float(x)-float(y)))
 
     mass = [float(m) for m in masses]
@@ -533,6 +533,6 @@ if options.plots:
 main()
 
 
-print "Script Sucessfully Ran"
+print("Script Sucessfully Ran")
 
 

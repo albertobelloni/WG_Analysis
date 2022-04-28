@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys, os
 import ROOT
 from CombineHarvester.CombineTools.plotting import *
@@ -13,17 +13,17 @@ fname = {}
 fgraphs = {}
 if (len(sys.argv)%2!=1):
     print("give me correct argument!! :")
-    print(sys.argv)
+    print((sys.argv))
     exit()
 
 for i in range((len(sys.argv)+1)/2):
     if i ==0: continue
     fgraphs[i] = StandardLimitsFromJSONFile(sys.argv[i])
     fname[i] = sys.argv[i+len(sys.argv)/2]
-    print(fgraphs, fname)
+    print((fgraphs, fname))
 
 sname = name.replace(".json","")
-print sname
+print(sname)
 canv = ROOT.TCanvas(sname, sname)
 pads = OnePad()
 
@@ -32,10 +32,10 @@ y = ROOT.Double(0.)
 
 for i in range((len(sys.argv)+1)/2):
     if i ==0: continue
-    print(sys.argv[i])
+    print((sys.argv[i]))
     for j in range(3):
-        fgraphs[i].values()[2].GetPoint(j, x, y)
-        print(x,y)
+        list(fgraphs[i].values())[2].GetPoint(j, x, y)
+        print((x,y))
 
 print("\n")
 for i in range((len(sys.argv)+1)/2):
@@ -46,7 +46,7 @@ for i in range((len(sys.argv)+1)/2):
 # Get limit TGraphs as a dictionary
 
 # Create an empty TH1 from the first TGraph to serve as the pad axis and frame
-axis = CreateAxisHist(graphs.values()[0])
+axis = CreateAxisHist(list(graphs.values())[0])
 axis.GetXaxis().SetTitle('m_{X} (GeV)')
 axis.GetYaxis().SetTitle('95% CL limit #sigma (fb)')
 pads[0].cd()
@@ -79,7 +79,7 @@ if "mu" in  sname or "el" in sname:
     year = int(sname.split("_")[-1][2:])
     ch2 = "Electron" if ch=="el" else "Muon"
     text2 = "%s Channel %i" %(ch2,year)
-    print text2
+    print(text2)
 l = ROOT.TLatex()
 l.SetNDC()
 l.SetTextSize(0.04)
@@ -116,8 +116,8 @@ if len(sys.argv)/2 > 6:
         color[j] = ROOT.kRainbow+2*j
 for i in range((len(sys.argv)+1)/2):
     if i ==0: continue
-    fgraphs[i].values()[2].GetPoint(8, x, y)
-    fgraph[i] = fgraphs[i].values()[2]
+    list(fgraphs[i].values())[2].GetPoint(8, x, y)
+    fgraph[i] = list(fgraphs[i].values())[2]
     fgraph[i].SetLineColor( color[i-1] )
     fgraph[i].SetLineWidth( 2 )
     fgraph[i].SetLineStyle( 9 )

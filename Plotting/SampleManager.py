@@ -25,6 +25,7 @@ import multiprocessing
 import fnmatch
 from collections import OrderedDict
 from DrawConfig import DrawConfig, LegendConfig, LabelConfig, HistConfig
+from functools import reduce
 
 ROOT.gROOT.SetBatch(False)
 
@@ -43,7 +44,7 @@ def f_Obsolete(f):
 
     @wraps(f)
     def f_wrapper(*args, **kws):
-            print "This method is obsolete"
+            print("This method is obsolete")
             return f(*args,**kws)
 
     return f_wrapper
@@ -53,8 +54,8 @@ def f_Dumpfname(func):
 
     @wraps(func)
     def echo_func(*func_args, **func_kwargs):
-        print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'\
-                        .format(func.__name__,sys._getframe(1).f_code.co_name))
+        print(('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'\
+                        .format(func.__name__,sys._getframe(1).f_code.co_name)))
         return func(*func_args, **func_kwargs)
 
     return echo_func
@@ -225,7 +226,7 @@ class Sample :
     def quietprint(self, msg = " "):
             if self.manager and self.manager.quiet:
                     return
-            print msg
+            print(msg)
 
     #--------------------------------
 
@@ -236,7 +237,7 @@ class Sample :
 
     def scale_calc(self, onthefly=True):
         if self.cross_section <=0 or self.lumi <=0:
-            print "no valid luminosity or cross section - not scaling"
+            print("no valid luminosity or cross section - not scaling")
             return 1
         if onthefly:
             return analysis_utils.scale_calc(self.cross_section, self.lumi,
@@ -251,7 +252,7 @@ class Sample :
     def nevt_calc(self):
         """ calculate expected number of events for MC normalization """
         if self.isData:
-            print "Nevents invalid for Data sample"
+            print("Nevents invalid for Data sample")
             return -1
         if self.IsGroupedSample():
             return sum([ samp.nevt_calc() for samp in self.groupedSamples ])
@@ -316,7 +317,7 @@ class Sample :
                     rf = ROOT.TFile(f)
                     wh = rf.Get(weightHistName)
                     if not wh:
-                        print "weight histogram does not exist for %s" %f
+                        print(("weight histogram does not exist for %s" %f))
                         continue
                     wh.SetDirectory(0)
                     if self.weightHist == None:
@@ -332,9 +333,9 @@ class Sample :
             totevt = self.weightHist[2] - self.weightHist[1]
             self.total_events_onthefly = totevt
             if totevt!=self.total_events:
-                print "total event from histogram: %.8g total event in"\
+                print(("total event from histogram: %.8g total event in"\
                       "imported XS file: %.8g ratio: %g"  \
-                       %(totevt, self.total_events, totevt/self.total_events)
+                       %(totevt, self.total_events, totevt/self.total_events)))
                 ## Yihui -- not correct number
                 #if('ChargedResonance' in str(files[0]) and totevt!= 50000):
                 #     print('-----------',files[0])
@@ -425,7 +426,7 @@ class Sample :
             ## throw error the check bit is flipped already
             raise RuntimeError("histogram is already normalized by width")
         if self.IsGroupedSample():
-            print "warning: grouped samples inherit width-normalization"
+            print("warning: grouped samples inherit width-normalization")
             #raise RuntimeError("grouped samples inherit width-normalization")
         normalize_hist_by_width( self.hist , norm )
         self.widthnormalize = True
@@ -496,7 +497,7 @@ class SampleFrame(object):
                       defaults to false
         """
 
-        print 'Booking 1D hist  ' + var+ "[%i,%g,%g] : "%histpars + tRed %selection + " *%s %s" %(weight, "skipdata" if data_exp else "")
+        print(('Booking 1D hist  ' + var+ "[%i,%g,%g] : "%histpars + tRed %selection + " *%s %s" %(weight, "skipdata" if data_exp else "")))
         sf = self
         if selection and isinstance(selection, str):
             sf = self.SetFilter(selection)
@@ -530,12 +531,12 @@ class SampleFrame(object):
             #else:
             #    print "skipped ", s
         sf = SampleFrame(samplemanager = self.sm)
-        for s, sp in  self.sampleptr.iteritems():
+        for s, sp in  list(self.sampleptr.items()):
             if not s.isData:
                 try:
                     sf.sampleptr[s] = sp.Define("nodata","1")
                 except TypeError:
-                    print "error with sample ", s
+                    print(("error with sample ", s))
             else:
                 sf.dataset.add(sp.Define("nodata","1"))
         return sf
@@ -570,10 +571,10 @@ class SampleFrame(object):
     def SetHelper(self,filterexp,function,state=""):
         ## sentinel checks
         if not self.dataFrame:
-            print "DataFrame not available"
+            print("DataFrame not available")
             return self
         if filterexp==None:
-            print "noactions: empty string"
+            print("noactions: empty string")
             return None
         if isinstance(filterexp,str):
             filterexp = (filterexp,) #move it into a tuple if a string is given
@@ -582,11 +583,11 @@ class SampleFrame(object):
         sf = SampleFrame(samplemanager = self.sm)
         sf.state = state
         sf.dataset = self.dataset.copy()
-        for s, sp in  self.sampleptr.iteritems():
+        for s, sp in  list(self.sampleptr.items()):
             try:
                 sf.sampleptr[s] = function(sp, filterexp)
             except TypeError:
-                print "error with sample ", s
+                print(("error with sample ", s))
         return sf
 
     #--------------------------------
@@ -598,7 +599,7 @@ class SampleFrame(object):
                 if self.save_as:
                     self.sm.SaveStack(*self.save_as)
         else:
-            print "Not a FastHisto"
+            print("Not a FastHisto")
     #--------------------------------
 
     def Draw(self, *arg, **kwarg):
@@ -613,7 +614,7 @@ class SampleFrame(object):
             else:
                 self.sm.Draw(self,"",self.histpars, *arg, **kwarg)
         else:
-            print "Not a Histo"
+            print("Not a Histo")
 
     #--------------------------------
 
@@ -621,7 +622,7 @@ class SampleFrame(object):
         if self.state == "count":
             return self.sm.ShowCount(self,*arg)
         else:
-            print "Not a Counter"
+            print("Not a Counter")
 
 
 
@@ -767,8 +768,8 @@ class SampleManager(SampleFrame) :
                 ROOT.ROOT.EnableImplicitMT()
                 ROOT.RDataFrame
             except Exception as ex:
-                 print('Using TChain.'+\
-                 'Please consider switching to ROOT >= 6.18 to use RDataFrame')
+                 print(('Using TChain.'+\
+                 'Please consider switching to ROOT >= 6.18 to use RDataFrame'))
                  dataFrame = False
 
         # store dataframe bit
@@ -793,7 +794,7 @@ class SampleManager(SampleFrame) :
         if self.quiet:
                 self.logmessage.extend(msg)
                 return
-        for m in msg: print m
+        for m in msg: print(m)
         return
 
     #--------------------------------
@@ -804,12 +805,12 @@ class SampleManager(SampleFrame) :
     def create_sample( self, name, **kwargs ) :
 
         if name in self.get_sample_names() :
-            print 'Sample with name %s already exists' %name
+            print(('Sample with name %s already exists' %name))
             return None
 
         new_sample = Sample( name=name , manager = self)
         new_sample.hist = kwargs.pop('hist', None)
-        for arg, val in kwargs.iteritems() :
+        for arg, val in list(kwargs.items()) :
             if hasattr( new_sample, arg ) :
                 setattr( new_sample, arg, val )
 
@@ -830,16 +831,16 @@ class SampleManager(SampleFrame) :
             if _oldsample :
                 oldsample = _oldsample[0]
             else :
-                print 'Could not locate old sample'
-                print 'new name = ', newname
-                print 'old name = ', oldname
+                print('Could not locate old sample')
+                print(('new name = ', newname))
+                print(('old name = ', oldname))
                 return None
 
         newsample = copy.copy( oldsample )
         newsample.name = newname
 
         histval = kwargs.pop('hist', None)
-        for arg, val in kwargs.iteritems() :
+        for arg, val in list(kwargs.items()) :
             if hasattr( newsample, arg ) :
                 setattr( newsample, arg, val )
 
@@ -858,22 +859,22 @@ class SampleManager(SampleFrame) :
                                    binomunc = False, dodiff = False) :
 
         if name in self.get_sample_names() :
-            print 'Sample %s already exists!  Will not create!' %name
+            print(('Sample %s already exists!  Will not create!' %name))
             return None
 
         if not isinstance( num_sample, Sample ) :
             num_sample_list = self.get_samples( name=num_sample )
             if not num_sample_list :
-                print 'create_ratio_sample - ERROR : '\
-                      'Numerator sample does not exist, %s' %num_sample
+                print(('create_ratio_sample - ERROR : '\
+                      'Numerator sample does not exist, %s' %num_sample))
                 return None
             num_sample = num_sample_list[0]
 
         if not isinstance( den_sample, Sample ) :
             den_sample_list = self.get_samples( name=den_sample )
             if not den_sample_list :
-                print 'create_ratio_sample - ERROR : '\
-                      'Denominator sample does not exist'
+                print('create_ratio_sample - ERROR : '\
+                      'Denominator sample does not exist')
                 return None
             den_sample = den_sample_list[0]
 
@@ -935,7 +936,7 @@ class SampleManager(SampleFrame) :
         config['legendTranslateY'] = kwargs.pop('legendTranslateY' , 0.0)
         config['entryWidth']       = kwargs.pop('entryWidth' , 0.08)
 
-        for key, val in kwargs.iteritems() :
+        for key, val in list(kwargs.items()) :
             config[key] = val
         return config
 
@@ -945,7 +946,7 @@ class SampleManager(SampleFrame) :
         if config is None :
             return
 
-        for key, val in config.iteritems() :
+        for key, val in list(config.items()) :
             if hasattr( self, key ) :
                 setattr(self, key, val)
 
@@ -960,7 +961,7 @@ class SampleManager(SampleFrame) :
         # then require and AND of samples matching each
         # criteria
         each_results = []
-        for arg, val in kwargs.iteritems() :
+        for arg, val in list(kwargs.items()) :
             val_list = val
             if not isinstance(val_list, list) :
                 val_list = [val_list]
@@ -1000,13 +1001,13 @@ class SampleManager(SampleFrame) :
             names = [names]
 
         if names :
-            return filter( lambda x : x.name in names, self.modelSamples )
+            return [x for x in self.modelSamples if x.name in names]
         else :
            return self.modelSamples
 
     #--------------------------------
     def get_signal_samples(self) :
-        return filter( lambda x : x.isSignal and x.isActive , self.samples )
+        return [x for x in self.samples if x.isSignal and x.isActive]
 
     #--------------------------------
     def get_sample_names(self) :
@@ -1034,11 +1035,11 @@ class SampleManager(SampleFrame) :
 
         sel_samps = self.get_samples(name=name)
         if not sel_samps :
-            print 'No sample with name %s' %name
+            print(('No sample with name %s' %name))
         elif len(sel_samps) > 1 :
-            print 'Located multiple samples with name %s' %name
+            print(('Located multiple samples with name %s' %name))
         else :
-            print 'Activate sample %s' %sel_samps[0].name
+            print(('Activate sample %s' %sel_samps[0].name))
             sel_samps[0].isActiveReq=True
             sel_samps[0].isActive=True
 
@@ -1046,11 +1047,11 @@ class SampleManager(SampleFrame) :
     def deactivate_sample(self, samp_name) :
         sel_samps = self.get_samples(name=samp_name)
         if not sel_samps :
-            print 'No sample with name %s' %samp_name
+            print(('No sample with name %s' %samp_name))
         elif len(sel_samps) > 1 :
-            print 'Located multiple samples with name %s' %samp_name
+            print(('Located multiple samples with name %s' %samp_name))
         else :
-            print 'Deactivate sample %s' %sel_samps[0].name
+            print(('Deactivate sample %s' %sel_samps[0].name))
             sel_samps[0].isActiveReq=False
             sel_samps[0].isActive=False
 
@@ -1067,7 +1068,7 @@ class SampleManager(SampleFrame) :
 
         self.clear_hists()
 
-        for can in self.curr_canvases.values() :
+        for can in list(self.curr_canvases.values()) :
             if can != None :
                 can.Close()
         self.curr_canvases         = {}
@@ -1143,7 +1144,7 @@ class SampleManager(SampleFrame) :
 
     def get_sample_branch_minmax( self, samp, branch ) :
 
-        print 'Get %s, %s' %( samp, branch)
+        print(('Get %s, %s' %( samp, branch)))
 
         if isinstance( samp, str ) :
             samp = self.get_samples(name=samp)[0]
@@ -1197,7 +1198,7 @@ class SampleManager(SampleFrame) :
                     if samp:
                         ordr[i] = self.samples.index(samp[0])
                     else:
-                            print "WARNING: cannot find sample with name %s" %(ordr[i])
+                            print(("WARNING: cannot find sample with name %s" %(ordr[i])))
                             return
             self.change_stack_order(*ordr)
             return
@@ -1324,10 +1325,10 @@ class SampleManager(SampleFrame) :
             draw_command.create_hist_configs( draw_branches )
             n_tot += len(draw_command.hist_configs)
 
-        print 'Will create %d histograms!' %n_tot
+        print(('Will create %d histograms!' %n_tot))
 
         if n_tot == 0 :
-            print 'No histograms were scheduled.  Aborting!'
+            print('No histograms were scheduled.  Aborting!')
             return
 
         output_loc = '/tmp/%s/drawn_histograms/%s' %(user,self.id)
@@ -1397,7 +1398,7 @@ class SampleManager(SampleFrame) :
         #configs.sort(reverse=True)
 
         run_cmds = ['%s/%s --conf_file %s' %( compile_base,exename, c[1] ) for c in configs ]
-        print run_cmds
+        print(run_cmds)
 
         nproc = 6
         if len(run_cmds) < nproc :
@@ -1460,7 +1461,7 @@ class SampleManager(SampleFrame) :
             #filename = '%s/%s.root' %( self.output_loc, sample.name )
             # ------------------------
             filename = '%s/%s/hist.root' %( self.output_loc, sample.name )
-            for name  in draw_config.hist_configs.keys() :
+            for name  in list(draw_config.hist_configs.keys()) :
                 self.load_hist_from_file_cache( sample, name, filename )
 
         # handle grouped samples
@@ -1507,10 +1508,10 @@ class SampleManager(SampleFrame) :
         # hist config
         #-----------------------
         created_samples = []
-        for name, conf in draw_config.hist_configs.iteritems() :
+        for name, conf in list(draw_config.hist_configs.items()) :
 
             newsamp = self.clone_sample( oldname=conf['sample'], newname=name, temporary=True )
-            print 'Create %s' %name
+            print(('Create %s' %name))
 
             if newsamp.IsGroupedSample() :
                 for subsamp in self.GetLowestGroupedSamples(newsamp) :
@@ -1532,7 +1533,7 @@ class SampleManager(SampleFrame) :
             created_samples.append(newsamp)
 
         if not created_samples :
-            print 'No hists were created from samples %s' %(', '.join(reqsamples) )
+            print(('No hists were created from samples %s' %(', '.join(reqsamples) )))
             return created_samples
 
         if isinstance( draw_config.histpars, tuple) and len(draw_config.histpars) == 4 :
@@ -1552,7 +1553,7 @@ class SampleManager(SampleFrame) :
 
         if draw_config.get_doratio() :
             #rname = created_samples[0].name + '_ratio'
-            for samp, hc in zip(created_samples[1:], draw_config.hist_configs.values()[1:]) :
+            for samp, hc in zip(created_samples[1:], list(draw_config.hist_configs.values())[1:]) :
 
                 color = hc['color']
                 rcolor = color
@@ -1585,25 +1586,25 @@ class SampleManager(SampleFrame) :
     def load_samples( self, draw_config ) :
 
         if draw_config.samp_man_id is not None and draw_config.samp_man_id != self.id :
-            print 'Provided DrawConfig was not made with this SampleManager.  Exiting!'
+            print('Provided DrawConfig was not made with this SampleManager.  Exiting!')
             return []
 
         created_samples = []
 
         if not draw_config.hist_configs :
-            print draw_config.samples[0].name
+            print((draw_config.samples[0].name))
             matched_samples = self.get_samples( name=draw_config.samples[0].name)
-            print matched_samples
+            print(matched_samples)
             if matched_samples :
                 if matched_samples[0].hist is not None :
                     created_samples.append( matched_samples[0] )
 
         else :
-            for name, conf in draw_config.hist_configs.iteritems() :
+            for name, conf in list(draw_config.hist_configs.items()) :
 
 
                 newsamp = self.clone_sample( oldname=conf['sample'], newname=name, temporary=True )
-                print 'Create %s' %name
+                print(('Create %s' %name))
 
                 if newsamp.IsGroupedSample() :
                     for subsamp in self.GetLowestGroupedSamples(newsamp) :
@@ -1628,7 +1629,7 @@ class SampleManager(SampleFrame) :
                 created_samples.append(newsamp)
 
         if not created_samples :
-            print 'No hists were created'
+            print('No hists were created')
             return created_samples
 
         if isinstance( draw_config.histpars, tuple) and len(draw_config.histpars) == 4 :
@@ -1648,7 +1649,7 @@ class SampleManager(SampleFrame) :
         """ load histogram from file by histogram name """
 
         if debug :
-            print 'Load hist %s from %s into sample %s' %( name, filename, sample.name )
+            print(('Load hist %s from %s into sample %s' %( name, filename, sample.name )))
         sample.hist = None
         if not hasattr(sample, 'file' ) :
             sample.file = ROOT.TFile.Open( filename, 'READ')
@@ -1714,11 +1715,11 @@ class SampleManager(SampleFrame) :
         text += r'}' + '\n\n'
 
         for draw_config in self.draw_commands :
-            for name, config in draw_config.hist_configs.iteritems() :
+            for name, config in list(draw_config.hist_configs.items()) :
 
                 text += 'void RunModule::Draw%s( ) const { \n' %name
                 first_replace = True
-                for samp, rselection in draw_config.replace_selection_for_sample.iteritems() :
+                for samp, rselection in list(draw_config.replace_selection_for_sample.items()) :
                     if first_replace :
                         text += '    if( curr_sample == %s ) { \n ' %samp
                         first_replace=False
@@ -1823,15 +1824,15 @@ class SampleManager(SampleFrame) :
                 try :
                     weight = eval(draw_config.get_compiled_selection_string() )
                 except :
-                    print 'Failed to evaluate draw command.  Please check command and fix'
-                    print draw_config.get_eval_selection_string(sample, treename='sample.chain')
+                    print('Failed to evaluate draw command.  Please check command and fix')
+                    print((draw_config.get_eval_selection_string(sample, treename='sample.chain')))
                     raise
                 if weight != 0 :
                     try :
                         hist.Fill( eval(draw_config.get_compiled_var( ) ), weight )
                     except :
-                        print 'Failed to eval var.  Please check and fix'
-                        print draw_config.get_var_val(sample, treename='sample.chain')
+                        print('Failed to eval var.  Please check and fix')
+                        print((draw_config.get_var_val(sample, treename='sample.chain')))
                         raise
 
         return len(sample.loop_hists)
@@ -1844,10 +1845,10 @@ class SampleManager(SampleFrame) :
         # grab list from 0th sample.  This may not work in some cases
         for br in self.samples[0].chain.GetListOfBranches() :
             if key is None :
-                print br.GetName()
+                print((br.GetName()))
             else :
                 if br.GetName().count(key) :
-                    print br.GetName()
+                    print((br.GetName()))
 
     #---------------------------------------
     def list_hists( self ) :
@@ -1865,7 +1866,7 @@ class SampleManager(SampleFrame) :
         uniq_hists.sort()
 
         for h in uniq_hists :
-            print h
+            print(h)
 
     #---------------------------------------
     def SaveStack( self, filename, outputDir=None, canname=None, write_command=False, command_file='commands.txt'  ) :
@@ -1874,7 +1875,7 @@ class SampleManager(SampleFrame) :
         """
 
         if outputDir is None :
-            print 'No output directory provided.  Will not save.'
+            print('No output directory provided.  Will not save.')
         else :
 
             # write the command to a file if requested
@@ -1889,13 +1890,13 @@ class SampleManager(SampleFrame) :
                 self.add_save_stack( filename, outputDir, canname )
                 return
 
-            print 'Creating directory %s' %outputDir
+            print(('Creating directory %s' %outputDir))
             if "~" in outputDir:
                 outputDir = os.path.expanduser(outputDir)
-                print "expand bash home directory: ", outputDir
+                print(("expand bash home directory: ", outputDir))
             if "$" in outputDir:
                 outputDir = os.path.expandvars(outputDir)
-                print "expand bash variable: ", outputDir
+                print(("expand bash variable: ", outputDir))
             if not os.path.isdir( outputDir ) :
                 os.makedirs(outputDir)
 
@@ -1915,16 +1916,16 @@ class SampleManager(SampleFrame) :
                 histnamepdf = outputDir + '/' +filename
 
             if len( self.curr_canvases ) == 0 :
-                print 'No canvases to save'
+                print('No canvases to save')
             elif len( self.curr_canvases ) == 1  :
-                self.curr_canvases.values()[0].SaveAs(histnamepdf)
-                self.curr_canvases.values()[0].SaveAs(histnameeps)
-                self.curr_canvases.values()[0].SaveAs(histnameroot)
-                self.curr_canvases.values()[0].SaveAs(histnamepng)
+                list(self.curr_canvases.values())[0].SaveAs(histnamepdf)
+                list(self.curr_canvases.values())[0].SaveAs(histnameeps)
+                list(self.curr_canvases.values())[0].SaveAs(histnameroot)
+                list(self.curr_canvases.values())[0].SaveAs(histnamepng)
             else :
                 if canname is not None :
                     if canname not in self.curr_canvases :
-                        print 'provided can name does not exist'
+                        print('provided can name does not exist')
                     #Yihui - seems to cause the MakeSystematics.py error 
                     else :
                         self.curr_canvases[canname].SaveAs(histnamepdf)
@@ -1934,11 +1935,11 @@ class SampleManager(SampleFrame) :
 
                 else :
 
-                    print 'Multiple canvases available.  Select which to save'
-                    keys = self.curr_canvases.keys()
+                    print('Multiple canvases available.  Select which to save')
+                    keys = list(self.curr_canvases.keys())
                     for idx, key in enumerate(keys) :
-                        print '%s (%d)' %(key, idx)
-                    selidx = int(raw_input('enter number 0 - %d' %( len(keys)-1 )))
+                        print(('%s (%d)' %(key, idx)))
+                    selidx = int(eval(input('enter number 0 - %d' %( len(keys)-1 ))))
                     selkey = keys[selidx]
                     self.curr_canvases[selkey].SaveAs(histnamepdf)
                     self.curr_canvases[selkey].SaveAs(histnameeps)
@@ -1974,7 +1975,7 @@ class SampleManager(SampleFrame) :
                try:
                  icut = float(cut)
                except ValueError:
-                 print "Input cut {cut} is not a float. Please check".format(cut = cut)
+                 print(("Input cut {cut} is not a float. Please check".format(cut = cut)))
                ifirst = samp.hist.FindBin( icut )
             else:
                ifirst = 1
@@ -1994,12 +1995,12 @@ class SampleManager(SampleFrame) :
 
         # get the sum over the full stack
         bkg_sum = ufloat(0.0, 0.0)
-        for name, vals in stack_entries.iteritems() :
+        for name, vals in list(stack_entries.items()) :
             if name != 'Data' :
                 bkg_sum += vals
 
         sig_sum = ufloat(0.0, 0.0)
-        for name, vals in signal_entries.iteritems() :
+        for name, vals in list(signal_entries.items()) :
             sig_sum += vals
 
         latex_lines = []
@@ -2081,7 +2082,7 @@ class SampleManager(SampleFrame) :
                     lines.append('%s, bin %d (%s-%s) : %.3f += %.4f ' %( samp.name, bin, str(min), str(max), val, err ) )
 
         for line in lines :
-            print line
+            print(line)
 
         latex_lines.append( r'\hline\hline\end{tabular}' )
 
@@ -2131,19 +2132,19 @@ class SampleManager(SampleFrame) :
     def DumpRoc( self, outputDir=None, txtname=None, inDirs='' ) :
 
         output = []
-        for title, entries in self.transient_data.iteritems() :
+        for title, entries in list(self.transient_data.items()) :
             output.append( title )
-            print output[-1]
+            print((output[-1]))
             for entry in entries :
                 output.append('Cutval=%(CutVal)f, nSig=%(nSig)f, nBkg=%(nBkg)f, sigEff=%(sigEff)f, bkgEff=%(bkgEff)f, S/sqrt(S+B)=%(SoverRootSplusB)f ' %entry )
-                print output[-1]
+                print((output[-1]))
 
         if txtname is not None and outputDir is not None  :
 
             outdir = outputDir + '/' + inDirs
 
             if not os.path.isdir( outdir ) :
-                print 'Making directory : ', outdir
+                print(('Making directory : ', outdir))
                 os.makedirs( outdir )
 
             if txtname.count('.txt') == 0 :
@@ -2170,7 +2171,7 @@ class SampleManager(SampleFrame) :
         """ Create an entry for this sample """
 
         if self.added_sample_group :
-            print 'WARNING -- Please add all samples before adding a sample group, othwerise you may see funny behavior'
+            print('WARNING -- Please add all samples before adding a sample group, othwerise you may see funny behavior')
 
         # get all root files under this sample
         input_files = []
@@ -2195,7 +2196,7 @@ class SampleManager(SampleFrame) :
             #
             n_unique_pathlenghts = len( set( [ len( upath.split('/') ) for upath in paths_used ] ) )
             if n_unique_pathlenghts > 1 :
-                print 'Found ntuples in parent directories, these may be duplicates'
+                print('Found ntuples in parent directories, these may be duplicates')
 
             thisscale = 1.0
             # multiply by command line MC weight only for MC
@@ -2230,10 +2231,10 @@ class SampleManager(SampleFrame) :
             if isActive: self.stack_order_original_active.append(name)
 
         if not input_files and required :
-            print '***********************************************'
-            print 'Sample, %s does not exist and is required by this module' %name
-            print self.base_path
-            print '***********************************************'
+            print('***********************************************')
+            print(('Sample, %s does not exist and is required by this module' %name))
+            print((self.base_path))
+            print('***********************************************')
             sys.exit(-1)
         print_prefix = "AddSample: Reading %s " %( path[0] )
         print_prefix = print_prefix.ljust(60)
@@ -2241,9 +2242,9 @@ class SampleManager(SampleFrame) :
             self.quietprint(print_prefix + " [ \033[1;31mFailed\033[0m  ]")
         else :
             if len(set(path) & set(subpaths_used)) != len(path) :
-                print print_prefix + " [ \033[1;33mPartial\033[0m ]"
-                print path
-                print subpaths_used
+                print((print_prefix + " [ \033[1;33mPartial\033[0m ]"))
+                print(path)
+                print(subpaths_used)
             else :
                 self.quietprint( print_prefix + " [ \033[1;32mSuccess\033[0m ]" )
 
@@ -2303,7 +2304,7 @@ class SampleManager(SampleFrame) :
         available_samples = []
         for samp in input_samples :
             if samp not in self.get_sample_names() :
-                print 'WARNING - Child sample, %s, does not exist!' %samp
+                print(('WARNING - Child sample, %s, does not exist!' %samp))
             else :
                 available_samples.append(samp)
 
@@ -2320,7 +2321,7 @@ class SampleManager(SampleFrame) :
         if scale is not None :
             thisscale *= scale
 
-        print 'Grouping %s' %name
+        print(('Grouping %s' %name))
         thisSample = Sample(name, manager = self, isActive=isActive, isData=isData, isSignal=isSignal, sigLineStyle=sigLineStyle, displayErrBand=displayErrBand, color=plotColor, drawRatio=drawRatio, scale=thisscale, legendName=legend_name, averageSamples=averageSamples)
 
         for samp in available_samples :
@@ -2357,7 +2358,7 @@ class SampleManager(SampleFrame) :
         if scale is not None :
             thisscale *= scale
 
-        print 'Grouping %s' %name
+        print(('Grouping %s' %name))
         thisSample = Sample(name, manager = self, isActive=isActive,
                 isData=isData, isSignal=isSignal, color=plotColor,
                 drawRatio=drawRatio, scale=thisscale, legendName=legend_name)
@@ -2399,8 +2400,8 @@ class SampleManager(SampleFrame) :
             n_unique_pathlenghts = len( set( [ len( upath.split('/') )\
                                         for upath in paths_used ] ) )
             if n_unique_pathlenghts > 1 :
-                print 'Found ntuples in parent directories, '+\
-                      'these may be duplicates'
+                print(('Found ntuples in parent directories, '+\
+                      'these may be duplicates'))
 
             thisscale = 1.0
             if scale is not None :
@@ -2414,12 +2415,12 @@ class SampleManager(SampleFrame) :
         print_prefix = "AddModelSample: Reading %s (%s) " %(name, path )
         print_prefix = print_prefix.ljust(60)
         if not input_files :
-            print print_prefix + " [ \033[1;31mFailed\033[0m  ]"
+            print((print_prefix + " [ \033[1;31mFailed\033[0m  ]"))
         else :
             if len(set(path) & set(subpaths_used)) != len(path) :
-                print print_prefix + " [ \033[1;33mPartial\033[0m ]"
+                print((print_prefix + " [ \033[1;33mPartial\033[0m ]"))
             else :
-                print print_prefix + " [ \033[1;32mSuccess\033[0m ]"
+                print((print_prefix + " [ \033[1;32mSuccess\033[0m ]"))
 
 
 
@@ -2446,22 +2447,22 @@ class SampleManager(SampleFrame) :
         try :
             ImportedModule = imp.load_source(conf.split('.')[0], module_path)
         except IOError :
-            print 'Could not import module %s' %module_path
+            print(('Could not import module %s' %module_path))
 
         if hasattr(ImportedModule, 'config_samples') :
             if not self.quiet:
-                print '-------------------------------------'
-                print 'BEGIN READING SAMPLES'
-                print '-------------------------------------'
+                print('-------------------------------------')
+                print('BEGIN READING SAMPLES')
+                print('-------------------------------------')
             ImportedModule.config_samples(self)
         else :
-            print 'ERROR - samplesConf does not implement a function called config_samples '
+            print('ERROR - samplesConf does not implement a function called config_samples ')
             sys.exit(-1)
 
         if hasattr(ImportedModule, 'print_examples') :
             ImportedModule.print_examples()
         else :
-            print 'WARNING - samplesConf does not implement a function called print_examples '
+            print('WARNING - samplesConf does not implement a function called print_examples ')
 
 
 
@@ -2573,10 +2574,10 @@ class SampleManager(SampleFrame) :
                     chi2sum += math.pow( (exp_bkg-data_val) / tot_err, 2 )
 
             pzero = ROOT.TMath.Prob( chi2sum, nbins )
-            print pzero
+            print(pzero)
 
             kstest = dataSamp.hist.KolmogorovTest( errSamp.hist  )
-            print kstest
+            print(kstest)
 
             label_style = label_config.get('labelStyle', '')
             if not label_style.count( 'nostats' ) :
@@ -2620,7 +2621,7 @@ class SampleManager(SampleFrame) :
         """ Show count result after SampleFrame.SetCounter(), triggers loop """
 
         if counter == None:
-            print "no counter"
+            print("no counter")
             return
 
         ## check that SampleFrame is passed
@@ -2664,7 +2665,7 @@ class SampleManager(SampleFrame) :
         produces a histogram and displayed through a TCanvas
         """
 
-        if self.quiet : print "%s :\033[1;36m %s\033[0m" %(varexp,selection)
+        if self.quiet : print(("%s :\033[1;36m %s\033[0m" %(varexp,selection)))
 
         if self.collect_commands :
 
@@ -2763,7 +2764,7 @@ class SampleManager(SampleFrame) :
         command = 'samples.Draw(\'%s\',  \'%s\', %s )' %( varexp, selection, str( histpars ) )
 
         if not x_by_y_bin_vals :
-            print 'Must give a dictionary that maps y bins to x bins'
+            print('Must give a dictionary that maps y bins to x bins')
 
         self.clear_all()
 
@@ -2808,7 +2809,7 @@ class SampleManager(SampleFrame) :
             else :
                 sample.main_hist = None
 
-        for (xmin, xmax), yvals_raw in x_by_y_bin_vals.iteritems() :
+        for (xmin, xmax), yvals_raw in list(x_by_y_bin_vals.items()) :
 
             if not isinstance( yvals_raw[0], tuple) :
                 yvals = []
@@ -2842,7 +2843,7 @@ class SampleManager(SampleFrame) :
                         else :
                             ybin_max = sample.main_hist.GetYaxis().FindBin( ymax )
 
-                        print 'xmin = %d, xmax = %s, ymin = %f, ymax = %f, xbinmin = %d, xbinmax = %d, ybinmin = %d, yminmax = %d' %( xmin, xmax, ymin, ymax, xbin_min, xbin_max, ybin_min, ybin_max)
+                        print(('xmin = %d, xmax = %s, ymin = %f, ymax = %f, xbinmin = %d, xbinmax = %d, ybinmin = %d, yminmax = %d' %( xmin, xmax, ymin, ymax, xbin_min, xbin_max, ybin_min, ybin_max)))
                         sample.hist = sample.main_hist.ProjectionZ( 'h_'+str( uuid.uuid4()).replace('-','_'), xbin_min, xbin_max, ybin_min, ybin_max )  # important to change - to _ -- Yihui
                     else :
                         sample.hist = None
@@ -2909,7 +2910,7 @@ class SampleManager(SampleFrame) :
 
             data_samples = self.get_samples(isData=True, isActive=True)
             if not data_samples :
-                print 'MakeStack - ERROR : No data samples found!'
+                print('MakeStack - ERROR : No data samples found!')
             assert len(data_samples)>=1
 
             self.create_ratio_sample( 'ratio', num_sample = data_samples[0],
@@ -2980,7 +2981,7 @@ class SampleManager(SampleFrame) :
                tmp_sig_legend_entries.append( (samp.hist, samp.legendName, 'L'))
             else:
                tmp_legend_entries.append( ( samp.hist, samp.legendName,  'F') )
-        print "tmp_legend_entries", tmp_legend_entries
+        print(("tmp_legend_entries", tmp_legend_entries))
 
         self.quietprint( '********************NOT FILLING SIGNAL ENTRY IN LEGEND**********************')
         #for samp in self.get_signal_samples() :
@@ -3038,7 +3039,7 @@ class SampleManager(SampleFrame) :
             self.clear_all()
 
         created_samples = []
-        for hist_name, hist_config in draw_config.hist_configs.iteritems() :
+        for hist_name, hist_config in list(draw_config.hist_configs.items()) :
 
             samp = hist_config['sample']
             selection = hist_config['selection']
@@ -3070,7 +3071,7 @@ class SampleManager(SampleFrame) :
             created_samples.append( newsamp )
 
         if not created_samples :
-            print 'No hists were created'
+            print('No hists were created')
             return created_samples
 
         if isinstance( draw_config.histpars, tuple) and \
@@ -3098,9 +3099,9 @@ class SampleManager(SampleFrame) :
 
         if draw_config.get_doratio() :
             #rname = created_samples[0].name + '_ratio'
-            refhist_config = draw_config.hist_configs.items()[0]
+            refhist_config = list(draw_config.hist_configs.items())[0]
             refname = refhist_config[1]["sample"]+"_"+refhist_config[0]
-            for hist_name in draw_config.hist_configs.keys()[1:] :
+            for hist_name in list(draw_config.hist_configs.keys())[1:] :
                 hist_config = draw_config.hist_configs[hist_name]
 
                 samp = hist_config['sample']
@@ -3132,18 +3133,18 @@ class SampleManager(SampleFrame) :
 
     def get_hist( self, sample, histpath ) :
         sampname = sample.name
-        print 'Getting hist for %s' %sampname
+        print(('Getting hist for %s' %sampname))
 
         # check that this histogram hasn't been drawn
         if sample.hist is not None :
-            print 'Histogram already extracted for %s' %sampname
+            print(('Histogram already extracted for %s' %sampname))
             return
 
         # Draw the histogram.  Use histpars as the bin limits if given
         if sample.IsGroupedSample() :
             for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
-                print 'Extract grouped hist %s' %subsampname
+                print(('Extract grouped hist %s' %subsampname))
                 if subsampname in self.get_sample_names() :
                     self.get_hist( subsamp, histpath )
 
@@ -3155,7 +3156,7 @@ class SampleManager(SampleFrame) :
 
             thishist = sample.ofiles[0].Get(histpath)
             if thishist == None :
-                print 'Could not get hist!'
+                print('Could not get hist!')
                 sample.isActive=False
             else :
                 for ofile in sample.ofiles[1:] :
@@ -3177,16 +3178,16 @@ class SampleManager(SampleFrame) :
         if isinstance( sample, str) :
             slist = self.get_samples( name=sample )
             if not slist :
-                print 'Could not retrieve sample, %s' %sample
+                print(('Could not retrieve sample, %s' %sample))
                 return False
             if len(slist) > 1 :
-                print 'Located multiple samples with name %s' %sample
+                print(('Located multiple samples with name %s' %sample))
                 return False
             sample = slist[0]
 
         sampname = sample.name
 
-        if not self.quiet : print 'obtaining hist %s : %s ' %( sample, histname )
+        if not self.quiet : print(('obtaining hist %s : %s ' %( sample, histname )))
 
         #histname = str(uuid.uuid4())
 
@@ -3198,7 +3199,7 @@ class SampleManager(SampleFrame) :
             for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
 
-                if not self.quiet : print 'Draw grouped hist %s' %subsampname
+                if not self.quiet : print(('Draw grouped hist %s' %subsampname))
 
                 if subsampname in [s.name for s in self.get_model_samples()] :
                     self.read_hist( subsamp, histname)
@@ -3218,11 +3219,11 @@ class SampleManager(SampleFrame) :
 
         else :
             sample.failed_draw=False
-            print sample.name
+            print((sample.name))
             for f in sample.ofiles:
                 f = ROOT.TFile(f)
                 histtemp = f.Get(histname)
-                print f, histtemp, histname
+                print((f, histtemp, histname))
                 if histtemp and not sample.hist:
                     sample.hist = histtemp.Clone()
                     sample.hist.SetDirectory(0) ## safe for TFile::Close
@@ -3274,9 +3275,9 @@ class SampleManager(SampleFrame) :
                             len(histpars[1])-1, array('f', histpars[1]) )
                 else :
                     if len(histpars) != 6 :
-                        print 'varable expression, %s,  requests a 2-d'\
+                        print(('varable expression, %s,  requests a 2-d'\
                                'histogram, please provide 6 hist parameters,'\
-                               'nbinsx, xmin, xmax, nbinsy, ymin, ymax' %varexp
+                               'nbinsx, xmin, xmax, nbinsy, ymin, ymax' %varexp))
                         return
 
                     fx = ROOT.TH2F
@@ -3288,9 +3289,9 @@ class SampleManager(SampleFrame) :
 
                 # make a 3-d histogram
                 if len(histpars) != 9 :
-                    print 'varable expression, %s,  requests a 3-d histogram,'\
+                    print(('varable expression, %s,  requests a 3-d histogram,'\
                           'please provide 9 hist parameters, nbinsx, xmin,'\
-                          'xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax' %varexp
+                          'xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax' %varexp))
                     return
                 fx = ROOT.TH3F
                 model = ( histname, '',
@@ -3305,7 +3306,7 @@ class SampleManager(SampleFrame) :
             fx = ROOT.TH1F
             model = ( histname, '', len(histpars)-1, array('f', histpars))
         else :
-            print 'No histogram parameters were passed'
+            print('No histogram parameters were passed')
             return
 
         if returnmodel:
@@ -3323,10 +3324,10 @@ class SampleManager(SampleFrame) :
         if isinstance( sample, str) :
             slist = self.get_samples( name=sample )
             if not slist :
-                print 'Could not retrieve sample, %s' %sample
+                print(('Could not retrieve sample, %s' %sample))
                 return False
             if len(slist) > 1 :
-                print 'Located multiple samples with name %s' %sample
+                print(('Located multiple samples with name %s' %sample))
                 return False
             sample = slist[0]
 
@@ -3359,7 +3360,7 @@ class SampleManager(SampleFrame) :
             for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
 
-                if not self.quiet : print 'Draw grouped hist %s' %subsampname
+                if not self.quiet : print(('Draw grouped hist %s' %subsampname))
 
 
                 subsampnamelist = [s.name for s in self.get_model_samples()]
@@ -3384,7 +3385,7 @@ class SampleManager(SampleFrame) :
 
         else :
             if sample.chain is not None :
-                if not self.quiet or sample.isData: print 'Creating hist for %s  %s : ' %(sample.name, varexp) + tRed %selection
+                if not self.quiet or sample.isData: print(('Creating hist for %s  %s : ' %(sample.name, varexp) + tRed %selection))
                 #self.draw_hist( sample, varexp, histname, full_selection, draw_opt='goff' )
                 res = sample.chain.Draw(varexp + ' >> ' + histname, full_selection, 'goff' )
                 if res < 0 :
@@ -3408,21 +3409,21 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
     def create_count( self, sample = None, counter = None, onthefly = True) :
-        print "create count", sample
+        print(("create count", sample))
 
         if isinstance( sample, str) :
             slist = self.get_samples( name=sample )
             if not slist :
-                print 'Could not retrieve sample, %s' %sample
+                print(('Could not retrieve sample, %s' %sample))
             if len(slist) > 1 :
-                print 'Located multiple samples with name %s' %sample
+                print(('Located multiple samples with name %s' %sample))
             sample = slist[0]
 
         if sample.IsGroupedSample() :
             for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
 
-                if not self.quiet : print 'Counting grouped sample %s' %subsampname
+                if not self.quiet : print(('Counting grouped sample %s' %subsampname))
                 if subsampname in self.get_sample_names() :
                     self.create_count( subsamp, counter, onthefly )
 
@@ -3459,9 +3460,9 @@ class SampleManager(SampleFrame) :
         if isinstance( sample, str) :
             slist = self.get_samples( name=sample )
             if not slist :
-                print 'Could not retrieve sample, %s' %sample
+                print(('Could not retrieve sample, %s' %sample))
             if len(slist) > 1 :
-                print 'Located multiple samples with name %s' %sample
+                print(('Located multiple samples with name %s' %sample))
             sample = slist[0]
 
 
@@ -3494,14 +3495,14 @@ class SampleManager(SampleFrame) :
 
             # enable branches for variables matched in the varexp and selection
             sample.enable_parsed_branches( varexp+selection )
-        print(self.curr_stack)
+        print((self.curr_stack))
         if sample.IsGroupedSample() :
 
             for subsampname in sample.groupedSampleNames :
 
                 subsamp = self.get_samples( name=subsampname )[0]
 
-                if not self.quiet : print 'Draw grouped hist %s' %subsampname
+                if not self.quiet : print(('Draw grouped hist %s' %subsampname))
 
                 if isModel and subsampname in \
                         [s.name for s in self.get_model_samples()] :
@@ -3529,11 +3530,11 @@ class SampleManager(SampleFrame) :
             elif sample.chain is not None:
 
                 if sample.chain.GetEntries() == 0:
-                   print tRed%('WARNING: No entries from sample '+sample.name)
+                   print((tRed%('WARNING: No entries from sample '+sample.name)))
 
                 if not self.quiet or sample.isData:
-                    print 'Make %s hist %s : ' %(sample.name, varexp) \
-                            + tRed %selection
+                    print(('Make %s hist %s : ' %(sample.name, varexp) \
+                            + tRed %selection))
 
                 dataframefailed=False
                 # Speed up with RDataFrame
@@ -3569,16 +3570,16 @@ class SampleManager(SampleFrame) :
 
                 if res < 0 :
                     sample.failed_draw=True
-                    print('WARNING: failed_draw, '\
-                            'unexpected result for sample %s' % sample.name)
+                    print(('WARNING: failed_draw, '\
+                            'unexpected result for sample %s' % sample.name))
 
                 else :
                     sample.failed_draw=False
 
             else :
                 sample.failed_draw=True
-                print('WARNING: failed_draw, '\
-                        'TChain for sample %s is None' % sample.name)
+                print(('WARNING: failed_draw, '\
+                        'TChain for sample %s is None' % sample.name))
 
             self.quietprint("time (s): %g " %(time.time()-start) )
 
@@ -3659,7 +3660,7 @@ class SampleManager(SampleFrame) :
                             #get the full list of bins that are overflow
                             all_bins = []
                             #print all_mod_bins
-                            for vals in all_mod_bins.values() :
+                            for vals in list(all_mod_bins.values()) :
                                 for val in vals :
                                     if ( (val[0]==nbinsx+1 or val[0]==0 or val[0]==xbin) and
                                          (val[1]==nbinsy+1 or val[1]==0 or val[1]==ybin) and
@@ -3708,7 +3709,7 @@ class SampleManager(SampleFrame) :
 
                         #get the full list of bins that are overflow
                         all_bins = []
-                        for vals in all_mod_bins.values() :
+                        for vals in list(all_mod_bins.values()) :
                             for val in vals :
                                 if ( (val[0]==nbinsx+1 or val[0]==0 or val[0]==xbin) and
                                     (val[1]==nbinsy+1 or val[1]==0 or val[1]==ybin) ) :
@@ -3756,11 +3757,11 @@ class SampleManager(SampleFrame) :
 
     def get_multi_mod_bins( self, bin, bin_collection ) :
         if not bin_collection :
-            print 'Must have already defined bins to run multi'
+            print('Must have already defined bins to run multi')
             return
 
         # loop over the already defined bins
-        for modbinval in bin_collection.keys() :
+        for modbinval in list(bin_collection.keys()) :
             modbins = bin_collection[modbinval]
             # grab entries that have fewer than the number of axes modified
             if len(modbinval) < len(bin) :
@@ -3851,7 +3852,7 @@ class SampleManager(SampleFrame) :
                     #print "first bin: %d %d content %d"%(sample.hist.GetBinLowEdge(1), sample.hist.GetXaxis().GetBinUpEdge(1), sample.hist.GetBinContent(1))
 
         for samp in failed_samples :
-            print 'Failed to draw sample %s' %samp
+            print(('Failed to draw sample %s' %samp))
 
         if not success_samples :
             return False
@@ -3894,7 +3895,7 @@ class SampleManager(SampleFrame) :
             return
 
         else :
-            print 'variable_rebinning : Must provide a rebinning threshold, or a binning scheme'
+            print('variable_rebinning : Must provide a rebinning threshold, or a binning scheme')
             return
 
 
@@ -3904,12 +3905,12 @@ class SampleManager(SampleFrame) :
     def group_sample_count(self, sample) :
 
         if not sample.IsGroupedSample() :
-            print 'Trying to group a sample that is not a grouped sample'
+            print('Trying to group a sample that is not a grouped sample')
             return
 
         subsamp_names = sample.groupedSampleNames
-        if not self.quiet : print 'RUN GROUPING FOR %s' %sample.name
-        if not self.quiet : print subsamp_names
+        if not self.quiet : print(('RUN GROUPING FOR %s' %sample.name))
+        if not self.quiet : print(subsamp_names)
 
         subsamps = self.get_samples(name=subsamp_names)
 
@@ -3924,12 +3925,12 @@ class SampleManager(SampleFrame) :
     def group_sample(self, sample, isModel=False) :
 
         if not sample.IsGroupedSample() :
-            print 'Trying to group a sample that is not a grouped sample'
+            print('Trying to group a sample that is not a grouped sample')
             return
 
         subsamp_names = sample.groupedSampleNames
-        if not self.quiet : print 'RUN GROUPING FOR %s' %sample.name
-        if not self.quiet : print subsamp_names
+        if not self.quiet : print(('RUN GROUPING FOR %s' %sample.name))
+        if not self.quiet : print(subsamp_names)
 
         if isModel :
             model_subsamps = self.get_model_samples(subsamp_names)
@@ -3978,7 +3979,7 @@ class SampleManager(SampleFrame) :
             for subsampname in sample.groupedSampleNames :
                 subsamp = self.get_samples( name=subsampname )[0]
 
-                if not self.quiet : print 'running on grouped hist %s' %subsampname
+                if not self.quiet : print(('running on grouped hist %s' %subsampname))
 
                 if subsampname in self.get_sample_names() :
                     output += self.get_list_from_tree( vars, selection, subsamp )
@@ -3991,7 +3992,7 @@ class SampleManager(SampleFrame) :
 
             nentries = sample.copied_tree.GetEntries()
 
-            for i in xrange( 0, nentries ) :
+            for i in range( 0, nentries ) :
                 sample.copied_tree.GetEntry( i )
                 evt_entries = []
                 for var in vars :
@@ -4023,7 +4024,7 @@ class SampleManager(SampleFrame) :
         for prim in topcan.GetListOfPrimitives() :
             if isinstance(prim, ROOT.TH1F) :
                 if ymin is not None and ymax is not None :
-                    print "set_canvas_default_formatting:SetRangeUser ",ymin, ymax
+                    print(("set_canvas_default_formatting:SetRangeUser ",ymin, ymax))
                     prim.GetYaxis().SetRangeUser( ymin, ymax )
                 prim.SetTitle('')
                 offset = 1.15
@@ -4220,7 +4221,7 @@ class SampleManager(SampleFrame) :
             else :
 
                 if not ymaxdef: ymax += (ymax-ymin)*(ymax_scale-1)
-        print ymax_scale, ymax, ymin, maxarray, minarray
+        print((ymax_scale, ymax, ymin, maxarray, minarray))
 
         return (ymin, ymax)
 
@@ -4312,7 +4313,7 @@ class SampleManager(SampleFrame) :
         if method==1:
             samp= self.get_samples(name='__AllStack__')
             if not (samp and samp[0].hist):
-                print "no stack saved"
+                print("no stack saved")
                 return
             h2 =samp[0].hist.Clone()
         if method==2:
@@ -4347,7 +4348,7 @@ class SampleManager(SampleFrame) :
             h1.GetYaxis().SetTitle(ytitle)
             return h1
         else:
-            print "No stack found"
+            print("No stack found")
         return
 
 
@@ -4378,7 +4379,7 @@ class SampleManager(SampleFrame) :
         ## get stack sample
         stotal = self.get_samples( name = _STACKNAME )
         if len(stotal) > 1:
-            print "WARNING dupilcate sample %s" %_STACKNAME
+            print(("WARNING dupilcate sample %s" %_STACKNAME))
 
         if stotal and not doacceptance:
             result.append( ( "TOTAL", stotal[0].integral \
@@ -4396,8 +4397,8 @@ class SampleManager(SampleFrame) :
         return text.replace("#","\\")
 
     def print_stack_count(self, integralrange = None, dolatex=False, **kwargs):
-        result = self.get_stack_count(integralrange, dolatex = dolatex,
-                                                     **kwargs).items()
+        result = list(self.get_stack_count(integralrange, dolatex = dolatex,
+                                                     **kwargs).items())
         if dolatex:
             #result = [ (r1,)+tuple(map(latex_float,r2)) for r1, r2 in result]
             #result = [ (r1.replace("gamma","\\gamma ").replace("Gamma","\\gamma ").replace("\\gamma$$\\gamma","\\gamma\\gamma"),
@@ -4407,7 +4408,7 @@ class SampleManager(SampleFrame) :
             printline = ""
             for r in result[:-1]: printline+= "%20s & %s\\\\\n" %r
             printline+= "\\hline\\hline\n%20s & %s\\\\\n" %result[-1]
-            print printline
+            print(printline)
             return
         self.print_stackresult(result)
         return
@@ -4417,15 +4418,15 @@ class SampleManager(SampleFrame) :
 
     def print_stackresult(self,result):
         if isinstance(result, dict):
-            result = result.items()
+            result = list(result.items())
 
         result = [ (r1,)+r2 for r1, r2 in result]
         totalresult = None
         if len(result)>1 and result[-1][0]=="TOTAL":
             totalresult = result[-1]
             result = result[:-1]
-        for r in result: print "%30s %8.3g +/- %5.3g" %r
-        if totalresult: print "="*45+"\n%30s %8.3g +/- %5.3g" %totalresult
+        for r in result: print(("%30s %8.3g +/- %5.3g" %r))
+        if totalresult: print(("="*45+"\n%30s %8.3g +/- %5.3g" %totalresult))
         return
 
 
@@ -4492,23 +4493,23 @@ class SampleManager(SampleFrame) :
                        self.get_samples(isData=True,isActive=True)
             (ymin, ymax) = self.calc_yaxis_limits( draw_config, samplist)
             if topcan.GetHists() == None :
-                print 'Top stack has no hists! Exiting'
+                print('Top stack has no hists! Exiting')
                 return
             topcan.Draw(drawopt)
             logy = draw_config.get_logy()
             if ymin and not (logy and ymin<=0):
                 topcan.SetMinimum(ymin)
-                print "SetMinimum ",ymin
+                print(("SetMinimum ",ymin))
             if ymax and not (logy and ymax<=0):
                 topcan.SetMaximum(ymax)
-                print "SetMaximum ",ymax
+                print(("SetMaximum ",ymax))
             self.set_stack_default_formatting( topcan, doratio, logy=logy)
 
 
         # draw the data
         for dsamp in self.get_samples( name=datahists, isActive=True ):
             if not draw_config.get_unblind() and dsamp.isData:
-                    print "skipped ",dsamp
+                    print(("skipped ",dsamp))
                     continue
             if normalize == "Total":
                 # assume total is the first bin
@@ -4535,7 +4536,7 @@ class SampleManager(SampleFrame) :
                 #print samp.isActive
                 if samp.isActive :
 
-                    print 'Draw Signal hist ', samp.name
+                    print(('Draw Signal hist ', samp.name))
                     samp.hist.SetLineStyle(samp.getLineStyle())
                     samp.hist.SetStats(0)
 
@@ -4677,14 +4678,14 @@ class SampleManager(SampleFrame) :
 
         first = True
         draw_samps_list = []
-        for hist_name, hist_config in draw_config.hist_configs.iteritems() :
+        for hist_name, hist_config in list(draw_config.hist_configs.items()) :
 
             draw_samp = self.get_samples( name=hist_config['sample']+"_"+hist_name  )
             if draw_samp :
                 draw_samp = draw_samp[0]
             else :
                 draw_samp = None
-                print 'WARNING Did not get a sample associated with the hist_config'
+                print('WARNING Did not get a sample associated with the hist_config')
                 raise RuntimeError
             draw_samps_list.append(draw_samp)
 
@@ -4736,10 +4737,10 @@ class SampleManager(SampleFrame) :
 
 
             if ymin is not None and ymax is not None and ymin < ymax :
-                print "set %s histogram y range: %g, %g" %(draw_samp.name, ymin, ymax)
+                print(("set %s histogram y range: %g, %g" %(draw_samp.name, ymin, ymax)))
                 draw_samp.hist.GetYaxis().SetRangeUser(ymin, ymax)
             else:
-                print "warning: %s histogram fail to set range "%draw_samp.name, ymin, ymax
+                print(("warning: %s histogram fail to set range "%draw_samp.name, ymin, ymax))
 
             #draw_samp.hist.Draw(drawcmd+'goff')
             draw_samp.hist.Draw(drawcmd)
@@ -4756,7 +4757,7 @@ class SampleManager(SampleFrame) :
         if 'colors' not in hist_config :
             hist_config['colors'] = _DEFAULTCOLORS[:len(reqsamples)]
         if len(hist_config['colors']) < len( reqsamples ) :
-            print 'Size of colors input does not match size of vars input!'
+            print('Size of colors input does not match size of vars input!')
             reqnum = len(hist_config['colors']) - len( reqsamples )
             hist_config['colors'].extend([ self.get_samples(name=s)[0].color
                                             for s in reqsamples[reqnum:] ])
@@ -4772,9 +4773,9 @@ class SampleManager(SampleFrame) :
         self.draw_commands.append(config)
 
         created_samples = self.MakeSameCanvas(config, preserve_hists=True, readhist=True )
-        print created_samples
+        print(created_samples)
         if not created_samples :
-            print 'No histograms were created'
+            print('No histograms were created')
             return
 
         # make the legend
@@ -4802,7 +4803,7 @@ class SampleManager(SampleFrame) :
             hist_config['colors'] = _DEFAULTCOLORS[:len(reqsamples)]
 
         if len(hist_config['colors']) < len( reqsamples ) :
-            print 'Size of colors input does not match size of vars input!'
+            print('Size of colors input does not match size of vars input!')
             reqnum = len(hist_config['colors']) - len( reqsamples )
             hist_config['colors'].extend([ self.get_samples(name=s)[0].color
                                             for s in reqsamples[reqnum:] ])
@@ -4823,9 +4824,9 @@ class SampleManager(SampleFrame) :
         self.draw_commands.append(config)
 
         created_samples = self.MakeSameCanvas(config, preserve_hists=True, useModel=useModel, treeHist=treeHist, treeSelection=treeSelection )
-        print created_samples
+        print(created_samples)
         if not created_samples :
-            print 'No histograms were created'
+            print('No histograms were created')
             return
 
         # make the legend
@@ -4868,13 +4869,13 @@ class SampleManager(SampleFrame) :
             selections = [selections]
 
         if len(sample_names) != len(selections) :
-            print 'Length of samples does not match length of selections'
+            print('Length of samples does not match length of selections')
 
         created_samples=[]
         for idx, (samp_name, selection) in enumerate(zip(sample_names, selections)) :
 
             if not self.get_samples(name=samp_name) :
-                print 'No sample with name ', samp_name
+                print(('No sample with name ', samp_name))
             samp = self.get_samples(name=samp_name)[0]
             newname = '%s_%d' %(samp.name, idx)
             newsamp = self.clone_sample( oldname=samp.name, newname=newname, temporary=True )
@@ -4921,7 +4922,7 @@ class SampleManager(SampleFrame) :
 
         if 'colors' in hist_config :
             if len(hist_config['colors']) != len( selections ) :
-                print 'Size of colors input does not match size of vars input!'
+                print('Size of colors input does not match size of vars input!')
 
                 hist_config['colors'] = [ self.get_samples(name=s)[0].color for s in reqsamples ]
 
@@ -4931,7 +4932,7 @@ class SampleManager(SampleFrame) :
 
         created_samples = self.MakeSameCanvas(config, preserve_hists=True )
         if not created_samples :
-            print 'No histograms were created'
+            print('No histograms were created')
             return
 
         #samples = []
@@ -5001,11 +5002,11 @@ class SampleManager(SampleFrame) :
         assert  len(samples) == len(selections), 'sample and selection must have the same length'
 
         if len( selections )%2 != 0 :
-            print 'Expect an even number of selecitions, even entries should be numerators, odd entries are denominators '
+            print('Expect an even number of selecitions, even entries should be numerators, odd entries are denominators ')
 
         if len(colors) != (len( samples )/2) :
             if colors :
-                print 'Size of colors input does not match size of vars input!'
+                print('Size of colors input does not match size of vars input!')
 
             colors = [ self.get_samples(name=s)[0].color for s in samples ]
 
@@ -5097,7 +5098,7 @@ class SampleManager(SampleFrame) :
                 count=0
         if count!=0:
             bins.append(axis.GetXmax())
-        print bins,count
+        print((bins,count))
         return bins
 
     # ------------------------------------------------------------
@@ -5199,7 +5200,7 @@ class SampleManager(SampleFrame) :
         self.legendLimits['x2'] = leg.GetX2NDC()
         self.legendLimits['y2'] = leg.GetY2NDC()
 
-        print "legendlimits:", self.legendLimits
+        print(("legendlimits:", self.legendLimits))
 
     # ----------------------------------------------------------------------------
     def outputExists(self, name, dir) :
@@ -5234,10 +5235,10 @@ class SampleManager(SampleFrame) :
 
                 avg = (dest_w * dest_uf + add_w * add_uf) / ( dest_w + add_w )
 
-                print 'bin = ', ibin
-                print 'dest = ${:.2ufL}$' .format( dest_uf )
-                print 'add = ${:.2ufL}$' .format( add_uf )
-                print 'avg = ${:.2ufL}$' .format( avg )
+                print(('bin = ', ibin))
+                print(('dest = ${:.2ufL}$' .format( dest_uf )))
+                print(('add = ${:.2ufL}$' .format( add_uf )))
+                print(('avg = ${:.2ufL}$' .format( avg )))
 
             dest_hist.SetBinContent( ibin, avg.n )
             dest_hist.SetBinError( ibin, avg.s )
@@ -5246,7 +5247,7 @@ class SampleManager(SampleFrame) :
 
         if isinstance( dest_hist, ROOT.TH3 ) :
             if dest_hist.GetNbinsX() != add_hist.GetNbinsX() or dest_hist.GetNbinsY() != add_hist.GetNbinsY() or dest_hist.GetNbinsZ() != add_hist.GetNbinsZ() :
-                print 'addHistsWeightedAvg: ERROR Bins must have the same lengths!  Exiting!'
+                print('addHistsWeightedAvg: ERROR Bins must have the same lengths!  Exiting!')
                 return
 
             for xbin in range( 1, dest_hist.GetNbinsX()+1 ) :
@@ -5257,7 +5258,7 @@ class SampleManager(SampleFrame) :
 
         elif isinstance( dest_hist, ROOT.TH2 ) :
             if dest_hist.GetNbinsX() != add_hist.GetNbinsX() or dest_hist.GetNbinsY() != add_hist.GetNbinsY() :
-                print 'addHistsWeightedAvg: ERROR Bins must have the same lengths!  Exiting!'
+                print('addHistsWeightedAvg: ERROR Bins must have the same lengths!  Exiting!')
                 return
 
             for xbin in range( 1, dest_hist.GetNbinsX()+1 ) :
@@ -5267,7 +5268,7 @@ class SampleManager(SampleFrame) :
 
         elif isinstance( dest_hist, ROOT.TH1 ) :
             if dest_hist.GetNbinsX() != add_hist.GetNbinsX() :
-                print 'addHistsWeightedAvg: ERROR Bins must have the same lengths!  Exiting!'
+                print('addHistsWeightedAvg: ERROR Bins must have the same lengths!  Exiting!')
                 return
 
             for xbin in range( 1, dest_hist.GetNbinsX()+1 ) :
@@ -5284,7 +5285,7 @@ def fill_tree(treeName, fileName, b2exp):
 
 
 if __name__ == "__main__":
-    print "TEST SEQUENCE for RDataFrame"
+    print("TEST SEQUENCE for RDataFrame")
     # We prepare an input tree to run on
     fileName = "tree.root"
     treeName = "UMDNTuple/EventTree"
@@ -5298,6 +5299,6 @@ if __name__ == "__main__":
     samples = SampleManager("test/", treeName, filename=fileName,  xsFile=None,
                                      lumi=10000, readHists=False)
     samples.ReadSamples(confFile)
-    print samples.samples
+    print((samples.samples))
 
 

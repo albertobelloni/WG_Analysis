@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import re
 import uuid
 import pickle
@@ -6,14 +6,15 @@ from uncertainties import ufloat
 from collections import OrderedDict
 from IPython.core.debugger import Tracer
 import sys
-print sys.version
+from functools import reduce
+print(sys.version)
 
 def addparser(parser):
     parser.add_argument('--useRooFit',       default=False,     action='store_true',      dest='useRooFit',    required=False, help='Make fits using roostats' )
     parser.add_argument('--process',         default="WGamma"   , help="set which process to be fitted, default is WGamma only")
     parser.add_argument('--channel',         default=""         , help="set channel to use")
 
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 
 from FitManager import FitManager
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
@@ -68,9 +69,9 @@ def main() :
     rootfilename = '%s/%i/%s_hist.root' %( options.dataDir,options.year,workspace.GetName() )
 
     histarray = []
-    for ch, (sampMan, selections) in cutsetdict.iteritems() :
-        for seltag, (sel, weight) in selections.iteritems():
-            for var, binning in kine_vars.iteritems() :
+    for ch, (sampMan, selections) in cutsetdict.items() :
+        for seltag, (sel, weight) in selections.items():
+            for var, binning in kine_vars.items() :
                 #histarray[ch+seltag+var]= makehistall_rdf(var, binning[seltag],  sampMan, sel, weight)
 
                 #hist = makehist(var, binning[seltag], sampnames, sampMan, sel, weight = "NLOWeight")
@@ -85,18 +86,18 @@ def main() :
                 #savecanv(c1,"test")
 
                 ## FIXME
-                print " **** sampname %s number of total events %f ****"\
-                                    %(protag, hist.Integral(0, 100000))
-                print " **** sampname %s number of events %f **********"\
-                                    %(protag, hist.Integral())
+                print(" **** sampname %s number of total events %f ****"\
+                                    %(protag, hist.Integral(0, 100000)))
+                print(" **** sampname %s number of events %f **********"\
+                                    %(protag, hist.Integral()))
 
                 for ff in fitfunc:
                     suffix = "%s%s%i_%s_%s"%(ch,seltag,options.year,protag, ff)
                     #suffix = "%s%s%i_%s"%(ch,seltag,options.year,protag)
-                    print """
+                    print("""
                     *********************
                     calling get_mc_fit for %s
-                    *********************\n """ %tPurple %(ff)
+                    *********************\n """ %tPurple %(ff))
                     #raw_input("cont...")
                     hist1 = get_mc_fit( hist, var , ff, workspace, suffix)
 
@@ -178,7 +179,7 @@ def get_mc_fit( hist ,var, fitfunc, workspace, suffix='') :
     #fitManager.make_func_pdf()
     #fitManager.fit_histogram( workspace )
 
-    print """ cast it from TF1 to RooGenericPdf """
+    print(""" cast it from TF1 to RooGenericPdf """)
     fitManager.calculate_func_pdf()
     fitManager.get_results( workspace, False )
     outhist = fitManager.get_pdf_histogram( xbins = hist.GetNbinsX() )
@@ -212,7 +213,7 @@ def checkprocname():
     ## FIXME: use sample manager function to search for named samples instead
     proclist = ["WGamma", "Top", "TopW", "AllTop", "TopGamma",
                 "Zgamma", "Z+jets", "All", "NonMajor"]
-    proclistlower = map(lambda x: x.lower(), proclist)
+    proclistlower = [x.lower() for x in proclist]
     protag = options.process.lower()
     assert protag in proclistlower, "process not listed: %s" %options.process
 

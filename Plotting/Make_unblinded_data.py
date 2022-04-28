@@ -170,8 +170,8 @@ def ShowSignalInjection():
         signal_para['cb_sigma_MG_M'+mass+'_W'+width+'_'+ich] = ROOT.RooRealVar('cb_sigma_MG_M'+mass+'_W'+width+'_'+ich,'cb_sigma_MG_M'+mass+'_W'+width+'_'+ich,-100,10000)
         signal_para['cb_MG_M'+mass+'_W'+width+'_'+ich] = ROOT.RooDoubleCB('cb_MG_M'+mass+'_W'+width+'_'+ich, 'Double Sided Crystal Ball Lineshape', mt_res, signal_para['cb_mass_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_sigma_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_cut1_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_pow1_MG'], signal_para['cb_cut2_MG'],  signal_para['cb_pow2_MG'])
 
-    print(fit_para.keys())
-    print(gen_para.keys())
+    print((list(fit_para.keys())))
+    print((list(gen_para.keys())))
     # Get fit function
     f=ROOT.TFile(fitpara)
     res = f.Get("fit_s")
@@ -179,32 +179,32 @@ def ShowSignalInjection():
     iter = fitargs.createIterator()
     a=iter.Next()
     while not a == 0:
-        print(a.GetName())
-        print(a.getVal())
+        print((a.GetName()))
+        print((a.getVal()))
         #print(a.getError())
-        for ipa in fit_para.keys():
+        for ipa in list(fit_para.keys()):
             if a.GetName()== ipa:
                 fit_para[ipa].setVal(a.getVal())
                 fit_para[ipa].setConstant()
                 fit_para[ipa].setError(a.getError())
-        for ipa in gen_para.keys():
+        for ipa in list(gen_para.keys()):
             if a.GetName()== ipa:
                 gen_para[ipa].setVal(a.getVal())
                 gen_para[ipa].setConstant()
                 gen_para[ipa].setError(a.getError())
-        for ipa in bkg_norm.keys():
+        for ipa in list(bkg_norm.keys()):
             if a.GetName()== ipa:
                 bkg_norm[ipa].setVal(a.getVal())
                 bkg_norm[ipa].setConstant()
                 bkg_norm[ipa].setError(a.getError())
-        for ipa in signal_para.keys():
+        for ipa in list(signal_para.keys()):
             if a.GetName()== ipa:
-                print('get ', ipa, a.getVal())
+                print(('get ', ipa, a.getVal()))
                 signal_para[ipa].setVal(a.getVal())
                 signal_para[ipa].setConstant()
                 signal_para[ipa].setError(a.getError())
         if a.GetName()=='r':
-            print('========> get r ', a.getVal())
+            print(('========> get r ', a.getVal()))
             bkg_norm['r'].setVal(a.getVal())
             bkg_norm['r'].setConstant()
         if a.GetName()=='vvdijet_order2_muA2018_all_vvdijet':
@@ -485,7 +485,7 @@ def ShowSignalInjection():
     line2.SetLineWidth(2)
     line2.Draw()
 
-    input('wait..')
+    eval(input('wait..'))
     #c.SaveAs('fit_ALL%s.C' %(ch))
 
 
@@ -628,8 +628,8 @@ def makeFinalplots(baseDir,skimtree):
         rseed.SetSeed(123)
         toydatae = multipdfse[np.argmin(np.abs(chi2score_e))].generate(ROOT.RooArgSet(mt_res),ne)
         toydatam = multipdfsm[np.argmin(np.abs(chi2score_m))].generate(ROOT.RooArgSet(mt_res),nm)
-        print('------> score: ', chi2score_e, chi2score_m)
-        print('------------> set index to e: ', np.argmin(np.abs(chi2score_e)), ' m: ', np.argmin(np.abs(chi2score_m)))
+        print(('------> score: ', chi2score_e, chi2score_m))
+        print(('------------> set index to e: ', np.argmin(np.abs(chi2score_e)), ' m: ', np.argmin(np.abs(chi2score_m))))
         catIndexe.setIndex(np.argmin(np.abs(chi2score_e)))
         catIndexm.setIndex(np.argmin(np.abs(chi2score_m)))
         toydatae.SetName ('data_elA'+year+'_mt_res_base')
@@ -689,14 +689,14 @@ def makeFinalplots(baseDir,skimtree):
                 year='2018'
                 inputfile0 = 'data_env/sigfit/'+year+'/wssignal_M'+imass+'_W'+iwid+'_'+ch+'.root'
                 wsname = "wssignal_M"+imass+"_W"+iwid+"_"+ch
-                print(inputfile0, " : ", wsname)
+                print((inputfile0, " : ", wsname))
                 ifile0 = ROOT.TFile.Open( inputfile0, 'READ' )
                 if not ifile0:
                     return
                 ws_in0 = ifile0.Get( wsname )
                 pdfname = 'cb_MG_M%s_W%s_%s%s' %(imass,iwid,ch,year)
                 sigModel0 = ws_in0.pdf(pdfname)
-                print(normalizationlist[ch][iwid][imass])
+                print((normalizationlist[ch][iwid][imass]))
                 if 'el' in ch:
                     sigModel0.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linecolor']),ROOT.RooFit.LineStyle(normalizationlist[ch][iwid][imass]['linestyle']), ROOT.RooFit.Normalization(normalizationlist[ch][iwid][imass]['norm'],ROOT.RooAbsReal.NumEvent))#,ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linecolor']),ROOT.RooFit.LineStyle(ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linestyle']) ))
                 if 'mu' in ch:
@@ -717,7 +717,7 @@ def makeFinalplots(baseDir,skimtree):
 #    toydatae.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson))
 #    toydatam.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson))
 
-    print("sum Entries: ", toydatae.sumEntries(), toydatam.sumEntries())
+    print(("sum Entries: ", toydatae.sumEntries(), toydatam.sumEntries()))
 
     for ch, frame in zip(["el","mu"],[frame_e, frame_m]):
         c = ROOT.TCanvas("c","c",0,53,800,740)
@@ -939,8 +939,8 @@ def ShowSignalInjection():
         signal_para['cb_sigma_MG_M'+mass+'_W'+width+'_'+ich] = ROOT.RooRealVar('cb_sigma_MG_M'+mass+'_W'+width+'_'+ich,'cb_sigma_MG_M'+mass+'_W'+width+'_'+ich,-100,10000)
         signal_para['cb_MG_M'+mass+'_W'+width+'_'+ich] = ROOT.RooDoubleCB('cb_MG_M'+mass+'_W'+width+'_'+ich, 'Double Sided Crystal Ball Lineshape', mt_res, signal_para['cb_mass_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_sigma_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_cut1_MG_M'+mass+'_W'+width+'_'+ich], signal_para['cb_pow1_MG'], signal_para['cb_cut2_MG'],  signal_para['cb_pow2_MG'])
 
-    print(fit_para.keys())
-    print(gen_para.keys())
+    print((list(fit_para.keys())))
+    print((list(gen_para.keys())))
     # Get fit function
     f=ROOT.TFile(fitpara)
     res = f.Get("fit_s")
@@ -948,32 +948,32 @@ def ShowSignalInjection():
     iter = fitargs.createIterator()
     a=iter.Next()
     while not a == 0:
-        print(a.GetName())
-        print(a.getVal())
+        print((a.GetName()))
+        print((a.getVal()))
         #print(a.getError())
-        for ipa in fit_para.keys():
+        for ipa in list(fit_para.keys()):
             if a.GetName()== ipa:
                 fit_para[ipa].setVal(a.getVal())
                 fit_para[ipa].setConstant()
                 fit_para[ipa].setError(a.getError())
-        for ipa in gen_para.keys():
+        for ipa in list(gen_para.keys()):
             if a.GetName()== ipa:
                 gen_para[ipa].setVal(a.getVal())
                 gen_para[ipa].setConstant()
                 gen_para[ipa].setError(a.getError())
-        for ipa in bkg_norm.keys():
+        for ipa in list(bkg_norm.keys()):
             if a.GetName()== ipa:
                 bkg_norm[ipa].setVal(a.getVal())
                 bkg_norm[ipa].setConstant()
                 bkg_norm[ipa].setError(a.getError())
-        for ipa in signal_para.keys():
+        for ipa in list(signal_para.keys()):
             if a.GetName()== ipa:
-                print('get ', ipa, a.getVal())
+                print(('get ', ipa, a.getVal()))
                 signal_para[ipa].setVal(a.getVal())
                 signal_para[ipa].setConstant()
                 signal_para[ipa].setError(a.getError())
         if a.GetName()=='r':
-            print('========> get r ', a.getVal())
+            print(('========> get r ', a.getVal()))
             bkg_norm['r'].setVal(a.getVal())
             bkg_norm['r'].setConstant()
         if a.GetName()=='vvdijet_order2_muA2018_all_vvdijet':
@@ -1254,7 +1254,7 @@ def ShowSignalInjection():
     line2.SetLineWidth(2)
     line2.Draw()
 
-    input('wait..')
+    eval(input('wait..'))
     #c.SaveAs('fit_ALL%s.C' %(ch))
 
 
@@ -1397,8 +1397,8 @@ def makeFinalplots(baseDir,skimtree):
         rseed.SetSeed(123)
         toydatae = multipdfse[np.argmin(np.abs(chi2score_e))].generate(ROOT.RooArgSet(mt_res),ne)
         toydatam = multipdfsm[np.argmin(np.abs(chi2score_m))].generate(ROOT.RooArgSet(mt_res),nm)
-        print('------> score: ', chi2score_e, chi2score_m)
-        print('------------> set index to e: ', np.argmin(np.abs(chi2score_e)), ' m: ', np.argmin(np.abs(chi2score_m)))
+        print(('------> score: ', chi2score_e, chi2score_m))
+        print(('------------> set index to e: ', np.argmin(np.abs(chi2score_e)), ' m: ', np.argmin(np.abs(chi2score_m))))
         catIndexe.setIndex(np.argmin(np.abs(chi2score_e)))
         catIndexm.setIndex(np.argmin(np.abs(chi2score_m)))
         toydatae.SetName ('data_elA'+year+'_mt_res_base')
@@ -1458,14 +1458,14 @@ def makeFinalplots(baseDir,skimtree):
                 year='2018'
                 inputfile0 = 'data_env/sigfit/'+year+'/wssignal_M'+imass+'_W'+iwid+'_'+ch+'.root'
                 wsname = "wssignal_M"+imass+"_W"+iwid+"_"+ch
-                print(inputfile0, " : ", wsname)
+                print((inputfile0, " : ", wsname))
                 ifile0 = ROOT.TFile.Open( inputfile0, 'READ' )
                 if not ifile0:
                     return
                 ws_in0 = ifile0.Get( wsname )
                 pdfname = 'cb_MG_M%s_W%s_%s%s' %(imass,iwid,ch,year)
                 sigModel0 = ws_in0.pdf(pdfname)
-                print(normalizationlist[ch][iwid][imass])
+                print((normalizationlist[ch][iwid][imass]))
                 if 'el' in ch:
                     sigModel0.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linecolor']),ROOT.RooFit.LineStyle(normalizationlist[ch][iwid][imass]['linestyle']), ROOT.RooFit.Normalization(normalizationlist[ch][iwid][imass]['norm'],ROOT.RooAbsReal.NumEvent))#,ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linecolor']),ROOT.RooFit.LineStyle(ROOT.RooFit.LineColor(normalizationlist[ch][iwid][imass]['linestyle']) ))
                 if 'mu' in ch:
@@ -1486,7 +1486,7 @@ def makeFinalplots(baseDir,skimtree):
 #    toydatae.plotOn(frame_e,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson))
 #    toydatam.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson))
 
-    print("sum Entries: ", toydatae.sumEntries(), toydatam.sumEntries())
+    print(("sum Entries: ", toydatae.sumEntries(), toydatam.sumEntries()))
 
     for ch, frame in zip(["el","mu"],[frame_e, frame_m]):
         c = ROOT.TCanvas("c","c",0,53,800,740)
@@ -1694,7 +1694,7 @@ def makeFinalplots(baseDir,skimtree):
         line.SetLineStyle(2)
         line.SetLineWidth(2)
         line.Draw()
-        input('wait..')
+        eval(input('wait..'))
         #c.SaveAs('fit_ALL%s.C' %(ch))
         #c.SaveAs('fit_ALL%s.pdf' %(ch))
 
@@ -1707,12 +1707,12 @@ def makeRooMultiPdfWorkspace(year,baseDir,skimtree,skimfile):
     mt_res.setRange( MIN_ ,MAX_)
     F=ROOT.TFile(baseDir+'/el'+year+'_'+skimfile)
     tree=F.Get(skimtree)
-    print('read ',baseDir+'/el'+year+'_'+skimfile)
+    print(('read ',baseDir+'/el'+year+'_'+skimfile))
     netot = tree.GetEntries()
     dse = ROOT.RooDataSet('data_elA'+year+'_mt_res_base', "dse", ROOT.RooArgSet(mt_res), ROOT.RooFit.Import(tree))
     F=ROOT.TFile(baseDir+'/mu'+year+'_'+skimfile)
     tree=F.Get(skimtree)
-    print('read ',baseDir+'/mu'+year+'_'+skimfile)
+    print(('read ',baseDir+'/mu'+year+'_'+skimfile))
     nmtot = tree.GetEntries()
     dsm = ROOT.RooDataSet('data_muA'+year+'_mt_res_base', "dsm", ROOT.RooArgSet(mt_res), ROOT.RooFit.Import(tree))
     ne = dse.sumEntries("mt_res>"+str(MIN_))
@@ -1876,7 +1876,7 @@ def makeRooMultiPdfWorkspace(year,baseDir,skimtree,skimfile):
         rseed.SetSeed(100)
         toydatae = multipdfse[np.argmin(np.abs(chi2score_e))].generate(ROOT.RooArgSet(mt_res),ne)
         toydatam = multipdfsm[np.argmin(np.abs(chi2score_m))].generate(ROOT.RooArgSet(mt_res),nm)
-        print('------------> set index to e: ', np.argmin(np.abs(chi2score_e)), ' m: ', np.argmin(np.abs(chi2score_m)))
+        print(('------------> set index to e: ', np.argmin(np.abs(chi2score_e)), ' m: ', np.argmin(np.abs(chi2score_m))))
         catIndexe.setIndex(np.argmin(np.abs(chi2score_e)))
         catIndexm.setIndex(np.argmin(np.abs(chi2score_m)))
         toydatae.SetName ('data_elA'+year+'_mt_res_base')
@@ -2016,7 +2016,7 @@ def makeRooMultiPdfWorkspace(year,baseDir,skimtree,skimfile):
         frame_4fa51a0__2.GetYaxis().SetTitleOffset(0.4)
         frame_4fa51a0__2.Draw("AXISSAME")
         frame3.Draw("same")
-        input('wait..')
+        eval(input('wait..'))
         c.SaveAs('fit_%s%s.png' %( year,ch))
 
 
@@ -2028,13 +2028,13 @@ def prepareWS(year,baseDir,skimtree,skimfile):
     mt_res.setRange( MIN_ ,MAX_)
     F=ROOT.TFile(baseDir+'/el'+year+'_'+skimfile)
     tree=F.Get(skimtree)
-    print('read ',baseDir+'/el'+year+'_'+skimfile)
+    print(('read ',baseDir+'/el'+year+'_'+skimfile))
     #print('tot:',tree.GetEntries())
     netot = tree.GetEntries()
     dse = ROOT.RooDataSet('data_elA'+year+'_mt_res_base', "dse", ROOT.RooArgSet(mt_res), ROOT.RooFit.Import(tree));
     F=ROOT.TFile(baseDir+'/mu'+year+'_'+skimfile)
     tree=F.Get(skimtree)
-    print('read ',baseDir+'/mu'+year+'_'+skimfile)
+    print(('read ',baseDir+'/mu'+year+'_'+skimfile))
     #print('tot:',tree.GetEntries())
     nmtot = tree.GetEntries()
     dsm = ROOT.RooDataSet('data_muA'+year+'_mt_res_base', "dsm", ROOT.RooArgSet(mt_res), ROOT.RooFit.Import(tree));
@@ -2100,7 +2100,7 @@ def prepareWS(year,baseDir,skimtree,skimfile):
             for i in range( 1, 3) :
                 order_entries.append('@'+str(i+1)+'*' + '*'.join( [log_str]*i))
             function = 'TMath::Power( @0/13000., @1 + ' + '+'.join( order_entries) + ')'
-            print "function: ", function
+            print("function: ", function)
             #function = 'TMath::Power( @0/13000., @1 + @2*TMath::Log10(@0/13000)*(1+@3*TMath::Log10(@0/13000)))'
             func_pdf_e = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'elA'+year+'_all_dijet'), func_name, function, ROOT.RooArgList(mt_res,dijet_order1_e,dijet_order2_e,dijet_order3_e))
             func_pdf_m = ROOT.RooGenericPdf( '%s_%s'%(func_name, 'muA'+year+'_all_dijet'), func_name, function, ROOT.RooArgList(mt_res,dijet_order1_m,dijet_order2_m,dijet_order3_m))
@@ -2121,15 +2121,15 @@ def prepareWS(year,baseDir,skimtree,skimfile):
         dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2)) 
         print("===> fit result")
         resu_e.Print()
-        print("chi^2 = ", frame_e.chiSquare())
-        print("netot:", netot)
+        print(("chi^2 = ", frame_e.chiSquare()))
+        print(("netot:", netot))
         print("===> fit result")
         resu_m.Print()
-        print "function: ", function
-        print("chi^2 = ", frame_m.chiSquare())
-        print("nmtot:", nmtot)
-        print(func_pdf_e.Print())
-        print(func_pdf_m.Print())
+        print("function: ", function)
+        print(("chi^2 = ", frame_m.chiSquare()))
+        print(("nmtot:", nmtot))
+        print((func_pdf_e.Print()))
+        print((func_pdf_m.Print()))
 
         import_workspace( ws_out, mt_res)
         import_workspace( ws_out, dijet_order1_e )
@@ -2189,15 +2189,15 @@ def prepareWS(year,baseDir,skimtree,skimfile):
         dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
         print("===> fit result")
         resu_exp_e.Print()
-        print("chi^2 = ", frame_e.chiSquare())
-        print("netot:", netot)
+        print(("chi^2 = ", frame_e.chiSquare()))
+        print(("netot:", netot))
         print("===> fit result")
         resu_exp_m.Print()
-        print "function: ", function
-        print("chi^2 = ", frame_m.chiSquare())
-        print("nmtot:", nmtot)
-        print(func_exp_e.Print())
-        print(func_exp_m.Print())
+        print("function: ", function)
+        print(("chi^2 = ", frame_m.chiSquare()))
+        print(("nmtot:", nmtot))
+        print((func_exp_e.Print()))
+        print((func_exp_m.Print()))
         
         import_workspace( ws_out, expow_order0_e)
         import_workspace( ws_out, expow_order1_e)
@@ -2325,15 +2325,15 @@ def prepareWS(year,baseDir,skimtree,skimfile):
         dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
         print("===> fit result")
         resu_vvdi_e.Print()
-        print("chi^2 = ", frame_e.chiSquare())
-        print("netot:", netot)
+        print(("chi^2 = ", frame_e.chiSquare()))
+        print(("netot:", netot))
         print("===> fit result")
         resu_vvdi_m.Print()
-        print "function: ", function
-        print("chi^2 = ", frame_m.chiSquare())
-        print("nmtot:", nmtot)
-        print(func_vvdi_e.Print())
-        print(func_vvdi_m.Print())
+        print("function: ", function)
+        print(("chi^2 = ", frame_m.chiSquare()))
+        print(("nmtot:", nmtot))
+        print((func_vvdi_e.Print()))
+        print((func_vvdi_m.Print()))
 
         #vvdijet_order1_e.setVal(74.7572)
         #vvdijet_order2_e.setVal(-3.18609)
@@ -2399,15 +2399,15 @@ def prepareWS(year,baseDir,skimtree,skimfile):
         dsm.plotOn(frame_m,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
         print("===> fit result")
         resu_atl_e.Print()
-        print("chi^2 = ", frame_e.chiSquare())
-        print("netot:", netot)
+        print(("chi^2 = ", frame_e.chiSquare()))
+        print(("netot:", netot))
         print("===> fit result")
         resu_atl_m.Print()
-        print "function: ", function
-        print("chi^2 = ", frame_m.chiSquare())
-        print("nmtot:", nmtot)
-        print(func_atl_e.Print())
-        print(func_atl_m.Print())
+        print("function: ", function)
+        print(("chi^2 = ", frame_m.chiSquare()))
+        print(("nmtot:", nmtot))
+        print((func_atl_e.Print()))
+        print((func_atl_m.Print()))
         import_workspace( ws_out, atlas_order1_e)
         import_workspace( ws_out, atlas_order2_e)
         import_workspace( ws_out, atlas_order1_m)
@@ -2594,7 +2594,7 @@ def pltToyFit():#toyfile,f1file, f2file):
     mt_res = ws1.var("mt_res")
     frame = mt_res.frame(ROOT.RooFit.Title("toy fit"))
     toy.plotOn(frame,ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2))
-    print(toy.sumEntries())
+    print((toy.sumEntries()))
     func_pdf_e1.plotOn(frame,ROOT.RooFit.LineColor(ROOT.kRed), ROOT.RooFit.Normalization(toy.sumEntries(),ROOT.RooAbsReal.NumEvent))
     model.plotOn(frame,ROOT.RooFit.LineColor(ROOT.kOrange), ROOT.RooFit.Normalization(toy.sumEntries(),ROOT.RooAbsReal.NumEvent))
     #func_pdf_e.plotOn(frame,ROOT.RooFit.FillColor(ROOT.kRed), ROOT.RooFit.Normalization(bkg_norm.getVal(), ROOT.RooAbsReal.NumEvent))
@@ -2712,7 +2712,7 @@ def pltToyFit():#toyfile,f1file, f2file):
     frame_4fa51a0__2.GetYaxis().SetTitleOffset(0.4)
     frame_4fa51a0__2.Draw("AXISSAME");
     frame3.Draw("same")
-    input()
+    eval(input())
     #c.SaveAs('fit_%s%s.png' %( year,ch))
     #c.SaveAs('%s/%s/%s.C' %( data_outDir,year,ch))
     #c.SaveAs('%s/%s/%s.root' %( data_outDir,year,ch))
@@ -2731,10 +2731,10 @@ def goodnessOfFit(year,baseDir,skimtree,skimfile):
     pdfm  = ws.pdf('%s_%s'%('dijet','muA'+year+'_all_dijet'))
     nllDatae = pdfe.createNLL(datae)
     nllDatam = pdfm.createNLL(datam)
-    print('nllDatae nllDatam',nllDatae.getVal(),nllDatam.getVal())
+    print(('nllDatae nllDatam',nllDatae.getVal(),nllDatam.getVal()))
     ne = ws.var('%s_norm' %( 'dijet_elA'+year+'_all_dijet' )).getVal()
     nm = ws.var('%s_norm' %( 'dijet_muA'+year+'_all_dijet' )).getVal()
-    print('ne nm :',ne,nm)
+    print(('ne nm :',ne,nm))
     #pdfMc = ROOT.RooHistPdf("pdf1", "pdf1", x, mcHist, 0);
     #tse = ROOT.TH1D("MC-likelihood-Dist", "MC-likelihood-Dist", 200, 2500, 4500);
     #tsm = ROOT.TH1D("MC-likelihood-Dist", "MC-likelihood-Dist", 200, 2500, 4500);
@@ -2757,27 +2757,27 @@ def goodnessOfFit(year,baseDir,skimtree,skimfile):
         if (ROOT.TMath.Finite(tempNllm) == 1):
             tsm.Fill(tempNllm)
         toyMCDataGen.Clear()
-        print('tempNlle,tempNllm ',tempNlle,tempNllm)
+        print(('tempNlle,tempNllm ',tempNlle,tempNllm))
     tse.Draw("HIST")
     tsm.SetLineColor(ROOT.kRed)
     tsm.Draw("same HIST")
     tse.SaveAs('year'+year+"tse.C")
     tsm.SaveAs('year'+year+"tsm.C")
-    print('nllDatae nllDatam',nllDatae.getVal(),nllDatam.getVal())
-    input()
+    print(('nllDatae nllDatam',nllDatae.getVal(),nllDatam.getVal()))
+    eval(input())
    
 
 def CombineGoF(ch, year):
     mass = '300'
     c = ROOT.TCanvas()
     ROOT.gStyle.SetOptStat(0)
-    print('=========>',ch,year)
+    print(('=========>',ch,year))
     rootfilename = 'data_env/decideOrderwithdata_GOF3/higgsCombine%s%s_dijet3.GoodnessOfFit.mH120.root'%(ch,year)
     #rootfilename = 'data/higgs/Width5/%s%s/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.root' %( ch,year ,mass)
     ifile = ROOT.TFile.Open( rootfilename, 'READ' )
     tree = ifile.Get( 'limit' )
     for e in tree:
-        print("=========> ", e.limit)
+        print(("=========> ", e.limit))
         datalimit =  e.limit
     #rootfilename = 'data/higgs/Width5/%s%s/Mass%s/higgsCombine.saturated.GoodnessOfFit.mH120.1234.root' %( ch,year ,mass)
     rootfilename = 'data_env/decideOrderwithdata_GOF3/higgsCombine%s%s_dijet3.GoodnessOfFit.mH120.123.root'%(ch,year)
@@ -2826,7 +2826,7 @@ def CombineGoF(ch, year):
     entry.SetTextFont(42);
     entry.SetTextSize(0.1);
     leg.Draw()
-    input()
+    eval(input())
     c.SaveAs('year'+ch+year+"_Mass"+mass+"_hlimit.C")
     c.SaveAs('year'+ch+year+"_Mass"+mass+"_hlimit.png")
 
@@ -2945,23 +2945,23 @@ def testBias():
     for wid in widlist:
         for im in masslist:
             for ir in rsignalr:
-                print(mean_collection['r'+ir+'W'+wid+'m'+str(im)])
+                print((mean_collection['r'+ir+'W'+wid+'m'+str(im)]))
     print('-')    
     for wid in widlist:
         for im in masslist:
             for ir in rsignalr:
-                print(mean_collection_e['r'+ir+'W'+wid+'m'+str(im)])
+                print((mean_collection_e['r'+ir+'W'+wid+'m'+str(im)]))
 
     print('-')
     for wid in widlist:
         for im in masslist:
             for ir in rsignalr:
-                print(sigma_collection['r'+ir+'W'+wid+'m'+str(im)])
+                print((sigma_collection['r'+ir+'W'+wid+'m'+str(im)]))
     print('-')
     for wid in widlist:
         for im in masslist:
             for ir in rsignalr:
-                print(sigma_collection_e['r'+ir+'W'+wid+'m'+str(im)])
+                print((sigma_collection_e['r'+ir+'W'+wid+'m'+str(im)]))
     #for wid in widlist:
     #    for im in masslist:
             #print('wid ',wid, ' im ', im)

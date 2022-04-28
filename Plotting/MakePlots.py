@@ -241,7 +241,7 @@ def main() :
     #Make2DSignalPlot( sampManMuG, sampManElG )
 
 
-    print '^.^ Finished ^.^'
+    print('^.^ Finished ^.^')
 
 def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
 
@@ -282,7 +282,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'jet_n_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'pt_lep_met', full_sel_str, (40, 0, 2000), 
@@ -292,7 +292,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'pt_lep_met_ext_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'mt_lep_met', full_sel_str, (40, 0, 200), 
@@ -302,7 +302,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'mt_lep_met_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'pt_lep_met', full_sel_str, (40, 0, 200), 
@@ -312,7 +312,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'pt_lep_met_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'met_pt', full_sel_str, (40, 0, 200), 
@@ -322,7 +322,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'met_pt_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'met_phi', full_sel_str, (60, -math.pi, math.pi), 
@@ -332,7 +332,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'met_phi_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         lep_pt = '%s_pt' % channel
@@ -346,7 +346,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'leadlep_pt_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( '%s_eta' % channel[0:2], full_sel_str, (30, -3, 3), 
@@ -356,7 +356,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'lep_eta_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( '%s_eta' % channel[0:2], full_sel_str, (30, -3, 3), 
@@ -366,7 +366,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'lep_eta_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'vtx_n', full_sel_str, (50, 0, 50), 
@@ -376,7 +376,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'nvtx_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'rho', full_sel_str, (50, 0, 50), 
@@ -386,7 +386,7 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'rho_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
 def MakeZCRPlots( sampManMu, sampManEl ) :
@@ -415,7 +415,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'lep_eta_egbins_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( '%s_phi[0]' % channel[0:2], full_sel_str, (60, -math.pi, math.pi), 
@@ -425,7 +425,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'lep_phi_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
         #continue
 
@@ -437,7 +437,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'm_ll_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'vtx_n', full_sel_str, (50, 0, 50), 
@@ -447,7 +447,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'nvtx_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'rho', full_sel_str, (50, 0, 50), 
@@ -457,7 +457,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'rho_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'met_pt', full_sel_str, (50, 0, 200), 
@@ -467,7 +467,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'met_pt_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'met_phi', full_sel_str, (60, -math.pi, math.pi), 
@@ -477,7 +477,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'met_phi_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
         selection_ph = 'ph_n==1 && ph_pt[0] > 15 && ph_IsEB[0] && ph_passEleVeto[0] && ph_passMedium[0]'
         label_zg = 'Z + photon'
@@ -491,7 +491,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'pho_eta_%sg.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
         sampMan.Draw( 'ph_phi', full_sel_str_zg, (20, -math.pi, math.pi), 
                     hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Photon #phi', 'xunit': ''}),
@@ -500,7 +500,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'pho_phi_%sg.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
         sampMan.Draw( 'm_ll', full_sel_str_zg, (50, 50, 250), 
                     hist_config=merge_dicts(default_hist_config, {'xlabel' : 'Dilepton Mass', 'xunit': 'GeV'}),
@@ -509,7 +509,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'm_ll_%sg.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'ph_pt', full_sel_str_zg, (50, 0, 250), 
@@ -519,7 +519,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'pho_pt_%sg.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( 'dr_lep_ph', full_sel_str_zg, (50, 0, 5), 
@@ -529,7 +529,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'dr_lep_ph_%sg.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         lep_pt = '%s_pt' % channel[0:2]
@@ -543,7 +543,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'leadlep_pt_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( '%s[1]' % lep_pt, full_sel_str, (50, 0, 500), 
@@ -553,7 +553,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'lep_pt_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
         sampMan.Draw( '%s_eta' % channel[0:2], full_sel_str, (60, -3, 3), 
@@ -564,7 +564,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         if options.outputDir is not None :
             sampMan.SaveStack( 'lep_eta_%s.pdf' % channel, outdir, 'base' ) 
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 
 def MakeEFakePlots( sampManEl ) :
@@ -587,7 +587,7 @@ def MakeEFakePlots( sampManEl ) :
     if options.outputDir is not None :
         sampManEl.SaveStack( 'ph_pt_elg_failVeto.pdf' , outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     selection_ph = 'ph_n==1 && ph_passEleVeto[0] == 1 && !isBlinded'
 
@@ -598,7 +598,7 @@ def MakeEFakePlots( sampManEl ) :
     if options.outputDir is not None :
         sampManEl.SaveStack( 'ph_pt_elg_passVeto.pdf' , outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
 
 def MakeWJetsPlots( sampManMu, sampManEl ) :
@@ -665,7 +665,7 @@ def MakeWJetsPlots( sampManMu, sampManEl ) :
                 if options.outputDir is not None :
                     sampManMu.SaveStack( 'ph_%s_mu_%s_phpt_%d_%d.pdf' %(iid, ieta, ipt[0], ipt[1]) ,outdir, 'base' )
                 else :
-                    raw_input('cont')
+                    eval(input('cont'))
 
 
 def MakeBkgTruthPlots( sampManReco ) :
@@ -678,14 +678,14 @@ def MakeBkgTruthPlots( sampManReco ) :
     if options.outputDir is not None :
         sampManReco.SaveStack( 'Wgamma_NLO_comp' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManReco.CompareSelections( 'trueph_pt[0]', ['trueph_n>0']*3, ['WGToLNuG-madgraphMLM', 'WGToLNuG_PtG-130-madgraphMLM', 'WGToLNuG_PtG-500-madgraphMLM'], ( 50, 0, 1000 ), hist_config={'colors' : [ROOT.kBlack, ROOT.kRed, ROOT.kBlue], 'logy' : True, 'xlabel' : 'True photon p_{T} [GeV]'  }, legend_config={'legend_entries' : ['W#gamma Inclusive', 'W#gamma, p_{T}^{#gamma} > 130 GeV', 'W#gamma, p_{T}^{#gamma} > 500 GeV'] } )
 
     if options.outputDir is not None :
         sampManReco.SaveStack( 'Wgamma_LO_comp' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
 def MakeSignalTruthPlots( sampManNoFilt ) :
 
@@ -695,7 +695,7 @@ def MakeSignalTruthPlots( sampManNoFilt ) :
     sig_samples = []
     for samp in sampManNoFilt.get_samples() :
 
-        print samp.name
+        print((samp.name))
 
         if samp.name.count('ResonanceMass' ) : 
 
@@ -733,7 +733,7 @@ def MakeSignalTruthPlots( sampManNoFilt ) :
         if options.outputDir is not None :
             sampManNoFilt.SaveStack( 'mt_res_trueRecoComp_M%d_width%s'%(mass, width) ,outdir, 'base' )
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
 def MakeSignalRegionPlots( sampManMuG, sampManElG, name='SignalRegionPlots', unblind=False ) :
 
@@ -762,28 +762,28 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG, name='SignalRegionPlots', unb
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'mt_res_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'mt_res', sel_el_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'mt_res_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'mt_lep_met_ph', sel_mu_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'mt_lep_met_ph_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'mt_lep_met_ph', sel_el_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'mt_lep_met_ph_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
 
     sampManMuG.Draw( 'm_lep_met_ph', sel_mu_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
@@ -791,42 +791,42 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG, name='SignalRegionPlots', unb
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'm_lep_met_ph_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'm_lep_met_ph', sel_el_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'm_lep_met_ph_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'recoM_lep_nu_ph', sel_mu_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Mass (W mass constraint) [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'constrained_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'recoM_lep_nu_ph', sel_el_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Mass (W mass constraint) [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'constrained_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'ph_pt[0]', sel_mu_nominal, (80, 0, 2000 ), hist_config={'xlabel' : 'Photon p_{T}[GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'ph_pt_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'ph_pt[0]', sel_el_nominal, (80, 0, 2000 ), hist_config={'xlabel' : 'Photon p_{T} [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'ph_pt_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     theta = math.atan(1./2.0)
 
@@ -835,112 +835,112 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG, name='SignalRegionPlots', unb
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'rotated_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'ph_pt[0] *sin( %f ) + mt_res*cos(%f)' %(theta,theta), sel_el_nominal, (80, 0, 4000 ), hist_config={'xlabel' : 'Combined m_{T} and p_{T} [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'rotated_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'fabs(dphi_lep_ph)', sel_mu_nominal, (32, 0, 3.2 ), hist_config={'xlabel' : '#Delta #phi (l, #gamma)', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 200000000, 'unblind': unblind}, legend_config={'legendLoc' : 'TopLeft'}, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':(0.6, 0.87)} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'dphi_lep_ph_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'fabs(dphi_lep_ph)', sel_el_nominal, (32, 0, 3.2 ), hist_config={'xlabel' : '#Delta #phi (l, #gamma)', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 10000000000, 'unblind': unblind}, legend_config={'legendLoc' : 'TopLeft'}, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':(0.6, 0.87)} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'dphi_lep_ph_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'fabs(dphi_lep_met)', sel_mu_nominal, (32, 0, 3.2 ), hist_config={'xlabel' : '#Delta #phi (l, MET)', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 200000000, 'unblind': unblind}, legend_config={'legendLoc' : 'TopLeft'}, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':(0.6, 0.87)} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'dphi_lep_met_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'fabs(dphi_lep_met)', sel_el_nominal, (32, 0, 3.2 ), hist_config={'xlabel' : '#Delta #phi (l, MET)', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 10000000000, 'unblind': unblind}, legend_config={'legendLoc' : 'TopLeft'}, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':(0.6, 0.87)} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'dphi_lep_met_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'recoM_lep_nu_ph-mt_res', sel_mu_nominal, (100, -500, 500 ), hist_config={'xlabel' : 'Reconstructed Mass Difference [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'mass_diff_ph_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'recoM_lep_nu_ph-mt_res', sel_el_nominal , (100, -500, 500 ), hist_config={'xlabel' : 'Reconstructed Mass Difference [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'mass_diff_ph_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'mu_pt[0]', sel_mu_nominal, (100, 0, 500 ), hist_config={'xlabel' : 'Muon p_{T} [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'mu_pt_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'el_pt[0]', sel_el_nominal, (100, 0, 500 ), hist_config={'xlabel' : 'Electron p_{T} [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'el_pt_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'met_pt', sel_mu_nominal, (100, 0, 500 ), hist_config={'xlabel' : 'E_{T}^{miss} [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'met_pt_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'met_pt', sel_el_nominal, (100, 0, 500 ), hist_config={'xlabel' : 'E_{T}^{miss} [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'met_pt_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'mt_lep_met', sel_mu_nominal, (100, 0, 500 ), hist_config={'xlabel' : 'W Transverse mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'mt_lep_met_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'mt_lep_met', sel_el_nominal, (100, 0, 500 ), hist_config={'xlabel' : 'W Transverse mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf_s, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'mt_lep_met_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'jet_n', sel_mu_nominal, (10, 0, 10 ), hist_config={'xlabel' : 'Jet Multiplicity', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'jet_n_mug_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'jet_n', sel_el_nominal, (10, 0, 10 ), hist_config={'xlabel' : 'Jet Multiplicity', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 2000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'jet_n_elg_nodata' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.activate_sample( 'Data')
     sampManElG.activate_sample( 'Data')
@@ -950,42 +950,42 @@ def MakeSignalRegionPlots( sampManMuG, sampManElG, name='SignalRegionPlots', unb
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'mt_res_mug' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'mt_res', '%s * ( %s && mt_res < 500  && !isBlinded)'%(weight_str, sel_base_el), (50, 0, 500 ), hist_config={'xlabel' : 'Transverse Mass [GeV]', 'logy' : 0, 'ymin' : 0.01, 'ymax' : 10000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'mt_res_elg' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'mt_lep_met_ph', '%s * ( %s && %s )'%(weight_str, sel_base_mu, ph_str), (50, 0, 500 ), hist_config={'xlabel' : 'W Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'mt_lep_met_ph_mug' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'mt_lep_met_ph', '%s * ( %s && %s )'%(weight_str, sel_base_el, ph_str), (50, 0, 500 ), hist_config={'xlabel' : 'W Transverse Mass [GeV]', 'logy' : 1, 'ymin' : 0.01, 'ymax' : 1000000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'mt_lep_met_ph_elg' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManMuG.Draw( 'ph_pt[0]', '%s * ( %s && ph_pt[0] < 250 )'%(weight_str, sel_base_mu), (50, 0, 250 ), hist_config={'xlabel' : 'Photon p_{T}[GeV]', 'logy' : 0, 'ymin' : 0.01, 'ymax' : 100000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Muon Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManMuG.SaveStack( 'ph_pt_mug' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
     sampManElG.Draw( 'ph_pt[0]', '%s * ( %s && ph_pt[0] < 250 )'%(weight_str, sel_base_el), (50, 0, 250 ), hist_config={'xlabel' : 'Photon p_{T} [GeV]', 'logy' : 0, 'ymin' : 0.01, 'ymax' : 100000, 'unblind': unblind}, legend_config=legend_conf, label_config = {'labelStyle' : 'fancy2016', 'extra_label':'Electron Channel', 'extra_label_loc':label_loc_conf} )
 
     if options.outputDir is not None :
         sampManElG.SaveStack( 'ph_pt_elg' ,outdir, 'base' )
     else :
-        raw_input('cont')
+        eval(input('cont'))
 
 
 def Make2DSignalPlot( sampManMuG, sampManElG ) :
@@ -1018,7 +1018,7 @@ def Make2DSignalPlot( sampManMuG, sampManElG ) :
     myf.SetParameter(0, 0. )
     myf.SetParameter(1, 2. )
 
-    for mass, sig in sig_masses.iteritems() :
+    for mass, sig in list(sig_masses.items()) :
 
         mt_res_min = mass/2.
         mt_res_max = mass*1.2
@@ -1070,7 +1070,7 @@ def Make2DSignalPlot( sampManMuG, sampManElG ) :
         if options.outputDir is not None :
             can_sig_profx_mu.SaveAs( '%s/%s.pdf' %( out_dir, can_sig_profx_mu.GetName() ) )
         else :
-            raw_input('cont')
+            eval(input('cont'))
             
         can_sig_profx_el = ROOT.TCanvas( 'can_sig_profx_el_M%d' %mass, 'can_sig_profx_el_M%d' %mass )
         sig_hist_profx_el.Draw()
@@ -1099,7 +1099,7 @@ def Make2DSignalPlot( sampManMuG, sampManElG ) :
         if options.outputDir is not None :
             can_sig_profx_el.SaveAs( '%s/%s.pdf' %( out_dir, can_sig_profx_el.GetName() ) )
         else :
-            raw_input('cont')
+            eval(input('cont'))
 
         bkg_hist_mu = sampManMuG.get_samples( name=bkg_samp )[0].hist
         bkg_hist_el = sampManElG.get_samples( name=bkg_samp )[0].hist
@@ -1124,12 +1124,12 @@ def Make2DSignalPlot( sampManMuG, sampManElG ) :
         can_sig_mu.SetTitle()
         sig_hist_mu.SetStats(0)
         sig_hist_mu.Draw('colz')
-        print sig_hist_mu.Integral()
+        print((sig_hist_mu.Integral()))
         can_sig_mu.SetLogz()
         if options.outputDir is not None :
             can_sig_mu.SaveAs( '%s/%s.pdf' %( out_dir, can_sig_mu.GetName() ) )
         else :
-            raw_input('cont')
+            eval(input('cont'))
             
         can_sig_el = ROOT.TCanvas( 'can_sig_el_M%d'%mass, 'can_sig_el_M%d'%mass )
         can_sig_el.SetTitle()
@@ -1139,7 +1139,7 @@ def Make2DSignalPlot( sampManMuG, sampManElG ) :
         if options.outputDir is not None :
             can_sig_el.SaveAs( '%s/%s.pdf' %( out_dir, can_sig_el.GetName() ) )
         else :
-            raw_input('cont')
+            eval(input('cont'))
             
         can_bkg_mu = ROOT.TCanvas( 'can_bkg_mu_M%d'%mass, 'can_bkg_mu_M%d'%mass )
         can_bkg_mu.SetTitle()
@@ -1149,7 +1149,7 @@ def Make2DSignalPlot( sampManMuG, sampManElG ) :
         if options.outputDir is not None :
             can_bkg_mu.SaveAs( '%s/%s.pdf' %( out_dir, can_bkg_mu.GetName() ) )
         else :
-            raw_input('cont')
+            eval(input('cont'))
             
         can_bkg_el = ROOT.TCanvas( 'can_bkg_el_M%d'%mass, 'can_bkg_el_M%d'%mass )
         can_bkg_el.SetTitle()
@@ -1159,7 +1159,7 @@ def Make2DSignalPlot( sampManMuG, sampManElG ) :
         if options.outputDir is not None :
             can_bkg_el.SaveAs( '%s/%s.pdf' %( out_dir, can_bkg_el.GetName() ) )
         else :
-            raw_input('cont')
+            eval(input('cont'))
             
 
 def merge_dicts(x, y):

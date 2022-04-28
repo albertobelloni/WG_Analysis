@@ -47,7 +47,7 @@ if options.outputDir is not None :
         os.makedirs( options.outputDir )
 
 def main() :
-    print 'DEBUG:',options.dataFrame
+    print('DEBUG:',options.dataFrame)
     sampManMu = SampleManager( options.baseDirMu, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI, weightHistName = "weighthist", dataFrame = options.dataFrame )
     sampManEl = SampleManager( options.baseDirEl, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI, weightHistName = "weighthist", dataFrame = options.dataFrame )
 
@@ -93,12 +93,12 @@ def main() :
     wjets              = ROOT.RooWorkspace( 'workspace_wjets' )
     #elefake            = ROOT.RooWorkspace( 'elefake' )
 
-    for seltag, chdic in selections.iteritems() : 
+    for seltag, chdic in selections.items() : 
         
-        for ch, seldic in chdic.iteritems() : 
+        for ch, seldic in chdic.items() : 
             for et in eta_cuts :
                 if ch == 'mu':
-                    print 'Jet fake rate: MC - %s' %(ch)
+                    print('Jet fake rate: MC - %s' %(ch))
                     make_wjets_matrix( sampManMu, 'WJets', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
                     make_wjets_matrix( sampManMu, 'WGamma', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
                     make_wjets_matrix( sampManMu, 'TTbar_DiLep', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
@@ -109,10 +109,10 @@ def main() :
                     make_wjets_matrix( sampManMu, 'TTGJets', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
                     make_wjets_matrix( sampManMu, 'GammaGamma', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
                 
-                    print 'Jet fake rate: data - %s' %(ch)
+                    print('Jet fake rate: data - %s' %(ch))
                     #make_wjets_matrix( sampManMu, 'Data', seldic['selection'], et, True, suffix='data_%s_%s' %(et,ch))
                 if ch == 'el':
-                    print 'Jet fake rate: MC - %s' %(ch)
+                    print('Jet fake rate: MC - %s' %(ch))
                     make_wjets_matrix( sampManEl, 'WJets', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
                     make_wjets_matrix( sampManEl, 'WGamma', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
                     make_wjets_matrix( sampManEl, 'TTbar_DiLep', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
@@ -123,7 +123,7 @@ def main() :
                     make_wjets_matrix( sampManEl, 'TTGJets', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
                     make_wjets_matrix( sampManEl, 'GammaGamma', seldic['selection'], et, False, suffix='mc_%s_%s' %( et,ch ) )
                 
-                    print 'Jet fake rate: data - %s' %(ch)
+                    print('Jet fake rate: data - %s' %(ch))
                     #make_wjets_matrix( sampManEl, 'Data', seldic['selection'], et, True, suffix='data_%s_%s' %(et,ch))
 
     if options.outputDir is not None :
@@ -139,9 +139,9 @@ def main() :
         #        ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
         outputFile = ROOT.TFile('%s/outfile_matrixFR_wgamma18_%s.root' %( options.outputDir, wjets.GetName() ),'recreate')
-        for key, can in sampManMu.outputs.iteritems() :
+        for key, can in sampManMu.outputs.items() :
             can.Write( '%s' %(key) )
-        for key, can in sampManEl.outputs.iteritems() :
+        for key, can in sampManEl.outputs.items() :
             can.Write( '%s' %(key) )
         #for key, can in sampManEl.outputs.iteritems() :
         #    can.Write( '%s' %(key) )

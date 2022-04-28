@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 
 def main() :
     sampManElG, sampManMuG = None, None
@@ -46,10 +46,10 @@ def main() :
             selection , weight = defs.makeselstring(ch,  80, 30,  40)
         if options.year == 2018:
             weight = weight.replace("prefweight","1")
-        print(ch, samples)
+        print((ch, samples))
         weight =weight.replace("PUWeight","PUWeight*0.2")
         #weight =weight.replace("PUWeight","PUWeight")
-        print(selection ,weight)
+        print((selection ,weight))
         ## prepare config
         hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e8,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False
         #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-8,"ymax":10,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False
@@ -60,10 +60,10 @@ def main() :
             plotvars = plotvarsbase+plotvarsel
         if ch == "mu":
             plotvars = plotvarsbase+plotvarsmu
-        print('plotvars',plotvars)
+        print(('plotvars',plotvars))
 
         for xlabel, var, unit, vrange in plotvars:
-            print('xlabel, var, vrange', xlabel, var, vrange)
+            print(('xlabel, var, vrange', xlabel, var, vrange))
             hist_config["xlabel"] = xlabel
             hist_config["doratio"] = True
             hist_config["drawsignal"] = False

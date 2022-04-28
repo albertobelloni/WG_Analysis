@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys, os
 import ROOT
 from CombineHarvester.CombineTools.plotting import *
@@ -10,14 +10,14 @@ ModTDRStyle()
 graphs = StandardLimitsFromJSONFile(sys.argv[1])
 name = os.path.basename(sys.argv[1])
 sname = name.replace(".json","")
-print sname
+print(sname)
 canv = ROOT.TCanvas(sname, sname)
 pads = OnePad()
 
 # Get limit TGraphs as a dictionary
 
 # Create an empty TH1 from the first TGraph to serve as the pad axis and frame
-axis = CreateAxisHist(graphs.values()[0])
+axis = CreateAxisHist(list(graphs.values())[0])
 axis.GetXaxis().SetTitle('m_{X} (GeV)')
 #axis.GetYaxis().SetTitle('#sigma #font[12]{B} (X #rightarrow W#gamma) at 95%CL [fb]')
 axis.GetYaxis().SetTitle('95% CL limit #sigma (fb)')
@@ -51,7 +51,7 @@ if "mu" in  sname or "el" in sname:
     year = int(sname.split("_")[-1][2:])
     ch2 = "Electron" if ch=="el" else "Muon"
     text2 = "%s Channel %i" %(ch2,year)
-    print text2
+    print(text2)
 l = ROOT.TLatex()
 l.SetNDC()
 l.SetTextSize(0.04)
