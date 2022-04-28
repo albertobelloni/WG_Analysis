@@ -4,7 +4,7 @@ def config_samples(samples) :
 
     samples.AddSample('SingleMuon'                       , path='SingleMuon'    ,  isActive=False, isData = True)
     samples.AddSample('SingleElectron'                       , path='SingleElectron'    ,  isActive=False, isData = True)
-    samples.AddSample('SinglePhoton'                       , path='SinglePhoton'    ,  isActive=False, isData = True)
+    samples.AddSample('SinglePhotonHltOlap'                       , path='SinglePhotonHltOlap'    ,  isActive=False, isData = True)
 #WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8
 #WZG_TuneCP5_13TeV-amcatnlo-pythia8
 
@@ -326,7 +326,7 @@ def config_samples(samples) :
                             input_samples = [
                                              'SingleMuon',
                                              'SingleElectron',
-                                             'SinglePhoton',
+                                             'SinglePhotonHltOlap',
                                             ],
                            plotColor=ROOT.kBlack,
                            isData=True,
