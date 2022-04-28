@@ -18,6 +18,7 @@ import uuid
 from argparse import ArgumentParser
 import eos_utilities as eosutil
 import xrootd_utilities as xrdutil
+from functools import reduce
 
 def ParseArgs() :
 
@@ -152,11 +153,11 @@ def config_and_run( options, package_name ) :
 
 
     if options.copyInputFiles and not ( options.batch or options.condor ) :
-        print "Can only copy input files in batch mode"
+        print("Can only copy input files in batch mode")
         options.copyInputFiles = False
 
     if options.loglevel.upper() not in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] :
-        print 'Loglevel must be one of DEBUG, INFO, WARNING, ERROR, CRITICAL.  Default to INFO'
+        print('Loglevel must be one of DEBUG, INFO, WARNING, ERROR, CRITICAL.  Default to INFO')
         options.loglevel = 'INFO'
 
     #initialize the logger 
@@ -175,7 +176,7 @@ def config_and_run( options, package_name ) :
                 input_files += collect_input_files_eos( dir_base, filename)
         else :
             input_files = options.files.split(',')
-            input_files = filter( lambda s: os.path.isfile( s ), input_files )
+            input_files = [s for s in input_files if os.path.isfile( s )]
 
     ### default option: a directory is given, and one walks through the root files in it
     elif options.filesDir is not None :
@@ -190,16 +191,16 @@ def config_and_run( options, package_name ) :
     input_files_nevt = {}
     if not options.read_file_list :
         input_files_nevt = check_and_filter_input_files( input_files, options.treeName )
-        input_files, num_events = zip(*input_files_nevt) if input_files_nevt else ([], [])
+        input_files, num_events = list(zip(*input_files_nevt)) if input_files_nevt else ([], [])
         input_files = list(input_files)
         input_files_nevt = dict(input_files_nevt)
 
     if not options.noInputFiles and not input_files :
-        print 'Did not locate any input files with the path and file name given!  Check the inputs.'
+        print('Did not locate any input files with the path and file name given!  Check the inputs.')
         if options.files is not None :
-            print options.files
+            print(options.files)
         else :
-            print options.filesDir
+            print(options.filesDir)
         return False
 
     # if output file name is not given grab the name from one of the input files
@@ -220,11 +221,11 @@ def config_and_run( options, package_name ) :
 
     branches_to_keep.sort()
     if options.enableKeepFilter :
-        print 'Will keep %d branches from output file : ' %len(branches_to_keep)
-        print '\n'.join(branches_to_keep)
+        print('Will keep %d branches from output file : ' %len(branches_to_keep))
+        print('\n'.join(branches_to_keep))
     elif options.enableRemoveFilter :
-        print 'Will remove %d branches from output file : ' %( len(branches) - len(branches_to_keep))
-        print '\n'.join( list( set( [ br['name'] for br in branches ] ) - set( branches_to_keep ) ) )
+        print('Will remove %d branches from output file : ' %( len(branches) - len(branches_to_keep)))
+        print('\n'.join( list( set( [ br['name'] for br in branches ] ) - set( branches_to_keep ) ) ))
 
     # -------------------------------
     # gather module arguments
@@ -245,7 +246,7 @@ def config_and_run( options, package_name ) :
     alg_list = []
     try :
         ImportedModule.config_analysis(alg_list, modargs)
-    except TypeError, e : 
+    except TypeError as e : 
         logging.warning('********************************')
         logging.warning('Could not call config_analysis with two arguments')
         logging.warning('To maintain compatibility with the old method of using a single argument')
@@ -308,10 +309,10 @@ def config_and_run( options, package_name ) :
                 filecmp.cmp(  old_header_file_name, new_header_file_name ) and
                 filecmp.cmp( old_source_file_name, new_source_file_name ) ) :
 
-            print '--------------------------------------'
-            print 'Difference found in processing code'
-            print 'Will use new code and will compile'
-            print '--------------------------------------'
+            print('--------------------------------------')
+            print('Difference found in processing code')
+            print('Will use new code and will compile')
+            print('--------------------------------------')
             if not filecmp.cmp( old_brdef_file_name,  new_brdef_file_name ) :
                 os.system("diff %s %s" % ( old_brdef_file_name,  new_brdef_file_name  ))
             if not filecmp.cmp( old_header_file_name, new_header_file_name ) :
@@ -386,7 +387,7 @@ def config_and_run( options, package_name ) :
 
         commands = []
         for jobid, info in command_info :
-            print info
+            print(info)
             commands.append( (jobid, make_exe_command( info[0], info[1], info[2] )) ) 
 
         # Stop here if not running
@@ -438,7 +439,7 @@ def config_and_run( options, package_name ) :
             os.system('chmod 777 %s' %wrapper )
             wrappers.append((jobid,wrapper))
 
-        print 'Will submit %d jobs' %len(wrappers)
+        print('Will submit %d jobs' %len(wrappers))
         for jobid, wrap in wrappers :
             os.system( 'bsub -q 1nh -o %s/%s/out.txt -e %s/%s/err.txt %s ' %(options.outputDir, jobid, options.outputDir, jobid, wrap) )
 
@@ -471,7 +472,7 @@ def config_and_run( options, package_name ) :
 
     else :
         if options.resubmit :
-            print 'Must implement resubmit for single jobs'
+            print('Must implement resubmit for single jobs')
             return
 
         output_file = '%s/%s' %(options.outputDir, options.outputFile )
@@ -492,7 +493,7 @@ def config_and_run( options, package_name ) :
         logging.info('********************************')
         os.system(command)
 
-    print 'Output written to %s' %(options.outputDir)
+    print('Output written to %s' %(options.outputDir))
 
 
 def collect_input_files( filesDir, filekey='.root', write_file_list=False, read_file_list=False , usexrd = False) :
@@ -514,7 +515,7 @@ def collect_input_files_local( filesDir, filekey='.root' ) :
             if f.count(filekey) > 0 and os.path.isfile( top+'/'+f ) :
                 ## skip the failed directories
                 if top.count('failed') > 0:
-                   print " Skip the failed file %s/%s"%( top, f)
+                   print(" Skip the failed file %s/%s"%( top, f))
                 else:
                    input_files.append(top+'/'+f)
 
@@ -607,7 +608,7 @@ def compile_code( alg_list, branches, out_branches, branches_to_keep, workarea, 
     lockfile = '.compile.lock'
     lockname = '%s/TreeFilter/%s/%s' %( workarea, package_name, lockfile )
     while os.path.isfile( lockname ) :
-        print 'Waiting for other compilation to finish.  If this is not expected, do ctrl-z; rm %s; fg ' %lockfile
+        print('Waiting for other compilation to finish.  If this is not expected, do ctrl-z; rm %s; fg ' %lockfile)
         time.sleep(10)
 
     file=open(lockname, 'w')
@@ -780,7 +781,7 @@ def get_branch_map_from_tree( tree ) :
             if not bracketEntry == '' :
                 # get each bracket entry
                 each_bracket = bracketEntry.split('][')
-                each_bracket = map( lambda x : x.rstrip(']').lstrip('['), each_bracket )
+                each_bracket = [x.rstrip(']').lstrip('[') for x in each_bracket]
 
                 # if one or more entries is a variable length array we need
                 # to get its maximum size.  Otherwise we already have the size
@@ -848,7 +849,7 @@ def check_and_filter_input_files( input_files, treename ) :
     else:
         filtered_files = check_and_filter_input_files_helper( input_files ,  treename )
 
-    print "time (s): ", time.time()-start
+    print("time (s): ", time.time()-start)
 
 
     logging.info('Found %d input files.  %d Files were removed' %(len(filtered_files), len(input_files) - len(filtered_files) ) )
@@ -869,7 +870,7 @@ def check_input_file( filename ,  treename = "UMDNTuple/EventTree") :
     file = ROOT.TFile.Open( filename )
     if file == None:
        ## current fix. Need to check what is wrong
-       print "Remove file %s that seems corrupted??? "%filename
+       print("Remove file %s that seems corrupted??? "%filename)
        pass_filter = False
 
     else:
@@ -877,10 +878,10 @@ def check_input_file( filename ,  treename = "UMDNTuple/EventTree") :
 
        if tree == None :
            pass_filter = False
-           print 'Removed file %s that did not contain the input tree' %filename
-           print 'Existing top level objects : '
+           print('Removed file %s that did not contain the input tree' %filename)
+           print('Existing top level objects : ')
            for obj in file.GetListOfKeys() :
-               print obj.GetName()
+               print(obj.GetName())
 
        pass_filter = (filename, tree.GetEntries())
 
@@ -906,10 +907,10 @@ def import_module( module ) :
     try :
         ImportedModule = imp.load_source(module.split('.')[0], module_path)
     except IOError :
-        print 'Could not import module %s' %module_path
+        print('Could not import module %s' %module_path)
 
     if not hasattr(ImportedModule, 'config_analysis') :
-        print 'ERROR - module does not implement a function called config_analysis'
+        print('ERROR - module does not implement a function called config_analysis')
         sys.exit(-1)
 
     return ImportedModule
@@ -939,7 +940,7 @@ def get_keep_branches( module, branches, enable_keep_filter, keep_tag, enable_re
         branches_to_keep = []
         for kregex in keep_filter :
             matches = [ re.match( kregex, br['name'] ) for br in branches ]
-            successful_matches = filter( lambda x : x is not None, matches )
+            successful_matches = [x for x in matches if x is not None]
             branches_to_keep += [ x.group(0) for x in successful_matches]
 
         branches_to_keep = list( set( branches_to_keep ) )
@@ -947,7 +948,7 @@ def get_keep_branches( module, branches, enable_keep_filter, keep_tag, enable_re
     if enable_remove_filter :
         for rregex in remove_filter :
             matches = [ re.match( rregex, br['name'] ) for br in branches ]
-            successful_matches = filter( lambda x : x is not None, matches )
+            successful_matches = [x for x in matches if x is not None]
             branches_to_remove = [ x.group(0) for x in successful_matches]
             branches_to_keep = list( set(branches_to_keep) - set(branches_to_remove) )
             
@@ -1025,10 +1026,10 @@ def get_out_branches( include_name, branches, alg_list ) :
 
 
             if len( split_line ) > 1 :
-                print 'Cannot handle line ', line
-                print split_line
-                print 'Please check the format of the line and fix the code to read it properly'
-                raw_input('cont')
+                print('Cannot handle line ', line)
+                print(split_line)
+                print('Please check the format of the line and fix the code to read it properly')
+                input('cont')
 
             if len( split_line) :
 
@@ -1100,7 +1101,7 @@ def generate_multiprocessing_commands( file_evt_list, alg_list, exe_path, kwargs
 
 def filter_jobs_for_resubmit( orig_commands, outputDir, outputFile, storagePath=None, treeName=None ) :
 
-    print "RESUBMIT FILTER"
+    print("RESUBMIT FILTER")
     commands = []
     if storagePath is not None :
         walker = eosutil.walk_eos
@@ -1122,13 +1123,13 @@ def filter_jobs_for_resubmit( orig_commands, outputDir, outputFile, storagePath=
                 f = ROOT.TFile.Open("%s/%s" %(top, outputFile))
                 if f and f.Get(treeName):
                     exists = True
-                    print "file verified: %s/%s" %(top, outputFile)
+                    print("file verified: %s/%s" %(top, outputFile))
                     break
                 else:
-                    print "file corrupted: %s/%s" %(top, outputFile)
+                    print("file corrupted: %s/%s" %(top, outputFile))
                     break
         else:
-            print "file missing: %s %s" %(file_path, outputFile)
+            print("file missing: %s %s" %(file_path, outputFile))
 
         if not exists :
             commands.append( ( jobid, cmd_info ) )
@@ -1175,7 +1176,7 @@ def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName ,
 
     split_files = [input_files[i:i+nFilesPerSplit] for i in range(0, len(input_files), nFilesPerSplit)]
     if nsplit > 0 and nFilesPerJob > 0 :
-        print 'Both --nsplit and --nFilesPerJob were provided.  This could result in only a part of the sample being analyzed'
+        print('Both --nsplit and --nFilesPerJob were provided.  This could result in only a part of the sample being analyzed')
         split_files = split_files[0:nsplit]
 
     # now split by events.  If no further splitting is requested
@@ -1199,20 +1200,20 @@ def get_file_evt_map( input_files, nsplit, nFilesPerJob, totalEvents, treeName ,
 
     #get the total number of events for each file
     files_nevt = [0]*len(split_files)
-    print "opening TFiles"
+    print("opening TFiles")
     start = time.time()
     for idx, files in enumerate(split_files) :
         for f in files :
             nevt = input_files_nevt.get(f)
             if nevt == None:
-                print "falling back on TFile::Open ", f
+                print("falling back on TFile::Open ", f)
                 tmp = ROOT.TFile.Open(f)
                 tree = tmp.Get(treeName)
                 nevt = tree.GetEntries()
                 tmp.Close()
             #print nevt, files_nevt[idx], input_files_nevt[f]
             files_nevt[idx] += nevt 
-    print "time (s): ", time.time()-start
+    print("time (s): ", time.time()-start)
 
     # for each file get the range to use
     for files, nsplit, filetotevt in zip(split_files, files_nsplit, files_nevt) :
@@ -1295,7 +1296,7 @@ def write_config( alg_list, filename, treeName, outputDir, outputFile, files_lis
                     inv_str = '!'
                 conf_string += '%s %s[%s] ; ' %(name, inv_str, val)
 
-        for name, val in alg.vars.iteritems() :
+        for name, val in alg.vars.items() :
             conf_string += 'init_%s [%s] ; ' %( name, val )
 
         if alg.do_cutflow :
@@ -1623,8 +1624,8 @@ def write_linkdef_file( linkdefname, branches ) :
         new_link_types = [ typ for typ in link_types if "class"+typ not in original_lines_reduced ]
 
         if new_link_types:
-            print "new types found: ", " ".join(new_link_types)
-            print "will recompile Linkdef.h"
+            print("new types found: ", " ".join(new_link_types))
+            print("will recompile Linkdef.h")
             ## find out where to insert new lines
             link_header = open(linkdefname, 'w')
             for i, line in enumerate(original_lines):
@@ -1637,11 +1638,11 @@ def write_linkdef_file( linkdefname, branches ) :
             proc = subprocess.Popen(['make', 'linkdef'])
             proc.wait()
         else:
-            print "no new types"
+            print("no new types")
     else:
         ## if Linkdef.h does not exist, make a new one
-        print "Linkdef.h does not exist"
-        print "link types to be included: ", " ".join(link_types)
+        print("Linkdef.h does not exist")
+        print("link types to be included: ", " ".join(link_types))
 
         link_header = open(linkdefname, 'w')
         link_header.write('#ifdef __CINT__\n')
@@ -1698,7 +1699,7 @@ def write_source_file(source_file_name, header_file_name, branches, out_branches
     branch_header.write('#endif\n')
     branch_header.close()
 
-    print 'WRITE ', source_file_name
+    print('WRITE ', source_file_name)
 
     branch_setting = open(source_file_name, 'w')
     branch_setting.write('#include <algorithm>\n')
