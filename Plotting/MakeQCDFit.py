@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
@@ -22,14 +22,14 @@ mcerrors = pad.GetPrimitive('Graph_from___AllStack__')
 
 qcd = None
 for h in pad.GetPrimitive('stack').GetHists():
-    print(h.GetName(), h.Integral())
+    print((h.GetName(), h.Integral()))
     if 'QCD' in h.GetName():
         qcd = h
     else:
         data.Add(h, -1)
 
 scale = data.Integral()/qcd.Integral()
-print('Inclusive QCD scale factor = %.3f' % scale)
+print(('Inclusive QCD scale factor = %.3f' % scale))
 
 qcd_scaled = qcd.Clone('qcd_scaled')
 qcd_scaled.Scale(scale)

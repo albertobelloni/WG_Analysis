@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import matplotlib.pyplot as plt
 import sys, json
 from collections import OrderedDict, defaultdict
@@ -7,14 +7,14 @@ def addparser(parser):
     parser.add_argument('--ch',         default="el",        help='Choose muon or electron channel [mu/el]' )
     parser.add_argument('--plot',       action="store_true", help='Save plots' )
 
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 from DrawConfig import DrawConfig
 
 
 ###
 ### This script makes efficiency map for b tagging SF
 ###
-print os.getcwd()
+print(os.getcwd())
 
 year = options.year
 ch = options.ch
@@ -83,7 +83,7 @@ if ch=="el":
 
 
 kinedict = defs.kinedictgen(ch)
-cutsetdict = {k: defs.makeselstring(ch=ch, **w ) for k,w in kinedict.iteritems()}
+cutsetdict = {k: defs.makeselstring(ch=ch, **w ) for k,w in kinedict.items()}
 
 if year==2016:
     bcutvalue=0.3093
@@ -102,10 +102,10 @@ if not os.path.isdir( "data/btag") :
     os.makedirs( "data/btag" )
 f1 = ROOT.TFile("data/btag/btageff%i%s.root"%(year,ch),"RECREATE")
 ## cutsets
-for key, (selfull, weight) in cutsetdict.iteritems():
-    print key
-    print selfull
-    print weight
+for key, (selfull, weight) in cutsetdict.items():
+    print(key)
+    print(selfull)
+    print(weight)
 
 hconf = {"drawopt":"COLZ TEXT", "xlabel":"jet pT", "ylabel":"jet eta"}
 

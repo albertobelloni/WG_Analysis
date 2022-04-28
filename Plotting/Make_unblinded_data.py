@@ -10,7 +10,7 @@ MIN_ = 230
 MAX_ = 2300
 treeIn      = "UMDNTuple/EventTree"
 import os
-data_outDir = "data/bkgfit_data"
+data_outDir = "data/bkgfit_data_filter"
 if data_outDir is not None :
     if not os.path.isdir( data_outDir ) :
         os.makedirs( data_outDir )
@@ -23,10 +23,11 @@ Date = '2022_01_27'
 for year in ['2016','2017','2018']:
     for ch in ['el','mu']:
         if ch == 'el':
-            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/Single*/Job*/tree.root')
-            if(year=='2018'): FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/EGamma/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/mseidel/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/SingleElectron/Job*/tree.root')
+            FileMap[year+'ph'] = glob.glob('/data/users/mseidel/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/SinglePhotonHltOlap/Job*/tree.root')
+            if(year=='2018'): FileMap[year+ch] = glob.glob('/data/users/mseidel/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/EGamma/Job*/tree.root')
         if ch == 'mu':
-            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF/SingleMuon/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/mseidel/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF/SingleMuon/Job*/tree.root')
             
 print('Loaded FileMap')
 
@@ -62,18 +63,59 @@ def canvas_margin(c1, c1_up, c1_down):
 # ---------------------------------------------------
 import selection_defs as defs
 
+ROOT.gInterpreter.Declare("""
+// A thread-safe stateful filter that lets only one event pass for each value of
+// "category" (where "category" is a random character).
+// It is using gCoreMutex, which is a read-write lock, to have a bit less contention between threads.
+class FilterOnePerKind {
+  std::unordered_set<char> _seenCategories;
+public:
+  bool operator()(char category) {
+    {
+      R__READ_LOCKGUARD(ROOT::gCoreMutex); // many threads can take a read lock concurrently
+      if (_seenCategories.count(category) == 1)
+        return false;
+    }
+    // if we are here, `category` was not already in _seenCategories
+    R__WRITE_LOCKGUARD(ROOT::gCoreMutex); // only one thread at a time can take the write lock
+    _seenCategories.insert(category);
+    return true;
+  }
+};
+""")
+
+def prepare_data_filter(frac, year, ch, skimtree, skimfile):
+    #Prepare skimed data
+    names = ROOT.std.vector('string')()
+    for n in FileMap[year+ch]: names.push_back(n)
+    if ch=='el':
+        for n in FileMap[year+'ph']: names.push_back(n)
+    #ROOT.EnableImplicitMT()
+    d = ROOT.RDataFrame(treeIn, names)
+    d.Define("category", "char(eventNumber % 10)")
+    cols = ROOT.std.vector['string'](["category"])
+    df_with_unique_categories = d.Filter(ROOT.FilterOnePerKind(), cols)
+    print(df_with_unique_categories.Count().GetValue())
+    selection , weight = defs.makeselstring('el',  80, 35,  40,year)
+    if ch=='mu':
+        selection , weight = defs.makeselstring('mu',  80, 30,  40,year)
+    myfilter = df_with_unique_categories.Filter(selection).Range(1,0,frac)
+    Hmt = myfilter.Histo1D("mt_res")
+    Hmt.Draw()
+    myfilter.Snapshot(skimtree, skimfile)
+
+
 def prepare_data(frac, year, ch, skimtree, skimfile):
     #Prepare skimed data
     names = ROOT.std.vector('string')()
     for n in FileMap[year+ch]: names.push_back(n)
+    if ch=='el': 
+        for n in FileMap[year+'ph']: names.push_back(n)
     d = ROOT.RDataFrame(treeIn, names)
-    selection , weight = defs.makeselstring('el',  80, 35,  40)
+    selection , weight = defs.makeselstring('el',  80, 35,  40,year)
     if ch=='mu':
-        selection , weight = defs.makeselstring('mu',  80, 30,  40)
+        selection , weight = defs.makeselstring('mu',  80, 30,  40,year)
     myfilter = d.Filter(selection).Range(1,0,frac)
-    #myfilter = d.Filter(selection)
-    #print(selection)
-    #print('make histo')
     Hmt = myfilter.Histo1D("mt_res")
     Hmt.Draw()
     myfilter.Snapshot(skimtree, skimfile)
@@ -2452,13 +2494,13 @@ skimfile     =  "skim_1in5.root"
 #makeFinalplots(data_outDir,skimtree)
 #exit()
 
-for year in ['2016','2017','2018']:
-#for year in ['2018']:#,'2017','2018']:
+#for year in ['2016','2017','2018']:
+for year in ['2018']:#,'2017','2018']:
     #goodnessOfFit(year,data_outDir,skimtree,skimfile)
     #makeRooMultiPdfWorkspace(year,data_outDir,skimtree,skimfile)
     for ch in ['el','mu']:
         #CombineGoF(ch, year)
-        prepare_data(5, year, ch, skimtree, data_outDir+'/'+ch+year+'_'+skimfile)
+        prepare_data_filter(5, year, ch, skimtree, data_outDir+'/'+ch+year+'_'+skimfile)
 
 #testBias()
 #pltToyFit()

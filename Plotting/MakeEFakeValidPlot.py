@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-execfile("MakeBase.py")
+#!/usr/bin/env python3
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 year = options.year
 hlist = []
 sampManElG.ReadSamples( _SAMPCONF )

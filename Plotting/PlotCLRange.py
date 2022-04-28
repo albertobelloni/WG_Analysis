@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import matplotlib
 matplotlib.use('Agg')
 
@@ -28,8 +28,8 @@ def process_combine_file(fname) :
             results[cllabeldict[clname]].append(rvalue)
 
     if results.get("obs") == None or results.get("exp-2") == None:
-        print "No observed or expected value"
-        print fname
+        print("No observed or expected value")
+        print(fname)
 
     ofile.close()
 
@@ -42,10 +42,10 @@ def make_CL_hist(resultfile, savepath):
         return
 
     fig = plt.figure()
-    mincl = np.floor(min([ x for k, v in results.iteritems() for x in v]))
-    maxcl = np.ceil(max([ x for k, v in results.iteritems() for x in v]))
+    mincl = np.floor(min([ x for k, v in results.items() for x in v]))
+    maxcl = np.ceil(max([ x for k, v in results.items() for x in v]))
 
-    for k, v in results.iteritems():
+    for k, v in results.items():
         plt.hist(v, bins=np.linspace(mincl,maxcl,100), label=k, histtype="step")
     plt.legend()
     plt.savefig("%s.pdf" %savepath)

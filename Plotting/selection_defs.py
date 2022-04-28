@@ -151,7 +151,7 @@ def build_bad_efake_sector_string(year, quality):
     " generate bad efake sector substrings (quality: veto, worst, bad) "
 
     bstr={}
-    for key, badlist in badefakesectors[year].iteritems():
+    for key, badlist in badefakesectors[year].items():
         bstr[key]="||".join(itertools.starmap(photonphietastr, badlist))
     combinedstring = ""
 
@@ -186,7 +186,7 @@ def build_bad_efake_sector_string(year, quality):
         return combinedstring
     if quality == "normal":
         return "!(%s)" %combinedstring
-    print("ERROR do not recognise: ", quality)
+    print(("ERROR do not recognise: ", quality))
     raise RuntimeError
 
 def photonphietastr(iphi, eta):

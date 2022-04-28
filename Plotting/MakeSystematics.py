@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import matplotlib.pyplot as plt
 import sys, json
 from collections import OrderedDict, defaultdict
@@ -10,14 +10,14 @@ def addparser(parser):
     parser.add_argument('--pdfstart',         default='0',        help='Choose pdf start)' )
     parser.add_argument('--pdfend',         default='5',        help='Choose pdf end' )
  
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 from DrawConfig import DrawConfig
 #import defs_selections as defs
 
 ###
 ### This script makes systematic shape comparison plots and normlization estimates
 ###
-print os.getcwd()
+print(os.getcwd())
 
 year = options.year
 ch = options.ch
@@ -143,8 +143,8 @@ def makeplots():
     scs = lambda m: defs.selectcutstring(m, ch)[0]
     fig = plt.figure(figsize=(12,12))
     for i,syslist in enumerate(syslists):
-        print syslist, [[systematic_dict[c][sys]['MadGraphResonanceMass%i_width%s' %(1000,w)] for c in "A"]  \
-          for sys in syslist for w in ("0p01","5")]
+        print(syslist, [[systematic_dict[c][sys]['MadGraphResonanceMass%i_width%s' %(1000,w)] for c in "A"]  \
+          for sys in syslist for w in ("0p01","5")])
         sysvalues=[[systematic_dict[scs(m)][sys]['MadGraphResonanceMass%i_width%s' %(m,w)] for m in xpoints] \
           for sys in syslist for w in ("0p01","5")]
         ax=plt.subplot(3,2,1+i)
@@ -314,12 +314,12 @@ cutsetdict = {k: defs.makeselstring(ch=ch, **w ) for k,w in kinedict.iteritems()
 selection_list = OrderedDict()
 
 
-for key, (selfull, weight) in cutsetdict.iteritems():
+for key, (selfull, weight) in cutsetdict.items():
     selection_list[key] = OrderedDict()
     if options.year == 2018:
         weight = weight.replace("*prefweight","") ## no prefiring weight in 2018
-    print selfull
-    print weight
+    print(selfull)
+    print(weight)
 
     selection_list[key]["norm"] = dict( w=weight, sel=selfull)
 
@@ -399,8 +399,8 @@ systematic_dict = recdd()#dict()
 
 ######## booking histograms ########
 
-for cutsetkey, sellist in selection_list.iteritems():
-    for sysname, seldict in sellist.iteritems():
+for cutsetkey, sellist in selection_list.items():
+    for sysname, seldict in sellist.items():
         kine = kinedict[cutsetkey]
         lconf = {"labelStyle":str(year),
                 "extra_label":["%i %s Channel" %(year,chname),
@@ -418,9 +418,9 @@ for cutsetkey, sellist in selection_list.iteritems():
 
 #########  draw histograms  #########
 
-print selection_list.keys()
-for cutsetkey, sellist in selection_list.iteritems():
-    for sysname, seldict in sellist.iteritems():
+print(list(selection_list.keys()))
+for cutsetkey, sellist in selection_list.items():
+    for sysname, seldict in sellist.items():
         hf = seldict["hist"]
         hf.DrawSave()
         seldict["stackcount"] = samples.get_stack_count()
@@ -429,7 +429,7 @@ for cutsetkey, sellist in selection_list.iteritems():
         for sname in activesignames:
             seldict["hsignals"][sname] = samples[sname].hist.Clone()
 
-for cutsetkey, sellist in selection_list.iteritems():
+for cutsetkey, sellist in selection_list.items():
     kine = kinedict[cutsetkey]
     lconf = {"labelStyle":str(year),
              "extra_label":["%i %s Channel" %(year,chname),
@@ -539,40 +539,40 @@ for cutsetkey, sellist in selection_list.iteritems():
 
     bkgcountnorm = sellist["norm"]["stackcount"]["TOTAL"][0]
     bkgcountnormerr = sellist["norm"]["stackcount"]["TOTAL"][0]
-    print "MC stat error = ", bkgcountnormerr
+    print("MC stat error = ", bkgcountnormerr)
 
     for k in hkeys:
         bkgcount = sellist[k]["stackcount"]["TOTAL"][0]
         #print "%.20s %.4g %.4g %.4g" %(k, bkgcount, bkgcountnorm, bkgcount/bkgcountnorm*100-100)
-        print "%-20s %.2g" %(k, bkgcount/bkgcountnorm*100-100)
+        print("%-20s %.2g" %(k, bkgcount/bkgcountnorm*100-100))
         systematic_dict[cutsetkey][k]["background"] = bkgcount/bkgcountnorm*100-100
 
 
     for sname in activesignames:
-        print
-        print "signal name: ", sname
+        print()
+        print("signal name: ", sname)
         sigcountnorm = sellist["norm"]["stackcount"][sname][0]
         sigcountnormerr = sellist["norm"]["stackcount"][sname][1]
-        print "MC stat error = ", sigcountnormerr
+        print("MC stat error = ", sigcountnormerr)
         for k in hkeys:
             sigcount = sellist[k]["stackcount"][sname][0]
             #print "%-20s %.4g %.4g %.4g" %(k, sigcount, sigcountnorm, sigcount/sigcountnorm*100-100)
-            print "%-20s %.2g" %(k, sigcount/sigcountnorm*100-100)
+            print("%-20s %.2g" %(k, sigcount/sigcountnorm*100-100))
             systematic_dict[cutsetkey][k][sname] = sigcount/sigcountnorm*100-100
 
 
-    print "%-10s" %"",
+    print("%-10s" %"", end=' ')
     for sname, title in summarylist:
-        print "%-8s" %title,
-    print
+        print("%-8s" %title, end=' ')
+    print()
 
     for k in hkeys:
-        print "%-10s" %k,
+        print("%-10s" %k, end=' ')
         for sname, title in summarylist:
             count = selection_list[cutsetkey][k]["stackcount"][sname][0]
             countnorm = selection_list[cutsetkey]["norm"]["stackcount"][sname][0]
-            print "%8.2g" %(count/countnorm*100-100),
-        print
+            print("%8.2g" %(count/countnorm*100-100), end=' ')
+        print()
 
 with open( _JSONNAME , "w") as fw:
     json.dump(systematic_dict, fw)

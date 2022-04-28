@@ -13,7 +13,7 @@ class Printer() :
     def Print(self) :
         message = self.GetMessage()
         for msg in message:
-            print msg
+            print(msg)
         return
 
     def GetMessage(self):
@@ -35,18 +35,18 @@ class Printer() :
 
 def read_xsfile( xsfile, lumi, print_values=False ) :
     if print_values:
-        print '-------------------------------------'
-        print ' LOAD CROSS SECTION INFO'
-        print '-------------------------------------'
+        print('-------------------------------------')
+        print(' LOAD CROSS SECTION INFO')
+        print('-------------------------------------')
     weightMap = {}
     xs_printer = Printer()
     if xsfile is None :
         return weightMap, xs_printer
     if lumi is None :
-        print 'Cannot calculate weights without a luminosity'
+        print('Cannot calculate weights without a luminosity')
         return weightMap, xs_printer
     if not os.path.isfile( xsfile ) :
-        print 'Could not locate cross section file.  No values will be loaded.'
+        print('Could not locate cross section file.  No values will be loaded.')
         raise RuntimeError ## assume we always need one
         return weightMap
 

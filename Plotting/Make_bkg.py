@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 
 def main() :
     sampManElG, sampManMuG = None, None
@@ -58,10 +58,10 @@ def main() :
             plotvars = plotvarsbase+plotvarsel
         if ch == "mu":
             plotvars = plotvarsbase+plotvarsmu
-        print('plotvars',plotvars)
+        print(('plotvars',plotvars))
 
         for xlabel, var, unit, vrange in plotvars:
-            print('xlabel, var, vrange', xlabel, var, vrange)
+            print(('xlabel, var, vrange', xlabel, var, vrange))
             hist_config["xlabel"] = xlabel
             hist_config["doratio"] = False
             hist_config["drawsignal"] = True

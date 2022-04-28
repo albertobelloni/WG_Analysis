@@ -4,9 +4,7 @@ def config_samples(samples) :
 
     samples.AddSample('SingleMuon'                       , path='SingleMuon'    ,  isActive=False, isData = True)
     samples.AddSample('SingleElectron'                       , path='SingleElectron'    ,  isActive=False, isData = True)
-    samples.AddSample('SinglePhotonHltOlap'                       , path='SinglePhotonHltOlap'    ,  isActive=False, isData = True)
-#WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8
-#WZG_TuneCP5_13TeV-amcatnlo-pythia8
+    samples.AddSample('SinglePhoton'                       , path='SinglePhotonHltOlap'    ,  isActive=False, isData = True)
 
     #samples.AddSample('DYJetsToLL_M-50_LO',
     #                  path='DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8PhOlap',

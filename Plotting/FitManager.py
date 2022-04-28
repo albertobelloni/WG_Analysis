@@ -22,7 +22,7 @@ tPurple="\033[0;35m%s"+tColor_Off       # Purple
 def f_Obsolete(f):
         @wraps(f)
         def f_wrapper(*args, **kws):
-                print f.__name__,": This method is obsolete"
+                print((f.__name__,": This method is obsolete"))
                 return f(*args,**kws)
         return f_wrapper
 
@@ -30,8 +30,8 @@ def f_Dumpfname(func):
     """ decorator to show function name and caller name """
     @wraps(func)
     def echo_func(*func_args, **func_kwargs):
-        print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'\
-                      .format(func.__name__,sys._getframe(1).f_code.co_name))
+        print(('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'\
+                      .format(func.__name__,sys._getframe(1).f_code.co_name)))
         return func(*func_args, **func_kwargs)
     return echo_func
 
@@ -142,7 +142,7 @@ class FitManager :
         self.frame=self.subframe=None
 
         # copy input arguments
-        self.func_name = fname
+        self.__name__ = fname
         self.label = label
 
         self.xvardata = xvardata  # data plot range
@@ -211,8 +211,8 @@ class FitManager :
             return thisobj
 
         except TypeError:
-            print('FitManager.MakeROOTObj -- Failed to create a %s.',
-                               'Please check the arguments :'%root_obj)
+            print(('FitManager.MakeROOTObj -- Failed to create a %s.',
+                               'Please check the arguments :'%root_obj))
             raise
 
 
@@ -282,30 +282,30 @@ class FitManager :
         return short_name
 
     def add_vars( self, arg_list) :
-        irange = range(1,  self.dof )
+        irange = list(range(1,  self.dof))
 
-        if self.func_name == 'power' :
+        if self.__name__ == 'power' :
             #irange = range( 2* self.func_norders)
             add_vars_name = self.add_vars_name_power
 
-        elif self.func_name == 'expow' :
+        elif self.__name__ == 'expow' :
             add_vars_name = self.add_vars_name_expow
 
-        elif self.func_name == 'dijet' :
+        elif self.__name__ == 'dijet' :
             #irange = range(  self.func_norders+1 )
             add_vars_name = self.add_vars_name_dijet
 
-        elif self.func_name == 'atlas' or self.func_name == "vvdijet":
+        elif self.__name__ == 'atlas' or self.__name__ == "vvdijet":
             add_vars_name = self.add_vars_name_atlas
 
         else:
-            print tPurple %"*** NO VARIABLE ADDED ***"
+            print((tPurple %"*** NO VARIABLE ADDED ***"))
 
         for i in irange:
             short_name = add_vars_name(i)
-            long_name = '%s_order%d_%s' %( self.func_name, i, self.label )
-            this_def = self.get_vals( self.func_name, i )
-            print short_name, this_def
+            long_name = '%s_order%d_%s' %( self.__name__, i, self.label )
+            this_def = self.get_vals( self.__name__, i )
+            print((short_name, this_def))
             var = ROOT.RooRealVar( long_name, long_name, *this_def)
             ROOT.SetOwnership(var, False)
             arg_list.add( var  )
@@ -318,7 +318,7 @@ class FitManager :
 
         function = ''
 
-        if self.func_name == 'dijet' :
+        if self.__name__ == 'dijet' :
             self.dof = self.func_norders+1
             order_entries = []
 
@@ -334,10 +334,10 @@ class FitManager :
             self.defs['dijet'][2] = ( -2.0,   -9.0,  -3.0 )
             self.defs['dijet'][3] = ( -1.5,   -5.0,  -1.0 )
 
-            print "function: ", function
+            print(("function: ", function))
 
 
-        if self.func_name == 'atlas' :
+        if self.__name__ == 'atlas' :
             self.dof = self.func_norders+3
 
             function = 'TMath::Power( (1-TMath::Power(@0/13000., 1./3)), @1 ) /'+\
@@ -357,7 +357,7 @@ class FitManager :
             self.defs['atlas'][4] = (  -1 ,     -100,    100)
             self.defs['atlas'][5] = (  -1 ,     -5,    10)
 
-        if self.func_name == 'vvdijet' :
+        if self.__name__ == 'vvdijet' :
             self.dof = self.func_norders+3
 
             function = 'TMath::Power( (1-@0/13000.), @1 ) /'+\
@@ -378,7 +378,7 @@ class FitManager :
             self.defs['vvdijet'][5] = (  -1 ,     -5,     10)
             #self.defs['vvdijet'][6] = (  -1 ,     -5,     10)
 
-        if self.func_name == 'expow' :
+        if self.__name__ == 'expow' :
             self.dof = self.func_norders+2
 
             order_entries = []
@@ -396,7 +396,7 @@ class FitManager :
             self.defs['expow'][4] = ( 10,    -200,    -1 )
             self.defs['expow'][5] = ( -10,    -20,     0 )
 
-        if self.func_name == 'power' :
+        if self.__name__ == 'power' :
             self.dof = self.func_norders*2
 
             order_entries = []
@@ -416,7 +416,7 @@ class FitManager :
 
         if forceUseRooFit :
             # different syntax for ROOT and RooFit
-            print tPurple %function
+            print((tPurple %function))
             return function
         else :
             mod_function = function.replace( '@0', 'x' )
@@ -424,7 +424,7 @@ class FitManager :
             mod_function = '[0]*(%s)' %mod_function
             for i in range( 0, 9 ) :
                 mod_function = mod_function.replace( '@%d' %i, '[%d]' %i )
-            print tPurple %mod_function
+            print((tPurple %mod_function))
             return mod_function
 
     @f_Obsolete
@@ -485,15 +485,15 @@ class FitManager :
         #self.add_vars( arg_list)
 
         #if self.func_name == 'bwxcb' : self.init_bwxcb()
-        if self.func_name == 'dscb'  : self.init_dscb()
-        elif self.func_name == 'cb'  : self.init_cb()
-        elif self.func_name == 'dcb' : self.init_dcb(reparam=False, **setupargs)
-        elif self.func_name == 'dcbp' : self.init_dcb(**setupargs)
-        elif self.func_name == 'dcbexpo' : self.init_dcbexpo(**setupargs)
+        if self.__name__ == 'dscb'  : self.init_dscb()
+        elif self.__name__ == 'cb'  : self.init_cb()
+        elif self.__name__ == 'dcb' : self.init_dcb(reparam=False, **setupargs)
+        elif self.__name__ == 'dcbp' : self.init_dcb(**setupargs)
+        elif self.__name__ == 'dcbexpo' : self.init_dcbexpo(**setupargs)
         else :
              # generic function maker
              self.func_pdf = ROOT.RooGenericPdf( '%s_%s'
-                    %(self.func_name, self.label), self.func_name, func_str, arg_list)
+                    %(self.__name__, self.label), self.__name__, func_str, arg_list)
 
         # do fit if requested
         if dofit:
@@ -503,7 +503,7 @@ class FitManager :
     def run_fit_helper(self, fitrange = None, **options):
         assert not ( options["Range"] and fitrange ), "conflict of ranges"
         self.optionlist = [getattr(rf,opt)(arg) if arg is not None else \
-                      getattr(rf,opt)()    for opt,arg in options.viewitems()]
+                      getattr(rf,opt)()    for opt,arg in list(options.items())]
 
         ## NOTE on newer versions of ROOT where kwargs are supporter for fitTo
         #self.optionlist = {opt:arg    for opt,arg in options.viewitems()}
@@ -550,16 +550,16 @@ class FitManager :
         run the RooFit Fitter and MIGRAD, HESSE and MINOS
         """
         self.fitrange = self.fitrangehelper(fitrange)
-        print self.fitrange
+        print((self.fitrange))
         #self.xvardata.setRange("runfit",*self.fitrange)
         self.func_pdf.fitTo( self.datahist,
                              rf.Save(),
                              rf.SumW2Error(ROOT.kTRUE),
                              ROOT.RooCmdArg( 'Strategy', 3 ) )
         if debug:
-           print "\n**************************"
-           print "***** finished fitTo in RooFit ******"
-           print "*********************\n"
+           print("\n**************************")
+           print("***** finished fitTo in RooFit ******")
+           print("*********************\n")
 
         # construct the Log(Likelihood)
         nll = self.func_pdf.createNLL(self.datahist) ;
@@ -567,19 +567,19 @@ class FitManager :
 
         m.migrad()
         if debug:
-           print "\n*************************************"
-           print "************ finished MIGRAD ****************"
-           print "***************************************\n"
+           print("\n*************************************")
+           print("************ finished MIGRAD ****************")
+           print("***************************************\n")
         m.hesse()
         if debug:
-           print "\n*************************************"
-           print "************ finished HESSE *****************"
-           print "***************************************\n"
+           print("\n*************************************")
+           print("************ finished HESSE *****************")
+           print("***************************************\n")
         m.minos()
         if debug:
-           print "\n*************************************"
-           print "************ finished MINOS *****************"
-           print "***************************************\n"
+           print("\n*************************************")
+           print("************ finished MINOS *****************")
+           print("***************************************\n")
         self.fitresult = m.save()
 
     def setup_rootfit(self, fitrange=None ):
@@ -590,8 +590,8 @@ class FitManager :
         self.func = ROOT.TF1('tf1_%s' %self.label, func_str, fitrange[0], fitrange[1] )
 
         for i in range( 0, self.dof ) :
-            this_def = self.get_vals( self.func_name, i )
-            print i, this_def[0]
+            this_def = self.get_vals( self.__name__, i )
+            print((i, this_def[0]))
             self.func.SetParameter( i, this_def[0] )
 
     def run_rootfit(self):
@@ -599,7 +599,7 @@ class FitManager :
         return self.func
 
     def get_parameters(self):
-        return self.defs.items()
+        return list(self.defs.items())
 
     def get_parameter_values(self):
         plist = {}
@@ -610,7 +610,7 @@ class FitManager :
     def get_parameter_vals(self):
         ## used for signal fits when self.defs is not filled
         plist = {}
-        for name, realvar in self.fit_params.iteritems():
+        for name, realvar in list(self.fit_params.items()):
             if realvar.hasAsymError():
                 plist[name] = (realvar.getVal(), (realvar.getErrorLo(), realvar.getErrorHi()))
             else:
@@ -622,14 +622,14 @@ class FitManager :
         ## used for signal fits when self.defs is not filled
         ## import parameter values
 
-        for name, (val, err) in plist.iteritems():
+        for name, (val, err) in list(plist.items()):
             realvar = self.fit_params[name]
             realvar.setVal(val)
             if isinstance(err, tuple):
                 realvar.setAsymError(*err)
             else:
                 realvar.setError(err)
-        print self.fit_params
+        print((self.fit_params))
 
 
 
@@ -641,14 +641,14 @@ class FitManager :
         """
 
         if self.func_pdf is not None :
-            print 'The PDF Function already exists.  It will be overwritten'
+            print('The PDF Function already exists.  It will be overwritten')
 
         #if self.func_name == 'power' :
         for i in range( self.dof ) : ## FIXME this works?
             fitted_result = self.func.GetParameter(i)
             fitted_error = self.func.GetParError(i)
 
-            self.defs[self.func_name][i] = ( fitted_result,
+            self.defs[self.__name__][i] = ( fitted_result,
                                              fitted_result - fitted_error,
                                              fitted_result + fitted_error )
 
@@ -658,15 +658,15 @@ class FitManager :
 
         for i in range( 1, arg_list.getSize() )  :
             fitted_error = self.func.GetParError(i)
-            print "fitted error: ", tPurple %fitted_error
+            print(("fitted error: ", tPurple %fitted_error))
 
             arg_list[i].setError( fitted_error )
 
 
         func_str = self.get_fit_function( forceUseRooFit=True)
 
-        self.func_pdf = ROOT.RooGenericPdf('%s_%s' %( self.func_name, self.label),
-                                            self.func_name, func_str, arg_list)
+        self.func_pdf = ROOT.RooGenericPdf('%s_%s' %( self.__name__, self.label),
+                                            self.__name__, func_str, arg_list)
 
 
 
@@ -674,7 +674,7 @@ class FitManager :
 
         if sampMan is not None :
 
-            for name, param in self.fit_params.iteritems() :
+            for name, param in list(self.fit_params.items()) :
                 param.SetName( name)
 
             can = ROOT.TCanvas( str(uuid.uuid4()), '' )
@@ -701,17 +701,17 @@ class FitManager :
     def get_pdf_histogram( self , xbins = None ):
         """ return TH1 histogram representing the pdf """
         if xbins == None:
-            return self.func_pdf.createHistogram( "%s%s" %(self.label,self.func_name), self.xvardata)
-        return self.func_pdf.createHistogram( "%s%s" %(self.label,self.func_name), self.xvardata, rf.Binning(xbins) )
+            return self.func_pdf.createHistogram( "%s%s" %(self.label,self.__name__), self.xvardata)
+        return self.func_pdf.createHistogram( "%s%s" %(self.label,self.__name__), self.xvardata, rf.Binning(xbins) )
 
     def get_results( self, workspace = None, savedatahist=True, scale_norm=None) :
-        print "get_results",workspace, self.datahist
+        print(("get_results",workspace, self.datahist))
 
 
         results = {}
-        for param in self.fit_params.values() :
+        for param in list(self.fit_params.values()) :
             results[param.GetName()] = ufloat( param.getValV(), param.getError() )
-            print param.GetName(), ufloat( param.getValV(), param.getError( ))
+            print((param.GetName(), ufloat( param.getValV(), param.getError( ))))
 
 
         #power_res = ufloat( power.getValV(), power.getErrorHi() )
@@ -726,7 +726,7 @@ class FitManager :
                         'normalization', results['integral'].n )
         integral_var.setError( results['integral'].s )
 
-        print "importing"
+        print("importing")
         if workspace is not None :
             if savedatahist:
                 import_workspace( workspace,
@@ -754,7 +754,7 @@ class FitManager :
             if "top" in self.curr_canvases:
                 self.curr_canvases["top"].cd()
             else:
-                print "cannot update"
+                print("cannot update")
                 return
         elif self.canvas:
             self.canvas.cd()
@@ -794,11 +794,11 @@ class FitManager :
 
         # make frame
         self.frame = self.xvardata.frame(rf.Title(title))
-        print "initalised frame"
+        print("initalised frame")
         self.frame.Print()
         # plot data histogram
         if component:
-            hlist = [h for h in self.datahistlist.values() if h!= self.datahist]
+            hlist = [h for h in list(self.datahistlist.values()) if h!= self.datahist]
             for h in hlist:
                 h.plotOn( self.frame,
                                 rf.DataError(ROOT.RooAbsData.Poisson),
@@ -809,7 +809,7 @@ class FitManager :
                                 rf.XErrorSize(0),
                                 rf.FillColor(ROOT.kBlue-10)
                         )
-                print "plot data: " , h
+                print(("plot data: " , h))
         self.datahist.plotOn(self.frame,
 #                            rf.DataError(ROOT.RooAbsData.Poisson) ## FIXME needed for extended model fit in efakes, but not MC background fit
                             )
@@ -818,7 +818,7 @@ class FitManager :
         # old setup fitted for the signal and MC bkg fits
         #
         useOldsetup = kw.get("useOldsetup", False)
-        print "use old setup: ",useOldsetup
+        print(("use old setup: ",useOldsetup))
 
         # plotting fitted function
         if self.func_pdf:
@@ -839,12 +839,12 @@ class FitManager :
                     args = plotparm+FitManager.LineDefs[i+1]+[comp,]
                     self.func_pdf.plotOn(*args)
 
-                    print "plot pdf: ", i, comp
-                    print "arguments: ", args
+                    print(("plot pdf: ", i, comp))
+                    print(("arguments: ", args))
 
             self.func_pdf.plotOn(*(plotparm+FitManager.LineDefs[0]))
-            print "plotparm"
-            print plotparm
+            print("plotparm")
+            print(plotparm)
 
             pmlayout = kw.get("paramlayout",(0.65,0.9,0.7))
             ## toggle off parameters with None in layout
@@ -852,7 +852,7 @@ class FitManager :
             if  pmlayout:
                 if useOldsetup:
                    # make the param names short
-                   for name, param in self.fit_params.iteritems() :
+                   for name, param in list(self.fit_params.items()) :
                        param.SetName( name )
 
                    self.func_pdf.paramOn( self.frame, rf.ShowConstants(True),
@@ -895,7 +895,7 @@ class FitManager :
                self.subframe.GetXaxis().SetTitle("m_{T} [GeV]")
             ROOT.gPad.SetTicks(1,1)
             chi  =self.getchisquare()
-            print "Printed Chi: ",chi
+            print(("Printed Chi: ",chi))
             # print chi-sq
             self.latex = ROOT.TLatex()
             self.latex.SetTextSize(0.1)
@@ -1061,7 +1061,7 @@ class FitManager :
         sigfitparams = json.loads(f.read())
         g = open ('data/para_%s.txt'%(iyear), "r")
         sigfitpar = json.loads(g.read())
-        print(sigfitpar.keys())
+        print((list(sigfitpar.keys())))
 
         for ipar in paramname:
             print(ipar)
@@ -1180,14 +1180,14 @@ class FitManager :
 
     def make_expression_string(self, varname, varexp):
         """ make factory expression with name and formula of expression """
-        print varexp
+        print(varexp)
         varlist = re.split('[+\-*/() ]',varexp) # minus needs escape
         varlist = [v for v in varlist if v]
         varlist = ','.join(list(set(varlist)))
         return "expr::%s('%s',%s)" %(varname, varexp, varlist)
 
     def fact(self,factstring):
-        print tPurple %factstring
+        print((tPurple %factstring))
         self.wk.factory(factstring)
 
     def retrieve_param(self,valsar):
@@ -1199,8 +1199,8 @@ class FitManager :
             if name!="x":
                 ## if variable is already registered
                 if name in self.defs:
-                    print "already registered: ", name, \
-                           self.defs[name], self.wk.var(name)
+                    print(("already registered: ", name, \
+                           self.defs[name], self.wk.var(name)))
                 self.defs[name] = self.wk.var(name)
         self.xvardata = self.wk.var("x") #update xv
 
@@ -1245,7 +1245,7 @@ class FitManager :
 
         factstr = self.make_factory_string( "RooDoubleCB",
                                             "doublecb" + pdflabel, valsar )
-        print factstr
+        print(factstr)
         #if not self.loaded:
         #        self.loaded = ROOT.gROOT.ProcessLineSync(".x DoubleCB.cxx+")
 
@@ -1387,7 +1387,7 @@ class FitManager :
         if bkgd2 is not None: self.retrieve_param(valsar3)
         self.retrieve_param(valsarex)
         self.func_pdf = self.wk.pdf(ext)
-        print "DEFINED VARIABLES"
-        pprint(self.defs.items())
+        print("DEFINED VARIABLES")
+        pprint(list(self.defs.items()))
         self.pdfplotrange = False ## FIXME: needed?
 
