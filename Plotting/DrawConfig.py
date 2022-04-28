@@ -245,7 +245,7 @@ class DrawConfig :
             labeltext = '36 fb^{-1} (13 TeV)'
             if labelStyle:
                 if labelStyle.count('2016') :
-                    labeltext = '35.9 fb^{-1} (13 TeV)'
+                    labeltext = '36.3 fb^{-1} (13 TeV)'
                 if labelStyle.count('2017') :
                     labeltext = '41.5 fb^{-1} (13 TeV)'
                 if labelStyle.count('2018') :
@@ -267,7 +267,7 @@ class DrawConfig :
 
             labeltext = '19.4 fb^{-1} (8 TeV)'
             if labelStyle.count('2016') :
-                labeltext = '35.9 fb^{-1} (13 TeV)'
+                labeltext = '36.3 fb^{-1} (13 TeV)'
             if labelStyle.count('2017') :
                 labeltext = '41.5 fb^{-1} (13 TeV)'
             if labelStyle.count('2018') :
