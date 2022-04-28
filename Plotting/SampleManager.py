@@ -3605,6 +3605,10 @@ class SampleManager(SampleFrame) :
     def create_hist_rdfhelper( self, sample, varexp, selection, histpars ):
 
         rdf = ROOT.RDataFrame(sample.chain)
+        if sample.isData: # remove duplicated events in data
+            rdf = rdf.Define("category", "long(eventNumber)")
+            cols = ROOT.std.vector['string'](["category"])
+            rdf = rdf.Filter(ROOT.FilterOnePerKind(), cols)
         rdf = rdf.Define('varexp', varexp)
         rdf = rdf.Define('selection', selection)
 
@@ -5275,6 +5279,29 @@ class SampleManager(SampleFrame) :
                 ibin = dest_hist.GetBin( xbin )
                 _add_generic_bin( dest_hist, add_hist, ibin )
 
+ROOT.gInterpreter.Declare("""
+// A thread-safe stateful filter that lets only one event pass for each value of
+// "category" (where "category" is a random character).
+// It is using gCoreMutex, which is a read-write lock, to have a bit less contention between threads.
+class FilterOnePerKind {
+  std::unordered_set<long int> _seenCategories;
+
+public:
+  bool operator()(long int category) {
+    {
+      R__READ_LOCKGUARD(ROOT::gCoreMutex); // many threads can take a read lock concurrently
+      if (_seenCategories.count(category) == 1) {
+        std::cout << "Filtering duplicate event " << category << std::endl;
+        return false;
+      }
+    }
+    // if we are here, `category` was not already in _seenCategories
+    R__WRITE_LOCKGUARD(ROOT::gCoreMutex); // only one thread at a time can take the write lock
+    _seenCategories.insert(category);
+    return true;
+  }
+};
+""")
 
 # A simple helper function to fill a test tree: this makes the example stand-alone.
 def fill_tree(treeName, fileName, b2exp):
