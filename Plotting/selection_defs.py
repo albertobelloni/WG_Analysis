@@ -22,8 +22,8 @@ def get_weight_str( ch = None ) :
 
     #weight_str = '(isinf(PUWeight)?1:PUWeight)*NLOWeight*prefweight*(isinf(jet_btagSF)?1:jet_btagSF)'
     weight_str = 'PUWeight*NLOWeight*prefweight*jet_btagSF'
-    weight_str_mu = weight_str + '*(mu_trigSF*mu_idSF*mu_isoSF*mu_trkSF*ph_idSF*ph_psvSF)'
-    weight_str_el = weight_str + '*(el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF)'
+    weight_str_mu = weight_str + '*mu_trigSF*mu_idSF*mu_isoSF*mu_trkSF*ph_idSF*ph_psvSF'
+    weight_str_el = weight_str + '*el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF'
     if ch == "el":
         weight = weight_str_el
     elif ch == "mu":
@@ -233,7 +233,7 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     el_tight = ' el_passTight[0] == 1'
     #el_tight = ' el_passVIDTight[0] == 1'
     el_trigMatch = ' el_hasTrigMatch[0] == 1'
-    el_eta   = ' fabs( el_eta[0] ) < 2.1 '
+    el_eta   = ' fabs( el_eta[0] ) < 2.1 && !(fabs( el_eta[0] ) >1.44&&fabs( el_eta[0] ) < 1.57)'
     el_pt  = 'el_pt[0] > %i ' %leppt
 
     mu_pt  = 'mu_pt_rc[0] > %i ' %leppt
@@ -248,6 +248,10 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
 
     Zveto_str = 'fabs(m_lep_ph-91)>20.0'
     deepjetveto = "jet_DeepJetSF_n==0"
+    #if str(year)=='2016': deepjetveto = '(isData ? Sum$(jet_bTagDeepb>%f)==0 : jet_DeepJetSF_n==0)'%(0.3093)
+    #elif str(year)=='2017': deepjetveto = '(isData ? Sum$(jet_bTagDeepb>%f)==0 : jet_DeepJetSF_n==0)'%(0.3033)
+    #elif str(year)=='2018': deepjetveto = '(isData ? Sum$(jet_bTagDeepb>%f)==0 : jet_DeepJetSF_n==0)'%(0.2770)
+    #else: print('bad year !!!')
 
     sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto ] +  sel_ph
     sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str,

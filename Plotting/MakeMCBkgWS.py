@@ -19,8 +19,8 @@ exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 from FitManager import FitManager
 ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000)
 
-_XMIN_M = 200
-_XMAX_M = 2000
+_XMIN_M = 230
+_XMAX_M = 2300
 _BIN_WIDTH_M = 20
 _DEFAULTDATADIR = 'data/bkgfit/'
 

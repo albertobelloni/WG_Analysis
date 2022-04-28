@@ -34,7 +34,7 @@ from FitManager import FitManager
 #ROOT.PyConfig.IgnoreCommandLineOptions = True
 import getpass
 username = getpass.getuser()
-
+username = 'mseidel'
 recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
 
 
@@ -48,7 +48,7 @@ lumiratio = 1.
 datestrmm=datestree=datestreg=datestrmg=""
 if options.year == 2016:
     _XSFILE   = 'cross_sections/photon16.py'
-    _LUMI     = 35900
+    _LUMI     = 36330
     _SAMPCONF = 'Modules/Resonance2016.py'
     etastr    = ""
     #etastr    = "&& !(ph_eta[0]<0 && ph_phi[0]<16*pi/18 && ph_phi[0]>13*pi/18)"
@@ -57,7 +57,7 @@ if options.year == 2016:
 elif options.year == 2017:
     _SAMPCONF = 'Modules/Resonance2017.py'
     _XSFILE   = 'cross_sections/photon17.py'
-    _LUMI     = 41000
+    _LUMI     = 41530
     #etastr    = "&& !(ph_eta[0]>0 && ph_phi[0]>15*pi/18)"
     #lumiratio = 1./(1-3./72.)
 elif options.year == 2018:

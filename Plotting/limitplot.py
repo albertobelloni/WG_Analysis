@@ -7,7 +7,8 @@ ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 # Style and pads
 ModTDRStyle()
-graphs = StandardLimitsFromJSONFile(sys.argv[1])
+graphs = StandardLimitsFromJSONFile(sys.argv[1],draw=['exp0', 'exp1', 'exp2'])
+#graphs = StandardLimitsFromJSONFile(sys.argv[1],draw=['obs','exp0', 'exp1', 'exp2'])
 name = os.path.basename(sys.argv[1])
 sname = name.replace(".json","")
 print(sname)
@@ -65,13 +66,13 @@ ll.SetNDC()
 ll.SetTextSize(0.04)
 ll.SetTextFont(42)
 if "2016" in sys.argv[1]:
-    ll.DrawLatex(0.7,.95, "13TeV, 35.9 fb^{-1}")
+    ll.DrawLatex(0.65,.95, "13TeV, 36.3*0.2 fb^{-1}")
 elif "2017" in sys.argv[1]:
-    ll.DrawLatex(0.7,.95, "13TeV, 41.5 fb^{-1}")
+    ll.DrawLatex(0.65,.95, "13TeV, 41.5*0.2 fb^{-1}")
 elif "2018" in sys.argv[1]:
-    ll.DrawLatex(0.7,.95, "13TeV, 59.7 fb^{-1}")
+    ll.DrawLatex(0.65,.95, "13TeV, 59.7*0.2 fb^{-1}")
 else:
-    ll.DrawLatex(0.7,.95, "13TeV, 137 fb^{-1}")
+    ll.DrawLatex(0.65,.95, "13TeV, 138*0.2 fb^{-1}")
 
 hmax = axis.GetMaximum()
 hmin = axis.GetMinimum()
