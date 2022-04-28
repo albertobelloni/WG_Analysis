@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 
 def main() :
     sampManElG, sampManMuG = None, None
@@ -39,18 +39,18 @@ def main() :
         lepname = "e" if ch == "el" else "#mu"
         #labelname+=" scaled to 2016 luminosity"
         if ch == "el":
-            selection , weight = defs.makeselstring(ch,  80, 35,  40,options.year)
+            selection , weight = defs.makeselstring(ch,  80, 35,  40)
         else:
-            selection , weight = defs.makeselstring(ch,  80, 30,  40,options.year)
+            selection , weight = defs.makeselstring(ch,  80, 30,  40)
         if options.year == 2018:
             weight = weight.replace("prefweight","1")
         print(ch, samples)
         weight =weight.replace("PUWeight","PUWeight*0.2")
         print(selection ,weight)
         ## prepare config
-        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e12,"weight":weight, "ymax_scale":1.5,"unblind":False, "bywidth":False}# "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False 
-        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-7,"ymax":1e3,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":True} 
-        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e8,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} 
+        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e12,"weight":weight, "ymax_scale":1.5,"unblind":False, "bywidth":False}# "unblind":"rdfentry_%5==0", "bywidth":False} ## "unblind":False 
+        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-7,"ymax":1e3,"weight":weight, "ymax_scale":1.5, "unblind":"rdfentry_%5==0", "bywidth":True} 
+        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e8,"weight":weight, "ymax_scale":1.5, "unblind":"rdfentry_%5==0", "bywidth":False} 
 
         label_config  = {"extra_label":labelname, "extra_label_loc":(.17,.82), "labelStyle":str(options.year)}
         legend_config = {'legendLoc':"Double","legendTranslateX":0.3, "legendCompress":1, "fillalpha":.5, "legendWiden":.9}

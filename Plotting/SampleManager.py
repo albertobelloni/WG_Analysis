@@ -33,6 +33,8 @@ ROOT.gStyle.SetPalette(1)
 tColor_Off="\033[0m"                       # Color Reset
 tRed      ="\033[1;31m%s"+tColor_Off       # Red
 tPurple   ="\033[0;35m%s"+tColor_Off       # Purple
+tBlue     ="\033[1;34m%s"+tColor_Off       # Blue
+tCyan     ="\033[1;36m%s"+tColor_Off       # Cyan
 
 _STACKNAME = '__AllStack__'
 _DEFAULTCOLORS = [
@@ -3476,6 +3478,7 @@ class SampleManager(SampleFrame) :
         bywidth     = draw_config.get_bywidth()
         onthefly    = draw_config.get_onthefly()
         #sample.hist = draw_config.init_hist(sample.name)
+        weight = '1'
 
         if usedataframe:
             sample.hist = None
@@ -3491,10 +3494,11 @@ class SampleManager(SampleFrame) :
                     selection = "(%s)&&(%s)" %(selection,sblind)
 
             if isinstance(sweight,str) and sweight and not sample.isData:
-                    selection = "(%s)*%s" %(selection,sweight)
+                    weight = sweight
+
 
             # enable branches for variables matched in the varexp and selection
-            sample.enable_parsed_branches( varexp+selection )
+            sample.enable_parsed_branches( varexp+selection+weight )
         print((self.curr_stack))
         if sample.IsGroupedSample() :
 
@@ -3534,7 +3538,7 @@ class SampleManager(SampleFrame) :
 
                 if not self.quiet or sample.isData:
                     print(('Make %s hist %s : ' %(sample.name, varexp) \
-                            + tRed %selection))
+                            + tBlue %selection + ', ' + tCyan %weight))
 
                 dataframefailed=False
                 # Speed up with RDataFrame
@@ -3542,7 +3546,7 @@ class SampleManager(SampleFrame) :
                     try:
 
                         rdf_hist_resultptr = self. create_hist_rdfhelper( sample,
-                                        varexp, selection, draw_config.histpars)
+                                        varexp, selection, weight, draw_config.histpars)
                         rdf_hist = rdf_hist_resultptr.DrawCopy()
 
                         # save histogram to current sampleframe
@@ -3558,7 +3562,8 @@ class SampleManager(SampleFrame) :
 
                     except Exception as ex:
                         print('Falling back to TChain. '\
-                     'Please consider switching to ROOT >= 6.18 to use RDataFrame')
+                     'Please consider switching to ROOT >= 6.18 to use RDataFrame. '\
+                         'Or maybe there is an invalid character (such as $) in the selection string?')
                         dataframefailed=True
 
                 if not self.dataFrame or dataframefailed:
@@ -3602,19 +3607,20 @@ class SampleManager(SampleFrame) :
     #--------------------------------
 
 
-    def create_hist_rdfhelper( self, sample, varexp, selection, histpars ):
+    def create_hist_rdfhelper( self, sample, varexp, selection, weight, histpars ):
 
         rdf = ROOT.RDataFrame(sample.chain)
+        rdf = rdf.Filter(selection)
         if sample.isData: # remove duplicated events in data
             rdf = rdf.Define("category", "long(eventNumber)")
             cols = ROOT.std.vector['string'](["category"])
             rdf = rdf.Filter(ROOT.FilterOnePerKind(), cols)
         rdf = rdf.Define('varexp', varexp)
-        rdf = rdf.Define('selection', selection)
+        rdf = rdf.Define('weight', weight)
 
         ht = self.parsehist( histpars, varexp, 'rdf_hist',
                              returnmodel = True )
-        rdf_hist_resultptr = rdf.Histo1D( ht , 'varexp', 'selection')
+        rdf_hist_resultptr = rdf.Histo1D( ht , 'varexp', 'weight')
 
         return rdf_hist_resultptr
 
