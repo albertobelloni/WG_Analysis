@@ -246,7 +246,7 @@ def main() :
 def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
 
     outdir = '%s/%s_%i' %(options.outputDir, name, options.year)
-    default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': ''}
+    default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': '', 'drawsignal': False}
     default_label_config = {'labelStyle' : 'fancy2016'}
     default_legend_config = {'fillalpha': 0.5, 'siglegPos': 'bottom'}
 
@@ -393,7 +393,7 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
 
     name = 'ZCRPlots'
     outdir = '%s/%s_%i' %(options.outputDir, name, options.year)
-    default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': ''}
+    default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': '', 'drawsignal': False}
 
     zchannels = {
         'mumu': sampManMu,
