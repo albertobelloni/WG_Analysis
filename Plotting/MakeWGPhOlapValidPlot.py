@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-execfile("MakeBase.py")
+#!/usr/bin/env python3
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 year = options.year
 hlist = []
 sampManEl.ReadSamples( _SAMPCONF )
@@ -17,7 +17,7 @@ slists = {
     'after': ['WJetsToLNu-madgraphMLMPhOlap', 'WGToLNuG-amcatnloFXFXPhCut'],
 }
 
-for channel,samples in samplesdict.items():
+for channel,samples in list(samplesdict.items()):
     lconf = {"labelStyle":str(year),"extra_label":"%i %s channel" %(year,channel), "extra_label_loc":(.17,.82)}
     #lgconf = {'legendLoc':"Double","legendTranslateX":0.35, "legendCompress":.9, "fillalpha":.5}
     lgconf={"legendWiden":1.5,"fillapha":.5}
@@ -29,7 +29,7 @@ for channel,samples in samplesdict.items():
     ## form for conditional max is: MaxIf$(var, particle_selection):Max/Min$(particle_selection)==0/1
     ## easier to just do Max$(var*(condition)):1 so if an event does not fit the selection, a zero is returned
 
-    for label,slist in slists.items():
+    for label,slist in list(slists.items()):
 
         ### highest pT gen photon that is prompt final state and in ZG eta+DeltaR
         # def CompareSelections( self, varexp, selections, reqsamples, histpars, hist_config={}, label_config={}, legend_config={}, same=False, useModel=False, treeHist=None, treeSelection=None ) :

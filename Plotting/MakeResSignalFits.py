@@ -53,7 +53,7 @@ def main() :
     sig_samples = []
     
     for samp in sampManMu.get_samples() :
-        print samp.name
+        print(samp.name)
         if samp.name.count('ResonanceMass') > 0 :
 
             res = re.match('(MadGraph|Pythia)ResonanceMass(\d+)_width(\w+|\d+)', samp.name )
@@ -162,16 +162,16 @@ def main() :
             frame.Draw()
             frame.Print()
             #if width != '0p01' :
-            print 'bw_m = %f, err up = %f, err dn = %f ' %(bw_m.getValV(), bw_m.getErrorHi(), bw_m.getErrorLo() )
-            print 'bw_w = %f, err up = %f, err dn = %f ' %(bw_w.getValV(), bw_w.getErrorHi(), bw_w.getErrorLo() )
-            print 'cb_cut = %f, err up = %f, err dn = %f ' %(cb_cut.getValV(), cb_cut.getErrorHi(), cb_cut.getErrorLo() )
-            print 'cb_sigma = %f, err up = %f, err dn = %f ' %(cb_sigma.getValV(), cb_sigma.getErrorHi(), cb_sigma.getErrorLo() )
-            print 'cb_power = %f, err up = %f, err dn = %f ' %(cb_power.getValV(), cb_power.getErrorHi(), cb_power.getErrorLo() )
-            print 'cb_m0 = %f, err up = %f, err dn = %f ' %(cb_m0.getValV(), cb_m0.getErrorHi(), cb_m0.getErrorLo() )
+            print('bw_m = %f, err up = %f, err dn = %f ' %(bw_m.getValV(), bw_m.getErrorHi(), bw_m.getErrorLo() ))
+            print('bw_w = %f, err up = %f, err dn = %f ' %(bw_w.getValV(), bw_w.getErrorHi(), bw_w.getErrorLo() ))
+            print('cb_cut = %f, err up = %f, err dn = %f ' %(cb_cut.getValV(), cb_cut.getErrorHi(), cb_cut.getErrorLo() ))
+            print('cb_sigma = %f, err up = %f, err dn = %f ' %(cb_sigma.getValV(), cb_sigma.getErrorHi(), cb_sigma.getErrorLo() ))
+            print('cb_power = %f, err up = %f, err dn = %f ' %(cb_power.getValV(), cb_power.getErrorHi(), cb_power.getErrorLo() ))
+            print('cb_m0 = %f, err up = %f, err dn = %f ' %(cb_m0.getValV(), cb_m0.getErrorHi(), cb_m0.getErrorLo() ))
 
             #chi2 = frame.chiSquare( 'sig_model%s' %suffix, 'target_data', 4 )
             chi2 = frame.chiSquare(  4 )
-            print 'Chi^2 = ',chi2
+            print('Chi^2 = ',chi2)
 
             chi2_text = ROOT.TLatex()
             chi2_text.SetNDC()
@@ -197,7 +197,7 @@ def main() :
                 pickle.dump( result_dic, opfile )
                 opfile.close()
             else :
-                raw_input("cont")
+                input("cont")
 
 
 

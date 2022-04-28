@@ -23,7 +23,7 @@ def fillhist(hist, value, error, label= None):
             hist.GetXaxis().SetBinLabel(i+1, label[i])
 
 def pair(x):
-    return zip(x[:-1], x[1:])
+    return list(zip(x[:-1], x[1:]))
 
 ptb=None
 

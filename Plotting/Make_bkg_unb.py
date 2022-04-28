@@ -29,11 +29,12 @@ def main() :
                ]
     plotvarsel=[]
     plotvarsmu=[]
-    #plotvarsbase=[]
-    #plotvarsel=[("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),]
-    #plotvarsmu=[("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),]
+    plotvarsbase=[]
+    plotvarsel=[("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),]
+    plotvarsmu=[("m_{T}^{l#nu#gamma}","mt_res", 'GeV',[0, 150, 200, 250, 300, 350, 400, 500, 750, 1000, 2500]),]
     #for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
-    for ch, samples in zip(["el","mu"],[sampManElG,sampManMuG]):
+    #for ch, samples in zip(["el","mu"],[sampManElG,sampManMuG]):
+    for ch, samples in zip(["el"],[sampManElG]):
         labelname = "%i Muon Channel" %options.year if ch == "mu" else "%i Electron Channel" %options.year
         lepname = "e" if ch == "el" else "#mu"
         #labelname+=" scaled to 2016 luminosity"
@@ -44,12 +45,12 @@ def main() :
         if options.year == 2018:
             weight = weight.replace("prefweight","1")
         print(ch, samples)
-        #weight =weight.replace("PUWeight","PUWeight*0.2")
+        weight =weight.replace("PUWeight","PUWeight*0.2")
         print(selection ,weight)
         ## prepare config
-        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e12,"weight":weight, "ymax_scale":1.5,"unblind":False, "bywidth":False}# "unblind":"Entry$%5==0", "bywidth":False} ## "unblind":False 
-        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-7,"ymax":1e3,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":True} 
-        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e8,"weight":weight, "ymax_scale":1.5, "unblind":"Entry$%5==0", "bywidth":False} 
+        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e12,"weight":weight, "ymax_scale":1.5,"unblind":False, "bywidth":False}# "unblind":"rdfentry_%5==0", "bywidth":False} ## "unblind":False 
+        hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-7,"ymax":1e3,"weight":weight, "ymax_scale":1.5, "unblind":"rdfentry_%5==0", "bywidth":True} 
+        #hist_config   = {"xlabel":"m_{T}(%s,#gamma,p^{miss}_{T})" %(lepname),"logy":1,"ymin":1e-3,"ymax":1e8,"weight":weight, "ymax_scale":1.5, "unblind":"rdfentry_%5==0", "bywidth":False} 
 
         label_config  = {"extra_label":labelname, "extra_label_loc":(.17,.82), "labelStyle":str(options.year)}
         legend_config = {'legendLoc':"Double","legendTranslateX":0.3, "legendCompress":1, "fillalpha":.5, "legendWiden":.9}
@@ -58,12 +59,12 @@ def main() :
             plotvars = plotvarsbase+plotvarsel
         if ch == "mu":
             plotvars = plotvarsbase+plotvarsmu
-        print(('plotvars',plotvars))
+        print('plotvars',plotvars)
 
         for xlabel, var, unit, vrange in plotvars:
-            print(('xlabel, var, vrange', xlabel, var, vrange))
+            print('xlabel, var, vrange', xlabel, var, vrange)
             hist_config["xlabel"] = xlabel
-            hist_config["doratio"] = False
+            hist_config["doratio"] = True
             hist_config["drawsignal"] = True
             hist_config["xunit"] = unit
             samples.Draw(var, selection,vrange , hist_config,legend_config,label_config)

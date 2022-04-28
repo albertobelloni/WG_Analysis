@@ -107,18 +107,18 @@ def main() :
     wjets              = ROOT.RooWorkspace( 'workspace_wjets' )
     elefake            = ROOT.RooWorkspace( 'elefake' )
 
-    for seltag, chdic in selections.iteritems() : 
+    for seltag, chdic in selections.items() : 
 
-        for ch, seldic in chdic.iteritems() : 
+        for ch, seldic in chdic.items() : 
 
-            for name, vardata in kine_vars.iteritems() :
+            for name, vardata in kine_vars.items() :
                                     
-                print 'WJets fit for data'
+                print('WJets fit for data')
                 make_wjets_fit( sampManMuGNoId, 'Data', seldic['selection'], 'EB', vardata['var'], 'chIso', 'sigmaIEIE', vardata['binning'], vardata['xvar'], suffix='wjets_%s_EB_%s_%s' %(ch,name,seltag), closure=False, workspace=wjets)
 
                 if options.doClosure :
 
-                    print 'WJets fit for MC: closure'
+                    print('WJets fit for MC: closure')
                     closure_res_mu = make_wjets_fit( sampManMuGNoId, 'Wjets', seldic['selection'], 'EB', vardata['var'], 'chIso', 'sigmaIEIE', vardata['binning'], vardata['xvar'], suffix='closure_%s_EB_%s_%s' %( ch,name,seltag ), closure=True )
                     closure_res_mu = make_wjets_fit( sampManMuGNoId, 'Wgamma', seldic['selection'], 'EB', vardata['var'], 'chIso', 'sigmaIEIE', vardata['binning'], vardata['xvar'], suffix='closure_%s_EB_%s_%s' %( ch,name,seltag ), closure=True )
                     closure_res_mu = make_wjets_fit( sampManMuGNoId, 'TTbar_SingleLep', seldic['selection'], 'EB', vardata['var'], 'chIso', 'sigmaIEIE', vardata['binning'], vardata['xvar'], suffix='closure_%s_EB_%s_%s' %( ch,name,seltag ), closure=True )
@@ -128,7 +128,7 @@ def main() :
 
         wjets.writeToFile( '%s/%s.root' %( options.outputDir,wjets.GetName() ) )
 
-        for fileid, ws_list in workspaces_to_save.iteritems() :
+        for fileid, ws_list in workspaces_to_save.items() :
             for idx, ws in enumerate(ws_list) :
                 if idx == 0 :
                     recreate = True
@@ -138,9 +138,9 @@ def main() :
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
         outputFile = ROOT.TFile('%s/outfile_%s.root' %( options.outputDir, wjets.GetName() ),'recreate')
-        for key, can in sampManMuGNoId.outputs.iteritems() :
+        for key, can in sampManMuGNoId.outputs.items() :
             can.Write( '%s' %(key) )
-        for can in sampManElGNoId.outputs.iteritems() :
+        for can in sampManElGNoId.outputs.items() :
             can.Write( '%s' %(key) )
 
         #for key, can in sampManMuGNoId.outputs.iteritems() :
@@ -302,7 +302,7 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     result_shape= fitMan_shape.fit_histogram( ws )
     result_num = fitMan_num.fit_histogram( ws )
     result_den = fitMan_den.fit_histogram( ws )
-    print 'DEBUG: results of fit manager (shape, num, den): ',result_shape,result_num,result_den
+    print('DEBUG: results of fit manager (shape, num, den): ',result_shape,result_num,result_den)
 
     #---------------------------------------
     # save the results
@@ -331,17 +331,17 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     norm_den = hist_integral_den / func_integral_den
     norm_shape = hist_integral_shape / func_integral_shape
 
-    print 'func integral Num = ', func_integral_num
-    print 'hist integral Num = ', hist_integral_num
-    print 'normalization Num = ', norm_num
+    print('func integral Num = ', func_integral_num)
+    print('hist integral Num = ', hist_integral_num)
+    print('normalization Num = ', norm_num)
 
-    print 'func integral Den = ', func_integral_den
-    print 'hist integral Den = ', hist_integral_den
-    print 'normalization Den = ', norm_den
+    print('func integral Den = ', func_integral_den)
+    print('hist integral Den = ', hist_integral_den)
+    print('normalization Den = ', norm_den)
 
-    print 'func integral Shape = ', func_integral_shape
-    print 'hist integral Shape = ', hist_integral_shape
-    print 'normalization Shape = ', norm_shape
+    print('func integral Shape = ', func_integral_shape)
+    print('hist integral Shape = ', hist_integral_shape)
+    print('normalization Shape = ', norm_shape)
 
     power_pred_name    = 'power_pred_%s' %suffix
     logcoef_pred_name  = 'logcoef_pred_%s' %suffix
@@ -414,19 +414,19 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     can_B.SetLogz()
     hist_B.Scale(1./hist_B.Integral())
     hist_B.Draw("colz")
-    print "DEBUG: B integral = ",hist_B.Integral()
+    print("DEBUG: B integral = ",hist_B.Integral())
 
     can_C = ROOT.TCanvas( str(uuid.uuid4()), '' )
     hist_C.Scale(1./hist_C.Integral())
     can_C.SetLogz()
     hist_C.Draw("colz")
-    print "DEBUG: C integral = ",hist_C.Integral()
+    print("DEBUG: C integral = ",hist_C.Integral())
 
     can_D = ROOT.TCanvas( str(uuid.uuid4()), '' )
     hist_D.Scale(1./hist_D.Integral())
     can_D.SetLogz()
     hist_D.Draw("colz")
-    print "DEBUG: D integral = ",hist_D.Integral()
+    print("DEBUG: D integral = ",hist_D.Integral())
 
     can_1d_sig_B = ROOT.TCanvas( str(uuid.uuid4()), '' )
     can_1d_sig_B.SetLogy()
@@ -519,11 +519,11 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
     hist_num.Copy( ratiohist)
     ROOT.SetOwnership( ratiohist, False )
 
-    print "DEBUG: first bin of num before div = ",ratiohist.GetBinContent(1)
-    print "DEBUG: first bin of den before div = ",hist_den.GetBinContent(1)
+    print("DEBUG: first bin of num before div = ",ratiohist.GetBinContent(1))
+    print("DEBUG: first bin of den before div = ",hist_den.GetBinContent(1))
 
     ratiohist.Divide( hist_den )
-    print "DEBUG: first bin of ratio after div = ",ratiohist.GetBinContent(1)
+    print("DEBUG: first bin of ratio after div = ",ratiohist.GetBinContent(1))
 
     ratiohist.SetMarkerStyle(20)
     ratiohist.SetMarkerSize(1)
@@ -536,26 +536,26 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
 
     #ratio_func = ROOT.TF1( 'ratio_func_%s'%(str(uuid.uuid4())), '( [2]*TMath::Power(x/13000, [0] + [1]*TMath::Log10(x/13000) ) ) ', xmin, xmax )
     ratio_func = ROOT.TF1( 'ratio_func', '[0]', xmin, xmax )
-    print 'DEBUG: ratio function = ',ratio_func
+    print('DEBUG: ratio function = ',ratio_func)
     ROOT.SetOwnership( ratio_func, False )
-    print 'DEBUG: ratio function value at 200 GeV = ',ratio_func.Eval(200.)
-    print 'DEBUG: ratio of integrals = ',hist_num.Integral()/hist_den.Integral()
+    print('DEBUG: ratio function value at 200 GeV = ',ratio_func.Eval(200.))
+    print('DEBUG: ratio of integrals = ',hist_num.Integral()/hist_den.Integral())
     ratio_func.SetParameter(0, hist_num.Integral()/hist_den.Integral())
     #ratio_func.SetParameter(0, result_num[name_power_num].n - result_den[name_power_den].n)
     #ratio_func.SetParameter(1, result_num[name_logcoef_num].n  - result_den[name_logcoef_den].n )
     #ratio_func.SetParameter(2, norm_num / norm_den )
     ratiohist.Fit("ratio_func","RL","",xmin,xmax)
-    print 'xmin and xmax are ',xmin,xmax
+    print('xmin and xmax are ',xmin,xmax)
     f = ratiohist.GetFunction("ratio_func")
     fitvalue = ratio_func.GetParameter(0)
-    print 'DEBUG: fitted straight line at ',fitvalue
-    print 'DEBUG: chisquare of fit = ',f.GetChisquare()
-    print 'DEBUG: ndof of fit = ',f.GetNDF()
-    print 'DEBUG: testing f->GetParameter(0) = ',f.GetParameter(0)
-    print 'DEBUG: testing f->GetParError(0) = ',f.GetParError(0)
+    print('DEBUG: fitted straight line at ',fitvalue)
+    print('DEBUG: chisquare of fit = ',f.GetChisquare())
+    print('DEBUG: ndof of fit = ',f.GetNDF())
+    print('DEBUG: testing f->GetParameter(0) = ',f.GetParameter(0))
+    print('DEBUG: testing f->GetParError(0) = ',f.GetParError(0))
     ratio_func.Draw('same')
 
-    print 'DEBUG: prediction in A from B*C/D histograms = ',hist_shape.Integral(hist_shape.FindBin( xmin ), hist_shape.FindBin( xmax ))*hist_num.Integral(hist_num.FindBin( xmin ), hist_num.FindBin( xmax ))/hist_den.Integral(hist_den.FindBin( xmin ), hist_den.FindBin( xmax ))
+    print('DEBUG: prediction in A from B*C/D histograms = ',hist_shape.Integral(hist_shape.FindBin( xmin ), hist_shape.FindBin( xmax ))*hist_num.Integral(hist_num.FindBin( xmin ), hist_num.FindBin( xmax ))/hist_den.Integral(hist_den.FindBin( xmin ), hist_den.FindBin( xmax )))
 
     #ratio_power_v = val_power_num.getValV() - val_power_den.getValV()
     #ratio_power_e = math.sqrt(val_power_num.getErrorHi()*val_power_num.getErrorHi() + val_power_den.getErrorHi()*val_power_den.getErrorHi() )
@@ -630,9 +630,9 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
         # from histogram in MC region A
         # predicted number of sr events
         tot_sr = hist_sr.Integral( hist_sr.FindBin( xmin ), hist_sr.FindBin( xmax ) )
-        print 'DEBUG: SR prediction from BCD MC = ',pred_val
-        print 'DEBUG: SR MC events from A       = ',tot_sr
-        print 'SR integral = ', tot_sr
+        print('DEBUG: SR prediction from BCD MC = ',pred_val)
+        print('DEBUG: SR MC events from A       = ',tot_sr)
+        print('SR integral = ', tot_sr)
 
         # from functions fitted to regions BCD
         # predicted number of sr events
@@ -645,12 +645,12 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
         #sr_func.SetParameter(2, result_num[name_log2coef_num].n + result_shape[name_log2coef_shape].n - result_den[name_log2coef_den].n  )
         sr_func.SetParameter(2, 1)
         sr_int = sr_func.Integral( xmin, xmax )
-        print 'normalizations (shape, num, den) = ',norm_shape,norm_num,norm_den
+        print('normalizations (shape, num, den) = ',norm_shape,norm_num,norm_den)
         #print 'Normalization = ',(norm_shape*norm_num) / norm_den
-        print 'func Integral SR Before = ', sr_func.Integral( xmin, xmax )
+        print('func Integral SR Before = ', sr_func.Integral( xmin, xmax ))
         sr_func.SetParameter(2, pred_val/sr_int )
-        print 'func Integral SR After = ', sr_func.Integral( xmin, xmax )
-        print 'DEBUG: closure SR fit function value at 200 GeV = ',sr_func.Eval(200.)
+        print('func Integral SR After = ', sr_func.Integral( xmin, xmax ))
+        print('DEBUG: closure SR fit function value at 200 GeV = ',sr_func.Eval(200.))
         hist_sr.Draw()
         sr_func.Draw('same')
 
@@ -658,7 +658,7 @@ def make_wjets_fit( sampMan, sample, sel_base, eta_cut, plot_var, shape_var, num
         sampMan.outputs['%sclosure_srhist_%s' %(sample,suffix)] = hist_sr
 
         tot_ratio = result_num['integral']/result_den['integral']
-        print 'DEBUG: result_num[integral]/result_den[integral] = ',tot_ratio
+        print('DEBUG: result_num[integral]/result_den[integral] = ',tot_ratio)
 
         hist_jetpt        = clone_sample_and_draw( sampMan, sample, jet_var, sel_base, jet_binning )
         hist_subjetpt     = clone_sample_and_draw( sampMan, sample, subjet_var, sel_base, subjet_binning )

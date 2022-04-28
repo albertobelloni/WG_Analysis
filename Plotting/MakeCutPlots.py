@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import ROOT
 from itertools import product
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -106,7 +106,7 @@ def main() :
     sampManMuG.ReadSamples( _SAMPCONF )
     sampManElG= SampleManager( options.baseDirElG, _TREENAME, filename=_FILENAME, xsFile=_XSFILE, lumi=_LUMI ,readHists=True , weightHistName = "weighthist")
     sampManElG.ReadSamples( _SAMPCONF )
-    print options.baseDirElG
+    print(options.baseDirElG)
     #samples = sampManMuG
 
     for ch, samples in zip(["mu","el"],[sampManMuG,sampManElG]):
@@ -227,14 +227,14 @@ def makeplots(samples,vararray, selprearray=None, hist_config=None, legend_confi
             for ch in chlist:
                 savename = savename.replace(ch,"")
             hist_config["xlabel"] = var[2]
-            print var[0], selection, savename
+            print(var[0], selection, savename)
             samples.Draw(var[0], selection, var[1], hist_config, legend_config)
             samples.print_stack_count()
             samples.SaveStack(savename, dirname, 'base')
 
 def makeselection(sel):
     #print sel
-    sel, name  = zip(*sel)
+    sel, name  = list(zip(*sel))
     sel = [s for s in sel if s != ""]
     name = [n for n in name if n != ""]
     sel  = "&&".join(sel)

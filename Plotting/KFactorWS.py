@@ -107,13 +107,13 @@ def main() :
     wjets              = ROOT.RooWorkspace( 'workspace_wjets' )
     elefake            = ROOT.RooWorkspace( 'elefake' )
 
-    for seltag, chdic in selections.iteritems() : 
+    for seltag, chdic in selections.items() : 
 
-        for ch, seldic in chdic.iteritems() : 
+        for ch, seldic in chdic.items() : 
 
-            for name, vardata in kine_vars.iteritems() :
+            for name, vardata in kine_vars.items() :
                                     
-                print 'MC background k-factor calculation'
+                print('MC background k-factor calculation')
                 make_kfactor_calc( sampManMuNoG, 'Wjets', seldic['selection'], False, suffix='wjets_%s' %(ch), workspace=wjets)
                 make_kfactor_calc( sampManMuNoG, 'Wgamma', seldic['selection'], False, suffix='wjets_%s' %(ch), workspace=wjets)
                 make_kfactor_calc( sampManMuNoG, 'Zgamma', seldic['selection'], False, suffix='wjets_%s' %(ch), workspace=wjets)
@@ -126,7 +126,7 @@ def main() :
 
         wjets.writeToFile( '%s/outfile_kfactor.root' %( options.outputDir ) )
 
-        for fileid, ws_list in workspaces_to_save.iteritems() :
+        for fileid, ws_list in workspaces_to_save.items() :
             for idx, ws in enumerate(ws_list) :
                 if idx == 0 :
                     recreate = True
@@ -136,9 +136,9 @@ def main() :
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
         outputFile = ROOT.TFile('%s/outfile_kfactor.root' %( options.outputDir ),'recreate')
-        for key, can in sampManMuNoG.outputs.iteritems() :
+        for key, can in sampManMuNoG.outputs.items() :
             can.Write( '%s' %(key) )
-        for key, can in sampManElNoG.outputs.iteritems() :
+        for key, can in sampManElNoG.outputs.items() :
             can.Write( '%s' %(key) )
 
         #for key, can in sampManMuNoG.outputs.iteritems() :

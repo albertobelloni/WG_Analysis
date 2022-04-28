@@ -41,6 +41,7 @@ class RunModule : public virtual RunModuleBase {
         bool FilterMTRes         ( ModuleConfig & config ) const;
         bool FilterTrueWPt       ( ModuleConfig & config ) const;
         bool ApplyTrueWPtKNeg    ( ModuleConfig & config ) const;
+        bool FilterHLT           ( ModuleConfig & config ) const;
 
     private:
         bool printevent ;

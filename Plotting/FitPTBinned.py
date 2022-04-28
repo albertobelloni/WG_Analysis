@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import ROOT
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(0)
@@ -41,7 +41,7 @@ c1 = file.Get('c1')
 
 # get histos and split
 hists = {}
-for key,name in samples.items():
+for key,name in list(samples.items()):
     nameInFile = name
     if name != 'hstitch':
         nameInFile = name + '_copy'
@@ -88,12 +88,12 @@ for iteration in range(10):
     x_up = (sumfit - sum1) / sum2
     hists['below_up'].Scale(x_up)
     
-    print('k factors in iteration, above_dn, below_up', iteration, x_dn, x_up)
+    print(('k factors in iteration, above_dn, below_up', iteration, x_dn, x_up))
     
     x_dn_total *= x_dn
     x_up_total *= x_up
 
-print('TOTAL k factors above_dn / below_up', x_dn_total, x_up_total)
+print(('TOTAL k factors above_dn / below_up', x_dn_total, x_up_total))
 
 c = ROOT.TCanvas()
 c.SetTopMargin(0.07)

@@ -98,6 +98,12 @@ def filter_wpt( alg_list, args ) :
 
         alg_list.append( filter_event )
 
+def filter_hlt( alg_list, args ) :
+    hlt_cut = args.get('hlt_cut', None )
+    if hlt_cut :
+        filter_event = Filter('FilterHLT')
+        alg_list.append( filter_event )
+
 def apply_wpt_kneg( alg_list, args ) :
     
     truewpt_bound_lo = args.get('truewpt_bound_lo', 0. )

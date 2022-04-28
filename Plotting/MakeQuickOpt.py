@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-execfile("MakeBase.py")
+#!/usr/bin/env python3
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 from uncertainties import ufloat
 
 ###
@@ -54,29 +54,29 @@ samples.activate_sample("WGamma")
 
 for setup in setups:
     sel, w =  defs.makeselstring( *setup )
-    print "%s ph %g lep %g met %g" %setup, sel
+    print("%s ph %g lep %g met %g" %setup, sel)
     hf = sf.SetFilter(sel).SetCount()
     counterdict[setup] = hf
 
 sgslist = {}
 for signalname in signalnames:
-    print
-    print signalname
-    print
+    print()
+    print(signalname)
+    print()
     sgslist[signalname] = []
-    for setup, hf in counterdict.iteritems():
+    for setup, hf in counterdict.items():
         counts = hf.ShowCount()
         sig = counts[signalname]
         bkg = counts["TOTAL"]
         sgf = sig[0]/sqrt(bkg[0])
-        print sig, bkg, sgf
+        print(sig, bkg, sgf)
         sgslist[signalname].append((setup,ufloat(*sig),ufloat(*bkg),sgf))
 
     sgslist[signalname].sort(key=lambda x: -x[-1])
 
 for signalname in signalnames:
-    print
-    print signalname
-    print
+    print()
+    print(signalname)
+    print()
     for s in sgslist[signalname][:10]:
-         print "%s ph %g lep %g met %g "%s[0], "sig %s bkg %s S/sqrt(B) %g" %s[1:]
+         print("%s ph %g lep %g met %g "%s[0], "sig %s bkg %s S/sqrt(B) %g" %s[1:])

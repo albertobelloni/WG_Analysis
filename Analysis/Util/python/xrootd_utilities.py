@@ -67,7 +67,7 @@ def parse_xrd_dir(url, path, DEBUG=False) :
     # get directory contents
 #    cmd = ['xrdfs',url, 'ls -l', path+'/']
     cmd = ['xrdfs %s ls -l %s/' %(url,path)]
-    print cmd
+    print(cmd)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=None,bufsize=-1,shell=True)
     # p.wait() hangs indefinately on large directories
     # (this is a known issue https://docs.python.org/2/library/subprocess.html#subprocess.Popen.wait)
@@ -85,20 +85,20 @@ def parse_xrd_dir(url, path, DEBUG=False) :
     for line in result_lines :
 
         if DEBUG :
-            print "Line is"
-            print line
+            print("Line is")
+            print(line)
 
         splitline = [line[:4]]+line[24:].split()
 
         if len(splitline) != 3 :
             if line :
-                print 'Cannot parse line :'
-                print splitline
-                print line
-                print 'Here is the path'
-                print path 
-                print 'Here is the full entry'
-                print result
+                print('Cannot parse line :')
+                print(splitline)
+                print(line)
+                print('Here is the path')
+                print(path) 
+                print('Here is the full entry')
+                print(result)
             break
             continue
 

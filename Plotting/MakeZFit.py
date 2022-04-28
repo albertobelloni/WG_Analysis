@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #import ROOT
 #ROOT.PyConfig.IgnoreCommandLineOptions = True
 #ROOT.Math.MinimizerOptions.SetDefaultMaxFunctionCalls( 100000 )
@@ -21,7 +21,7 @@ def addparser(parser):
                                      help='flag for temporary test feature')
     parser.add_argument('--cache',   help='READ|WRITE: hist in/to temp file')
 
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 
 import json
 import re
@@ -182,7 +182,7 @@ def main() :
     elif options.step == 2:
 
 
-       print "STEP 2 MULTIPLE PDF FIT"
+       print("STEP 2 MULTIPLE PDF FIT")
 
        ##  first remove samples with bad scales
        sampManElG["GJets"].groupsampleNames = ['GJets_HT-200To400',
@@ -223,7 +223,7 @@ def main() :
            doregions = 'ABCDa'
 
 
-       print 'DOregions: %s bins %f %f' %(doregions,ptbins[0],ptbins[1])
+       print('DOregions: %s bins %f %f' %(doregions,ptbins[0],ptbins[1]))
 
        fitconfig = dict( maxtimes=20, doData=doData, ic = ic, var=binvar,
                          useparms = True )
@@ -263,7 +263,7 @@ def main() :
 def get_param(filename):
     js = json.loads(open(filename).read())
     parm = js['parm']
-    print "imported parmameters: "; pprint(parm)
+    print("imported parmameters: "); pprint(parm)
     return parm
 
 
@@ -296,18 +296,18 @@ def makevariableplots_simultaneous( samp, ptlist, fitrange, basesel = "1",
     ## Get Z+jet/ Zg shape from parameter files
     parm2fn = "data/efake/%i/parms_zgamma.txt"%options.year
     icondgzg = get_ic( parm2fn, parmnames2, ptlist )
-    print "icondgzg"; pprint (icondgzg)
+    print("icondgzg"); pprint (icondgzg)
 
     parmfn = "data/efake/%i/dcbparms_all%i.txt" %((options.year,)*2)
     iconddcb = get_ic( parmfn, parmnames, ptlist )
-    print "iconddcb"; pprint (iconddcb)
+    print("iconddcb"); pprint (iconddcb)
 
     ## set up fit manager
     fm = FitManager("dcbexpo", xvardata = (50,250,"GeV"))
 
     for ptrange in zip(ptlist[:-1],ptlist[1:]):
         ptrange = tuple(ptrange)
-        ptname = tuple(map(lambda x: str(x).replace('.','p'), ptrange))
+        ptname = tuple([str(x).replace('.','p') for x in ptrange])
         #xp.append(ptrange)
         if useparms:
             ## do some operations here
@@ -326,7 +326,7 @@ def makevariableplots_simultaneous( samp, ptlist, fitrange, basesel = "1",
         values, stackcount = fitting_simultaneous(samp, fm, ptrange, ptfitrange,
                               basesel = basesel, var = var, tag = tag, ic = ic,
                               #xbins=(20,50,250),
-                              xbins=[50,]+range(75,85,5) + range(85,95,1) + range(95,110,5)+range(110,250,10) +[250,],
+                              xbins=[50,]+list(range(75,85,5)) + list(range(85,95,1)) + list(range(95,110,5))+list(range(110,250,10)) +[250,],
                               #xbins = range(50, 251, 1),
                               dobkgd = dobkgd,
                               maxtimes = maxtimes,
@@ -335,7 +335,7 @@ def makevariableplots_simultaneous( samp, ptlist, fitrange, basesel = "1",
 
         if donorm: make_normalization_comparison(fm,values,stackcount,ptname,tag)
 
-        for name,val in values.items():
+        for name,val in list(values.items()):
             if val is None: #for case of non-initiated variable
                 parmvals[name].append(-1)
                 parmerrs[name].append(-1)
@@ -346,8 +346,8 @@ def makevariableplots_simultaneous( samp, ptlist, fitrange, basesel = "1",
 
     # dealing with width of overflow/last bin
     #xpoints, xerrs = xp.output()
-    print "values:"; pprint(parmufloats.items())
-    f = lambda p: {x:y for x,y in p.iteritems()}
+    print("values:"); pprint(list(parmufloats.items()))
+    f = lambda p: {x:y for x,y in p.items()}
 
     ## output values in json file
     data = {'ptlist':ptlist,'parm':f(parmvals),'error':f(parmerrs)}
@@ -368,7 +368,7 @@ def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt
     if ic is None: ic = dict(iconddcb = None, sig = "dcbp", bkgd = "gaus", ext = 'simul')
 
     ## replace decimal point with p
-    ptname = tuple(map(lambda x: str(x).replace('.','p'), ptrange))
+    ptname = tuple([str(x).replace('.','p') for x in ptrange])
 
     readcache=writecache=False
     if options.cache == "READ":
@@ -442,7 +442,7 @@ def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt
 
             sampframe.Draw("m_lep_ph", sel , xbins, hconf_blind)
             samples.print_stack_count()
-            if not options.batch: raw_input("continue")
+            if not options.batch: input("continue")
 
             h0 = samples.get_samples(name='__AllStack__')[0]\
                         .hist.Clone("hallnonzee")
@@ -520,9 +520,9 @@ def fitting_simultaneous( samples, fm, ptrange, fitranges=((50,180)), var="ph_pt
         c.SaveAs(options.outputDir+"/simult_correlations_%s_%s_" %ptname+tag+".png")
 
     values = fm.get_parameter_values()
-    print "VALUES"
+    print("VALUES")
     pprint(values)
-    print "STACKCOUNT"
+    print("STACKCOUNT")
     pprint(stackcount)
     return values, stackcount
 
@@ -540,20 +540,20 @@ def corefitting_simultaneous(fm, ptrange,fitranges=((50,180)),
     """
     bestchi = 1000000
     chi=200
-    ptname = tuple(map(lambda x: str(x).replace('.','p'), ptrange))
+    ptname = tuple([str(x).replace('.','p') for x in ptrange])
     for itry in range(maxtimes):
-        print "*** TRIAL %i ***" %itry
-        print
+        print("*** TRIAL %i ***" %itry)
+        print()
         ##### setup fit manager #####
         # replace lists in ic with alteratives at each try
-        iclocal = {key:item[itry%len(item)] if isinstance(item, list) else item for key,item in ic.iteritems()}
-        print iclocal
+        iclocal = {key:item[itry%len(item)] if isinstance(item, list) else item for key,item in ic.items()}
+        print(iclocal)
         if chi >5 or fm.func_pdf is None: froo_dcb = fm.setup_fit(**iclocal) # pass down initial condition settings
         c=fm.draw(" ",(1,1e6),logy=1,paramlayout=(0.55,0.9,.82), component = True)
         c.SaveAs(options.outputDir+"/simult_prefit_mlepph_%s_%s_" %ptname + tag+ ".pdf")
         c.SaveAs(options.outputDir+"/simult_prefit_mlepph_%s_%s_" %ptname + tag+ ".png")
         chi = fm.getchisquare()
-        print "\nCHI ORIGINAL: ", chi
+        print("\nCHI ORIGINAL: ", chi)
         for fr in fitranges:
             #fr = tuple(round(x+random.normalvariate(0,5)) for x in fr)
             #print fr
@@ -562,10 +562,10 @@ def corefitting_simultaneous(fm, ptrange,fitranges=((50,180)),
             fr = (50,190)
 
 
-            print "NOW FITTING mass range %g to %g" %fr + " for pT bin of %g,%g" %ptrange
+            print("NOW FITTING mass range %g to %g" %fr + " for pT bin of %g,%g" %ptrange)
             froo_dcb = fm.run_fit(fr)
             #froo_dcb = fm.run_fit_chi2(fr)
-            print "FINISH fitting range %g to %g"%fr + " for pT bin of %g,%g" %ptrange
+            print("FINISH fitting range %g to %g"%fr + " for pT bin of %g,%g" %ptrange)
             #fm.fitresult.Print()
             fm.frame.Print()
             ## draw result
@@ -574,18 +574,18 @@ def corefitting_simultaneous(fm, ptrange,fitranges=((50,180)),
             c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_try%s%s.pdf" %(ptname +(itry, tag)) )
             c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_try%s%s.png" %(ptname +(itry, tag)) )
             chi = fm.getchisquare()
-            print "\nCHI: ", chi
+            print("\nCHI: ", chi)
             sigerrtoval = fm.defs['Nsig'].getError()/ fm.defs['Nsig'].getVal()
-            print  "Nsig : %g +- %g" %(fm.defs['Nsig'].getVal(),fm.defs['Nsig'].getError())
-            if not options.batch: raw_input("continue")
+            print("Nsig : %g +- %g" %(fm.defs['Nsig'].getVal(),fm.defs['Nsig'].getError()))
+            if not options.batch: input("continue")
             if (chi*2<itry and sigerrtoval<.5) or (itry>maxtimes/2 and chi<bestchi*2 and sigerrtoval<.5):
-                print "\n *** FINISH TRIALS AT %i-TH TRY W/ CHI2 OF %g *** \n" %(itry, chi)
+                print("\n *** FINISH TRIALS AT %i-TH TRY W/ CHI2 OF %g *** \n" %(itry, chi))
                 c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_finalfit%s.pdf" %(ptname +(tag,)) )
                 c.SaveAs(options.outputDir+"/simult_postfit_mlepph_%s_%s_finalfit%s.png" %(ptname +(tag,)) )
-                if not options.batch: raw_input("finishing")
+                if not options.batch: input("finishing")
                 return
             bestchi = min(bestchi,chi)
-            print "\nbestchi: ",bestchi
+            print("\nbestchi: ",bestchi)
 
 
 
@@ -613,17 +613,17 @@ def make_normalization_comparison(fm,values,stackcount,ptrange,tag):
     setlinestyle(h1)
     setlinestyle(h2, color = ROOT.kViolet, width=4)
 
-    minvalue = [s[0] for s in stackcount.values()]+[values['Nsig'].n,values['Nbkg'].n]
-    print "MINVALUES: ",minvalue
+    minvalue = [s[0] for s in list(stackcount.values())]+[values['Nsig'].n,values['Nbkg'].n]
+    print("MINVALUES: ",minvalue)
     minvalue = max(min(minvalue),10)
-    print "MINVAL: ",minvalue
+    print("MINVAL: ",minvalue)
     #h2.SetMinimum(0.1*min(map(lambda x:max(1, x.GetMinimum()),[h1,h2]))) #doesnt work
     leg = ROOT.TLegend(0.55,0.7,0.9,0.9)
     leg.AddEntry(h1, "# MC", "PL")
     leg.AddEntry(h2, "Predicted", "PL")
     hratio = h2.Clone()
     hratio.Divide(h1)
-    h2.SetMaximum(300*max(map(lambda x: x.GetMaximum(),[h1,h2])))
+    h2.SetMaximum(300*max([x.GetMaximum() for x in [h1,h2]]))
     h2.SetMinimum(0.1*minvalue)
 
     #c = ROOT.TCanvas("cparam", "parameters",500,500)
@@ -702,7 +702,7 @@ def makevariableplots_simultaneous_zg( samp, ptlist, fitrange, basesel="1",
         values, stackcount = fitting_simultaneous(samp, fm, ptrange, ptfitrange, basesel=basesel,
                 tag=tag, ic = ic, xbins=(200,0,200), dobkgd =dobkgd, maxtimes = maxtimes, doData=doData, donorm=donorm)
         if donorm: make_normalization_comparison(fm,values,stackcount,ptrange,tag)
-        for name,val in values.items():
+        for name,val in list(values.items()):
             if val is None: #for case of non-initiated variable
                 parmvals[name].append(-1)
                 parmerrs[name].append(-1)
@@ -712,8 +712,8 @@ def makevariableplots_simultaneous_zg( samp, ptlist, fitrange, basesel="1",
             parmufloats[name].append(val)
     # dealing with width of overflow/last bin
     #xpoints, xerrs = xp.output()
-    print "values:"; pprint(parmufloats.items())
-    f = lambda p: {x:y for x,y in p.iteritems()}
+    print("values:"); pprint(list(parmufloats.items()))
+    f = lambda p: {x:y for x,y in p.items()}
     data = {'ptlist':ptlist,'parm':f(parmvals),'error':f(parmerrs)}
     with open('data/efake/%i/parms_%s.txt' %(options.year,tag),'w') as outfile:
         json.dump(data,outfile)
@@ -750,9 +750,9 @@ def findparmindex(ic, parmname):
     found = findparm(ic, parmname)
 
     if sum(found) > 1:
-        print "WARNING: more than one parm found at replaceparm()"
+        print("WARNING: more than one parm found at replaceparm()")
     if sum(found) == 0:
-        print ic, parm
+        print(ic, parm)
         raise IndexError
 
     return found.index(True)
@@ -795,7 +795,7 @@ def regulate(h1, scale = 1):
         ye_new = math.sqrt(ye*ye+scale*scale)
         if y<0: h1.SetBinContent(i,0)
         if y>0: h1.SetBinError(i,ye_new)
-        print i, y, ye, ye_new
+        print(i, y, ye, ye_new)
 
 
 
@@ -806,7 +806,7 @@ def addline(graph,y):
     left_edge  = graph.GetXaxis().GetXmin()
     right_edge = graph.GetXaxis().GetXmax()
 
-    print left_edge, right_edge, y
+    print(left_edge, right_edge, y)
     oneline = ROOT.TLine(left_edge, y, right_edge, y)
     oneline.SetLineStyle(3)
     oneline.SetLineWidth(2)
@@ -836,7 +836,7 @@ def makevariableplots(samp,ptlist,fitrange,basesel="1",tag="",var="ph_pt[0]"):
                             fitrange.get(ptrange[0],fitrange[-1]),
                             basesel=basesel, tag=tag, var=var )
 
-        for name,val in parmdict.items():
+        for name,val in list(parmdict.items()):
             parmvals[name].append(val.n) #value
             parmerrs[name].append(val.s) #uncertainty
             parmufloats[name].append(val)
@@ -845,10 +845,10 @@ def makevariableplots(samp,ptlist,fitrange,basesel="1",tag="",var="ph_pt[0]"):
     xpoints[-1] = ptlist[-2] + xerrs[-2]
     xerrs[-1]   = xerrs[-2]
 
-    print "values:"
+    print("values:")
     pprint(parmufloats)
-    print "xpoints: \n", xpoints
-    print "xerrors: \n", xerrs
+    print("xpoints: \n", xpoints)
+    print("xerrors: \n", xerrs)
 
     npt = len(ptlist)-1
     tod = lambda x: array("d",x)
@@ -864,7 +864,7 @@ def makevariableplots(samp,ptlist,fitrange,basesel="1",tag="",var="ph_pt[0]"):
     parmlimits  = FitManager.setuparray["dcb"]
     parmlimits  ={n[0]:n[1:] for n in parmlimits}
 
-    for name, tgraph in parmgraph.items():
+    for name, tgraph in list(parmgraph.items()):
         tgraph.SetTitle(name)
         tgraph.GetXaxis().SetTitle("pt")
         tgraph.GetYaxis().SetTitle(name)
@@ -879,12 +879,12 @@ def makevariableplots(samp,ptlist,fitrange,basesel="1",tag="",var="ph_pt[0]"):
             if (ylimit[2]<yplot[1]):
                 hline = addline(tgraph,ylimit[2])
                 hline.Draw()
-                print name," ", ylimit[2]
+                print(name," ", ylimit[2])
 
             if (ylimit[1]>yplot[0]):
                 lline = addline(tgraph,ylimit[1])
                 lline.Draw()
-                print name," ", ylimit[1]
+                print(name," ", ylimit[1])
         c1.SaveAs(options.outputDir+"/tge_dcb_%s_%s.pdf" %(name,tag))
         c1.SaveAs(options.outputDir+"/tge_dcb_%s_%s.png" %(name,tag))
 
@@ -911,7 +911,7 @@ def fitting(samples,fm, ptrange,fitranges=((50,180)),var="ph_pt[0]",basesel = "1
     #regulate(h1)
     #h1.Scale(1./h1.Integral())
 
-    ptrange = tuple(map(lambda x: str(x).replace('.','p'), ptrange))
+    ptrange = tuple([str(x).replace('.','p') for x in ptrange])
     fm.addhist(h1,"datahist_pt_%s_%s" %ptrange)
 
     # setup fit manager
@@ -920,7 +920,7 @@ def fitting(samples,fm, ptrange,fitranges=((50,180)),var="ph_pt[0]",basesel = "1
     c.SaveAs(options.outputDir+"/prefit_mlepph_%s_%s_" %ptrange + tag+ ".png")
 
     for fr in fitranges:
-        print "NOW FITTING mass range %g to %g" %fr
+        print("NOW FITTING mass range %g to %g" %fr)
         froo_dcb = fm.run_fit(fr)
         fm.fitresult.Print()
 

@@ -10,7 +10,7 @@ def find_version_dir(config_file, version_key ):
     try :
         input_conf_file = open( config_file, 'r' )
     except IOError :
-        print 'Could not open file, %s' %config_file
+        print(('Could not open file, %s' %config_file))
         return output
 
     # loop over the file, find the matching key
@@ -36,15 +36,15 @@ def run_funcs_on_files( base_dirs, file_key, funcs, args={}) :
         func_args = []
         for f in input_files :
             arg_dic = {'input_file' : f}
-            for inkey, inval in args.iteritems() :
+            for inkey, inval in list(args.items()) :
                 arg_dic[inkey] = inval
             func_args.append( arg_dic )
 
         for f in funcs :
             try :
-                map( f , func_args )
+                list(map( f , func_args ))
             except :
-                print 'FAILED TO RUN FUNC, %s'%( f.__name__,  )
+                print(('FAILED TO RUN FUNC, %s'%( f.__name__,  )))
                 raise
 
 def find_files( base_dir, file_key ) :
@@ -103,7 +103,7 @@ class latex_table :
     def write( self, fname ) :
         ofile = open( fname, 'w' )
 
-        print 'Write table %s '%fname
+        print(('Write table %s '%fname))
 
         ofile.write( self.get_header_str())
         #ofile.write( self.get_column_str())
@@ -114,7 +114,7 @@ class latex_table :
 
     def parse_file( self, fname ) :
         if not os.path.isfile( fname ) :
-            print 'Input file does not exist'
+            print('Input file does not exist')
             return 
 
         ofile = open( fname, 'r' )
@@ -142,10 +142,10 @@ class latex_table :
         ofile.close()
 
     def Print(self) :
-        print self.get_header_str()
-        print self.get_column_str()
-        print self.get_table_str()
-        print self.get_footer_str()
+        print((self.get_header_str()))
+        print((self.get_column_str()))
+        print((self.get_table_str()))
+        print((self.get_footer_str()))
 
     def get_table_str( self ) :
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from argparse import ArgumentParser
 if "parser" not in locals(): parser = ArgumentParser()
 parser.add_argument('--baseDirMuG',      default=None,          help='Path to muon base directory')
@@ -94,11 +94,11 @@ if options.condor and not ('alt_condor' in locals() and alt_condor):
     condor_script = "\n".join(condor_script)
     condor_script = condor_script.format(arguments, thisfile = filename, workd = working_dir)
     job_desc_file = "{workd}/log/{thisfile}.jdl".format(thisfile = filename, workd = working_dir)
-    print condor_script
+    print(condor_script)
     with open(job_desc_file, "w") as fo:
         fo.write(condor_script)
     condor_command = "condor_submit %s" %job_desc_file
-    print condor_command
+    print(condor_command)
     os.system(condor_command)
     sys.exit()
 

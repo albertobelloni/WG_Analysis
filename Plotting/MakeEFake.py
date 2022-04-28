@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 def addparser(parser):
     parser.add_argument('--TT',            action="store_true",   help='Do TT bar control region')
     parser.add_argument('--ZP',            action="store_true",   help='Do Z peak control region')
 
-execfile("MakeBase.py")
+exec(compile(open("MakeBase.py", "rb").read(), "MakeBase.py", 'exec'))
 import re
 import numpy as np
 import os
@@ -52,7 +52,7 @@ def get_param(filename, ptlist=None):
     return sig, error
 
 def closure(  sampMan, sample, sel_base, eta_cut, var="ph_pt",
-              varbins = range(0,200,25),xtitle="photon p_{T}",
+              varbins = list(range(0,200,25)),xtitle="photon p_{T}",
               plot_var='m_lep_ph', suffix='', workspace=None, overlaprm=1,mode=1) :
     bins = np.array(varbins,'f')
     h_sr_est= ROOT.TH1F("h_sr_est","",len(varbins)-1,bins)
@@ -76,12 +76,12 @@ def closure(  sampMan, sample, sel_base, eta_cut, var="ph_pt",
             zga=np.array(zg)
             wga=np.array(wg)
             sga_sub = sga-zga-wga
-            print 'Signal,Zg,Wg: '
-            print s
-            print zg
-            print wg
-            print 'pollution: ',(zga+wga)/sga
-            print 'subtracted: ',sga_sub
+            print('Signal,Zg,Wg: ')
+            print(s)
+            print(zg)
+            print(wg)
+            print('pollution: ',(zga+wga)/sga)
+            print('subtracted: ',sga_sub)
             sr_est, sr_est_e, _, _ = calABD(*sga_sub)
             za,zb,zs,zd = closureBin(sampMan, 'Z+jets', sel_base1, eta_cut, plot_var, overlaprm,filename) 
             sr_est2, sr_est2_e, sr_sum, sr_sum_e = calABD(za,zb,zs,zd)
@@ -108,15 +108,15 @@ def closure(  sampMan, sample, sel_base, eta_cut, var="ph_pt",
         sr_sum_sum+=sr_sum
     # draw graph and formatting
     if options.data:
-        print "S estimate data: ", sr_est_sum
-        print "S estimate mc: ", sr_est2_sum
-        print "S total mc: ",sr_sum_sum
-        print "difference data: ",(sr_est_sum-sr_sum_sum)/sr_sum_sum
-        print "difference mc: " ,(sr_est2_sum-sr_sum_sum)/sr_sum_sum
+        print("S estimate data: ", sr_est_sum)
+        print("S estimate mc: ", sr_est2_sum)
+        print("S total mc: ",sr_sum_sum)
+        print("difference data: ",(sr_est_sum-sr_sum_sum)/sr_sum_sum)
+        print("difference mc: " ,(sr_est2_sum-sr_sum_sum)/sr_sum_sum)
     else:
-        print "S estimate: ", sr_est_sum
-        print "S total: ",sr_sum_sum
-        print "difference: ",(sr_est_sum-sr_sum_sum)/sr_sum_sum
+        print("S estimate: ", sr_est_sum)
+        print("S total: ",sr_sum_sum)
+        print("difference: ",(sr_est_sum-sr_sum_sum)/sr_sum_sum)
     sampMan.create_standard_ratio_canvas()
     #c2 = ROOT.TCanvas("c2","multipads",800,700)
     #toppad = ROOT.TPad("top","top",0.01,0.35,0.99,0.99)
@@ -141,7 +141,7 @@ def closure(  sampMan, sample, sel_base, eta_cut, var="ph_pt",
     hformat(h_sr_sum,ROOT.kRed)
     hmaxar = [h.GetMaximum() for h in (h_sr_est,h_sr_est2,h_sr_sum)]
     hmax = max(hmaxar)*1.2
-    print hmax, hmaxar
+    print(hmax, hmaxar)
 
     #h_sr_sum.SetMarkerStyle(1)
     #h_sr_est2.SetMarkerStyle(1)
@@ -185,7 +185,7 @@ def closureBin( sampMan, sample, sel_base, eta_cut, plot_var='m_lep_ph', overlap
     if eta_cut=="EB": sel_base += '&&abs(ph_eta[0])<=1.4'
     if sample == 'Data': 
             sel_base += ' && !(met_pt*.98>25&&ph_mediumPassCSEV_n>0)'
-            print 'DATA MASK'
+            print('DATA MASK')
 
 #   passev = 'ph_mediumPassCSEV_n==1'
 #   failev = 'ph_mediumFailCSEV_n==1'
@@ -247,10 +247,10 @@ def closureBin( sampMan, sample, sel_base, eta_cut, plot_var='m_lep_ph', overlap
     sr_sum2 = hist_sr.Integral()
     d_sum2 = hist_D.Integral()
     #print  "Region A: ", a_sum
-    print  "Region A: %.4f - %.4f = %.4f" %( a_sum2, a_sum, a_sum2-a_sum)
-    print  "Region B: ", b_sum
-    print  "Region S: %.4f - %.4f = %.4f" %( sr_sum2, sr_sum, sr_sum2-sr_sum)
-    print  "Region D: ", d_sum
+    print("Region A: %.4f - %.4f = %.4f" %( a_sum2, a_sum, a_sum2-a_sum))
+    print("Region B: ", b_sum)
+    print("Region S: %.4f - %.4f = %.4f" %( sr_sum2, sr_sum, sr_sum2-sr_sum))
+    print("Region D: ", d_sum)
     #print  "Region D: %.4f - %.4f = %.4f" %( d_sum2, d_sum, d_sum2-d_sum)
     #return a_sum2-a_sum, b_sum, sr_sum2-sr_sum, d_sum
     return a_sum, b_sum, sr_sum, d_sum
@@ -272,8 +272,8 @@ def fitter(h):
     return f1.Integral(70,110)
 
 def calABD(a_sum,b_sum,sr_sum,d_sum,mode=1):
-    print 'A/B*D: ',a_sum/b_sum*d_sum, ' diff: ', a_sum/b_sum*d_sum-sr_sum
-    if b_sum+sr_sum>0: print  "Discrepency: ", a_sum/b_sum*d_sum/sr_sum-1
+    print('A/B*D: ',a_sum/b_sum*d_sum, ' diff: ', a_sum/b_sum*d_sum-sr_sum)
+    if b_sum+sr_sum>0: print("Discrepency: ", a_sum/b_sum*d_sum/sr_sum-1)
     if mode==1:
       if b_sum>0: sr_est = a_sum/b_sum*d_sum
       else: return 0,0,sr_sum,0
@@ -423,7 +423,7 @@ def make_efake( sampMan, sample, sel_base, eta_cut, plot_var, suffix='', workspa
     binning = (160,-4,4)
     #binning = (200,0,200)
     hist_D   = clone_sample_and_draw( sampMan, sample, plot_var+varfail , full_sel_D, binning )
-    print hist_D
+    print(hist_D)
     hist_A   = clone_sample_and_draw( sampMan, sample, plot_var+varpass , full_sel_A  , binning )
     hist_B   = clone_sample_and_draw( sampMan, sample, plot_var+varfail , full_sel_B  , binning )
     hist_sr  = clone_sample_and_draw( sampMan, sample, plot_var+varpass , full_sel_sr  , binning )
@@ -441,13 +441,13 @@ def make_efake( sampMan, sample, sel_base, eta_cut, plot_var, suffix='', workspa
     zones(hist_A,hist_B,hist_sr,hist_D,suffix+"_"+plot_var)
 
 
-    print  "Region A: ", hist_A.Integral(80,100)
-    print  "Region B: ", hist_B.Integral(80,100)
-    print  "full range:"
-    print  "Region A: ", hist_A.Integral()
-    print  "Region B: ", hist_B.Integral()
-    print  "Region Signal: ", hist_sr.Integral()
-    print  "Region D: ", hist_D.Integral()
+    print("Region A: ", hist_A.Integral(80,100))
+    print("Region B: ", hist_B.Integral(80,100))
+    print("full range:")
+    print("Region A: ", hist_A.Integral())
+    print("Region B: ", hist_B.Integral())
+    print("Region Signal: ", hist_sr.Integral())
+    print("Region D: ", hist_D.Integral())
 
 
 def make_efake2( sampMan, sample, sel_base, eta_cut, plot_var, suffix='',  workspace=None) :
@@ -469,8 +469,8 @@ def make_efake2( sampMan, sample, sel_base, eta_cut, plot_var, suffix='',  works
     hist_A.Draw()
     c1.SaveAs("hist"+label_A+plot_var+".pdf","pdf")
 
-    print  "bin 80 -100: ", hist_A.Integral(80,100)
-    print  "full integral: ", hist_A.Integral()
+    print("bin 80 -100: ", hist_A.Integral(80,100))
+    print("full integral: ", hist_A.Integral())
 
 
 
@@ -492,7 +492,7 @@ def fillhist(hist, value, error=None ,label= None):
             hist.GetXaxis().SetBinLabel(i+1, label[i])
 
 def pair(x):
-    return zip(x[:-1], x[1:])
+    return list(zip(x[:-1], x[1:]))
 
 def get_subselection(i):
     if i == 0:          selstr = "&& _VAR_<%g" %ptbins[i+1]
@@ -505,7 +505,7 @@ def getselstring(name):
 
     ## get selection string
     #selstr = get_subselection(i)
-    print "name", name
+    print("name", name)
 
     if "200" in name: selstr = "&& ph_pt[0]>200"
     if "80" in name: selstr = "&& ph_pt[0]>80"
@@ -543,7 +543,7 @@ else:
     ch = "el"
 
 ##FIXME encapsulate these functions
-ptname = tuple(map(lambda x: str("%g" %x).replace('.','p'), ptbins))
+ptname = tuple([str("%g" %x).replace('.','p') for x in ptbins])
 
 ptname = ("normal80","badonly80","worstonly80","total80",
           "normal40","badonly40","worstonly40","total40")
@@ -662,7 +662,7 @@ for i in range(ptsize):
     if "total" in ptname[i]: continue
 
     ptnametag = ptname[i]
-    ptnum = filter(str.isdigit, ptname[i])
+    ptnum = list(filter(str.isdigit, ptname[i]))
     if int(ptnum)>80:
         ptnametag = ptnametag.replace(ptnum, "80" )
     if "whole" in ptname[i]: ptnametag = ptnametag.lstrip("whole") ## FIXME
@@ -719,19 +719,19 @@ for i in range(ptsize):
         hlist[i]["passnomatch"].DrawSave()
         passfakecount = samp.get_stack_count()
 
-    print "ALL COUNT"
+    print("ALL COUNT")
     samp.print_stackresult(count)
-    print "NONFAKE COUNT"
+    print("NONFAKE COUNT")
     samp.print_stackresult(nonfakecount)
-    print "FAKE COUNT"
+    print("FAKE COUNT")
     samp.print_stackresult(fakecount)
-    print "FAKE COUNT IN SR"
+    print("FAKE COUNT IN SR")
     samp.print_stackresult(passfakecount)
 
     if doControlRegion:
-        print "NONFAKE COUNT in pass region"
+        print("NONFAKE COUNT in pass region")
         samp.print_stackresult(passnonfakecount)
-        print "TOTAL COUNT in pass region"
+        print("TOTAL COUNT in pass region")
         samp.print_stackresult(passcount)
 
     datadcount = ufloat(*count['Data'] ) -ufloat(*nonfakecount['NonEleFake'])\
@@ -752,10 +752,10 @@ for i in range(ptsize):
 
     mcexp = mcdcount*Na/Nb
     dtexp = datadcount*Nda/Ndb
-    print "MC: A {:g} B {:g} Data A {:g} B {:g} "\
-                    .format(Na, Nb, Nda, Ndb)
-    print "MC SR: {:g} MC EXP: {:g} Data SR: {:g} Data EXP: {:g}" \
-                    .format(mcscount, mcexp, datascount, dtexp)
+    print("MC: A {:g} B {:g} Data A {:g} B {:g} "\
+                    .format(Na, Nb, Nda, Ndb))
+    print("MC SR: {:g} MC EXP: {:g} Data SR: {:g} Data EXP: {:g}" \
+                    .format(mcscount, mcexp, datascount, dtexp))
 
     factor=1.
     if "80" in ptname[i] and doControlRegion == "Z": factor=10. ## better visualization
@@ -784,7 +784,7 @@ for i in range(ptsize):
 
 xlabel = ["%i-%i" %r for r in pair(ptbins)]
 xlabel = ptname
-print mccountlist
+print(mccountlist)
 if ptb:
     h1= ROOT.TH1F('h1',title,ptb[2]-1,ptb[0],ptb[1])
     h2= ROOT.TH1F('h2',title,ptb[2]-1,ptb[0],ptb[1])

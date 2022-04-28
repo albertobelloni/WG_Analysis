@@ -40,7 +40,7 @@ def main() :
         #sampManNoFilt.ReadSamples( options.samplesConf )
         sampManLepFilt.ReadSamples( options.samplesConf )
     else :
-        print 'Must provide a sample configuration.  Exiting'
+        print('Must provide a sample configuration.  Exiting')
         return
 
 
@@ -75,7 +75,7 @@ def main() :
 
         res = re.match( 'ResonanceMass(\d+)_width(\d+)', samp.name )
 
-        print samp.name
+        print(samp.name)
 
         if res is not None :
 
@@ -111,7 +111,7 @@ def get_efficiencies( sampManLepFilt, samp_name, mode_cuts, cuts ) :
     binning = ( 100, 0, 100 )
     cut_vals = {'counts' : {}, 'eff' : {}, 'ftau' : {}, 'effwithtau' : {}, 'effCorrftau' : {}}
 
-    for modename, modec in mode_cuts.iteritems() :
+    for modename, modec in mode_cuts.items() :
 
         cut_vals['counts'].setdefault( modename, OrderedDict() )
         cut_vals['eff'].setdefault( modename, OrderedDict() )
@@ -121,7 +121,7 @@ def get_efficiencies( sampManLepFilt, samp_name, mode_cuts, cuts ) :
         cut_vals['counts'][modename]['denominator'] = integral
 
         cut_str = ''
-        for cut_name, cut in cuts.iteritems() :
+        for cut_name, cut in cuts.items() :
 
             cut_str += ' && %s '%cut
 
@@ -138,7 +138,7 @@ def get_efficiencies( sampManLepFilt, samp_name, mode_cuts, cuts ) :
             cut_vals['eff'][modename][cut_name] = npass / ( npass + nfail )
 
     # now make the tau fraction
-    for modename, mode_dic in cut_vals['counts'].iteritems() :
+    for modename, mode_dic in cut_vals['counts'].items() :
 
         if modename.count('tau') > 0 :
             continue
@@ -155,7 +155,7 @@ def get_efficiencies( sampManLepFilt, samp_name, mode_cuts, cuts ) :
         tau_total_v = cut_vals['counts'][taumode]['denominator']
         lep_total_v = mode_dic['denominator']
 
-        for cut_name, cut_res in mode_dic.iteritems() :
+        for cut_name, cut_res in mode_dic.items() :
             if cut_name == 'denominator' :
                 continue
 
@@ -186,11 +186,11 @@ def get_efficiencies( sampManLepFilt, samp_name, mode_cuts, cuts ) :
 
     cut_vals['counts']['total'].setdefault('denominator', 0 )
 
-    for modename in mode_cuts.keys() :
+    for modename in list(mode_cuts.keys()) :
 
         cut_vals['counts']['total']['denominator'] = cut_vals['counts']['total']['denominator'] + cut_vals['counts'][modename]['denominator']
 
-        for cutname in cuts.keys() :
+        for cutname in list(cuts.keys()) :
 
             cut_vals['counts']['total'].setdefault( cutname, 0 )
             cut_vals['counts']['total'][cutname] = cut_vals['counts']['total'][cutname] + cut_vals['counts'][modename][cutname]
@@ -200,7 +200,7 @@ def get_efficiencies( sampManLepFilt, samp_name, mode_cuts, cuts ) :
 
     total = cut_vals['counts']['total']['denominator']
 
-    for cutname, cutv in cut_vals['counts']['total'].iteritems() :
+    for cutname, cutv in cut_vals['counts']['total'].items() :
         npass_v = cutv
         nfail_v = total - npass_v
 

@@ -4,6 +4,7 @@ Interactive script to plot data-MC histograms out of a set of trees.
 
 # Parse command-line options
 from argparse import ArgumentParser
+import importlib
 p = ArgumentParser()
 p.add_argument('--baseDir',      default=None,           dest='baseDir',         help='Path to base directory containing all ntuples')
 p.add_argument('--baseDirModel',      default=None,           dest='baseDirModel', help='Path to base directory containing all ntuples for the model')
@@ -44,13 +45,13 @@ from ROOT import RooFit
 from array import array
 import numpy as np
 if options.reload:
-        import SampleManager;reload(SampleManager)
+        import SampleManager;importlib.reload(SampleManager)
 from SampleManager import SampleManager
 if options.jupyt:
     try:
         from IPython.display import display, Math, Latex
         import rootnotes
-    except ImportError: print "Fail to import jupyt modules"
+    except ImportError: print("Fail to import jupyt modules")
 elif options.batch:
     ROOT.gROOT.SetBatch(True)
 else: ROOT.gROOT.SetBatch(False)
@@ -67,7 +68,7 @@ def main() :
     global samples
 
     if not options.baseDir.count('/eos/') and not os.path.isdir( options.baseDir ) and not options.combine:
-        print 'baseDir not found!'
+        print('baseDir not found!')
         return
 
 
@@ -75,7 +76,7 @@ def main() :
 
         samplelist = {}
         for year in [16,17,18]:
-            print options.baseDir %year
+            print(options.baseDir %year)
             lumi = options.lumi if options.lumi>0 else _LUMI[year]
             samplelist[year] = SampleManager(options.baseDir %year, options.treeName, mcweight=options.mcweight,
                         treeNameModel=options.treeNameModel, filename=options.fileName, base_path_model=options.baseDirModel,
@@ -120,7 +121,7 @@ def DrawFormatted(varexp, selection, histpars=None ) :
 
     global samples
 
-    print 'DrawFormatted histpars ', histpars
+    print('DrawFormatted histpars ', histpars)
     samples.MakeStack(varexp, selection, histpars)
 
     statuslabel = ROOT.TLatex(0.4, 0.8, 'Atlas Internal')
@@ -141,7 +142,7 @@ def WriteCurrentHists( filename='hist.root') :
 
     file = ROOT.TFile.Open( filename, 'RECREATE')
 
-    for hist, samp in samples.samples.iteritems() :
+    for hist, samp in samples.samples.items() :
         newhist = samp.hist.Clone(hist)
         file.cd()
         newhist.Write()
@@ -151,7 +152,7 @@ def WriteCurrentHists( filename='hist.root') :
 #---------------------------------------
 def SaveStack( name, can=None ) :
     if options.outputDir is None :
-        print 'No outputDir given!'
+        print('No outputDir given!')
         return
 
     samples.SaveStack( name, outputDir=options.outputDir, canname=can )
@@ -176,7 +177,7 @@ historyPath = os.path.expanduser("~/.pyhistory")
 try:
     import readline
 except ImportError:
-    print "Module readline not available."
+    print("Module readline not available.")
 else:
     import rlcompleter
     readline.parse_and_bind("tab: complete")
@@ -189,7 +190,7 @@ def save_history(historyPath=historyPath):
     try:
         import readline
     except ImportError:
-        print "Module readline not available."
+        print("Module readline not available.")
     else:
         readline.write_history_file(historyPath)
 

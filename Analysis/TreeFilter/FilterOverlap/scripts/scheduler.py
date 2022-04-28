@@ -152,6 +152,15 @@ if options.step == 2:
         JobConf(base, 'WGToLNuG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8PhCutMax'                , tags=['PtMin20'], suffix = 'PhCutMin',year=2018),
     ]
 
+if options.step == 3:
+    jobs2016 = [
+        JobConf(base, 'SinglePhoton', tags=['hlt'], suffix = 'HltOlap', year=2016),
+    ]
+
+    jobs2017 = [
+        JobConf(base, 'SinglePhoton', tags=['hlt'], suffix = 'HltOlap', year=2017),
+    ]
+
 if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
 if options.year==2018: jobs=jobs2018 
@@ -169,6 +178,7 @@ if options.test :
     options.nJobs = 1
     options.batch = False
     options.local = True
+    input_dirs = ['LepGamma_elg']
 
 
 module = 'Conf.py'
@@ -208,6 +218,8 @@ for input_dir in input_dirs :
                      # 2017/2018
                      'args_tag_HT_pholap15'        : { 'function' : 'filter_combined', 'pt_cut' : ' > 15 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ', 'trueht_cut' :  ' < 100 ' },
                      'args_tag_pholap15'           : { 'function' : 'filter_photon', 'pt_cut' : ' > 15 ', 'nph_cut' : ' == 0 ', 'isPromptFS_cut' : ' == True ', 'aeta_cut' : ' < 2.6 ', 'dr_cut' : ' > 0.05 ' },
+                     # Remove SingleElectron/SinglePhoton overlap (run on SinglePhoton)
+                     'args_tag_hlt' : { 'function' : 'filter_hlt' , 'hlt_cut' : ' == True ' },
     })
 
 

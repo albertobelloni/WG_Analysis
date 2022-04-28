@@ -52,8 +52,8 @@ def main() :
         if res is not None :
 
             mass = int( res.group(2) )
-            print dirname
-            print res.group(3)
+            print(dirname)
+            print(res.group(3))
             if res.group(3) == '0p01' :
                 width = '0.01'
             else :
@@ -104,7 +104,7 @@ def draw_mass_comp_hists( sampMan, var, samples, prefix, xlabel ) :
 
         used_samples.sort()
 
-        print used_samples
+        print(used_samples)
         
         legend_order = [ x[1] for x in used_samples]
 
@@ -120,7 +120,7 @@ def draw_mass_comp_hists( sampMan, var, samples, prefix, xlabel ) :
             name = '%s_width%s.pdf' %(prefix, width_name )
             sampMan.SaveStack( name, options.outputDir, 'base' )
         else :
-            raw_input('continue')
+            input('continue')
 
 
 
@@ -150,7 +150,7 @@ def draw_width_comp_hists( sampMan, var, samples, prefix, xlabel) :
 
         used_samples.sort()
 
-        print used_samples
+        print(used_samples)
         
         legend_order = [ x[1] for x in used_samples]
 
@@ -181,7 +181,7 @@ def draw_width_comp_hists( sampMan, var, samples, prefix, xlabel) :
             name = '%s_M%d.pdf' %(prefix, mass )
             sampMan.SaveStack( name, options.outputDir, 'base' )
         else :
-            raw_input('continue')
+            input('continue')
 
 
 main()

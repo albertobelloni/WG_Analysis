@@ -74,17 +74,17 @@ def main() :
     wjets              = ROOT.RooWorkspace( 'workspace_wjets' )
     elefake            = ROOT.RooWorkspace( 'elefake' )
 
-    for seltag, chdic in selections.iteritems() :
+    for seltag, chdic in selections.items() :
 
-        for ch, seldic in chdic.iteritems() :
+        for ch, seldic in chdic.items() :
             for et in eta_cuts :
-                print 'WJets fit for MC'
+                print('WJets fit for MC')
                 make_wjets_matrix( sampManMuMu, 'Zgamma', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 make_wjets_matrix( sampManMuMu, 'ZJets', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 #make_wjets_matrix( sampManMuMu, 'WWG', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
                 #make_wjets_matrix( sampManMuMu, 'AllTop', seldic['selection'], et, False, suffix='mc_%s' %( et ) )
 
-                print 'WJets fit for data'
+                print('WJets fit for data')
                 make_wjets_matrix( sampManMuMu, 'Data', seldic['selection'], et, True, suffix='data_%s' %(et), workspace=wjets)
 
 
@@ -92,7 +92,7 @@ def main() :
 
         wjets.writeToFile( '%s/%s.root' %( options.outputDir,wjets.GetName() ) )
 
-        for fileid, ws_list in workspaces_to_save.iteritems() :
+        for fileid, ws_list in workspaces_to_save.items() :
             for idx, ws in enumerate(ws_list) :
                 if idx == 0 :
                     recreate = True
@@ -102,7 +102,7 @@ def main() :
                 ws.writeToFile( '%s/workspace_%s.root' %( options.outputDir, fileid ), recreate )
 
         outputFile = ROOT.TFile('%s/outfile_matrix_LepLep_2016_%s.root' %( options.outputDir, wjets.GetName() ),'recreate') #set pt cut here
-        for key, can in sampManMuMu.outputs.iteritems() :
+        for key, can in sampManMuMu.outputs.items() :
             can.Write( '%s' %(key) )
 
         #for key, can in sampManMuMu.outputs.iteritems() :

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from functools import wraps
 import sys
 import pdb
@@ -65,7 +65,7 @@ def f_Dumpfname(func):
     """ decorator to show function name and caller name """
     @wraps(func)
     def echo_func(*func_args, **func_kwargs):
-        if DEBUG: print('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'.format(func.__name__,sys._getframe(1).f_code.co_name))
+        if DEBUG: print(('func \033[1;31m {}()\033[0m called by \033[1;31m{}() \033[0m'.format(func.__name__,sys._getframe(1).f_code.co_name)))
         return func(*func_args, **func_kwargs)
     return echo_func
 
@@ -150,7 +150,7 @@ def main() :
     ]
 
     global binid
-    def binid(ibin): return "".join(map(str,ibin.values()))
+    def binid(ibin): return "".join(map(str,list(ibin.values())))
 
     global lumi
     def lumi(ibin):
@@ -228,7 +228,7 @@ def main() :
             
             os.system( 'condor_submit %s' %jdl_name )
 
-            print tPurple% "WARNING: unstable method"
+            print((tPurple% "WARNING: unstable method"))
             #wait_for_jobs( 'run_combine')
             wait_for_jobs( 'yihuilai')
         else:
@@ -297,7 +297,7 @@ def Width_str2float( width ):
     try:
        fwidth = float(widthdict[width])
     except KeyError:
-       print "Can not turn the width into float"
+       print("Can not turn the width into float")
     return fwidth
 
 
@@ -321,7 +321,7 @@ def wait_for_jobs( job_tag ) :
         if n_limits == 1 :
             return
         else :
-            print '%d Jobs still running' %(n_limits-1)
+            print(('%d Jobs still running' %(n_limits-1)))
 
 
 # ---------------------------------------------------
@@ -386,43 +386,43 @@ class MakeLimits( ) :
 
         ## format checks
         if self.masspoints == None or not isinstance( self.masspoints, list ) :
-            print 'Must provide a list of mass points'
+            print('Must provide a list of mass points')
             self.fail = True;
 
         if self.widthpoints == None or not isinstance( self.widthpoints, list):
-            print 'Must provide a list of width points'
+            print('Must provide a list of width points')
             self.fail = True;
 
         if self.var == None or not isinstance( self.var, str ) :
-            print 'Must provide a plot var as a string'
+            print('Must provide a plot var as a string')
             self.fail = True
 
         if self.bins == None or not isinstance( self.bins, list ) :
-            print 'Must provide a list of bins '
+            print('Must provide a list of bins ')
             self.fail = True
 
         if self.wskeys == None or not isinstance( self.wskeys, dict) :
-            print "Must provide a dictionary of workspace names"
+            print("Must provide a dictionary of workspace names")
             self.fail = True
 
         if self.baseDir == None or not isinstance( self.baseDir, str ) :
-            print 'Must provide a base directory'
+            print('Must provide a base directory')
             self.fail = True
 
         #--------------------
 
         if self.useToyBackground :
-            print "use exponential toy background. Will ignore the input backgrounds..."
+            print("use exponential toy background. Will ignore the input backgrounds...")
             self.bkgnames = ['toybkg']
 
         if self.useToySignal :
-            print "use gaussian toy signal. Will ignore the input signals..."
+            print("use gaussian toy signal. Will ignore the input signals...")
             self.signame = 'toysignal'
         else:
             self.signame = 'signal'
 
         if not self.useToySignal:
-           print "have to load cross sections for signals for normalization. :( "
+           print("have to load cross sections for signals for normalization. :( ")
            self.weightMap,_ = analysis_utils.read_xsfile( _XSFILE, 1, print_values=True )
 
 
@@ -441,7 +441,7 @@ class MakeLimits( ) :
     def setup( self ):
 
         if self.fail :
-            print 'Initialzation failed, will not setup'
+            print('Initialzation failed, will not setup')
             return
 
         # -------------------------------------------------
@@ -454,7 +454,7 @@ class MakeLimits( ) :
 
         for bkgn in self.bkgnames:
             if not os.path.isdir( self.outputDir+'/'+bkgn ) :
-               print "creating directory %s/%s"%(self.outputDir, bkgn )
+               print(("creating directory %s/%s"%(self.outputDir, bkgn )))
                os.makedirs( self.outputDir+'/'+ bkgn )
 
         if self.useToyBackground :
@@ -474,7 +474,7 @@ class MakeLimits( ) :
         # ---------------------------------------------------
 
         if not os.path.isdir( self.outputDir+'/'+self.signame ) :
-           print " creating directory %s/%s"%(self.outputDir, self.signame)
+           print((" creating directory %s/%s"%(self.outputDir, self.signame)))
            os.makedirs( self.outputDir+'/'+self.signame )
 
         if options.useToySignal :
@@ -808,16 +808,16 @@ class MakeLimits( ) :
             for ifil in morefiles:
                 f = open('data/%sgsys%i_pdf_%s.json'%(ch,year,ifil))
                 dd = json.load(f)
-                for sys in dd['A'].keys():
+                for sys in list(dd['A'].keys()):
                     systematic_dict['A'][sys] = dd['A'][sys]
             ### process background systematics
             sysdict = recdd()
             for cuttag in self.cutsetlist:
-                for sys in  systematic_dict[cuttag].keys():
+                for sys in  list(systematic_dict[cuttag].keys()):
                     sysdict[cuttag][sys] = systematic_dict[cuttag][sys]["background"]
 
 
-            sysdict = { k: self.process_systematics(sd, ch, year) for k, sd in sysdict.iteritems() }
+            sysdict = { k: self.process_systematics(sd, ch, year) for k, sd in list(sysdict.items()) }
 
             for bn in self.bkgnames:
                 self.backgrounds[bn].sys[binname] = sysdict
@@ -831,7 +831,7 @@ class MakeLimits( ) :
                     sysdict = recdd()
                     sampname = "MadGraphResonanceMass%i_width%s"%(mass,width)
 
-                    for sys in systematic_dict[cuttag].keys():
+                    for sys in list(systematic_dict[cuttag].keys()):
                         sysdict[sys] = systematic_dict[cuttag][sys][sampname]
 
                     sysdict = self.process_systematics( sysdict, ch, year )
@@ -993,13 +993,13 @@ class MakeLimits( ) :
     def get_combine_files( self ) :
 
         if self.fail :
-            print 'Initialzation failed, will not setup'
+            print('Initialzation failed, will not setup')
             return []
 
-        print "all cards: "
+        print("all cards: ")
         pprint(self.allcards)
-        print "method: ",     self.method
-        print "outputDir: ",  self.outputDir
+        print(("method: ",     self.method))
+        print(("outputDir: ",  self.outputDir))
 
         jobs, output_files = self.write_combine_files()
 
@@ -1025,13 +1025,13 @@ class MakeLimits( ) :
 
                 outputdir = self.outputDir + '/' + 'Width' + width + '/' + 'all' + '/' + 'Mass%i' %mass
                 if not os.path.isdir( outputdir ) :
-                   print " creating directory", outputdir
+                   print((" creating directory", outputdir))
                    os.makedirs( outputdir )
 
                 for obin in self.bins:
                     suboutputdir = self.outputDir + '/' + 'Width' + width + '/' + binid(obin) + '/' + 'Mass%i' %mass
                     if not os.path.isdir( suboutputdir ) :
-                       print " creating directory", suboutputdir
+                       print((" creating directory", suboutputdir))
                        os.makedirs( suboutputdir )
                     cuttag = defs.selectcuttag(mass) ## returns A, B, C
 
@@ -1096,7 +1096,7 @@ class MakeLimits( ) :
         for ibin in binlist :
             sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
             if not sig: ## model not exist: exclude them for now
-                print "WARNING MODEL NOT EXIST: ", sigpar, ibin
+                print(("WARNING MODEL NOT EXIST: ", sigpar, ibin))
                 continue
             viablebins.append(ibin)
             viablesig.append((ibin, sig))
@@ -1116,7 +1116,7 @@ class MakeLimits( ) :
         card_entries.append( section_divider )
 
         max_name_len = max( [len(x) for x in self.bkgnames ] )
-        max_path_len = max( [len(x.GetOutputName(self.outputDir, **ibin)) for x in self.backgrounds.values() for ibin in binlist] )
+        max_path_len = max( [len(x.GetOutputName(self.outputDir, **ibin)) for x in list(self.backgrounds.values()) for ibin in binlist] )
 
         all_binids = []
         #signal_norm = 1.0
@@ -1147,7 +1147,7 @@ class MakeLimits( ) :
 
         for ibin in viablebins:
             bin_id = binid(ibin)
-            for bkgname, bkg in self.backgrounds.iteritems() :
+            for bkgname, bkg in list(self.backgrounds.items()) :
                 ### BKG X CH
                 if options.useHistTemp :
                     bkg_entry = bkg_entry.replace('dijet', 'datahist' )
@@ -1207,7 +1207,7 @@ class MakeLimits( ) :
             #    continue
             rate_entries.append( sig['rate'] )
             #for bkgdic in self.backgrounds :
-            for bkgname, bkg in self.backgrounds.iteritems():
+            for bkgname, bkg in list(self.backgrounds.items()):
                 #rate_entries.append( str(bkgdic['norm'][bin_id]) )
                 jbin = ibin['channel']+cuttag+str(ibin["year"])
                 #print jbin
@@ -1221,7 +1221,7 @@ class MakeLimits( ) :
 
         card_entries.append( 'bin         ' + listformat(bin_entries )  )
         card_entries.append( 'process     ' + listformat((['Resonance'] + [x for x in self.bkgnames])*len(viablebins) ) )
-        card_entries.append( 'process     ' + listformat( range(len(self.backgrounds) +1)*len(viablebins), form = "%-14d" ) )
+        card_entries.append( 'process     ' + listformat( list(range(len(self.backgrounds) +1))*len(viablebins), form = "%-14d" ) )
         #card_entries.append( 'rate     ' + '    '.join( [str(signal_norm), str(backgrounds[0]['norm']) ]*len(bins) ) )
         card_entries.append( 'rate        ' + listformat( rate_entries,"%-13g " )  )
         card_entries.append( section_divider )
@@ -1240,7 +1240,7 @@ class MakeLimits( ) :
 
         syslist = set()
         for ibin, sig in viablesig:
-            syslist.update(sig["sys"].keys())
+            syslist.update(list(sig["sys"].keys()))
 
         syslist = list(syslist)
         for sn in syslist:
@@ -1253,7 +1253,7 @@ class MakeLimits( ) :
 
                 sys_line.append(sigsysstr)
 
-                for bkgname, bkg in self.backgrounds.iteritems():
+                for bkgname, bkg in list(self.backgrounds.items()):
                     bkgsysstr = sysstr(bkg.sys[bin_id][cuttag].get(sn))
                     if options.NoBKGUnc:
                         sys_line.append('-')
@@ -1268,7 +1268,7 @@ class MakeLimits( ) :
             bin_id = binid(ibin)
             sys_line.append("1.00")
 
-            for bkgname, bkg in self.backgrounds.iteritems():
+            for bkgname, bkg in list(self.backgrounds.items()):
                 sys_line.append('-')
         if not self.noShapeUnc: card_entries.append( listformat(sys_line, "%-15s"))
 
@@ -1330,7 +1330,7 @@ class MakeLimits( ) :
             #sig = self.signals.get(sigpar+"_"+ibin['channel']+str(ibin['year']))
             #if not sig: ## model not exist
             #    continue
-            for iparname, iparval in sig['params'].iteritems():
+            for iparname, iparval in list(sig['params'].items()):
                 if iparval[1] != 0:
                    #Yihui --- use smooth signal model
                    if 'cb_mass_MG' in iparname and self.addShapeUnc2Mass:
@@ -1341,14 +1341,14 @@ class MakeLimits( ) :
         card_entries.append( section_divider )
 
         if outputCard is not None :
-            print 'Write file ', outputCard
+            print(('Write file ', outputCard))
             ofile = open( outputCard, 'w' )
             for line in card_entries :
                 ofile.write( line + '\n' )
             ofile.close()
         else :
             for ent in card_entries :
-                print ent
+                print(ent)
 
 
 
@@ -1360,14 +1360,14 @@ class MakeLimits( ) :
     def generate_toy_data( self,  sigpars=None, signorms = None, data_norm=None ) :
 
         if not os.path.isdir( self.outputDir+'/'+self.dataname ) :
-           print " creating directory %s/%s"%(self.outputDir, self.dataname)
+           print((" creating directory %s/%s"%(self.outputDir, self.dataname)))
            os.makedirs( self.outputDir+'/'+self.dataname )
 
 
         ##loop over bins
         for ibin in self.bins :
             ## background
-            for bkgname, bkg in self.backgrounds.iteritems():
+            for bkgname, bkg in list(self.backgrounds.items()):
                 self.generate_toy_data_helper( ibin, bkgname, bkg,
                                         sigpars, signorms, data_norm)
 
@@ -1395,8 +1395,8 @@ class MakeLimits( ) :
 
        #ws = ofile.Get( bkg['workspace'] )
        ws = ofile.Get( bkg.GetWSName() )
-       print  bkg.GetOutputName( self.outputDir ,**ibin ), ":", bkg.GetWSName( )
-       print ofile, ws
+       print((bkg.GetOutputName( self.outputDir ,**ibin ), ":", bkg.GetWSName( )))
+       print((ofile, ws))
 
        for cutset in self.cutsetlist:
            pdfs = []
@@ -1407,7 +1407,7 @@ class MakeLimits( ) :
            suffix = "%s_%s_%s"%(binid(jbin), self.var, self.wstag)
 
            if options.useHistTemp :
-               print hist_key
+               print(hist_key)
                pdfs.append(ws.data( hist_key ))
                norms.append(pdfs[-1].sumEntries())
            else :
@@ -1415,7 +1415,7 @@ class MakeLimits( ) :
                #pdfs.append(  ws.pdf( bkg['pdf'] ) )
                #norms.append( ws.var('%s_norm'%bkg.GetPDFName(self.var, self.bins[0]['channel'])).getVal() )
                norms.append( bkg.norm[binid(jbin)][0] )
-               print  bkg.GetPDFName(self.var, **jbin)
+               print((bkg.GetPDFName(self.var, **jbin)))
                ws.Print()
                pdfs.append( ws.pdf( bkg.GetPDFName(self.var, **jbin)) )
 
@@ -1430,19 +1430,19 @@ class MakeLimits( ) :
 
            ## mix into some fake signal
            if sigpars:
-              print "add some fake signals for fun..."
+              print("add some fake signals for fun...")
               for sigpar, signorm in zip(sigpars, signorms):
                   try:
                       sig = self.signals[sigpar+str(ibin['year'])]
-                      print "sig: ", sig
+                      print(("sig: ", sig))
                       ofile = ROOT.TFile.Open( sig['file'] )
                   except:
-                      print self.signals.keys()
-                      print "can not open the signal workspace file: "\
+                      print((list(self.signals.keys())))
+                      print(("can not open the signal workspace file: "\
                             "%s Please x-check self.signals collection"\
-                                %self.signals[sigpar]['file']
+                                %self.signals[sigpar]['file']))
                       raise
-                  print sigpar, sig['file'], sig['pdf']
+                  print((sigpar, sig['file'], sig['pdf']))
 
                   ## escape if pdf name is set to $PROCESS or other higgscombine shorthand
                   pdfname = "Resonance" if "$" in sig['pdf'] else sig['pdf']
@@ -1452,7 +1452,7 @@ class MakeLimits( ) :
                   #norms.append( wssig.var( '%s_norm'%sig['pdf']).getVal() * signorm )
                   norms.append( sig['rate']*signorm)
 
-           print "Normalization:: ", norms
+           print(("Normalization:: ", norms))
 
            if len( pdfs ) == 1 :
                ### there is only 1 pdf. save toy data
@@ -1463,17 +1463,17 @@ class MakeLimits( ) :
                        norm = int(norms[0])
                    else :
                        norm = data_norm
-                   print "toy data #: ",norm
+                   print(("toy data #: ",norm))
                    dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
                              ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
                                              'toydata_%s' %suffix ) )
            else :
-               print "norms: ", norms
+               print(("norms: ", norms))
                total = sum( [int(x) for x in norms ] )
 
                fractions = [ float(x)/total for x in norms ]
 
-               print "total ", total, " fractions", fractions
+               print(("total ", total, " fractions", fractions))
 
                if options.useHistTemp :
 
@@ -1483,9 +1483,9 @@ class MakeLimits( ) :
                        dataset.add( pdf )
 
                else :
-                   print "**** start generate toy data *****"
+                   print("**** start generate toy data *****")
                    pdfList = ROOT.RooArgList()
-                   print pdfs
+                   print(pdfs)
                    for p in pdfs :
                        p.Print()
                        pdfList.add( p )
@@ -1501,9 +1501,9 @@ class MakeLimits( ) :
                        idx += 1
 
                    pdfList.Print()
-                   print fracList
+                   print(fracList)
                    summed = ROOT.RooAddPdf( 'summed' ,'summed', pdfList , fracList )
-                   print "xvar", xvar
+                   print(("xvar", xvar))
                    dataset = summed.generate( ROOT.RooArgSet(xvar), int(total),
                                               ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
                                                         'toydata_%s' %suffix ) )
@@ -1537,7 +1537,7 @@ class MakeLimits( ) :
 
 
     def prepare_background_functions_helper(self, bkgn, ibin):
-        print " prepare background functions for ", bkgn
+        print((" prepare background functions for ", bkgn))
 
         fname = '%s/bkgfit/%i/%s' %( self.baseDir, ibin['year'],
                                      self.wskeys[bkgn].GetRootFileName() )
@@ -1568,7 +1568,7 @@ class MakeLimits( ) :
             ws_entry = self.wskeys[bkgn].GetPDFName( self.var, **jbin)
 
             if DEBUG:
-               print ws_entry
+               print(ws_entry)
 
             if options.useHistTemp :
                 datahist = ws_in.data(ws_entry.replace('dijet', 'datahist') )
@@ -1584,7 +1584,7 @@ class MakeLimits( ) :
                     #ipar=ipar.replace("2017",'')
                     #ipar=ipar.replace("2018",'')
                     if DEBUG:
-                       print ipar
+                       print(ipar)
                     oldvar = ws_in.var( ipar )
                     varrange = (-50, -0.01)
                     varsetvalue = -3.4
@@ -1621,11 +1621,11 @@ class MakeLimits( ) :
                     if not self.noShapeUnc: var.setError(oldvar.getError())
                     #var.setConstant()
                     import_workspace( ws_out, var)
-                print "%s_norm" %ws_entry
+                print(("%s_norm" %ws_entry))
                 norm_var = ws_in.var( '%s_norm'% ws_entry.replace(self.wskeys[bkgn].pdf_prefix,'MultiPdf') )
-                print "norm ", norm_var.getVal()
+                print(("norm ", norm_var.getVal()))
                 self.wskeys[bkgn].SetNorm( norm_var.getVal(), norm_var.getError() , cuttag = binid(jbin))
-                print "SampleInfo.norm: ", self.wskeys[bkgn].norm
+                print(("SampleInfo.norm: ", self.wskeys[bkgn].norm))
                 #norm_var.setError( 0.3*norm_var.getValV() )
                 #norm_var.setVal( norm_var.getValV() )
                 #norm_var.setError( 0.0 )
@@ -1643,7 +1643,7 @@ class MakeLimits( ) :
         #                       { bkgn: { 'channel': "%s_%s"%(self.bins[0]['channel'], self.bins[0]['eta']), 'file': outputfile, 'workspace': ws_out.GetName(), 'pdf': pdf.GetName(), 'params': params} }
         #                       )
         self.backgrounds.update( { bkgn: self.wskeys[bkgn]} )
-        print "BACKGROUND: ",self.backgrounds
+        print(("BACKGROUND: ",self.backgrounds))
 
 
 
@@ -1677,10 +1677,10 @@ class MakeLimits( ) :
             fname= '%s/sigfit_para/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
         wsname = "ws" + self.signame + '_' + inpar
         if DEBUG:
-            print fname, " : ", wsname
+            print((fname, " : ", wsname))
         ifile = ROOT.TFile.Open( fname, 'READ' )
         if not ifile:
-            print "skipping ", fname
+            print(("skipping ", fname))
             return
 
 
@@ -1707,7 +1707,7 @@ class MakeLimits( ) :
             minshift = mshifts[ibin["channel"]]["%.1f"%mass][w]["min"][1]
 
         if DEBUG:
-           print ws_entry
+           print(ws_entry)
 
         ## Resonance mass shift
         pdf = ws_in.pdf( ws_entry )
@@ -1716,7 +1716,7 @@ class MakeLimits( ) :
 
         for ipar in self.wskeys[self.signame].params_prefix:
             if DEBUG:
-               print ipar+ '_' + suffix
+               print((ipar+ '_' + suffix))
             var = ws_in.var( ipar  + '_' + suffix )
             sigfitparams.update( {ipar + '_' + suffix: (var.getVal(), var.getError())} )
             #var.setError(0.0)
@@ -1734,8 +1734,8 @@ class MakeLimits( ) :
         #don't need if use para signal model -- Yihui
         #if("%s_%s_%s"%(str(mass),width,ibin['year']) in N_tot):
         #    rate = rate* 50000.0/N_tot["%s_%s_%s"%(str(mass),width,ibin['year'])]
-        print tPurple%("norm %g scale %g rate %g" \
-                                   %(norm_var.getVal(),scale,rate))
+        print((tPurple%("norm %g scale %g rate %g" \
+                                   %(norm_var.getVal(),scale,rate))))
       #  norm_var.setVal( norm_var.getValV() * scale )
       #  norm_var.setError( norm_var.getError() * scale )
       #  #norm_var.setError(0.0)
@@ -1749,24 +1749,24 @@ class MakeLimits( ) :
             exprstr = "expr::cb_mass_{tag}_UP('cb_mass_{tag}*cb_mass_{tag}_shift_UP',"\
                        "cb_mass_{tag},cb_mass_{tag}_shift_UP[{maxshift}])".format(tag = full_suffix,
                                                                                   maxshift = maxshift)
-            print tPurple%exprstr
+            print((tPurple%exprstr))
             ws_out.factory(exprstr)
 
             exprstr = "RooDoubleCB::Resonance_cms_eUp(mt_res,cb_mass_{tag}_UP,cb_sigma_{tag},"\
                   "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix)
-            print tPurple%exprstr
+            print((tPurple%exprstr))
             ws_out.factory(exprstr)
 
             # DOWN variation
             exprstr = "expr::cb_mass_{tag}_DN('cb_mass_{tag}*cb_mass_{tag}_shift_DN',"\
                        "cb_mass_{tag},cb_mass_{tag}_shift_DN[{minshift}])".format(tag = full_suffix,
                                                                             minshift = minshift)
-            print tPurple%exprstr
+            print((tPurple%exprstr))
             ws_out.factory(exprstr)
 
             exprstr = "RooDoubleCB::Resonance_cms_eDown(mt_res,cb_mass_{tag}_DN,cb_sigma_{tag},"\
                   "cb_cut1_{tag},cb_power1_{tag}, cb_cut2_{tag}, cb_power2_{tag})".format(tag=full_suffix)
-            print tPurple%exprstr
+            print((tPurple%exprstr))
             ws_out.factory(exprstr)
 
         ifile.Close()
@@ -1810,7 +1810,7 @@ class MakeLimits( ) :
                     self.wstag, self.bins[0]['eta']])
 
                 if DEBUG:
-                   print suffix
+                   print(suffix)
 
                 xvar = ROOT.RooRealVar( self.xvarname, self.xvarname,
                         var['range'][0], var['range'][1] )
@@ -1858,7 +1858,7 @@ class MakeLimits( ) :
                 self.bins[0]['eta'])
 
         if DEBUG:
-           print suffix
+           print(suffix)
 
         xvar = ROOT.RooRealVar( self.xvarname, self.xvarname,  var['range'][0],
                 var['range'][1])
@@ -2014,17 +2014,17 @@ class MakeLimits( ) :
         #    self.output_files.setdefault( width, {} )
 
         assert  'AsymptoticLimits' in self.method or self.method == 'MaxLikelihoodFit'
-        for sigpar, card in self.allcards.iteritems() :
+        for sigpar, card in list(self.allcards.items()) :
             
             wid = sigpar.split('_W')[1].split('_')[0]
             mass = int(sigpar.split('_')[0].lstrip("M"))
             ch = sigpar.split('_')[2]
-            print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
+            print((sigpar, "w %s m %i ch %s" %( wid, mass, ch)))
             log_file = 'results_%s_%s.txt'  %( self.var, sigpar )
             rundir = '%s/Width%s/%s/Mass%i/' %( self.outputDir, wid, ch, mass )
             command = "cd %s;" %rundir
             command += self.get_combine_command(sigpar,os.path.basename(card), log_file)
-            print tPurple%command
+            print((tPurple%command))
             commands.append(command)
 
             #self.output_files[wid].setdefault( mass, {} )
@@ -2047,13 +2047,13 @@ class MakeLimits( ) :
             while len(processes)<cnum-1:
                 c = commands.pop()
                 i+=1
-                print "command #",i, c
+                print(("command #",i, c))
                 ## run commands
                 processes.append((i,subprocess.Popen(c, shell=True)))
 
             for j,p in processes:
                 if p.poll() is not None:
-                    print j, " status: ", p.poll()
+                    print((j, " status: ", p.poll()))
                     processes.remove((j,p))
                     break
             else:
@@ -2081,7 +2081,7 @@ class MakeLimits( ) :
           or self.method == 'AsymptoticLimitsManual' \
           or self.method == 'MaxLikelihoodFit' :
 
-            for sigpar, card in self.allcards.iteritems() :
+            for sigpar, card in list(self.allcards.items()) :
 
                 wid = sigpar.split('_W')[1].split('_')[0]
                 mass = int(sigpar.split('_')[0].lstrip("M"))
@@ -2097,7 +2097,7 @@ class MakeLimits( ) :
                 log_file = '%s/Width%s/%s/Mass%i/results_%s_%s.txt' \
                                             %( self.outputDir, wid, ch, mass, self.var, sigpar )
                 command= self.get_combine_command(sigpar, os.path.basename(card), os.path.basename(log_file)) + "\n"
-                print tPurple %command
+                print((tPurple %command))
 
                 ## write shell script (for condor jobs)
                 ofile = open( fname, 'w' )
@@ -2121,8 +2121,8 @@ class MakeLimits( ) :
 
         if self.method == 'HybridNew' :
 
-            for pt, vardic in all_cards.iteritems() :
-                for var, bindic in vardic.iteritems() :
+            for pt, vardic in list(all_cards.items()) :
+                for var, bindic in list(vardic.items()) :
 
                     fname = '%s/run_combine_%s_%d.sh' %(output_dir, var, pt)
                     log_file = '%s/results_%s_%d.txt'%( output_dir, var, pt)
@@ -2162,8 +2162,8 @@ class MakeLimits( ) :
 
         for width in self.widthpoints:
 
-            for ch, massdict in self.output_files[width].iteritems() :
-                for mass, f in massdict.iteritems() :
+            for ch, massdict in list(self.output_files[width].items()) :
+                for mass, f in list(massdict.items()) :
 
                     xsec = self.weightMap['ResonanceMass%d'%mass]['cross_section']
                     Wlepbr = (10.71 + 10.63 + 11.38)/100.
@@ -2175,7 +2175,7 @@ class MakeLimits( ) :
                     if self.method == 'AsymptoticLimits' or self.method == 'AsymptoticLimitsManual':
 
                         if len(result)!=6 and len(result)!=5:
-                           print "missing some limits. Skip this point Mass %d Width %s"%(mass, width)
+                           print(("missing some limits. Skip this point Mass %d Width %s"%(mass, width)))
 
                         else:
                            combine_results[width][ch][mass] = result
@@ -2189,15 +2189,15 @@ class MakeLimits( ) :
 
         if not os.path.isdir( self.outputDir+'/Results' ) :
 
-               print "creating directory %s/Results"%self.outputDir
+               print(("creating directory %s/Results"%self.outputDir))
 
                os.makedirs( self.outputDir+'/Results' )
 
         for width in self.widthpoints:
-            for ch in self.output_files[width].keys() :
+            for ch in list(self.output_files[width].keys()) :
 
-                print "\033[1;31m limits on the cross section for signals with %s width "\
-                      "for channel %s saved to %s/Results \033[0m"%( width, ch, self.outputDir )
+                print(("\033[1;31m limits on the cross section for signals with %s width "\
+                      "for channel %s saved to %s/Results \033[0m"%( width, ch, self.outputDir )))
 
                 with open('%s/Results/result_%s_%s.json'\
                             %(self.outputDir, width, ch), 'w') as fp:
@@ -2238,7 +2238,7 @@ class MakeLimits( ) :
                      
         if results.get("exp-2") == None:
         #if results.get("obs") == None or results.get("exp-2") == None:
-            print tRed %"No observed or expected value"
+            print((tRed %"No observed or expected value"))
         if results.get("obs") == None and results.get("exp0") != None:
             results["obs"] = results["exp0"]
 

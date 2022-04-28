@@ -67,7 +67,7 @@ class SampleInfo() :
    def GetPDFName( self, var, channel="mu", year = 2016 ):
        if self.isSignal:
           tmp =  "_".join( [ self.pdf_prefix, self.sigpar, channel+str(year), var ] )
-          print "pdfname:",tmp
+          print("pdfname:",tmp)
           return tmp
        else:
           return "_".join( [ self.pdf_prefix, channel+str(year), self.name.lower(), self.pdf_prefix] )
