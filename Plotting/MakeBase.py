@@ -34,7 +34,7 @@ from FitManager import FitManager
 #ROOT.PyConfig.IgnoreCommandLineOptions = True
 import getpass
 username = getpass.getuser()
-username = 'mseidel'
+username = 'yihuilai/WG_Merge'
 recdd = lambda : defaultdict(recdd) ## define recursive defaultdict
 
 
