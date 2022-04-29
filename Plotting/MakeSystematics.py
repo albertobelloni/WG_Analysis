@@ -309,8 +309,8 @@ summarylist = [("TOTAL","bkg"),
                ("MadGraphResonanceMass1000_width5", "M1000w5"),
                ("MadGraphResonanceMass450_width5", "M450w5")]
 
-kinedict = defs.kinedictgen(ch)
-cutsetdict = {k: defs.makeselstring(ch=ch, **w ) for k,w in kinedict.items()}
+kinedict = defs.kinedictgen(ch,options.year)
+cutsetdict = {k: defs.makeselstring(ch=ch, **w ) for k,w in kinedict.iteritems()}
 selection_list = OrderedDict()
 
 
