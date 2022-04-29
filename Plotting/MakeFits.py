@@ -827,7 +827,7 @@ class MakeLimits( ) :
             for width in self.widthpoints:
                 for mass in self.masspoints:
 
-                    cuttag = defs.selectcuttag(mass)
+                    cuttag = defs.selectcuttag(mass,year)
                     sysdict = recdd()
                     sampname = "MadGraphResonanceMass%i_width%s"%(mass,width)
 
@@ -1033,7 +1033,7 @@ class MakeLimits( ) :
                     if not os.path.isdir( suboutputdir ) :
                        print((" creating directory", suboutputdir))
                        os.makedirs( suboutputdir )
-                    cuttag = defs.selectcuttag(mass) ## returns A, B, C
+                    cuttag = defs.selectcuttag(mass,obin["year"]) ## returns A, B, C
 
                     sigpar = "_".join( ['M'+ str(mass), 'W'+width] )
 
@@ -1043,7 +1043,7 @@ class MakeLimits( ) :
 
                     self.allcards[sigpar+"_"+binid(obin)] =  card_path
 
-                cuttag = defs.selectcuttag(mass) ## returns A, B, C
+                cuttag = defs.selectcuttag(mass,obin["year"]) ## returns A, B, C
 
                 sigpar = "_".join( ['M'+ str(mass), 'W'+width] )
 

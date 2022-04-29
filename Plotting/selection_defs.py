@@ -22,8 +22,8 @@ def get_weight_str( ch = None ) :
 
     #weight_str = '(isinf(PUWeight)?1:PUWeight)*NLOWeight*prefweight*(isinf(jet_btagSF)?1:jet_btagSF)'
     weight_str = 'PUWeight*NLOWeight*prefweight*jet_btagSF'
-    weight_str_mu = weight_str + '*mu_trigSF*mu_idSF*mu_isoSF*mu_trkSF*ph_idSF*ph_psvSF'
-    weight_str_el = weight_str + '*el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF'
+    weight_str_mu = weight_str + '*mu_trigSF*mu_idSF*mu_isoSF*mu_trkSF*ph_idSF*ph_psvSF* ph_csevSF'
+    weight_str_el = weight_str + '*el_trigSF*el_idSF*el_recoSF*ph_idSF*ph_psvSF* ph_csevSF'
     if ch == "el":
         weight = weight_str_el
     elif ch == "mu":
@@ -202,23 +202,23 @@ def iphitophi(iphi):
 
 
 
-def makeselstring(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
+def makeselstring(ch="el", phpt = 80, leppt = 35, met = 40, year=2016, addition = ""):
     """ assemble selection strings """
-    selstrlist, weight = makeselstringlist(ch,phpt,leppt,met)
+    selstrlist, weight = makeselstringlist(ch,phpt,leppt,met,year)
     if addition:
         selstrlist.append(addition)
     selstr = " && ".join(selstrlist)
     return selstr, weight
 
-def makeselstringwweight(ch="el", phpt = 80, leppt = 35, met = 40, addition = ""):
+def makeselstringwweight(ch="el", phpt = 80, leppt = 35, met = 40, year=2016,addition = ""):
     """ assemble selection strings. Seems not being used anywhere"""
-    selstrlist, weight = makeselstringlist(ch,phpt,leppt,met)
+    selstrlist, weight = makeselstringlist(ch,phpt,leppt,met,year)
     if addition:
         selstrlist.append(addition)
     selstr = " && ".join(selstrlist)
     return weight+'* ( %s )'% selstr
 
-def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
+def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, year=2016):
     """ assemble selection strings
         return
             array of selections
@@ -253,9 +253,22 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
     #elif str(year)=='2018': deepjetveto = '(isData ? Sum$(jet_bTagDeepb>%f)==0 : jet_DeepJetSF_n==0)'%(0.2770)
     #else: print('bad year !!!')
 
-    sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto ] +  sel_ph
-    sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str,
-                                        Zveto_str, deepjetveto] + sel_ph
+    if str(year) == '2018':
+        ph_in_hem1516='(ph_phi[0] > -1.57 && ph_phi[0] < -0.87 && ph_eta[0]<-1.3)'
+        el_in_hem1516='(el_phi[0] > -1.57 && el_phi[0] < -0.87 && el_eta[0]<-1.3)'
+        met_in_hem1516='(met_phi > -1.57 && met_phi < -0.87)'
+        sel_base_hem1516_e = '(isData ? !( ('+ph_in_hem1516+'||'+el_in_hem1516+'||'+met_in_hem1516+') && runNumber>=319077):1)'
+        sel_base_hem1516_m = '(isData ? !( ('+ph_in_hem1516+'||'+met_in_hem1516+') && runNumber>=319077):1)'
+        run319077LumiRatio = '0.345'
+        if ch=="el":
+            weight=weight+'*(isData ? 1: '+'1-0.655*( '+ph_in_hem1516+'||'+el_in_hem1516+'||'+met_in_hem1516+' ) )'
+        if ch=="mu":
+            weight=weight+'*(isData ? 1: '+'1-0.655*( '+ph_in_hem1516+'||'+met_in_hem1516+' ) )'
+        sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto,sel_base_hem1516_m ] +  sel_ph
+        sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str, Zveto_str, deepjetveto,sel_base_hem1516_e] + sel_ph
+    else:
+        sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto ] +  sel_ph
+        sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str, Zveto_str, deepjetveto] + sel_ph
 
     if ch=="mu":
         return sel_mu_nominal, weight
@@ -263,32 +276,31 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40):
         return sel_el_nominal, weight
 
 
-
-def selectcuttag( mass ):
-    return selectcutstring( mass, "mu" )[0]
+def selectcuttag( mass ,year=2016):
+    return selectcutstring( mass, "mu",year )[0]
 
 def bkgfitlowbin( cuttag ):
     """ low range of bin content (the upper range is set to 2000 by default) """
     if cuttag == "A":
         return 220
 
-def kinedictgen( ch, addition = "" ):
+def kinedictgen( ch, year=2016,addition = "" ):
     """ define here cut-sets and tag as function of mass """
     leppt = 35
     if ch=='mu': leppt = 30
     cutsetdict = {
-               "A": dict( phpt = 80, leppt = leppt, met = 40, addition = addition),
+               "A": dict( phpt = 80, leppt = leppt, met = 40, year=year,addition = addition),
             }
     return cutsetdict
 
-def selectcutdictgen( ch, addition = "" ):
+def selectcutdictgen( ch, year=2016, addition = "" ):
     """ define here cut-sets and tag as function of mass """
-    kinedict = kinedictgen( ch , addition )
-    cutsetdict = { k: makeselstring(ch, **w) for k,w in kinedict.items()}
+    kinedict = kinedictgen( ch ,year, addition )
+    cutsetdict = { k: makeselstring(ch, **w) for k,w in kinedict.iteritems()}
     return cutsetdict
 
-def selectcutstring( mass, ch, addition = "" ):
+def selectcutstring( mass, ch,year=2016, addition = "" ):
     """ define here cut-sets and tag as function of mass """
-    cutsetdict = selectcutdictgen( ch, addition )
+    cutsetdict = selectcutdictgen( ch, year,addition )
     returner = lambda d: (d, cutsetdict[d])
     return returner("A")

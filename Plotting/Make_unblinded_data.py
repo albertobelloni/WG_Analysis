@@ -23,10 +23,11 @@ Date = '2022_01_27'
 for year in ['2016','2017','2018']:
     for ch in ['el','mu']:
         if ch == 'el':
-            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/Single*/Job*/tree.root')
-            if(year=='2018'): FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/EGamma/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/mseidel/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/SingleElectron/Job*/tree.root')
+            FileMap[year+'ph'] = glob.glob('/data/users/mseidel/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/SinglePhotonHltOlap/Job*/tree.root')
+            if(year=='2018'): FileMap[year+ch] = glob.glob('/data/users/mseidel/Resonances'+year+'/LepGamma_elg_'+Date+'/WithSF/EGamma/Job*/tree.root')
         if ch == 'mu':
-            FileMap[year+ch] = glob.glob('/data/users/yihuilai/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF/SingleMuon/Job*/tree.root')
+            FileMap[year+ch] = glob.glob('/data/users/mseidel/Resonances'+year+'/LepGamma_mug_'+Date+'/WithSF/SingleMuon/Job*/tree.root')
             
 print('Loaded FileMap')
 
@@ -66,14 +67,13 @@ def prepare_data(frac, year, ch, skimtree, skimfile):
     #Prepare skimed data
     names = ROOT.std.vector('string')()
     for n in FileMap[year+ch]: names.push_back(n)
+    if ch=='el': 
+        for n in FileMap[year+'ph']: names.push_back(n)
     d = ROOT.RDataFrame(treeIn, names)
-    selection , weight = defs.makeselstring('el',  80, 35,  40)
+    selection , weight = defs.makeselstring('el',  80, 35,  40,year)
     if ch=='mu':
-        selection , weight = defs.makeselstring('mu',  80, 30,  40)
+        selection , weight = defs.makeselstring('mu',  80, 30,  40,year)
     myfilter = d.Filter(selection).Range(1,0,frac)
-    #myfilter = d.Filter(selection)
-    #print(selection)
-    #print('make histo')
     Hmt = myfilter.Histo1D("mt_res")
     Hmt.Draw()
     myfilter.Snapshot(skimtree, skimfile)
@@ -2452,8 +2452,8 @@ skimfile     =  "skim_1in5.root"
 #makeFinalplots(data_outDir,skimtree)
 #exit()
 
-for year in ['2016','2017','2018']:
-#for year in ['2018']:#,'2017','2018']:
+#for year in ['2016','2017','2018']:
+for year in ['2018']:#,'2017','2018']:
     #goodnessOfFit(year,data_outDir,skimtree,skimfile)
     #makeRooMultiPdfWorkspace(year,data_outDir,skimtree,skimfile)
     for ch in ['el','mu']:

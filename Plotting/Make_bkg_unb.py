@@ -39,9 +39,9 @@ def main() :
         lepname = "e" if ch == "el" else "#mu"
         #labelname+=" scaled to 2016 luminosity"
         if ch == "el":
-            selection , weight = defs.makeselstring(ch,  80, 35,  40)
+            selection , weight = defs.makeselstring(ch,  80, 35,  40,options.year)
         else:
-            selection , weight = defs.makeselstring(ch,  80, 30,  40)
+            selection , weight = defs.makeselstring(ch,  80, 30,  40,options.year)
         if options.year == 2018:
             weight = weight.replace("prefweight","1")
         print(ch, samples)
