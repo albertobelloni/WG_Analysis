@@ -3545,9 +3545,11 @@ class SampleManager(SampleFrame) :
                 if self.dataFrame:
                     try:
 
-                        rdf_hist_resultptr = self. create_hist_rdfhelper( sample,
+                        rdf_hist_resultptr, count_orig, count_unique, count_sel = self. create_hist_rdfhelper( sample,
                                         varexp, selection, weight, draw_config.histpars)
                         rdf_hist = rdf_hist_resultptr.DrawCopy()
+                        rdf_hist.Scale(count_orig.GetValue()/count_unique.GetValue())
+                        print('counters orig/unique/selected:', count_orig.GetValue(), count_unique.GetValue(), count_sel.GetValue())
 
                         # save histogram to current sampleframe
                         if self.curr_sampleframe and rdf_hist_resultptr:
@@ -3610,11 +3612,12 @@ class SampleManager(SampleFrame) :
     def create_hist_rdfhelper( self, sample, varexp, selection, weight, histpars ):
 
         rdf = ROOT.RDataFrame(sample.chain)
+        count_orig = rdf.Count()
+        cols = ROOT.std.vector['string'](['runNumber', 'lumiSection', 'eventNumber'])
+        rdf = rdf.Filter(ROOT.FilterOnePerKind(), cols) # FIXME: can be removed once source samples are fixed
+        count_unique = rdf.Count()
         rdf = rdf.Filter(selection)
-        if sample.isData: # remove duplicated events in data
-            rdf = rdf.Define("category", "long(eventNumber)")
-            cols = ROOT.std.vector['string'](["category"])
-            rdf = rdf.Filter(ROOT.FilterOnePerKind(), cols)
+        count_sel = rdf.Count()
         rdf = rdf.Define('varexp', varexp)
         rdf = rdf.Define('weight', weight)
 
@@ -3622,7 +3625,7 @@ class SampleManager(SampleFrame) :
                              returnmodel = True )
         rdf_hist_resultptr = rdf.Histo1D( ht , 'varexp', 'weight')
 
-        return rdf_hist_resultptr
+        return rdf_hist_resultptr, count_orig, count_unique, count_sel
 
 
     #--------------------------------
@@ -5290,20 +5293,27 @@ ROOT.gInterpreter.Declare("""
 // "category" (where "category" is a random character).
 // It is using gCoreMutex, which is a read-write lock, to have a bit less contention between threads.
 class FilterOnePerKind {
-  std::unordered_set<long int> _seenCategories;
+  std::map<uint, std::map<uint, std::unordered_set<uint>>> _seenCategories;
 
 public:
-  bool operator()(long int category) {
+  bool operator()(uint run, uint lumi, uint event) {
     {
       R__READ_LOCKGUARD(ROOT::gCoreMutex); // many threads can take a read lock concurrently
-      if (_seenCategories.count(category) == 1) {
-        std::cout << "Filtering duplicate event " << category << std::endl;
+      if (_seenCategories.count(run) == 1
+          && _seenCategories[run].count(lumi) == 1
+          && _seenCategories[run][lumi].count(event) == 1) {
+        //std::cout << "Filtering duplicate event " << run << ',' << lumi  << ',' << event << std::endl;
         return false;
       }
     }
     // if we are here, `category` was not already in _seenCategories
     R__WRITE_LOCKGUARD(ROOT::gCoreMutex); // only one thread at a time can take the write lock
-    _seenCategories.insert(category);
+    
+    if (_seenCategories.count(run) == 0)
+      _seenCategories[run];
+    if (_seenCategories[run].count(lumi) == 0)
+      _seenCategories[run][lumi];
+    _seenCategories[run][lumi].insert(event);
     return true;
   }
 };
