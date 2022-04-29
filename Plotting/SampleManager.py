@@ -3548,7 +3548,8 @@ class SampleManager(SampleFrame) :
                         rdf_hist_resultptr, count_orig, count_unique, count_sel = self. create_hist_rdfhelper( sample,
                                         varexp, selection, weight, draw_config.histpars)
                         rdf_hist = rdf_hist_resultptr.DrawCopy()
-                        rdf_hist.Scale(count_orig.GetValue()/count_unique.GetValue())
+                        if not sample.isData:
+                            rdf_hist.Scale(count_orig.GetValue()/count_unique.GetValue())
                         print('counters orig/unique/selected:', count_orig.GetValue(), count_unique.GetValue(), count_sel.GetValue())
 
                         # save histogram to current sampleframe
