@@ -66,12 +66,12 @@ def get_muon_sf(options) :
     #muon_sf.add_var( 'FilePathTrigGH', '' )
     #muon_sf.add_var( 'HistTrigGH', '' )
 
-    muon_sf.add_var( 'FilePathIdBCDEF', '%s/2017/RunBCDEF_mu_SF_ID.root' %base_path )
+    muon_sf.add_var( 'FilePathIdBCDEF', '%s/2017/RunBCDEF_SF_ID_syst.root' %base_path )
     muon_sf.add_var( 'HistIdBCDEF','NUM_TightID_DEN_genTracks_pt_abseta' )
     #muon_sf.add_var( 'FilePathIdGH', '' )
     #muon_sf.add_var( 'HistIdGH', '' )
 
-    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2017/RunBCDEF_mu_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2017/RunBCDEF_SF_ISO_syst.root' %base_path )
     muon_sf.add_var ('HistIsoBCDEF','NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta')
     #muon_sf.add_var( 'FilePathIsoGH', '' )
     #muon_sf.add_var ('HistIsoGH','')

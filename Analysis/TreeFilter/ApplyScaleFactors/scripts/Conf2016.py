@@ -70,14 +70,14 @@ def get_muon_sf(options) :
     muon_sf.add_var( 'HistTrigGHdata', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesDATA/pt_abseta_DATA' )
     muon_sf.add_var( 'HistTrigGHmc', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/efficienciesMC/pt_abseta_MC' )
 
-    muon_sf.add_var( 'FilePathIdBCDEF', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunBCDEF_SF_ID.root' %base_path )
+    muon_sf.add_var( 'FilePathIdBCDEF', '%s/2016/RunBCDEF_SF_ID.root' %base_path )
     muon_sf.add_var( 'HistIdBCDEF','NUM_TightID_DEN_genTracks_eta_pt' )
-    muon_sf.add_var( 'FilePathIdGH', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunGH_SF_ID.root' %base_path )
+    muon_sf.add_var( 'FilePathIdGH', '%s/2016/RunGH_SF_ID.root' %base_path )
     muon_sf.add_var( 'HistIdGH', 'NUM_TightID_DEN_genTracks_eta_pt' )
 
-    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunBCDEF_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2016/RunBCDEF_SF_ISO.root' %base_path )
     muon_sf.add_var ('HistIsoBCDEF','NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt')
-    muon_sf.add_var( 'FilePathIsoGH', '%s/2016/EfficienciesStudies_2016_legacy_rereco_rootfiles_mu_RunGH_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoGH', '%s/2016/RunGH_SF_ISO.root' %base_path )
     muon_sf.add_var ('HistIsoGH','NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt')
 
     return muon_sf
