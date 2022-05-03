@@ -3552,7 +3552,7 @@ class SampleManager(SampleFrame) :
                         n_unique = float(count_unique.GetValue())
                         n_sel    = float(count_sel.GetValue())
                         if not sample.isData:
-                            sample.total_events_onthefly *= n_unique / n_orig
+                            rdf_hist.Scale(n_orig/n_unique)
                         print('counters orig/unique/selected:', n_orig, n_unique, n_sel )
 
                         # save histogram to current sampleframe
