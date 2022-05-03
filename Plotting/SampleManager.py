@@ -3548,9 +3548,12 @@ class SampleManager(SampleFrame) :
                         rdf_hist_resultptr, count_orig, count_unique, count_sel = self. create_hist_rdfhelper( sample,
                                         varexp, selection, weight, draw_config.histpars)
                         rdf_hist = rdf_hist_resultptr.DrawCopy()
+                        n_orig   = float(count_orig.GetValue())
+                        n_unique = float(count_unique.GetValue())
+                        n_sel    = float(count_sel.GetValue())
                         if not sample.isData:
-                            rdf_hist.Scale(count_orig.GetValue()/count_unique.GetValue())
-                        print('counters orig/unique/selected:', count_orig.GetValue(), count_unique.GetValue(), count_sel.GetValue())
+                            sample.total_events_onthefly *= n_unique / n_orig
+                        print('counters orig/unique/selected:', n_orig, n_unique, n_sel )
 
                         # save histogram to current sampleframe
                         if self.curr_sampleframe and rdf_hist_resultptr:

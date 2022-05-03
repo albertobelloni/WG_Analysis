@@ -246,7 +246,6 @@ def main() :
 def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
 
     outdir = '%s/%s_%i' %(options.outputDir, name, options.year)
-    default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': '', 'drawsignal': False}
     default_label_config = {'labelStyle' : 'fancy2016'}
     default_legend_config = {'fillalpha': 0.5, 'siglegPos': 'bottom'}
 
@@ -261,8 +260,10 @@ def MakeWCRPlots( sampManMu, sampManEl, name = 'WCRPlots' ) :
         
         selection = defs.get_base_selection( channel, options.year )
         weight_str = defs.get_weight_str()
-        full_sel_str = ' %s * ( %s ) ' %( weight_str, selection )
+        full_sel_str = selection
         
+        default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': '', 'drawsignal': False, 'weight': weight_str}
+
 
         # TODO: iso can only be plotted for reprocessed RecoResonance ntuples
         # sampMan.Draw( 'mu_pfIso' if channel == 'mu' else 'el_pfIsoRho', full_sel_str, (40, 0, 2), 
@@ -393,7 +394,6 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
 
     name = 'ZCRPlots'
     outdir = '%s/%s_%i' %(options.outputDir, name, options.year)
-    default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': '', 'drawsignal': False}
 
     zchannels = {
         'mumu': sampManMu,
@@ -405,7 +405,9 @@ def MakeZCRPlots( sampManMu, sampManEl ) :
         
         selection = defs.get_base_selection( channel )
         weight_str = defs.get_weight_str()
-        full_sel_str = ' %s * ( %s ) ' %( weight_str, selection )
+        full_sel_str = selection
+        
+        default_hist_config = {'logy' : True, 'ymin': 100, 'rmin': 0.5, 'rmax': 1.5, 'doratio' : 1, 'unblind': True, 'overflow': False, 'xunit': '', 'drawsignal': False, 'weight': weight_str}
         
         EG_eta_bins = [-2.91667, -2.5, -2, -1.566, -1.444, -1, -0.5, 0, 0.5, 1, 1.444, 1.566, 2, 2.5, 2.91667]
         sampMan.Draw( '%s_eta[0]' % channel[0:2], full_sel_str, EG_eta_bins, 
