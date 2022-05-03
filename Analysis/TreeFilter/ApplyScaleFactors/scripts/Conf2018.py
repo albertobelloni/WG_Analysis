@@ -71,15 +71,15 @@ def get_muon_sf(options) :
     muon_sf.add_var( 'HistTrigGHdata', 'IsoMu24_PtEtaBins/efficienciesDATA/pt_abseta_DATA' )
     muon_sf.add_var( 'HistTrigGHmc', 'IsoMu24_PtEtaBins/efficienciesMC/pt_abseta_MC' )
 
-    muon_sf.add_var( 'FilePathIdBCDEF', '%s/2018/RunABCD_mu_SF_ID.root' %base_path )
+    muon_sf.add_var( 'FilePathIdBCDEF', '%s/2018/RunABCD_SF_ID.root' %base_path )
     muon_sf.add_var( 'HistIdBCDEF','NUM_TightID_DEN_TrackerMuons_pt_abseta' )
-    muon_sf.add_var( 'FilePathIdGH', '%s/2018/RunABCD_mu_SF_ID.root' %base_path )
-    muon_sf.add_var( 'HistIdGH', 'NUM_TightID_DEN_TrackerMuons_pt_abseta' )
+    # muon_sf.add_var( 'FilePathIdGH', '' )
+    # muon_sf.add_var( 'HistIdGH', '' )
 
-    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2018/RunABCD_mu_SF_ISO.root' %base_path )
+    muon_sf.add_var( 'FilePathIsoBCDEF', '%s/2018/RunABCD_SF_ISO.root' %base_path )
     muon_sf.add_var ('HistIsoBCDEF','NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta')
-    muon_sf.add_var( 'FilePathIsoGH', '%s/2018/RunABCD_mu_SF_ISO.root' %base_path )
-    muon_sf.add_var ('HistIsoGH','NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta')
+    # muon_sf.add_var( 'FilePathIsoGH', '' )
+    # muon_sf.add_var ('HistIsoGH','')
 
     return muon_sf
 
