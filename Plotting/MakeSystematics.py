@@ -283,7 +283,9 @@ metlist=[
             "JetEn",
             "MuonEn",
             "ElectronEn",
+            "ElectronRes",
             "PhotonEn",
+            "PhotonRes",
             "UnclusteredEn", #--/Up/Down
         ]
 qcdscaleweightlist = ["muR1muF2",
@@ -342,10 +344,18 @@ for key, (selfull, weight) in cutsetdict.items():
             sel = sel.replace("el_pt", "el_pt_ScaleUp")
         if tag == "ElectronEnDown":
             sel = sel.replace("el_pt", "el_pt_ScaleDown")
+        if tag == "ElectronResUp":
+            sel = sel.replace("el_pt", "el_pt_SigmaUp")
+        if tag == "ElectronResDown":
+            sel = sel.replace("el_pt", "el_pt_SigmaDown")
         if tag == "PhotonEnUp":
             sel = sel.replace("ph_pt", "ph_pt_ScaleUp")
         if tag == "PhotonEnDown":
             sel = sel.replace("ph_pt", "ph_pt_ScaleDown")
+        if tag == "PhotonResUp":
+            sel = sel.replace("ph_pt", "ph_pt_SigmaUp")
+        if tag == "PhotonResDown":
+            sel = sel.replace("ph_pt", "ph_pt_SigmaDown")
         selection_list[key][tag] = dict( w = w, sel = sel, var = var)
 
     ### muon and electron scale factors

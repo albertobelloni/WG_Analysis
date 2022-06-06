@@ -79,7 +79,7 @@ testfunc = "_atlas"
 #testfunc = "_dijet"
 #testfunc = '_vvdijet'
 
-sourceOfBKG = 'bkgfit_data'
+sourceOfBKG = 'bkgfit_data_filter'
 injectsignal='1'
 
 # dijet 1,2,3,4: 0,1,2,3
@@ -90,8 +90,8 @@ genindex='2'
 fitindex='-1'
 
 ntoy = '150'
-rseed = '160'
-rname = '_expow2enve_160'
+rseed = '371'
+rname = '_expowTo'
 
 options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg/"
 
@@ -557,8 +557,8 @@ class MakeLimits( ) :
                                sys_error = ['CMS_ph_eff','CMS_ph_scale','CMS_mu_eff','CMS_mu_scale','CMS_mu_trig','pdf','qcd_scale', 'CMS_jer','CMS_jec','CMS_pile','CMS_bjetsf','CMS_psv']
                            xs[labelStyle] = array( 'd' )
                            ys[labelStyle] = array( 'd' )
-                           totunc=0
                            for isigm in signal_masses:
+                               totunc=0
                                xs[labelStyle].append( isigm )
                                for isys in sys_error:
                                    sigkey = "M%i_W%s_%s%s" %(isigm,wid,ch,year)
@@ -570,7 +570,6 @@ class MakeLimits( ) :
                                        syseDown = float(self.signals[sigkey]["sys"][isys][0]) 
                                    totunc+=( 100*(abs(syseUp-1)+abs(syseDown-1))/2.0 )**2
                                ys[labelStyle].append( ROOT.TMath.Sqrt(totunc) )
-
                            Graphs[labelStyle] = ROOT.TGraph( n, xs[labelStyle],ys[labelStyle])
                            Graphs[labelStyle].SetMarkerStyle(20)
                            Graphs[labelStyle].SetMarkerColor(graphColors[i])
@@ -627,8 +626,6 @@ class MakeLimits( ) :
             c.SaveAs('sys_all.C')
             input("")
             exit()
-
-
             for ch in ['el','mu']:
                 for wid in ['5','0p01']:
                     for year in ['2016','2017','2018']:
@@ -874,6 +871,15 @@ class MakeLimits( ) :
              ("mu_trkSFUP", "mu_trkSFDN"),
              ("mu_isoSFUP", "mu_isoSFDN"),]
 
+        eltrnames  = ( 'el_trigSFUP',    'el_trigSFDN' )
+        elidnames  = ( 'el_idSFUP',      'el_idSFDN'   )
+        elrecnames = ('el_recoSFUP', 'el_recoSFDN')
+        phidnames  = ( 'ph_idSFUP',      'ph_idSFDN'   )
+        phpsnames  = ( 'ph_psvSFUP',     'ph_psvSFDN'  )
+        mutrnames  = ( 'mu_trigSFUP',    'mu_trigSFDN' )
+        muidnames  = ( 'mu_idSFUP',      'mu_idSFDN'   )
+        mutrknames = ("mu_trkSFUP", "mu_trkSFDN")
+        muisonames = ("mu_isoSFUP", "mu_isoSFDN")
         bjetsfnames= ( 'jet_btagSFUP',   'jet_btagSFDN'   )
         prefnames  = ( 'prefup',         'prefdown'    )
         punames    = ( 'PUUP5',          'PUDN5'       )
@@ -881,17 +887,12 @@ class MakeLimits( ) :
                        'muR2muF1',       'muR2muF2',
                        'muRp5muF1',      'muRp5muFp5'  )
         pdfnames   = ['NNPDF3.0:Member%i'%i for i in range(101)]
-        mutrnames  = ( 'mu_trigSFUP',    'mu_trigSFDN' )
-        eltrnames  = ( 'el_trigSFUP',    'el_trigSFDN' )
         jecnames   = ( 'JetEnUp',        'JetEnDown'   )
         jernames   = ( 'JetResUp',       'JetResDown'  )
-        phidnames  = ( 'ph_idSFUP',      'ph_idSFDN'   )
-        phpsnames  = ( 'ph_psvSFUP',     'ph_psvSFDN'  )
-        muidnames  = ( 'mu_idSFUP',      'mu_idSFDN'   )
-        elidnames  = ( 'el_idSFUP',      'el_idSFDN'   )
         muennames  = ( 'MuonEnUp',       'MuonEnDown'  )
         elennames  = ( 'ElectronEnUp',   'ElectronEnDown')
         phennames  = ( 'PhotonEnUp',     'PhotonEnDown' )
+        uncnames   = ('UnclusteredEnUp', 'UnclusteredEnDown')
 
 
         newsysdict = recdd()
@@ -909,24 +910,31 @@ class MakeLimits( ) :
         ## trigger
         if ch == "mu":
             newsysdict["CMS_mu_trig"] = tuple(sysdict[s]/100.+1 for s in mutrnames)
+            newsysdict["CMS_mu_eff"]  = tuple(sysdict[s]/100.+1 for s in muidnames)
+            newsysdict["CMS_mu_trk"] = tuple(sysdict[s]/100.+1 for s in mutrknames)
+            newsysdict["CMS_mu_iso"] = tuple(sysdict[s]/100.+1 for s in muisonames)
+            newsysdict["CMS_mu_scale"]  = tuple(sysdict[s]/100.+1 for s in muennames)
+            
         if ch == "el":
             newsysdict["CMS_el_trig"] = tuple(sysdict[s]/100.+1 for s in eltrnames)
+            newsysdict["CMS_el_eff"]  = tuple(sysdict[s]/100.+1 for s in elidnames)
+            newsysdict["CMS_el_rec"]  = tuple(sysdict[s]/100.+1 for s in elrecnames)
+            newsysdict["CMS_el_scale"]  = tuple(sysdict[s]/100.+1 for s in elennames)
 
+        ## ph energy
+        newsysdict["CMS_ph_scale"]  = tuple(sysdict[s]/100.+1 for s in phennames)
         ## btag SF
         newsysdict["CMS_bjetsf"]  = tuple(sysdict[s]/100.+1 for s in bjetsfnames)
-
         ## PU
         newsysdict["CMS_pile"] = tuple(sysdict[s]/100.+1 for s in punames)
-
         ## JEC
         newsysdict["CMS_jec"]  = tuple(sysdict[s]/100.+1 for s in jecnames)
-
         ## JER
         newsysdict["CMS_jer"]  = tuple(sysdict[s]/100.+1 for s in jernames)
-
+        ## Uncluster
+        newsysdict["CMS_unc"]  = tuple(sysdict[s]/100.+1 for s in uncnames)
         ## ph ID
         newsysdict["CMS_ph_eff"]  = tuple(sysdict[s]/100.+1 for s in phidnames)
-
         ## ph PSV
         newsysdict["CMS_psv"]  = tuple(sysdict[s]/100.+1 for s in phpsnames)
 
@@ -934,25 +942,6 @@ class MakeLimits( ) :
         if newsysdict["CMS_psv"][0]>1.5  or newsysdict["CMS_psv"][1]>1.5:
             newsysdict["CMS_psv"]  = None
 
-
-        ## ph energy
-        newsysdict["CMS_ph_scale"]  = tuple(sysdict[s]/100.+1 for s in phennames)
-
-        ## mu ID
-        if ch == "mu":
-            newsysdict["CMS_mu_eff"]  = tuple(sysdict[s]/100.+1 for s in muidnames)
-
-        ## el ID
-        if ch == "el":
-            newsysdict["CMS_el_eff"]  = tuple(sysdict[s]/100.+1 for s in elidnames)
-
-        ## mu scale
-        if ch == "mu":
-            newsysdict["CMS_mu_scale"]  = tuple(sysdict[s]/100.+1 for s in muennames)
-
-        ## el scale
-        if ch == "el":
-            newsysdict["CMS_el_scale"]  = tuple(sysdict[s]/100.+1 for s in elennames)
 
         ## prefiring
         newsysdict["CMS_pref"]  = tuple(sysdict[s]/100.+1 for s in prefnames)
@@ -1139,8 +1128,8 @@ class MakeLimits( ) :
             all_binids.append(bin_id)
             if self.noShapeUnc:
                 card_entries.append( 'shapes Resonance %s %s %s:%s'\
-                  #%( bin_id, sig['file'], sig['workspace'], sig['pdf'] ) ) 
-                  %( bin_id, sig['file'].replace('/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg/','.'), sig['workspace'], sig['pdf'] ) ) # For exo-datacards -- Yihui
+                  %( bin_id, sig['file'], sig['workspace'], sig['pdf'] ) ) 
+                  #%( bin_id, sig['file'].replace('/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg/','.'), sig['workspace'], sig['pdf'] ) ) # For exo-datacards -- Yihui
             else:
                 card_entries.append( 'shapes Resonance %s %s %s:%s %s:%s'\
                   %( bin_id, sig['file'], sig['workspace'], sig['pdf'], sig['workspace'], sig['pdf_sys'] ) )
@@ -1152,9 +1141,9 @@ class MakeLimits( ) :
                 if options.useHistTemp :
                     bkg_entry = bkg_entry.replace('dijet', 'datahist' )
                 card_entries.append( 'shapes %s %s %s %s:%s' %( bkgname.ljust( max_name_len ),
-                    bin_id, 'data/'+str(ibin['year'])+'/workspace_all.root',bkg.GetWSName(),
+                    #bin_id, 'data/'+str(ibin['year'])+'/workspace_all.root',bkg.GetWSName(),
                     #bin_id, bkg.GetOutputName(options.outputDir,**ibin).ljust( max_path_len ).replace('/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg/','.'), bkg.GetWSName(), # For exo-datacards -- Yihui
-                    #bin_id, bkg.GetOutputName(options.outputDir,**ibin).ljust( max_path_len ), bkg.GetWSName(),
+                    bin_id, bkg.GetOutputName(options.outputDir,**ibin).ljust( max_path_len ), bkg.GetWSName(),
                     bkg.GetPDFName( self.var , ibin['channel'] + cuttag, ibin['year']) ) )
 
         for ibin in viablebins:
@@ -1163,8 +1152,8 @@ class MakeLimits( ) :
             #temp no toydata -- Yihui
             #data = self.datas[self.dataname+binid(ibin)]
             if options.usedata:
-                card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, 'data/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) ) # For exo-datacards -- Yihui
-                #card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, options.baseDir+'/'+sourceOfBKG+'/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) )
+                #card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, 'data/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) ) # For exo-datacards -- Yihui
+                card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, options.baseDir+'/'+sourceOfBKG+'/'+str(ibin['year'])+'/workspace_all.root', 'workspace_all', 'data_'+str(ibin['channel'])+'A'+str(ibin['year'])+'_mt_res_base' ) )
             else:
                 card_entries.append( 'shapes data_obs %s %s %s:%s' %( bin_id, data['file'], data['workspace'], data['data'][cuttag] ) )
 
@@ -1539,7 +1528,7 @@ class MakeLimits( ) :
     def prepare_background_functions_helper(self, bkgn, ibin):
         print((" prepare background functions for ", bkgn))
 
-        fname = '%s/bkgfit/%i/%s' %( self.baseDir, ibin['year'],
+        fname = '%s/%s//%i/%s' %( self.baseDir, sourceOfBKG,ibin['year'],
                                      self.wskeys[bkgn].GetRootFileName() )
         #Use data as bkg template ---Yihui
         if options.usedata:
@@ -1964,19 +1953,23 @@ class MakeLimits( ) :
                 #command = '\n combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 >& %s \n' %(card, 'goodnessdata'+log_file)
                 #command += 'combineTool.py -M GoodnessOfFit --algo=saturated %s -n .saturated -v 3 -t 500 -s 1234 --toysFreq  >& %s \n' %(card, 'goodnesstoy'+log_file)
                 command =''
-                #for i in range(9):
-                for i in [0,4,8]:
+                for i in range(9):
+                #for i in [0,4,8]:
                     command += '\n combineTool.py -M GoodnessOfFit --algo=KS '+card+' -n .KS  --fixedSignalStrength=0 --setParameters  pdf_index_'+log_file[-10:-4]+'='+str(i)+' --freezeParameters pdf_index_'+log_file[-10:-4]+' -n pdf'+str(i)
-                    command += '\n combineTool.py -M GoodnessOfFit --algo=KS '+card+' -n .KS  --fixedSignalStrength=0 --setParameters  pdf_index_'+log_file[-10:-4]+'='+str(i)+' --freezeParameters pdf_index_'+log_file[-10:-4]+' -n t0pdf'+str(i)+' -t 100 -s 130 '
+                    command += '\n combineTool.py -M GoodnessOfFit --algo=KS '+card+' -n .KS  --fixedSignalStrength=0 --setParameters  pdf_index_'+log_file[-10:-4]+'='+str(i)+' --freezeParameters pdf_index_'+log_file[-10:-4]+' -n t0pdf'+str(i)+' -t  '+str(ntoy)+' -s '+str(rseed)
 
 
             if options.BiasStudy:
                 #directly generate and fit
-                command = '\n combine -d '+ card + ' -M GenerateOnly --setParameters  pdf_index_el2016='+genindex+',pdf_index_el2017='+genindex+',pdf_index_el2018='+genindex+',pdf_index_mu2016='+genindex+',pdf_index_mu2017='+genindex+',pdf_index_mu2018='+genindex+' --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 --toysFrequentist -t '+str(ntoy)+' --expectSignal '+str(injectsignal)+' --saveToys -m '+str(mass) +' -s '+str(rseed) + ' -n ' + rname
-                if fitindex!='-1':
-                    command += '\n combine -d '+ card + ' -M FitDiagnostics  --setParameters pdf_index_el2016='+fitindex+',pdf_index_el2017='+fitindex+',pdf_index_el2018='+fitindex+',pdf_index_mu2016='+fitindex+',pdf_index_mu2017='+fitindex+',pdf_index_mu2018='+fitindex+'  --toysFile higgsCombine'+rname+'.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  -t '+str(ntoy)+' --rMin -20 --rMax 20 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018  --cminDefaultMinimizerStrategy=0' + ' -s '+str(rseed) + ' -n ' + rname
-                else:
-                    command += '\n combine -d '+ card + ' -M FitDiagnostics  --toysFile higgsCombine'+rname+'.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  -t '+str(ntoy)+' --rMin -20 --rMax 20 --cminDefaultMinimizerStrategy=0' + ' -s '+str(rseed) + ' -n ' + rname
+                command = '\n combine -d '+ card + ' -M GenerateOnly --setParameters  pdf_index_el2016='+genindex+',pdf_index_el2017='+genindex+',pdf_index_el2018='+genindex+',pdf_index_mu2016='+genindex+',pdf_index_mu2017='+genindex+',pdf_index_mu2018='+genindex+' --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018 --toysFrequentist -t '+str(ntoy)+' --expectSignal '+str(injectsignal)+' --saveToys -m '+str(mass) +' -s '+str(rseed) + ' -n ' + rname+str(rseed)
+                for fitindex in ['0','1','2']:
+                    command += '\n combine -d '+ card + ' -M FitDiagnostics  --setParameters pdf_index_el2016='+fitindex+',pdf_index_el2017='+fitindex+',pdf_index_el2018='+fitindex+',pdf_index_mu2016='+fitindex+',pdf_index_mu2017='+fitindex+',pdf_index_mu2018='+fitindex+'  --toysFile higgsCombine'+rname+'.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  -t '+str(ntoy)+' --rMin -20 --rMax 20 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018  --cminDefaultMinimizerStrategy=0' + ' -s '+str(rseed) + ' -n ' + rname+fitindex+str(rseed)
+                command += '\n combine -d '+ card + ' -M FitDiagnostics  --toysFile higgsCombine'+rname+'.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  -t '+str(ntoy)+' --rMin -20 --rMax 20 --cminDefaultMinimizerStrategy=0' + ' -s '+str(rseed) + ' -n ' + rname+'env'+str(rseed)
+
+                #if fitindex!='-1':
+                #    command += '\n combine -d '+ card + ' -M FitDiagnostics  --setParameters pdf_index_el2016='+fitindex+',pdf_index_el2017='+fitindex+',pdf_index_el2018='+fitindex+',pdf_index_mu2016='+fitindex+',pdf_index_mu2017='+fitindex+',pdf_index_mu2018='+fitindex+'  --toysFile higgsCombine'+rname+'.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  -t '+str(ntoy)+' --rMin -20 --rMax 20 --freezeParameters pdf_index_el2016,pdf_index_el2017,pdf_index_el2018,pdf_index_mu2016,pdf_index_mu2017,pdf_index_mu2018  --cminDefaultMinimizerStrategy=0' + ' -s '+str(rseed) + ' -n ' + rname
+                #else:
+                #    command += '\n combine -d '+ card + ' -M FitDiagnostics  --toysFile higgsCombine'+rname+'.GenerateOnly.mH'+str(mass)+'.'+str(rseed)+'.root  -t '+str(ntoy)+' --rMin -20 --rMax 20 --cminDefaultMinimizerStrategy=0' + ' -s '+str(rseed) + ' -n ' + rname
                 #Fit with enve, and generate with envelope
                 #command = '\n combineTool.py -M MultiDimFit -m '+str(mass)+' -d '+ card + ' --there --robustFit 1 --cminDefaultMinimizerStrategy 0 -v 3 --saveWorkspace --noMCbonly 1 --freezeParameters r --setParameters r=0  -n Envelope \n'
                 #command += '\n combineTool.py '+ 'higgsCombineEnvelope.MultiDimFit.mH'+str(mass)+'.root ' + ' -M GenerateOnly --saveToys -m '+str(mass)+' --toysFrequentist -t %s --snapshotName "MultiDimFit" --expectSignal %s  --rMin -1 --rMax 5 -s %s \n'%(ntoy, injectsignal, rseed)
@@ -2087,9 +2080,9 @@ class MakeLimits( ) :
                 mass = int(sigpar.split('_')[0].lstrip("M"))
                 ch = sigpar.split('_')[2]
                 ##only run all -- Yihui
-                #if ch!='all':
+                if ch!='all':
                 #if '2017' not in ch:
-                #    continue
+                    continue
                 #print sigpar, "w %s m %i ch %s" %( wid, mass, ch)
 
                 fname = '%s/Width%s/%s/Mass%i/run_combine_%s.sh' %( self.outputDir, wid, ch, mass, sigpar )

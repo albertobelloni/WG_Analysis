@@ -309,6 +309,8 @@ metlist=[
             "ElectronEn",
             "PhotonEn",
             "UnclusteredEn", #--/Up/Down
+            "ElectronRes",
+            "PhotonRes",
         ]
 
 eventweightlist = ["muR1muF2",
