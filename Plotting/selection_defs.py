@@ -32,7 +32,7 @@ def get_weight_str( ch = None ) :
         weight = weight_str
     else:
         weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * jet_btagSF)'
-        #weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * (isinf(jet_btagSF)?1:jet_btagSF))'
+        #weight =' ( isData ? isData : PUWeight * NLOWeight * prefweight * el_trigSF * el_idSF * el_recoSF * ph_idSF * ph_psvSF * ph_csevSF * mu_trigSF * mu_isoSF * mu_trkSF * mu_idSF * jet_btagSF)'
     return weight
 
 
@@ -261,9 +261,9 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, year=2016):
         sel_base_hem1516_m = '(isData ? !( ('+ph_in_hem1516+'||'+met_in_hem1516+') && runNumber>=319077):1)'
         run319077LumiRatio = '0.345'
         if ch=="el":
-            weight=weight+'*(isData ? 1: '+'1-0.655*( '+ph_in_hem1516+'||'+el_in_hem1516+'||'+met_in_hem1516+' ) )'
+            weight=weight+'*(isData ? 1: '+'1-0.65*( '+ph_in_hem1516+'||'+el_in_hem1516+'||'+met_in_hem1516+' ) )'
         if ch=="mu":
-            weight=weight+'*(isData ? 1: '+'1-0.655*( '+ph_in_hem1516+'||'+met_in_hem1516+' ) )'
+            weight=weight+'*(isData ? 1: '+'1-0.65*( '+ph_in_hem1516+'||'+met_in_hem1516+' ) )'
         sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto,sel_base_hem1516_m ] +  sel_ph
         sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str, Zveto_str, deepjetveto,sel_base_hem1516_e] + sel_ph
     else:
