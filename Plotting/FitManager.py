@@ -9,9 +9,9 @@ import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps
 from DrawConfig import DrawConfig
-#gSystem.Load("My_double_CB/RooDoubleCB_cc.so")
-#from ROOT import RooDoubleCB
-import json
+from pprint import pprint
+ROOT.gSystem.Load('My_double_CB/RooDoubleCB_cc.so')
+
 
 ROOT.gStyle.SetPalette(ROOT.kBird)
 
