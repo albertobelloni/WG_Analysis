@@ -44,12 +44,13 @@ parser.add_argument( '--BiasStudy',        action='store_true', help='Add other 
 options = parser.parse_args()
 
 _WLEPBR = (1.-0.6741)
-_XSFILE   = 'cross_sections/photon16.py' # TODO: use file with signal xs = 1 pb or 1 fb
-_LUMI16   = 36000
-_LUMI17   = 41000
-_LUMI18   = 59740
+#_XSFILE   = 'cross_sections/photon16_smallsig.py'
+_XSFILE   = 'cross_sections/photon_expect.py'
+_LUMI16   = 36330*0.2
+_LUMI17   = 41530*0.2
+_LUMI18   = 59740*0.2
 
-DEBUG = 1
+DEBUG = 0
 
 tColor_Off = "\033[0m"                    # Text Reset
 tPurple = "\033[0;35m%s"+tColor_Off       # Purple
@@ -160,7 +161,8 @@ def main() :
         raise RuntimeError
 
     if options.outputDir is None :
-        options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg"
+        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/"
+
     if options.outputDir is not None :
         if not os.path.isdir( options.outputDir ) :
             os.makedirs( options.outputDir )
@@ -1451,15 +1453,10 @@ class MakeLimits( ) :
                        norm = int(norms[0])
                    else :
                        norm = data_norm
-                   #norm=norm*2
-                   print "toy data #: ",norm
-                   #raw_input("generating")
-                   # FIXME: crashes, maybe something wrong with the environment?
-                   print(ROOT.__file__)
-                   cmd_arg = ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
-                                             'toydata_%s' %suffix )
-                   dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm), cmd_arg)
-
+                   print(("toy data #: ",norm))
+                   dataset = pdfs[0].generate(ROOT.RooArgSet(xvar) , int(norm),
+                             ROOT.RooCmdArg( 'Name', 0, 0, 0, 0,
+                                             'toydata_%s' %suffix ) )
            else :
                print(("norms: ", norms))
                total = sum( [int(x) for x in norms ] )
@@ -1532,7 +1529,7 @@ class MakeLimits( ) :
     def prepare_background_functions_helper(self, bkgn, ibin):
         print((" prepare background functions for ", bkgn))
 
-        fname = '%s/data/bkgfit/%i/%s' %( self.baseDir, ibin['year'],
+        fname = '%s/%s//%i/%s' %( self.baseDir, sourceOfBKG,ibin['year'],
                                      self.wskeys[bkgn].GetRootFileName() )
         #Use data as bkg template ---Yihui
         if options.usedata:
@@ -1664,7 +1661,10 @@ class MakeLimits( ) :
         ## get the cross section and scale factor information
         scale = self.weightMap['ResonanceMass%d'%mass]['cross_section'] * lumi(ibin)
 
-        fname= '%s/data/sigfit/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
+        fname= '%s/sigfit/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
+        if options.paramodel :
+            print("will use the parameterized model! ")
+            fname= '%s/sigfit_para/%i/ws%s_%s.root' %( self.baseDir, ibin['year'], self.signame, inpar )
         wsname = "ws" + self.signame + '_' + inpar
         if DEBUG:
             print((fname, " : ", wsname))

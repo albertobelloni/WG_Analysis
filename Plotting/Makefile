@@ -182,8 +182,5 @@ workspaces :
 	#python MakeWorkspaces.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doWGamma --outputDir ${OUTPUTMAIN}/Workspaces
 	python MakeSignalWS.py --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG} --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --doSignal --outputDir ${OUTPUTMAIN}/Workspaces
 
-fits :
-	python MakeFits.py --baseDir ${OUTPUTMAIN}/ --combineDir /data/users/yihuilai/combine/CMSSW_11_0_0/src/HiggsAnalysis/CombinedLimit --doVarOpt --outputDir ${OUTPUTMAIN}/data/higgs  --condor
-
 signalfits : 
 	python MakeResSignalFits.py --baseDirMu  ${DIR_MUG} --baseDirEl ${DIR_ELG} --outputDir ${OUTPUTMAIN}/SignalFits
