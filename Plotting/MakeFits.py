@@ -161,14 +161,14 @@ def main() :
         raise RuntimeError
 
     if options.outputDir is None :
-        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/"
+        options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg"
 
     if options.outputDir is not None :
         if not os.path.isdir( options.outputDir ) :
             os.makedirs( options.outputDir )
 
     if options.baseDir is None :
-        options.baseDir = "/data/users/yihuilai/WG_Analysis/Plotting/data"
+        options.baseDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/"
 
     if options.combineDir == None:
         options.combineDir = "/data/users/yihuilai/combine/CMSSW_11_0_0/src/"
