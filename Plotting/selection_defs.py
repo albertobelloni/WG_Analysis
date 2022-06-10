@@ -253,7 +253,22 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, year=2016):
     #elif str(year)=='2018': deepjetveto = '(isData ? Sum$(jet_bTagDeepb>%f)==0 : jet_DeepJetSF_n==0)'%(0.2770)
     #else: print('bad year !!!')
 
+    ####### MET filter
     if str(year) == '2018':
+        MET_Filter_mc = 'Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_ecalBadCalibReducedMINIAODFilter'
+        MET_Filter_data = 'Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_ecalBadCalibReducedMINIAODFilter && Flag_eeBadScFilter'
+    elif str(year) == '2017':
+        MET_Filter_mc = 'Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_ecalBadCalibReducedMINIAODFilter'
+        MET_Filter_data = 'Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_ecalBadCalibReducedMINIAODFilter && Flag_eeBadScFilter'
+    elif str(year) == '2016':
+        MET_Filter_mc = 'Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter'
+        MET_Filter_data = 'Flag_goodVertices && Flag_globalSuperTightHalo2016Filter && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_BadPFMuonFilter && Flag_eeBadScFilter'
+    else:
+        print('Check the Year !')
+        exit()
+    MET_Filter = '(isData ? '+MET_Filter_data+':'+MET_Filter_mc+')'
+    if str(year) == '2018':
+        ######  HEM 15/16 failure (2018)
         ph_in_hem1516='(ph_phi[0] > -1.57 && ph_phi[0] < -0.87 && ph_eta[0]<-1.3)'
         el_in_hem1516='(el_phi[0] > -1.57 && el_phi[0] < -0.87 && el_eta[0]<-1.3)'
         met_in_hem1516='(met_phi > -1.57 && met_phi < -0.87)'
@@ -264,11 +279,11 @@ def makeselstringlist(ch="el", phpt = 80, leppt = 35, met = 40, year=2016):
             weight=weight+'*(isData ? 1: '+'1-0.65*( '+ph_in_hem1516+'||'+el_in_hem1516+'||'+met_in_hem1516+' ) )'
         if ch=="mu":
             weight=weight+'*(isData ? 1: '+'1-0.65*( '+ph_in_hem1516+'||'+met_in_hem1516+' ) )'
-        sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto,sel_base_hem1516_m ] +  sel_ph
-        sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str, Zveto_str, deepjetveto,sel_base_hem1516_e] + sel_ph
+        sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto, MET_Filter, sel_base_hem1516_m ] +  sel_ph
+        sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str, Zveto_str, deepjetveto, MET_Filter, sel_base_hem1516_e] + sel_ph
     else:
-        sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto ] +  sel_ph
-        sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str, Zveto_str, deepjetveto] + sel_ph
+        sel_mu_nominal      = [sel_base_mu,  met_str, mu_pt, deepjetveto, MET_Filter ] +  sel_ph
+        sel_el_nominal      = [sel_base_el, el_eta, el_pt, el_tight, met_str, Zveto_str, deepjetveto, MET_Filter] + sel_ph
 
     if ch=="mu":
         return sel_mu_nominal, weight

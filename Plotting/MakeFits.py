@@ -162,6 +162,7 @@ def main() :
 
     if options.outputDir is None :
         options.outputDir = "/data/users/yihuilai/test_code/WG_Analysis_clean_clean/Plotting/data/wg"
+
     if options.outputDir is not None :
         if not os.path.isdir( options.outputDir ) :
             os.makedirs( options.outputDir )

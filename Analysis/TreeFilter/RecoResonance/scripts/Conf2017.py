@@ -266,9 +266,9 @@ def make_final_elg( alg_list, args) :
     filter_trig.cut_bits = ' == 2627 | == 48'
     alg_list.append( filter_trig )
 
-    #filtermet = filter_met()
+    filtermet = filter_met()
     #filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
-    #alg_list.append( filtermet )
+    alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
     filter_event.do_cutflow = True
@@ -323,9 +323,9 @@ def make_final_mug( alg_list, args) :
     filter_trig.cut_bits = ' == 10 '
     alg_list.append( filter_trig )
 
-    #filtermet = filter_met()
+    filtermet = filter_met()
     #filtermet.cut_metfilter_bits = ' ==1 & ==2 & ==7 & == 10 & ==12 & ==100 & ==101'
-    #alg_list.append( filtermet )
+    alg_list.append( filtermet )
 
     filter_event = Filter('FilterEvent')
     filter_event.cut_mu_pt30_n = ' == 1 '
