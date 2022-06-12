@@ -887,22 +887,29 @@ def filter_jet( jet_pt = ' > 30 ', jet_eta = '< 2.4', do_hists=False ) :
     filt.cut_pt = jet_pt
     #filt.cut_abseta = ' < 4.5 '
     filt.cut_eta = jet_eta
-    filt.cut_loose = ' == True '
+    #filt.cut_loose = ' == True '
+    filt.cut_tight = ' == True '
 
     filt.cut_muon_dr    = ' > 0.4 '
     filt.cut_electron_dr    = ' > 0.4 '
     filt.cut_photon_dr    = ' > 0.4 '
 
+    # From https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
+    # For -2.7 <= eta <= 2.7
+    # loose
     filt.cut_jet_nhf_central_loose = ' < 0.99 '
     filt.cut_jet_nemf_central_loose = ' < 0.99 '
     filt.cut_jet_nconst_central_loose = ' > 1'
+    # tight
     filt.cut_jet_nhf_central_tight = ' < 0.90 '
     filt.cut_jet_nemf_central_tight = ' < 0.90 '
     filt.cut_jet_nconst_central_tight = ' > 1'
+    # tightlep
     filt.cut_jet_nhf_central_tightlep = ' < 0.9 '
     filt.cut_jet_nemf_central_tightlep = ' < 0.9 '
     filt.cut_jet_nconst_central_tightlep = '> 1 '
     filt.cut_jet_muf_central_tightlep = '< 0.8 '
+    # For -2.4 <= eta <= 2.4 in addition apply
     filt.cut_jet_chf_central_loose = ' > 0'
     filt.cut_jet_cmult_central_loose = ' > 0 '
     filt.cut_jet_cemf_central_loose = ' < 0.99 '
@@ -912,12 +919,15 @@ def filter_jet( jet_pt = ' > 30 ', jet_eta = '< 2.4', do_hists=False ) :
     filt.cut_jet_chf_central_tightlep = ' > 0'
     filt.cut_jet_cmult_central_tightlep = ' > 0'
     filt.cut_jet_cemf_central_tightlep = ' < 0.90'
+    
+    # For 2.7 < abs(eta) <= 3.0
     filt.cut_jet_nhf_transition_loose = ' > 0.01 '
     filt.cut_jet_nemf_transition_loose = ' < 0.98 '
     filt.cut_jet_nmult_transition_loose = ' > 2 '
     filt.cut_jet_nhf_transition_tight = ' > 0.01 '
     filt.cut_jet_nemf_transition_tight = ' < 0.98 '
     filt.cut_jet_nmult_transition_tight = ' > 2 '
+    # For abs(eta) > 3.0
     filt.cut_jet_nemf_forward_loose = ' < 0.90 '
     filt.cut_jet_nmult_forward_loose = '> 10 '
     filt.cut_jet_nemf_forward_tight = ' < 0.90 '

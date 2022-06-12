@@ -2603,33 +2603,59 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
         bool pass_tightlep = true;
         bool btagged = false;
 
-        if( fabs( eta ) < 2.7 ) {
-            if( !config.PassFloat( "cut_jet_nhf_central_loose" , nhf  ) ) pass_loose = false;
-            if( !config.PassFloat( "cut_jet_nemf_central_loose", nemf ) ) pass_loose = false;
-            if( !config.PassInt  ( "cut_jet_nconst_central_loose", nconst ) ) pass_loose = false;
+        if( fabs( eta ) <= 2.7 ) {
+            if (_year!=2018){
+                if( !config.PassFloat( "cut_jet_nhf_central_loose" , nhf  ) ) pass_loose = false;
+                if( !config.PassFloat( "cut_jet_nemf_central_loose", nemf ) ) pass_loose = false;
+                if( !config.PassInt  ( "cut_jet_nconst_central_loose", nconst ) ) pass_loose = false;
+    
+                if( !config.PassFloat( "cut_jet_nhf_central_tight" , nhf  ) ) pass_tight = false;
+                if( !config.PassFloat( "cut_jet_nemf_central_tight", nemf ) ) pass_tight = false;
+                if( !config.PassInt  ( "cut_jet_nconst_central_tight", nconst ) ) pass_tight = false;
+    
+                if( !config.PassFloat( "cut_jet_nhf_central_tightlep" , nhf  ) ) pass_tightlep = false;
+                if( !config.PassFloat( "cut_jet_nemf_central_tightlep", nemf ) ) pass_tightlep = false;
+                if( !config.PassInt  ( "cut_jet_nconst_central_tightlep", nconst ) ) pass_tightlep = false;
+                if( !config.PassFloat  ( "cut_jet_muf_central_tightlep", muf ) ) pass_tightlep = false;
+                if( fabs( eta ) < 2.4 ) {
+                    if( !config.PassFloat( "cut_jet_chf_central_loose" , chf  ) ) pass_loose = false;
+                    if( !config.PassInt( "cut_jet_cmult_central_loose" , cmult  ) ) pass_loose = false;
+                    if( !config.PassFloat( "cut_jet_cemf_central_loose" , cemf ) ) pass_loose = false;
+    
+                    if( !config.PassFloat( "cut_jet_chf_central_tight" , chf  ) ) pass_tight = false;
+                    if( !config.PassInt( "cut_jet_cmult_central_tight" , cmult  ) ) pass_tight = false;
+                    if( !config.PassFloat( "cut_jet_cemf_central_tight" , cemf ) ) pass_tight = false;
+    
+                    if( !config.PassFloat( "cut_jet_chf_central_tightlep" , chf  ) ) pass_tightlep = false;
+                    if( !config.PassInt( "cut_jet_cmult_central_tightlep" , cmult  ) ) pass_tightlep = false;
+                    if( !config.PassFloat( "cut_jet_cemf_central_tightlep" , cemf ) ) pass_tightlep = false;
+                }
+            }else{
+                if( fabs( eta ) > 2.6 ) {
+                    if( !config.PassFloat( "cut_jet_nhf_central2_tight" , nhf  ) ) pass_tight = false;
+                    if( !config.PassFloat( "cut_jet_nemf_central2_tight", nemf ) ) pass_tight = false;
+                    if( !config.PassInt  ( "cut_jet_nconst_central2_tight", nconst ) ) pass_tight = false;
 
-            if( !config.PassFloat( "cut_jet_nhf_central_tight" , nhf  ) ) pass_tight = false;
-            if( !config.PassFloat( "cut_jet_nemf_central_tight", nemf ) ) pass_tight = false;
-            if( !config.PassInt  ( "cut_jet_nconst_central_tight", nconst ) ) pass_tight = false;
+                    if( !config.PassFloat( "cut_jet_nhf_central2_tightlep" , nhf  ) ) pass_tightlep = false;
+                    if( !config.PassFloat( "cut_jet_nemf_central2_tightlep", nemf ) ) pass_tightlep = false;
+                    if( !config.PassInt  ( "cut_jet_nconst_central2_tightlep", nconst ) ) pass_tightlep = false;
+                    if( !config.PassFloat  ( "cut_jet_muf_central2_tightlep", muf ) ) pass_tightlep = false;
+                }else{
 
-            if( !config.PassFloat( "cut_jet_nhf_central_tightlep" , nhf  ) ) pass_tightlep = false;
-            if( !config.PassFloat( "cut_jet_nemf_central_tightlep", nemf ) ) pass_tightlep = false;
-            if( !config.PassInt  ( "cut_jet_nconst_central_tightlep", nconst ) ) pass_tightlep = false;
-            if( !config.PassFloat  ( "cut_jet_muf_central_tightlep", muf ) ) pass_tightlep = false;
-            if( fabs( eta ) < 2.4 ) {
-                if( !config.PassFloat( "cut_jet_chf_central_loose" , chf  ) ) pass_loose = false;
-                if( !config.PassInt( "cut_jet_cmult_central_loose" , cmult  ) ) pass_loose = false;
-                if( !config.PassFloat( "cut_jet_cemf_central_loose" , cemf ) ) pass_loose = false;
-
-                if( !config.PassFloat( "cut_jet_chf_central_tight" , chf  ) ) pass_tight = false;
-                if( !config.PassInt( "cut_jet_cmult_central_tight" , cmult  ) ) pass_tight = false;
-                if( !config.PassFloat( "cut_jet_cemf_central_tight" , cemf ) ) pass_tight = false;
-
-                if( !config.PassFloat( "cut_jet_chf_central_tightlep" , chf  ) ) pass_tightlep = false;
-                if( !config.PassInt( "cut_jet_cmult_central_tightlep" , cmult  ) ) pass_tightlep = false;
-                if( !config.PassFloat( "cut_jet_cemf_central_tightlep" , cemf ) ) pass_tightlep = false;
+                    if( !config.PassFloat( "cut_jet_nhf_central_loose" , nhf  ) ) pass_loose = false;
+                    if( !config.PassFloat( "cut_jet_nemf_central_loose", nemf ) ) pass_loose = false;
+                    if( !config.PassInt  ( "cut_jet_nconst_central_loose", nconst ) ) pass_loose = false;
+    
+                    if( !config.PassFloat( "cut_jet_nhf_central_tight" , nhf  ) ) pass_tight = false;
+                    if( !config.PassFloat( "cut_jet_nemf_central_tight", nemf ) ) pass_tight = false;
+                    if( !config.PassInt  ( "cut_jet_nconst_central_tight", nconst ) ) pass_tight = false;
+    
+                    if( !config.PassFloat( "cut_jet_nhf_central_tightlep" , nhf  ) ) pass_tightlep = false;
+                    if( !config.PassFloat( "cut_jet_nemf_central_tightlep", nemf ) ) pass_tightlep = false;
+                    if( !config.PassInt  ( "cut_jet_nconst_central_tightlep", nconst ) ) pass_tightlep = false;
+                    if( !config.PassFloat  ( "cut_jet_muf_central_tightlep", muf ) ) pass_tightlep = false;
+                }
             }
-
         }
         else if( fabs( eta ) < 3.0 ) {
             if( !config.PassFloat( "cut_jet_nhf_transition_loose", nhf ) ) pass_loose = false;
@@ -2638,6 +2664,7 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
 
             if( !config.PassFloat( "cut_jet_nhf_transition_tight", nhf ) ) pass_tight = false;
             if( !config.PassFloat( "cut_jet_nemf_transition_tight", nemf ) ) pass_tight = false;
+            if( !config.PassFloat( "cut_jet_nemf_transition_tight2", nemf ) ) pass_tight = false;
             if( !config.PassInt( "cut_jet_nmult_transition_tight", nmult ) ) pass_tight = false;
 
         }
@@ -2647,10 +2674,12 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
 
             if( !config.PassFloat( "cut_jet_nemf_forward_tight", nemf ) ) pass_tight = false;
             if( !config.PassInt( "cut_jet_nmult_forward_tight", nmult ) ) pass_tight = false;
+            if( !config.PassInt( "cut_jet_nhf_forward_tight", nhf ) ) pass_tight = false;
         }
 
-        if( !config.PassBool( "cut_tight", pass_tight) ) continue;
-        if( !config.PassBool( "cut_loose", pass_loose) ) continue;
+        if( !config.PassBool( "cut_tight", pass_tight) ) continue; 
+        //if( !config.PassBool( "cut_loose", pass_loose) ) continue;
+        //if( !config.PassBool( "cut_tightlep", pass_tightlep) ) continue;
 
         TLorentzVector jetlv;
         jetlv.SetPtEtaPhiE( IN::jet_pt->at(idx), 
