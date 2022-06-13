@@ -2657,7 +2657,7 @@ void RunModule::FilterJet( ModuleConfig & config ) const {
 
             if( !config.PassFloat( "cut_jet_nhf_transition_tight", nhf ) ) pass_tight = false;
             if( !config.PassFloat( "cut_jet_nemf_transition_tight", nemf ) ) pass_tight = false;
-            if( !config.PassFloat( "cut_jet_nemf_transition_tight2", nemf ) ) pass_tight = false;
+            //if( !config.PassFloat( "cut_jet_nemf_transition_tight2", nemf ) ) pass_tight = false;
             if( !config.PassInt( "cut_jet_nmult_transition_tight", nmult ) ) pass_tight = false;
 
         }
