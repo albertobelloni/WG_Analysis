@@ -22,7 +22,6 @@
 
 int main(int argc, char **argv)
 {
-
     //TH1::AddDirectory(kFALSE);
     CmdOptions options = ParseOptions( argc, argv );
 
@@ -60,6 +59,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::mu_e_rc_up                             = 0;
     OUT::mu_pt_rc_down                          = 0;
     OUT::mu_e_rc_down                           = 0;
+    OUT::mu_pt_Sigma_up                            = 0;
+    OUT::mu_e_Sigma_up                             = 0;
+    OUT::mu_pt_Sigma_down                          = 0;
+    OUT::mu_e_Sigma_down                           = 0;
     OUT::mu_passTight                           = 0;
     OUT::mu_passMedium                          = 0;
     OUT::mu_passLoose                           = 0;
@@ -179,6 +182,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     OUT::met_MuonEnUpByHand_phi                 = 0;
     OUT::met_MuonEnDownByHand_pt                = 0;
     OUT::met_MuonEnDownByHand_phi               = 0;
+    OUT::met_MuonResUpByHand_pt             = 0;
+    OUT::met_MuonResUpByHand_phi            = 0;
+    OUT::met_MuonResDownByHand_pt           = 0;
+    OUT::met_MuonResDownByHand_phi          = 0;
     OUT::nu_z_solution_success                  = 0;
    
     OUT::leadjet_pt                             = 0;
@@ -360,6 +367,10 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mu_e_rc_up", &OUT::mu_e_rc_up            );
     outtree->Branch("mu_pt_rc_down", &OUT::mu_pt_rc_down            );
     outtree->Branch("mu_e_rc_down", &OUT::mu_e_rc_down            );
+    outtree->Branch("mu_pt_Sigma_up", &OUT::mu_pt_Sigma_up            );
+    outtree->Branch("mu_e_Sigma_up", &OUT::mu_e_Sigma_up            );
+    outtree->Branch("mu_pt_Sigma_down", &OUT::mu_pt_Sigma_down            );
+    outtree->Branch("mu_e_Sigma_down", &OUT::mu_e_Sigma_down            );
     outtree->Branch("mu_passTight", &OUT::mu_passTight            );
     outtree->Branch("mu_passMedium", &OUT::mu_passMedium           );
     outtree->Branch("mu_passLoose", &OUT::mu_passLoose            );
@@ -446,6 +457,8 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("mt_res_JetEnDown",         &OUT::mt_res_JetEnDown            ,"mt_res_JetEnDown/F" );
     outtree->Branch("mt_res_MuonEnUp",          &OUT::mt_res_MuonEnUp             ,"mt_res_MuonEnUp/F" );
     outtree->Branch("mt_res_MuonEnDown",        &OUT::mt_res_MuonEnDown           ,"mt_res_MuonEnDown/F" );
+    outtree->Branch("mt_res_MuonResUp",          &OUT::mt_res_MuonResUp             ,"mt_res_MuonResUp/F" );
+    outtree->Branch("mt_res_MuonResDown",        &OUT::mt_res_MuonResDown           ,"mt_res_MuonResDown/F" );
     outtree->Branch("mt_res_ElectronEnUp",      &OUT::mt_res_ElectronEnUp         ,"mt_res_ElectronEnUp/F" );
     outtree->Branch("mt_res_ElectronEnDown",    &OUT::mt_res_ElectronEnDown       ,"mt_res_ElectronEnDown/F" );
     outtree->Branch("mt_res_ElectronResUp",      &OUT::mt_res_ElectronResUp         ,"mt_res_ElectronResUp/F" );
@@ -476,6 +489,11 @@ void RunModule::initialize( TChain * chain, TTree * outtree, TFile *outfile,
     outtree->Branch("met_MuonEnUpByHand_phi", &OUT::met_MuonEnUpByHand_phi, "met_MuonEnUpByHand_phi/F");
     outtree->Branch("met_MuonEnDownByHand_pt", &OUT::met_MuonEnDownByHand_pt, "met_MuonEnDownByHand_pt/F");
     outtree->Branch("met_MuonEnDownByHand_phi", &OUT::met_MuonEnDownByHand_phi, "met_MuonEnDownByHand_phi/F");
+    outtree->Branch("met_MuonResUpByHand_pt", &OUT::met_MuonResUpByHand_pt, "met_MuonResUpByHand_pt/F");
+    outtree->Branch("met_MuonResUpByHand_phi", &OUT::met_MuonResUpByHand_phi, "met_MuonResUpByHand_phi/F");
+    outtree->Branch("met_MuonResDownByHand_pt", &OUT::met_MuonResDownByHand_pt, "met_MuonResDownByHand_pt/F");
+    outtree->Branch("met_MuonResDownByHand_phi", &OUT::met_MuonResDownByHand_phi, "met_MuonResDownByHand_phi/F");
+
     outtree->Branch("mt_lep_ph"        , &OUT::mt_lep_ph        , "mt_lep_ph/F"  );
     outtree->Branch("dphi_lep_ph"        , &OUT::dphi_lep_ph        , "dphi_lep_ph/F"  );
     outtree->Branch("dr_lep_ph"        , &OUT::dr_lep_ph        , "dr_lep_ph/F"  );
@@ -1107,6 +1125,10 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
     OUT::mu_e_rc_up              -> clear();
     OUT::mu_pt_rc_down              -> clear();
     OUT::mu_e_rc_down              -> clear();
+    OUT::mu_pt_Sigma_up              -> clear();
+    OUT::mu_e_Sigma_up              -> clear();
+    OUT::mu_pt_Sigma_down              -> clear();
+    OUT::mu_e_Sigma_down              -> clear();
     OUT::mu_passTight          -> clear();
     OUT::mu_passMedium         -> clear();
     OUT::mu_passLoose          -> clear();
@@ -1279,9 +1301,64 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 	      float ptrc_up = pt*(rcsfs + rcsfserr); // vary RC up
 	      float ptrc_down = pt*(rcsfs - rcsfserr); // vary RC down
 
-        if( !config.PassFloat( "cut_pt", ptrc   ) ) continue;
-        if( !config.PassFloat( "cut_eta", fabs(eta) ) ) continue;
 
+
+        ///// additional muon energy smearing according to https://twiki.cern.ch/twiki/bin/view/CMS/MuonPOG
+        TLorentzVector mulv;
+        mulv.SetPtEtaPhiM( ptrc,
+                           IN::mu_eta->at(idx),
+                           IN::mu_phi->at(idx),
+                           0.1057
+                           );
+        float muon_smear_sig = 0;
+        float muon_smear_a=0;
+        float muon_smear_b=0;
+        float muon_smear_c=0;
+        float muon_smear_d=0;
+        float muon_smear_e=0;
+        float ptSig_up = ptrc;
+        float ptSig_down = ptrc;
+        if( !OUT::isData) {
+            if (_year==2018){
+                if(fabs(eta)<1.2){
+                    muon_smear_a=0.0062; muon_smear_b=0.000096; muon_smear_c=-9.7e-8; muon_smear_d=4.9e-11; muon_smear_e=-9e-15;
+                }else if(fabs(eta)<2.1){
+                    muon_smear_a=0.0136; muon_smear_b=0.000052; muon_smear_c=-2.4e-8; muon_smear_d=5.0e-12; muon_smear_e=0;
+                }else if(fabs(eta)<2.4){
+                    muon_smear_a=0.0174; muon_smear_b=0.000087; muon_smear_c=-3.3e-9; muon_smear_d=-1.6e-11; muon_smear_e=5e-15;
+                }
+            }else if(_year==2017){
+                if(fabs(eta)<1.2){
+                    muon_smear_a=0.0053; muon_smear_b=0.00011; muon_smear_c=-1.3e-7; muon_smear_d=6.9e-11; muon_smear_e=-1.3e-14;
+                }else if(fabs(eta)<2.1){
+                    muon_smear_a=0.0136; muon_smear_b=0.000063; muon_smear_c=-2.6e-8; muon_smear_d=-1.3e-12; muon_smear_e=3e-15;
+                }else if(fabs(eta)<2.4){
+                    muon_smear_a=0.0170; muon_smear_b=0.000084; muon_smear_c=+2.6e-9; muon_smear_d=-2.3e-11; muon_smear_e=8e-15;
+                }
+            }else if(_year==2016){
+                if(fabs(eta)<1.2){
+                    muon_smear_a=0.0062; muon_smear_b=0.0001; muon_smear_c=-1.0e-7; muon_smear_d=5.7e-11; muon_smear_e=-1.1e-14;
+                }else if(fabs(eta)<2.1){
+                    muon_smear_a=0.0134; muon_smear_b=0.000063; muon_smear_c=-4.7e-8; muon_smear_d=2.6e-11; muon_smear_e=-5e-15;
+                }else if(fabs(eta)<2.4){
+                    muon_smear_a=0.0151; muon_smear_b=0.000114; muon_smear_c=-3.7e-8; muon_smear_d=3.9e-12; muon_smear_e=1e-15;
+                }
+            }else{
+                std::cout<<"Wrong Year setting in Muon smearing!!! "<<std::endl;
+            }
+            muon_smear_sig = (muon_smear_a + muon_smear_b*mulv.P() + muon_smear_c*pow(mulv.P(),2) + muon_smear_d*pow(mulv.P(),3) + muon_smear_e*pow(mulv.P(),4));
+            // Additional 15% smearing for 2017,2018
+            if(_year!=2016){
+                ptrc = ptrc*(1+rndm.Gaus(0, muon_smear_sig*0.57) );
+            }
+            // 10% uncertainty and one-sided
+            ptSig_down = ptrc;
+            ptSig_up = ptrc*(1+rndm.Gaus(0, muon_smear_sig*0.46) );
+        }
+
+        if( !config.PassFloat( "cut_pt", ptrc   ) ) continue;
+
+        if( !config.PassFloat( "cut_eta", fabs(eta) ) ) continue;
         bool isPfMu = IN::mu_isPf->at(idx);
         bool isGloMu = IN::mu_isGlobal->at(idx);
         bool isTkMu = IN::mu_isTracker->at(idx);
@@ -1372,7 +1449,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         if( !config.PassBool( "cut_id_Tight",      IN::mu_isTight->at(idx)) ) continue;
         if( !config.PassFloat("cut_pfiso_tight",   IN::mu_pfIso->at(idx))   ) continue;
 
-        TLorentzVector mulv;
+        //TLorentzVector mulv;
         mulv.SetPtEtaPhiM( ptrc,
                            IN::mu_eta->at(idx),
                            IN::mu_phi->at(idx),
@@ -1388,6 +1465,20 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
 
         TLorentzVector mulv_down;
         mulv_down.SetPtEtaPhiM( ptrc_down,
+                           IN::mu_eta->at(idx),
+                           IN::mu_phi->at(idx),
+                           0.1057
+                           );
+
+        TLorentzVector mulv_Sigup;
+        mulv_Sigup.SetPtEtaPhiM( ptSig_up,
+                           IN::mu_eta->at(idx),
+                           IN::mu_phi->at(idx),
+                           0.1057
+                           );
+
+        TLorentzVector mulv_Sigdown;
+        mulv_Sigdown.SetPtEtaPhiM( ptSig_down,
                            IN::mu_eta->at(idx),
                            IN::mu_phi->at(idx),
                            0.1057
@@ -1454,7 +1545,10 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
         OUT::mu_e_rc_up->push_back( mulv_up.E() );
         OUT::mu_pt_rc_down->push_back( ptrc_down );
         OUT::mu_e_rc_down->push_back( mulv_down.E() );
-
+        OUT::mu_pt_Sigma_up->push_back( ptSig_up );
+        OUT::mu_e_Sigma_up->push_back( mulv_Sigup.E() );
+        OUT::mu_pt_Sigma_down->push_back( ptSig_down );
+        OUT::mu_e_Sigma_down->push_back( mulv_Sigdown.E() );
         if( ptrc > 20 ) {
             OUT::mu_pt20_n++;
         }
@@ -2947,6 +3041,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::mt_res_JetEnDown =0;
     OUT::mt_res_MuonEnUp =0;
     OUT::mt_res_MuonEnDown =0;
+    OUT::mt_res_MuonResUp =0;
+    OUT::mt_res_MuonResDown =0;
     OUT::mt_res_ElectronEnUp =0;
     OUT::mt_res_ElectronEnDown =0;
     OUT::mt_res_ElectronResUp =0;
@@ -2995,6 +3091,10 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     OUT::met_MuonEnUpByHand_phi = 0;
     OUT::met_MuonEnDownByHand_pt = 0;
     OUT::met_MuonEnDownByHand_phi = 0;
+    OUT::met_MuonResUpByHand_pt = 0;
+    OUT::met_MuonResUpByHand_phi = 0;
+    OUT::met_MuonResDownByHand_pt = 0;
+    OUT::met_MuonResDownByHand_phi = 0;
 
     OUT::leadjet_pt = 0;
     OUT::subljet_pt = 0;
@@ -3044,6 +3144,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     TLorentzVector metlv_UnclusteredEnDown;
     TLorentzVector metlv_MuonEnUp;
     TLorentzVector metlv_MuonEnDown;
+    TLorentzVector metlv_MuonResUp;
+    TLorentzVector metlv_MuonResDown;
     TLorentzVector metlv_ElectronEnUp;
     TLorentzVector metlv_ElectronEnDown;
     TLorentzVector metlv_ElectronResUp;
@@ -3069,6 +3171,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     // Will use 4vecs for convenience, set mass=0 again later
     metlv_MuonEnUp.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     metlv_MuonEnDown.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
+    metlv_MuonResUp.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
+    metlv_MuonResDown.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     metlv_ElectronEnUp.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     metlv_ElectronEnDown.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
     metlv_ElectronResUp.SetPtEtaPhiM( OUT::met_pt, 0.0, OUT::met_phi, 0.0 );
@@ -3081,6 +3185,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
     std::vector<TLorentzVector> leptons;
     std::vector<TLorentzVector> leptons_MuEn_up;
     std::vector<TLorentzVector> leptons_MuEn_down;
+    std::vector<TLorentzVector> leptons_MuRes_up;
+    std::vector<TLorentzVector> leptons_MuRes_down;
     std::vector<TLorentzVector> leptons_ElEn_up;
     std::vector<TLorentzVector> leptons_ElEn_down;
     std::vector<TLorentzVector> leptons_ElRes_up;
@@ -3095,7 +3201,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
         TLorentzVector tlv;
         TLorentzVector tlv_up;
         TLorentzVector tlv_down;
-
+        TLorentzVector tlv_res_up;
+        TLorentzVector tlv_res_down;
         tlv.SetPtEtaPhiE( OUT::mu_pt_rc->at(idx), 
                           OUT::mu_eta->at(idx), 
                           OUT::mu_phi->at(idx), 
@@ -3108,24 +3215,41 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
                           OUT::mu_eta->at(idx), 
                           OUT::mu_phi->at(idx), 
                           OUT::mu_e_rc_down->at(idx) );
-
+        tlv_res_up.SetPtEtaPhiE( OUT::mu_pt_Sigma_up->at(idx),
+                          OUT::mu_eta->at(idx),
+                          OUT::mu_phi->at(idx),
+                          OUT::mu_e_Sigma_up->at(idx) );
+        tlv_res_down.SetPtEtaPhiE( OUT::mu_pt_Sigma_down->at(idx),
+                          OUT::mu_eta->at(idx),
+                          OUT::mu_phi->at(idx),
+                          OUT::mu_e_Sigma_down->at(idx) );
         leptons.push_back(tlv);
         leptons_MuEn_up.push_back(tlv_up);
         leptons_MuEn_down.push_back(tlv_down);
+        leptons_MuRes_up.push_back(tlv_res_up);
+        leptons_MuRes_down.push_back(tlv_res_down);
         leptons_ElEn_up.push_back(tlv);
         leptons_ElEn_down.push_back(tlv);
         leptons_ElRes_up.push_back(tlv);
         leptons_ElRes_down.push_back(tlv);
-
         metlv_MuonEnUp   = metlv_MuonEnUp   + tlv - tlv_up;
         metlv_MuonEnDown = metlv_MuonEnDown + tlv - tlv_down;
+        metlv_MuonResUp   = metlv_MuonResUp   + tlv - tlv_res_up;
+        metlv_MuonResDown = metlv_MuonResDown + tlv - tlv_res_down;
+
     }
     metlv_MuonEnUp.SetPtEtaPhiM(   metlv_MuonEnUp.Pt(),   0.0, metlv_MuonEnUp.Phi(),   0.0 );
     metlv_MuonEnDown.SetPtEtaPhiM( metlv_MuonEnDown.Pt(), 0.0, metlv_MuonEnDown.Phi(), 0.0 );
+    metlv_MuonResUp.SetPtEtaPhiM(   metlv_MuonResUp.Pt(),   0.0, metlv_MuonResUp.Phi(),   0.0 );
+    metlv_MuonResDown.SetPtEtaPhiM( metlv_MuonResDown.Pt(), 0.0, metlv_MuonResDown.Phi(), 0.0 );
     OUT::met_MuonEnUpByHand_pt = metlv_MuonEnUp.Pt();
     OUT::met_MuonEnUpByHand_phi = metlv_MuonEnUp.Phi();
     OUT::met_MuonEnDownByHand_pt = metlv_MuonEnDown.Pt();
     OUT::met_MuonEnDownByHand_phi = metlv_MuonEnDown.Phi();
+    OUT::met_MuonResUpByHand_pt = metlv_MuonResUp.Pt();
+    OUT::met_MuonResUpByHand_phi = metlv_MuonResUp.Phi();
+    OUT::met_MuonResDownByHand_pt = metlv_MuonResDown.Pt();
+    OUT::met_MuonResDownByHand_phi = metlv_MuonResDown.Phi();
 
     for( int idx = 0; idx < OUT::el_n; ++idx ) {
         TLorentzVector tlv;
@@ -3157,6 +3281,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
         leptons.push_back(tlv);
         leptons_MuEn_up.push_back(tlv);
         leptons_MuEn_down.push_back(tlv);
+        leptons_MuRes_up.push_back(tlv);
+        leptons_MuRes_down.push_back(tlv);
         leptons_ElEn_up.push_back(tlv_up);
         leptons_ElEn_down.push_back(tlv_down);
         leptons_ElRes_up.push_back(tlv_res_up);
@@ -3289,6 +3415,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             TLorentzVector lep_trans; 
             TLorentzVector lep_trans_MuEn_up; 
             TLorentzVector lep_trans_MuEn_down; 
+            TLorentzVector lep_trans_MuRes_up;
+            TLorentzVector lep_trans_MuRes_down;
             TLorentzVector lep_trans_ElEn_up; 
             TLorentzVector lep_trans_ElEn_down; 
             TLorentzVector lep_trans_ElRes_up;
@@ -3302,6 +3430,9 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             lep_trans.SetPtEtaPhiM( leptons[0].Pt(), 0.0, leptons[0].Phi(), leptons[0].M() );
             lep_trans_MuEn_up  .SetPtEtaPhiM( leptons_MuEn_up[0].Pt(),   0.0, leptons_MuEn_up[0].Phi(),   leptons_MuEn_up[0].M() );
             lep_trans_MuEn_down.SetPtEtaPhiM( leptons_MuEn_down[0].Pt(), 0.0, leptons_MuEn_down[0].Phi(), leptons_MuEn_down[0].M() );
+            lep_trans_MuRes_up  .SetPtEtaPhiM( leptons_MuRes_up[0].Pt(),   0.0, leptons_MuRes_up[0].Phi(),   leptons_MuRes_up[0].M() );
+            lep_trans_MuRes_down.SetPtEtaPhiM( leptons_MuRes_down[0].Pt(), 0.0, leptons_MuRes_down[0].Phi(), leptons_MuRes_down[0].M() );
+
             lep_trans_ElEn_up  .SetPtEtaPhiM( leptons_ElEn_up[0].Pt(),   0.0, leptons_ElEn_up[0].Phi(),   leptons_ElEn_up[0].M() );
             lep_trans_ElEn_down.SetPtEtaPhiM( leptons_ElEn_down[0].Pt(), 0.0, leptons_ElEn_down[0].Phi(), leptons_ElEn_down[0].M() );
             lep_trans_ElRes_up  .SetPtEtaPhiM( leptons_ElRes_up[0].Pt(),   0.0, leptons_ElRes_up[0].Phi(),   leptons_ElRes_up[0].M() );
@@ -3327,6 +3458,8 @@ void RunModule::BuildEventVars( ModuleConfig & config ) const {
             OUT::mt_res_ElectronResDown = ( lep_trans_ElRes_down + ph_trans + metlv_ElectronResDown ).M();
             OUT::mt_res_MuonEnUp     = ( lep_trans_MuEn_up + ph_trans + metlv_MuonEnUp   ).M();
             OUT::mt_res_MuonEnDown   = ( lep_trans_MuEn_down + ph_trans + metlv_MuonEnDown ).M();
+            OUT::mt_res_MuonResUp   = ( lep_trans_MuRes_up   + ph_trans + metlv_MuonResUp   ).M();
+            OUT::mt_res_MuonResDown = ( lep_trans_MuRes_down + ph_trans + metlv_MuonResDown ).M();
             OUT::mt_res_PhotonEnUp   = ( lep_trans + ph_trans_PhEn_up + metlv_PhotonEnUp   ).M();
             OUT::mt_res_PhotonEnDown = ( lep_trans + ph_trans_PhEn_down + metlv_PhotonEnDown ).M();
             OUT::mt_res_PhotonResUp   = ( lep_trans + ph_trans_PhRes_up   + metlv_PhotonResUp   ).M();

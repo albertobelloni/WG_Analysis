@@ -12,7 +12,7 @@
 #include "TLorentzVector.h"
 #include "include/RoccoR.h"
 #include "include/BranchDefs.h"
-
+#include "TRandom3.h"
 // The RunModule inherits from RunModuleBase (an Abstract Base Class )
 // defined in the Core package so that all
 // RunModules present a common interface in a Run function
@@ -42,6 +42,7 @@ class RunModule : public virtual RunModuleBase {
         bool ApplyModule         ( ModuleConfig & config ) ;
 
         void FilterMuon          ( ModuleConfig & config ) ;
+        TRandom3 rndm;
         void FilterElectron      ( ModuleConfig & config ) ;
         void FilterPhoton        ( ModuleConfig & config ) ;
         void FilterJet           ( ModuleConfig & config ) const;
@@ -127,6 +128,10 @@ namespace OUT {
     std::vector<float> *mu_e_rc_up;
     std::vector<float> *mu_pt_rc_down;
     std::vector<float> *mu_e_rc_down;
+    std::vector<float> *mu_pt_Sigma_up;
+    std::vector<float> *mu_e_Sigma_up;
+    std::vector<float> *mu_pt_Sigma_down;
+    std::vector<float> *mu_e_Sigma_down;
     std::vector<Bool_t> *mu_passTight;
     std::vector<Bool_t> *mu_passMedium;
     std::vector<Bool_t> *mu_passLoose;
@@ -213,6 +218,8 @@ namespace OUT {
     float mt_res_JetEnDown;
     float mt_res_MuonEnUp;
     float mt_res_MuonEnDown;
+    float mt_res_MuonResUp;
+    float mt_res_MuonResDown;
     float mt_res_ElectronEnUp;
     float mt_res_ElectronEnDown;
     float mt_res_ElectronResUp;
@@ -263,6 +270,10 @@ namespace OUT {
     float met_MuonEnUpByHand_phi;
     float met_MuonEnDownByHand_pt;
     float met_MuonEnDownByHand_phi;
+    float met_MuonResUpByHand_pt;
+    float met_MuonResUpByHand_phi;
+    float met_MuonResDownByHand_pt;
+    float met_MuonResDownByHand_phi;
     Bool_t nu_z_solution_success;
 
     float leadjet_pt;
