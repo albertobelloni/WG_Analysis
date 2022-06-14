@@ -1347,13 +1347,17 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
                 std::cout<<"Wrong Year setting in Muon smearing!!! "<<std::endl;
             }
             muon_smear_sig = (muon_smear_a + muon_smear_b*mulv.P() + muon_smear_c*pow(mulv.P(),2) + muon_smear_d*pow(mulv.P(),3) + muon_smear_e*pow(mulv.P(),4));
-            // Additional 15% smearing for 2017,2018
-            if(_year!=2016){
+            // Additional 15% smearing for 2017,2018 |eta|>1.2
+            ptSig_down = ptrc;
+            if(_year!=2016 && fabs(eta)>1.2){
                 ptrc = ptrc*(1+rndm.Gaus(0, muon_smear_sig*0.57) );
             }
             // 10% uncertainty and one-sided
-            ptSig_down = ptrc;
-            ptSig_up = ptrc*(1+rndm.Gaus(0, muon_smear_sig*0.46) );
+            if(ptrc>120){
+                ptSig_up = ptrc*(1+rndm.Gaus(0, muon_smear_sig*0.46) );
+            }else{
+                ptSig_up = ptrc;
+            }
         }
 
         if( !config.PassFloat( "cut_pt", ptrc   ) ) continue;
