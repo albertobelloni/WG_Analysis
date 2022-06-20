@@ -196,6 +196,10 @@ if options.year==2016: jobs=jobs2016
 if options.year==2017: jobs=jobs2017
 if options.year==2018: jobs=jobs2018 
 
+if options.test:
+    jobs = JobConf(base, 'TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8', year=2016)
+    input_dirs = ['LepGamma_elg']
+
 if options.all:
     # grab all samples in directory
     samplelist = []
@@ -205,7 +209,7 @@ if options.all:
 
     jobs = []
     for sample in sampleset:
-        if sample == 'WithSF':
+        if 'WithSF' in sample:
             continue
         if options.onlyMissing and os.path.isdir(base+'/'+input_dir+jobtag+'/WithSF/'+sample):
             continue
@@ -223,6 +227,10 @@ options.enableKeepFilter=False
 
 configs = []
 
+output_dir = '/WithSF'
+if options.test:
+    output_dir = '/WithSF_test'
+
 ### ATTENTION! Here you specify the types of scale factors you want to calculate and save.
 ### In the data folder and in scripts/Conf.py, make sure that the scale factor files you use are correct and up to date!
 for input_dir in input_dirs:
@@ -232,7 +240,7 @@ for input_dir in input_dirs:
                      #'args'        : {'functions' : 'get_muon_sf,get_electron_sf,get_photon_sf,get_pileup_sf' },
                      'args'        : {'functions' : 'get_muon_sf,get_photon_sf,get_electron_sf,get_bjet_sf'},
                      'input'       : input_dir+jobtag,
-                     'output'      : base + input_dir+jobtag + '/WithSF',
+                     'output'      : base + input_dir+jobtag + output_dir,
                      'tag'         : 'FinalSF'
                     },
 

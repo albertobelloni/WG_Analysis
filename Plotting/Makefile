@@ -22,14 +22,14 @@ plots :
 	python MakePlots.py --baseDirMu ${DIR_MU} --baseDirEl ${DIR_EL} --baseDirMuG ${DIR_MUG} --baseDirElG ${DIR_ELG}  --baseDirMuGNoId ${DIR_MUGNoId} --baseDirElGNoId ${DIR_ELGNoId} --baseDirMuMu ${DIR_MUMU} --baseDirElEl ${DIR_ELEL} --baseDirNoFilt ${DIR_SIGTruth} --makeSR --outputDir ${OUTPUTMAIN}/Plots
 
 zcr:
-	nohup nice python3 MakePlots.py --makeZCR --year 2016 > makeZCR2016.out 2>&1 &
-	nohup nice python3 MakePlots.py --makeZCR --year 2017 > makeZCR2017.out 2>&1 &
-	nohup nice python3 MakePlots.py --makeZCR --year 2018 > makeZCR2018.out 2>&1 &
+	nohup nice python3 -u MakePlots.py --makeZCR --year 2016 > makeZCR2016.out 2>&1 &
+	nohup nice python3 -u MakePlots.py --makeZCR --year 2017 > makeZCR2017.out 2>&1 &
+	nohup nice python3 -u MakePlots.py --makeZCR --year 2018 > makeZCR2018.out 2>&1 &
 
 wcr:
-	nohup nice python3 MakePlots.py --makeWCR --year 2016 > makeWCR2016.out 2>&1 &
-	nohup nice python3 MakePlots.py --makeWCR --year 2017 > makeWCR2017.out 2>&1 &
-	nohup nice python3 MakePlots.py --makeWCR --year 2018 > makeWCR2018.out 2>&1 &
+	nohup nice python3 -u MakePlots.py --makeWCR --year 2016 > makeWCR2016.out 2>&1 &
+	nohup nice python3 -u MakePlots.py --makeWCR --year 2017 > makeWCR2017.out 2>&1 &
+	nohup nice python3 -u MakePlots.py --makeWCR --year 2018 > makeWCR2018.out 2>&1 &
 
 control:
 	make zcr
