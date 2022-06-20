@@ -269,8 +269,10 @@ bool RunModule::FilterHLT( ModuleConfig & config ) const {
 #endif
 
 #ifdef EXISTS_HLT_Photon200
+#ifdef EXISTS_HLT_Ele35_WPTight_Gsf
     if(OUT::HLT_Photon200 && !(OUT::HLT_Ele35_WPTight_Gsf || OUT::HLT_Ele32_WPTight_Gsf_L1DoubleEG || OUT::HLT_Ele32_WPTight_Gsf_L1DoubleEG_hltEGL1SingleEGOrFilter))
         keep_event = true;
+#endif
 #endif
 
     return keep_event;
