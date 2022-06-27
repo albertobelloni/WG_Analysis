@@ -1349,7 +1349,7 @@ void RunModule::FilterMuon( ModuleConfig & config ) {
             muon_smear_sig = (muon_smear_a + muon_smear_b*mulv.P() + muon_smear_c*pow(mulv.P(),2) + muon_smear_d*pow(mulv.P(),3) + muon_smear_e*pow(mulv.P(),4));
             // Additional 15% smearing for 2017,2018 |eta|>1.2
             ptSig_down = ptrc;
-            if(_year!=2016 && fabs(eta)>1.2){
+            if(_year!=2016 && fabs(eta)>1.2 && ptrc>120){
                 ptrc = ptrc*(1+rndm.Gaus(0, muon_smear_sig*0.57) );
             }
             // 10% uncertainty and one-sided
